@@ -57,18 +57,21 @@ def get_session_type(recording_directory):
     parameters = param_file_reader.readlines()
     parameters = list([x.strip() for x in parameters])
     session_type = parameters[0]
-    if session_type == 'vr':
-        is_vr = True
-        is_open_field = False
-    elif session_type == 'openfield':
-        is_vr = False
-        is_open_field = True
-    else:
-        print('Session type is not specified. '
-              'You need to write vr or openfield in the first line of the parameters.txt file. '
-              'You put {} there.'.format(session_type))
-        is_vr = False
-        is_open_field = False
+    try:
+        if session_type == 'vr':
+            is_vr = True
+            is_open_field = False
+        elif session_type == 'openfield':
+            is_vr = False
+            is_open_field = True
+        else:
+            print('Session type is not specified. '
+                  'You need to write vr or openfield in the first line of the parameters.txt file. '
+                  'You put {} there.'.format(session_type))
+            is_vr = False
+            is_open_field = False
+    except Exception as ex:
+        print('There is a problem with the parameter file.')
     return is_vr, is_open_field
 
 

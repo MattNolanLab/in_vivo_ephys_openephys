@@ -49,9 +49,10 @@ def write_bash_script_for_sorting(prm):
 
         sort_command_curate = 'mlp-run ' + pipeline_path + ' sort' + ' --raw=' + mda_path + ' --geom=' + geom_path + ' --firings_out=' + firings_out_curated_path + ' --_params=' + params_path + ' --curate=true' + ' --cluster_metrics_out=' + metrics_path
 
-        # batch_writer.write('echo "Now with curation."\n')
+        batch_writer.write('echo "**************************************************************"\n')
+        batch_writer.write('echo "Now with curation."\n')
 
-        # batch_writer.write(sort_command_curate + '\n')
+        batch_writer.write(sort_command_curate + '\n')
 
 
 def write_bash_script_for_sorting_all_tetrodes(prm):
@@ -98,9 +99,9 @@ def write_bash_script_for_sorting_all_tetrodes(prm):
 
     sort_command_curate = 'mlp-run ' + pipeline_path + ' sort' + ' --raw=' + mda_path + ' --geom=' + geom_path + ' --firings_out=' + firings_out_curated_path + ' --_params=' + params_path + ' --curate=true' + ' --cluster_metrics_out=' + metrics_path
 
-    # batch_writer.write('echo "Now with curation."\n')
+    batch_writer.write('echo "Now with curation."\n')
 
-    # batch_writer.write(sort_command_curate + '\n')
+    batch_writer.write(sort_command_curate + '\n')
 
 
 def create_sorting_folder_structure_separate_tetrodes(prm):
