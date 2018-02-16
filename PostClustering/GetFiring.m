@@ -1,4 +1,4 @@
-function [spikeind,tetid,cluid,waveforms,whiteforms] = GetFiring(separate_tetrodes,electrodes)
+function [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,electrodes)
 % reads the firings file and raw file and extracts:
 % the information that would be in a .clu file
 % the matrix of waveforms
@@ -69,9 +69,9 @@ clear firings
 fname=strcat(char(curpath(p)), 'filt.mda');
 disp('Reading filtered waveform data');
 raw=readmda(fname);
-fname=strcat(char(curpath(p)), 'pre.mda');
-disp('Reading whitened waveform data');
-white=readmda(fname);
+% fname=strcat(char(curpath(p)), 'pre.mda');
+% disp('Reading whitened waveform data');
+% white=readmda(fname);
 
 %% get rid of spikes right at the start of recording or right at the end (first 0.3msec + last msec)
 channeltet(spikeindtet<10)=[]; channeltet(spikeindtet>length(raw)-30)=[];
@@ -87,10 +87,10 @@ for i=1:length(cluidtet)
     waveforms(3,1:40,numprev+i)=raw(ch3,spikeindtet(i)-9:spikeindtet(i)+30);
     waveforms(4,1:40,numprev+i)=raw(ch4,spikeindtet(i)-9:spikeindtet(i)+30);
     
-    whiteforms(1,1:40,numprev+i)=white(ch1,spikeindtet(i)-9:spikeindtet(i)+30);
-    whiteforms(2,1:40,numprev+i)=white(ch2,spikeindtet(i)-9:spikeindtet(i)+30);
-    whiteforms(3,1:40,numprev+i)=white(ch3,spikeindtet(i)-9:spikeindtet(i)+30);
-    whiteforms(4,1:40,numprev+i)=white(ch4,spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(1,1:40,numprev+i)=white(ch1,spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(2,1:40,numprev+i)=white(ch2,spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(3,1:40,numprev+i)=white(ch3,spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(4,1:40,numprev+i)=white(ch4,spikeindtet(i)-9:spikeindtet(i)+30);
 end    
 elseif separate_tetrodes==0
     tetidtet2=ceil(channeltet./4);
@@ -103,10 +103,10 @@ for i=1:length(cluidtet)
     waveforms(3,1:40,numprev+i)=raw(ch3+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
     waveforms(4,1:40,numprev+i)=raw(ch4+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
     
-    whiteforms(1,1:40,numprev+i)=white(ch1+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
-    whiteforms(2,1:40,numprev+i)=white(ch2+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
-    whiteforms(3,1:40,numprev+i)=white(ch3+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
-    whiteforms(4,1:40,numprev+i)=white(ch4+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(1,1:40,numprev+i)=white(ch1+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(2,1:40,numprev+i)=white(ch2+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(3,1:40,numprev+i)=white(ch3+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
+%     whiteforms(4,1:40,numprev+i)=white(ch4+((tetidtet2(i)-1)*4),spikeindtet(i)-9:spikeindtet(i)+30);
 end        
 end
 

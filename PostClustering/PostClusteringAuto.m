@@ -8,6 +8,8 @@
 %% post-sorting analysis for open-ephys data with bonsai or axona position data
 %% that has been sorted with MountainSort
 %% it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
+try
+copy=1;
 GSQ=0;
 % find input parameters
 fid=fopen('home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/PostClusteringParams.txt','r');
@@ -21,6 +23,7 @@ mkdir(outfile,'Figures');
 cd(path);
 
 %% copy raw to server
+if copy==1;
 disp('Copying mda files to datastore');
 mkdir(outfile,'mdafiles');
 copyfile('Electrophysiology/Spike_sorting/all_tetrodes/data/filt.mda',strcat(outfile,'/mdafiles/all_filt.mda'));
@@ -34,6 +37,7 @@ copyfile('Electrophysiology/Spike_sorting/t1/data/firings.mda',strcat(outfile,'/
 copyfile('Electrophysiology/Spike_sorting/t2/data/firings.mda',strcat(outfile,'/mdafiles/T2_firings.mda'));
 copyfile('Electrophysiology/Spike_sorting/t3/data/firings.mda',strcat(outfile,'/mdafiles/T3_firings.mda'));
 copyfile('Electrophysiology/Spike_sorting/t4/data/firings.mda',strcat(outfile,'/mdafiles/T4_firings.mda'));
+end
 %% Initial Variables
 %pname='Tracking_20171216.csv'; %comment out this line if the bonsai name is normal
 CreateFolders % creates the /Data and /Figures folders
@@ -124,9 +128,9 @@ for separate_tetrodes=0:1 % make plots for both all-tetrodes and separate
     mkdir(strcat('Figures',num2str(separate_tetrodes)));
 %% Get Spike Data
 if electrodes==0
-    [spikeind,tetid,cluid,waveforms,whiteforms] = GetFiring(separate_tetrodes);
+    [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes);
 else
-    [spikeind,tetid,cluid,waveforms,whiteforms] = GetFiring(separate_tetrodes,electrodes);
+    [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,electrodes);
 end
 
 numclu=length(unique(cluid)); % how many clusters are present
@@ -141,7 +145,7 @@ disp(strcat('Found-',num2str(numclu),' clusters, across-',num2str(numtet),' tetr
 tetid(spikeind>length(timestamps))=[];
 cluid(spikeind>length(timestamps))=[];
 waveforms(:,:,spikeind>length(timestamps))=[];
-whiteforms(:,:,spikeind>length(timestamps))=[];
+%whiteforms(:,:,spikeind>length(timestamps))=[];
 spikeind(spikeind>length(timestamps))=[];
 if OpenField==1
 %% trim pos data to length of ephys data
@@ -183,7 +187,7 @@ for i=1:numclu
     tet=tetid(cluid==i);
     if max(tet)==min(tet); tet=max(tet); else; tet=mode(tet); disp('Error, cluster not on one tetrode');end
     cluwaves=waveforms(:,:,cluid==i);
-    cluwhites=whiteforms(:,:,cluid==i);
+    %cluwhites=whiteforms(:,:,cluid==i);
     
     if OpenField==1 % only do this if it's an open field session
         %% find spike positions
@@ -263,7 +267,7 @@ end
 end
 %% copy data to server
 
-
+disp('copying figures to server');
 copyfile('datasave0.mat',strcat(outfile,'datasave_all.mat'));
 copyfile('datasave1.mat',strcat(outfile,'datasave_separate.mat'));
 copyfile('Figures0/*.fig',strcat(outfile,'/SortingFigures_all_M'));
@@ -271,6 +275,13 @@ copyfile('Figures0/*.png',strcat(outfile,'/SortingFigures_all_PNG'));
 copyfile('Figures1/*.fig',strcat(outfile,'/SortingFigures_separate_M'));
 copyfile('Figures1/*.png',strcat(outfile,'/SortingFigures_separate_PNG'));
 
-disp('finished running matlab script');
+disp('finished running matlab script, returning control to python');
 clear variables
 exit
+catch
+    disp('Matlab script failed, returning control to python');
+    fid = fopen( 'matlabcrash.txt', 'wt' );
+    fclose(fid);
+    clear variables
+    exit
+end

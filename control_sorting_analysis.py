@@ -10,6 +10,7 @@ import pre_process_ephys_data
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
+to_sort_folder = '/home/nolanlab/to_sort/'
 server_path_first_half = '/run/user/1001/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
 # server_path_fist_half_matlab = 'smb://cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
@@ -109,10 +110,32 @@ def write_shell_script_to_call_matlab(file_to_sort):
     batch_writer.write('matlab -r PostClusteringAuto')
 
 
+def check_if_matlab_was_successful(recording_to_sort):
+    is_successful = True
+    matlab_crash_path = recording_to_sort + '/matlabcrash.txt'
+
+    if os.path.isfile(matlab_crash_path) is True:
+        is_successful = False
+
+    return is_successful
+
+
+# write file 'crash_list.txt' in top level dir with list of recordings that could not be sorted
+def add_to_list_of_failed_sortings(recording_to_sort):
+    if os.path.isfile(recording_to_sort + "/crash_list.txt") is False:
+        crash_writer = open(to_sort_folder + 'crash_list.txt', 'w', newline='\n')
+
+    else:
+        crash_writer = open(to_sort_folder + '/crash_list.txt', 'a', newline='\n')
+    crashed_recording = recording_to_sort + '\n'
+    crash_writer.write(crashed_recording)
+    crash_writer.close()
+
+
 def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
-        location_on_server = get_location_on_server(recording_to_sort)  # I can give this to Tizzy
+        location_on_server = get_location_on_server(recording_to_sort)
 
         sys.stdout = open(server_path_first_half + location_on_server + '/sorting_log.txt', 'w')
 
@@ -131,10 +154,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         os.chmod(recording_to_sort + '/run_matlab.sh', 484)
         subprocess.call(recording_to_sort + '/run_matlab.sh', shell=True)
 
-        # call matlab. input: vr/not vr, location on server + file location on sorting computer
-        # matlab -r 'PostClusteringAuto(path,outfile,OpenField,Opto)
-
-        print('Post-processing in Matlab is done.')
+        if check_if_matlab_was_successful(recording_to_sort) is not True:
+            raise Exception('Postprocessing failed, matlab crashed.')
+        else:
+            print('Post-processing in Matlab is done.')
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
@@ -143,6 +166,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
             # todo if vr, call Sarah's script
             pass
     except Exception as ex:
+        add_to_list_of_failed_sortings(recording_to_sort)
         print('There is a problem with this file. '
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
