@@ -74,11 +74,13 @@ def convert_all_tetrodes_to_mda(prm):
         recording_length = len(first_ch)
         channels_all = np.zeros((number_of_live_channels, recording_length))
 
-        for channel in range(number_of_live_channels):
+        live_ch_counter = 0
+        for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
                 channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
-                channels_all[channel, :] = channel_data
+                channels_all[live_ch_counter, :] = channel_data
+                live_ch_counter += 1
 
         mdaio.writemda16i(channels_all, path)
     else:
