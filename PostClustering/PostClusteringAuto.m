@@ -146,10 +146,10 @@ for separate_tetrodes=0:1 % make plots for both all-tetrodes and separate
 errormessage=strcat('getting spike data - ',stage(separate_tetrodes+1));
 if ~exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file')
 if electrodes==0
-    [spikeind,tetid,cluid,waveforms] = GetFiringfromSortingcomputer16feb(separate_tetrodes,SortingComputer);
+    [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer);
     save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'spikeind','tetid','cluid','waveforms');
 else
-    [spikeind,tetid,cluid,waveforms] = GetFiringfromSortingcomputer16feb(separate_tetrodes,SortingComputer,electrodes);
+    [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer,electrodes);
 save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'spikeind','tetid','cluid','waveforms');
 end
 else
