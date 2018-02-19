@@ -4,14 +4,16 @@
 % outfile is path to folder on server
 % OpenField is either 1 if 2d pos data is present, or 0 if not
 % Opto is either 1 if there are light pulses, or 0 if not
-%% Tizzy Jan 2018
+%% Tizzy Feb 2018
 %% post-sorting analysis for open-ephys data with bonsai or axona position data
 %% that has been sorted with MountainSort
 %% it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
-try
-copy=1;
-GSQ=0;
-% find input parameters
+%try
+SortingComputer=0; % set to 0 for testing not on the sorting computer
+copy=0; % set to 0 for testing without copying data to the server
+GSQ=0; % set to 1 if running on old data from GSQ
+%% find input parameters
+if SortingComputer==1;
 fid=fopen('home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/PostClusteringParams.txt','r');
 params=fscanf(fid,'%s');
 params=split(params,',');
@@ -24,6 +26,7 @@ cd(path);
 
 %% copy raw to server
 if copy==1;
+errormessage='copying files to server';
 disp('Copying mda files to datastore');
 mkdir(outfile,'mdafiles');
 copyfile('Electrophysiology/Spike_sorting/all_tetrodes/data/filt.mda',strcat(outfile,'/mdafiles/all_filt.mda'));
@@ -38,7 +41,13 @@ copyfile('Electrophysiology/Spike_sorting/t2/data/firings.mda',strcat(outfile,'/
 copyfile('Electrophysiology/Spike_sorting/t3/data/firings.mda',strcat(outfile,'/mdafiles/T3_firings.mda'));
 copyfile('Electrophysiology/Spike_sorting/t4/data/firings.mda',strcat(outfile,'/mdafiles/T4_firings.mda'));
 end
+else
+outfile=pwd;
+OpenField=1;
+Opto=1;
+end
 %% Initial Variables
+errormessage='finding session name';
 %pname='Tracking_20171216.csv'; %comment out this line if the bonsai name is normal
 CreateFolders % creates the /Data and /Figures folders
 speedcut=0.5;%cm/second - threshold running speed to count as moving
@@ -64,7 +73,11 @@ optohisttile=[45 46 55 56];
 
 %% get session name
 str = pwd; %full path to this directory
-idx = strfind(str,'/') ; % i changed this from \
+if SortingComputer==1
+    idx = strfind(str,'/') ; % i changed this from \
+else
+    idx=strfind(str,'\');
+end
 foldername = str(idx(end)+1:end);
 idx=strfind(foldername,'_');
 try
@@ -80,6 +93,7 @@ posnameTiz=dir(strcat('*',posnameTiz,'*')); posnameTiz=posnameTiz.name;
 
 
 %% Get position data
+errormessage='getting position data';
 % this section needs fixing for 
 if OpenField==1 % only do this if it's an open field session
     if exist('pname','var')
@@ -102,7 +116,7 @@ if OpenField==1 % only do this if it's an open field session
         OpenField=0;
     end
 end
-
+errormessage='getting optotagging data';
 if Opto==1 % only do this if it's an opto-tagging session
     %% Get Real-TimeStamps + light pulse data
     try
@@ -123,16 +137,24 @@ else
        [~, timestamps, ~] = load_open_ephys_data('100_CH1.continuous'); 
     end
 end
-
+stage={'all tetrodes', 'individual tetrodes'}; % variable for informative error message
 for separate_tetrodes=0:1 % make plots for both all-tetrodes and separate
-    mkdir(strcat('Figures',num2str(separate_tetrodes)));
+    if ~exist(strcat('Figures',num2str(separate_tetrodes)),'dir');
+        mkdir(strcat('Figures',num2str(separate_tetrodes)));
+    end
 %% Get Spike Data
+errormessage=strcat('getting spike data - ',stage(separate_tetrodes+1));
+if ~exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file')
 if electrodes==0
-    [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes);
+    [spikeind,tetid,cluid,waveforms] = GetFiringfromSortingcomputer16feb(separate_tetrodes,SortingComputer);
+    save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'spikeind','tetid','cluid','waveforms');
 else
-    [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,electrodes);
+    [spikeind,tetid,cluid,waveforms] = GetFiringfromSortingcomputer16feb(separate_tetrodes,SortingComputer,electrodes);
+save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'spikeind','tetid','cluid','waveforms');
 end
-
+else
+   load(strcat('Firings',num2str(separate_tetrodes),'.mat'));
+end
 numclu=length(unique(cluid)); % how many clusters are present
 numtet=length(unique(tetid)); % how many tetrodes have been analysed
 disp(strcat('Found-',num2str(numclu),' clusters, across-',num2str(numtet),' tetrodes' ))
@@ -147,6 +169,7 @@ cluid(spikeind>length(timestamps))=[];
 waveforms(:,:,spikeind>length(timestamps))=[];
 %whiteforms(:,:,spikeind>length(timestamps))=[];
 spikeind(spikeind>length(timestamps))=[];
+errormessage=strcat('combining spike and position data - ',stage(separate_tetrodes+1));
 if OpenField==1
 %% trim pos data to length of ephys data
 posx=posx(post>min(timestamps) & post<max(timestamps));
@@ -166,6 +189,7 @@ spiketimes=timestamps(spikeind); % realtimestamps for each spike
 
 
 if OpenField==1 % only do this if it's an open field session
+    errormessage=strcat('calculating running speed - ',stage(separate_tetrodes+1));
     %% make running position data only
     % filter by running speed
     [runind,speed]=speedfilter(posx,posy,post,speedcut,pixel_ratio); % speed in cm/sec
@@ -177,12 +201,13 @@ if OpenField==1 % only do this if it's an open field session
     sampling_rate=1/mean(diff(post)); %average position sampling rate. Needed for converting firing rates to Hz
 end
 
-
+errormessage=strcat('making figures - ',stage(separate_tetrodes+1));
 %% Make electrode Plots
 for i=1:numclu
     figure2=figure;
     set(gcf,'color','white');
     %% get data for this cluster only
+    errormessage=strcat('collecting cluster-specific spikes - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
     cluspktimes=spiketimes(cluid==i); nspikes=length(cluspktimes); % calculate number of spikes
     tet=tetid(cluid==i);
     if max(tet)==min(tet); tet=max(tet); else; tet=mode(tet); disp('Error, cluster not on one tetrode');end
@@ -190,6 +215,7 @@ for i=1:numclu
     %cluwhites=whiteforms(:,:,cluid==i);
     
     if OpenField==1 % only do this if it's an open field session
+        errormessage=strcat('getting spike pos data - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
         %% find spike positions
         [~,posspk]=histc(cluspktimes,postboundary);
         posspk(posspk==0)=length(post);
@@ -209,6 +235,7 @@ for i=1:numclu
     
     %% make all the subplots
     %% spike plots
+    errormessage=strcat('making spike plots - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
     [max_ampwaves,max_channelwaves,spk_widthwaves,ori]=plotwaveforms(cluwaves,[fig_rows fig_cols waveplotstile]);
     %[max_ampwhites,max_channelwhites,spk_widthwhites]=plotwaveforms(cluwhites,[fig_rows fig_cols whiteplotstile]);
     plotspikehist(cluspktimes,total_time,[fig_rows fig_cols rasterplottile]);
@@ -217,6 +244,7 @@ for i=1:numclu
     
     %% position plots
     if OpenField==1 % only do this if it's an open field session
+        errormessage=strcat('making position plots - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
         plotposition(posx,posy,spkx,spky,[fig_rows fig_cols postile]);
         [frmap,posmap,skaggs,spars,cohe,max_firing,coverage]=plotratemap(posx,posy,spkx,spky,pixel_ratio,post,[fig_rows fig_cols ratemaptile], posmaptile);
         [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
@@ -231,6 +259,7 @@ for i=1:numclu
     end
     %% optoplots
     if Opto==1 % only do this if it's an opto-tagging session
+        errormessage=strcat('making opto plots - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
         [onspikes]=plotoptoraster(cluspktimes,LEDons,LEDoffs,[fig_rows fig_cols optotile]);
         [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons,LEDoffs,cluspktimes,[fig_rows fig_cols optohisttile]);
         if length(onspikes)>0
@@ -241,6 +270,7 @@ for i=1:numclu
         end
     end
     %% save plot and store data matrix
+    errormessage=strcat('saving figure - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
     id = [sessionid '-Tetrode-' num2str(tet) '-Cluster-' num2str(i)];
     annotation('textbox', [0.05, 1.0, 1.0, 0], 'string', id);
     saveas(figure2,fullfile(strcat('Figures',num2str(separate_tetrodes)),id),'fig');
@@ -252,21 +282,27 @@ for i=1:numclu
     close(figure2);
     if Opto==0; lightscore_p=NaN; lightscore_I=NaN; lightlatency=NaN; percentresponse=NaN; end % fill output data
     if OpenField==0; frh_hd=NaN; meandir_hd=NaN; r_hd=NaN; skaggs=NaN; spars=NaN; cohe=NaN; max_firing=NaN; grid_score=NaN; skaggsrun=NaN; sparsrun=NaN; coherun=NaN; max_firingrun=NaN; grid_scorerun=NaN; coverage=NaN; end; %fill output data
-        
+    errormessage=strcat('making data matrix - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));    
     datamatrix=[tet,i,nspikes,coverage,nspikes/total_time, max_ampwaves, max_channelwaves,spk_widthwaves, max(frh_hd), meandir_hd, r_hd, skaggs,spars,cohe,max_firing,grid_score,skaggsrun,sparsrun,coherun,max_firingrun,grid_scorerun,lightscore_p,lightscore_I,lightlatency,percentresponse];
 datasave(i,:)=datamatrix;
 end
-
+errormessage=strcat('saving data matrix - ',stage(separate_tetrodes+1));
 if separate_tetrodes==0
 save('datasave0','datasave');
 elseif separate_tetrodes==1
 save('datasave1','datasave');
 end
-
-
+if SortingComputer==1 %copy snippet data to server
+    if exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file')>0
+        disp('copying snippet data to server');
+        copyfile(strcat('Firings',num2str(separate_tetrodes),'.mat'),strcat(outfile,'/Firings',num2str(separate_tetrodes),'.mat'));
+    end
+end
 end
 %% copy data to server
-
+errormessage=strcat('copying figures to server');
+if SortingComputer==1
+    
 disp('copying figures to server');
 copyfile('datasave0.mat',strcat(outfile,'datasave_all.mat'));
 copyfile('datasave1.mat',strcat(outfile,'datasave_separate.mat'));
@@ -275,13 +311,17 @@ copyfile('Figures0/*.png',strcat(outfile,'/SortingFigures_all_PNG'));
 copyfile('Figures1/*.fig',strcat(outfile,'/SortingFigures_separate_M'));
 copyfile('Figures1/*.png',strcat(outfile,'/SortingFigures_separate_PNG'));
 
+end
 disp('finished running matlab script, returning control to python');
 clear variables
-exit
-catch
-    disp('Matlab script failed, returning control to python');
-    fid = fopen( 'matlabcrash.txt', 'wt' );
-    fclose(fid);
-    clear variables
-    exit
-end
+
+% exit
+% catch
+%     disp(strcat('Matlab script failed_',errormessage));
+%     disp('returning control to python');
+%     fid = fopen( 'matlabcrash.txt', 'wt' );
+%     fprintf(fid,strcat('Matlab crashed while_',(errormessage{1})));
+%     fclose(fid);
+%     clear variables
+%     exit
+% end
