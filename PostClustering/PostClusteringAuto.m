@@ -8,8 +8,8 @@
 %% post-sorting analysis for open-ephys data with bonsai or axona position data
 %% that has been sorted with MountainSort
 %% it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
-%try
-SortingComputer=0; % set to 0 for testing not on the sorting computer
+try
+SortingComputer=1; % set to 0 for testing not on the sorting computer
 copy=0; % set to 0 for testing without copying data to the server
 GSQ=0; % set to 1 if running on old data from GSQ
 %% find input parameters
@@ -88,12 +88,14 @@ catch
     date=foldername(1:idx(1)-1); % find the date from the folder name
 end
 sessionid=strcat(animal,'-', num2str(date));
-posnameTiz=strcat(num2str(date(6:7)),num2str(date(9:10)));
-posnameTiz=dir(strcat('*',posnameTiz,'*')); posnameTiz=posnameTiz.name;
+
 
 
 %% Get position data
 errormessage='getting position data';
+try
+posnameTiz=strcat(num2str(date(6:7)),num2str(date(9:10)));
+posnameTiz=dir(strcat('*',posnameTiz,'*')); posnameTiz=posnameTiz.name;
 % this section needs fixing for 
 if OpenField==1 % only do this if it's an open field session
     if exist('pname','var')
@@ -115,6 +117,10 @@ if OpenField==1 % only do this if it's an open field session
         disp('Error: no position data file');
         OpenField=0;
     end
+end
+catch
+    disp('Error: problem finding position data file. Trying without position');
+    OpenField=0;
 end
 errormessage='getting optotagging data';
 if Opto==1 % only do this if it's an opto-tagging session
@@ -315,13 +321,13 @@ end
 disp('finished running matlab script, returning control to python');
 clear variables
 
-% exit
-% catch
-%     disp(strcat('Matlab script failed_',errormessage));
-%     disp('returning control to python');
-%     fid = fopen( 'matlabcrash.txt', 'wt' );
-%     fprintf(fid,strcat('Matlab crashed while_',(errormessage{1})));
-%     fclose(fid);
-%     clear variables
-%     exit
-% end
+exit
+catch
+    disp(strcat('Matlab script failed_',errormessage));
+    disp('returning control to python');
+    fid = fopen( 'matlabcrash.txt', 'wt' );
+    fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
+    fclose(fid);
+    clear variables
+    exit
+end
