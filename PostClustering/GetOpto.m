@@ -1,5 +1,5 @@
 function [LEDons,LEDoffs,LEDtime]=GetOpto
-
+%edited 20-Feb-18 to set a threshold for lighton
 %% get LED data
 try
     [LED, LEDtime, ~] = load_open_ephys_data('105_CH22_0.continuous');
@@ -7,13 +7,15 @@ catch
     try
     [LED, LEDtime, ~] = load_open_ephys_data('105_ch22_0.continuous');
     catch
-    [LED, LEDtime, ~] = load_open_ephys_data('100_ADC3.continuous');
+    
+     [LED, LEDtime, ~] = load_open_ephys_data('100_ADC3.continuous');   
     end
 end
 
 LED=LED-min(LED);
 %% identification of LED pulses
-onindex=LED>0.1;
+threshold=median(LED)+std(LED);
+onindex=LED>threshold; %used to be 0.1
 flip=diff(onindex);
 mintimes=find(flip==1); mintimes=mintimes+1;
 maxtimes=find(flip==-1);

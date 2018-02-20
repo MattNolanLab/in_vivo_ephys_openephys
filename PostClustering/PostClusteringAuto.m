@@ -127,6 +127,7 @@ if Opto==1 % only do this if it's an opto-tagging session
     %% Get Real-TimeStamps + light pulse data
     try
         [LEDons,LEDoffs,timestamps]=GetOpto;
+        crash=LEDons(1); % makes it move to the catch if size LEDons<0 - no pulse data
     catch
         disp('Problem with Opto data. Skipping these plots')
         try
@@ -149,7 +150,7 @@ for separate_tetrodes=0:1 % make plots for both all-tetrodes and separate
         mkdir(strcat('Figures',num2str(separate_tetrodes)));
     end
 %% Get Spike Data
-errormessage=strcat('getting spike data - ',stage(separate_tetrodes+1));
+errormessage=strcat('getting spike data - ',char(stage(separate_tetrodes+1)));
 if ~exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file')
 if electrodes==0
     [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer);
@@ -175,7 +176,7 @@ cluid(spikeind>length(timestamps))=[];
 waveforms(:,:,spikeind>length(timestamps))=[];
 %whiteforms(:,:,spikeind>length(timestamps))=[];
 spikeind(spikeind>length(timestamps))=[];
-errormessage=strcat('combining spike and position data - ',stage(separate_tetrodes+1));
+errormessage=strcat('combining spike and position data - ',char(stage(separate_tetrodes+1)));
 if OpenField==1
 %% trim pos data to length of ephys data
 posx=posx(post>min(timestamps) & post<max(timestamps));
@@ -195,7 +196,7 @@ spiketimes=timestamps(spikeind); % realtimestamps for each spike
 
 
 if OpenField==1 % only do this if it's an open field session
-    errormessage=strcat('calculating running speed - ',stage(separate_tetrodes+1));
+    errormessage=strcat('calculating running speed - ',char(stage(separate_tetrodes+1)));
     %% make running position data only
     % filter by running speed
     [runind,speed]=speedfilter(posx,posy,post,speedcut,pixel_ratio); % speed in cm/sec
@@ -207,13 +208,13 @@ if OpenField==1 % only do this if it's an open field session
     sampling_rate=1/mean(diff(post)); %average position sampling rate. Needed for converting firing rates to Hz
 end
 
-errormessage=strcat('making figures - ',stage(separate_tetrodes+1));
+errormessage=strcat('making figures - ',char(stage(separate_tetrodes+1)));
 %% Make electrode Plots
 for i=1:numclu
     figure2=figure;
     set(gcf,'color','white');
     %% get data for this cluster only
-    errormessage=strcat('collecting cluster-specific spikes - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
+    errormessage=strcat('collecting cluster-specific spikes - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
     cluspktimes=spiketimes(cluid==i); nspikes=length(cluspktimes); % calculate number of spikes
     tet=tetid(cluid==i);
     if max(tet)==min(tet); tet=max(tet); else; tet=mode(tet); disp('Error, cluster not on one tetrode');end
@@ -221,7 +222,7 @@ for i=1:numclu
     %cluwhites=whiteforms(:,:,cluid==i);
     
     if OpenField==1 % only do this if it's an open field session
-        errormessage=strcat('getting spike pos data - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
+        errormessage=strcat('getting spike pos data - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
         %% find spike positions
         [~,posspk]=histc(cluspktimes,postboundary);
         posspk(posspk==0)=length(post);
@@ -241,7 +242,7 @@ for i=1:numclu
     
     %% make all the subplots
     %% spike plots
-    errormessage=strcat('making spike plots - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
+    errormessage=strcat('making spike plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
     [max_ampwaves,max_channelwaves,spk_widthwaves,ori]=plotwaveforms(cluwaves,[fig_rows fig_cols waveplotstile]);
     %[max_ampwhites,max_channelwhites,spk_widthwhites]=plotwaveforms(cluwhites,[fig_rows fig_cols whiteplotstile]);
     plotspikehist(cluspktimes,total_time,[fig_rows fig_cols rasterplottile]);
@@ -250,7 +251,7 @@ for i=1:numclu
     
     %% position plots
     if OpenField==1 % only do this if it's an open field session
-        errormessage=strcat('making position plots - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
+        errormessage=strcat('making position plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
         plotposition(posx,posy,spkx,spky,[fig_rows fig_cols postile]);
         [frmap,posmap,skaggs,spars,cohe,max_firing,coverage]=plotratemap(posx,posy,spkx,spky,pixel_ratio,post,[fig_rows fig_cols ratemaptile], posmaptile);
         [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
@@ -265,7 +266,7 @@ for i=1:numclu
     end
     %% optoplots
     if Opto==1 % only do this if it's an opto-tagging session
-        errormessage=strcat('making opto plots - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
+        errormessage=strcat('making opto plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
         [onspikes]=plotoptoraster(cluspktimes,LEDons,LEDoffs,[fig_rows fig_cols optotile]);
         [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons,LEDoffs,cluspktimes,[fig_rows fig_cols optohisttile]);
         if length(onspikes)>0
@@ -276,7 +277,7 @@ for i=1:numclu
         end
     end
     %% save plot and store data matrix
-    errormessage=strcat('saving figure - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));
+    errormessage=strcat('saving figure - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
     id = [sessionid '-Tetrode-' num2str(tet) '-Cluster-' num2str(i)];
     annotation('textbox', [0.05, 1.0, 1.0, 0], 'string', id);
     saveas(figure2,fullfile(strcat('Figures',num2str(separate_tetrodes)),id),'fig');
@@ -288,11 +289,11 @@ for i=1:numclu
     close(figure2);
     if Opto==0; lightscore_p=NaN; lightscore_I=NaN; lightlatency=NaN; percentresponse=NaN; end % fill output data
     if OpenField==0; frh_hd=NaN; meandir_hd=NaN; r_hd=NaN; skaggs=NaN; spars=NaN; cohe=NaN; max_firing=NaN; grid_score=NaN; skaggsrun=NaN; sparsrun=NaN; coherun=NaN; max_firingrun=NaN; grid_scorerun=NaN; coverage=NaN; end; %fill output data
-    errormessage=strcat('making data matrix - ',stage(separate_tetrodes+1),'cluster - ',num2str(i));    
+    errormessage=strcat('making data matrix - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));    
     datamatrix=[tet,i,nspikes,coverage,nspikes/total_time, max_ampwaves, max_channelwaves,spk_widthwaves, max(frh_hd), meandir_hd, r_hd, skaggs,spars,cohe,max_firing,grid_score,skaggsrun,sparsrun,coherun,max_firingrun,grid_scorerun,lightscore_p,lightscore_I,lightlatency,percentresponse];
 datasave(i,:)=datamatrix;
 end
-errormessage=strcat('saving data matrix - ',stage(separate_tetrodes+1));
+errormessage=strcat('saving data matrix - ',char(stage(separate_tetrodes+1)));
 if separate_tetrodes==0
 save('datasave0','datasave');
 elseif separate_tetrodes==1
