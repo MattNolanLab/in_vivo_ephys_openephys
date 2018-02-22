@@ -10,7 +10,7 @@
 %% it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
 try
 SortingComputer=1; % set to 0 for testing not on the sorting computer
-copy=0; % set to 0 for testing without copying data to the server
+copy=1; % set to 0 for testing without copying data to the server
 GSQ=0; % set to 1 if running on old data from GSQ
 %% find input parameters
 if SortingComputer==1;
@@ -29,17 +29,33 @@ if copy==1;
 errormessage='copying files to server';
 disp('Copying mda files to datastore');
 mkdir(outfile,'mdafiles');
-copyfile('Electrophysiology/Spike_sorting/all_tetrodes/data/filt.mda',strcat(outfile,'/mdafiles/all_filt.mda'));
-copyfile('Electrophysiology/Spike_sorting/t1/data/filt.mda',strcat(outfile,'/mdafiles/T1_filt.mda'));
-copyfile('Electrophysiology/Spike_sorting/t2/data/filt.mda',strcat(outfile,'/mdafiles/T2_filt.mda'));
-copyfile('Electrophysiology/Spike_sorting/t3/data/filt.mda',strcat(outfile,'/mdafiles/T3_filt.mda'));
-copyfile('Electrophysiology/Spike_sorting/t4/data/filt.mda',strcat(outfile,'/mdafiles/T4_filt.mda'));
-
-copyfile('Electrophysiology/Spike_sorting/all_tetrodes/data/firings.mda',strcat(outfile,'/mdafiles/all_firings.mda'));
-copyfile('Electrophysiology/Spike_sorting/t1/data/firings.mda',strcat(outfile,'/mdafiles/T1_firings.mda'));
-copyfile('Electrophysiology/Spike_sorting/t2/data/firings.mda',strcat(outfile,'/mdafiles/T2_firings.mda'));
-copyfile('Electrophysiology/Spike_sorting/t3/data/firings.mda',strcat(outfile,'/mdafiles/T3_firings.mda'));
-copyfile('Electrophysiology/Spike_sorting/t4/data/firings.mda',strcat(outfile,'/mdafiles/T4_firings.mda'));
+innames={'all_tetrodes','t1','t2','t3','t4'};
+outnames={'all','T1','T2','T3','T4'};
+for i=1:length(innames)
+    in=strcat('Electrophysiology/Spike_sorting/',char(innames(i)),'/data/filt.mda');
+    out=strcat(outfile,'/mdafiles/',char(outnames(i)),'_filt.mda');
+    if exist(in,'file')
+       copyfile(in,out);
+    end
+end
+for i=1:length(innames)
+    in=strcat('Electrophysiology/Spike_sorting/',char(innames(i)),'/data/firings.mda');
+    out=strcat(outfile,'/mdafiles/',char(outnames(i)),'_firings.mda');
+    if exist(in,'file')
+       copyfile(in,out);
+    end
+end   
+% copyfile('Electrophysiology/Spike_sorting/all_tetrodes/data/filt.mda',strcat(outfile,'/mdafiles/all_filt.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t1/data/filt.mda',strcat(outfile,'/mdafiles/T1_filt.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t2/data/filt.mda',strcat(outfile,'/mdafiles/T2_filt.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t3/data/filt.mda',strcat(outfile,'/mdafiles/T3_filt.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t4/data/filt.mda',strcat(outfile,'/mdafiles/T4_filt.mda'));
+% 
+% copyfile('Electrophysiology/Spike_sorting/all_tetrodes/data/firings.mda',strcat(outfile,'/mdafiles/all_firings.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t1/data/firings.mda',strcat(outfile,'/mdafiles/T1_firings.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t2/data/firings.mda',strcat(outfile,'/mdafiles/T2_firings.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t3/data/firings.mda',strcat(outfile,'/mdafiles/T3_firings.mda'));
+% copyfile('Electrophysiology/Spike_sorting/t4/data/firings.mda',strcat(outfile,'/mdafiles/T4_firings.mda'));
 end
 else
 outfile=pwd;

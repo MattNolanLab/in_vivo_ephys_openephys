@@ -67,8 +67,10 @@ def remove_dead_channels_from_geom_file_all_tetrodes(prm):
             coordinates_x[dead_channel_index] = temporary_value_to_replace
             coordinates_y[dead_channel_index] = temporary_value_to_replace
 
-        coordinates_x.remove(temporary_value_to_replace)
-        coordinates_y.remove(temporary_value_to_replace)
+        for coordinate in coordinates_x:
+            if coordinate == temporary_value_to_replace:
+                coordinates_x.remove(temporary_value_to_replace)
+                coordinates_y.remove(temporary_value_to_replace)
 
     with open(main_path + geom_path, 'w', newline='') as csvfile:
         for channel in range(len(coordinates_x)):

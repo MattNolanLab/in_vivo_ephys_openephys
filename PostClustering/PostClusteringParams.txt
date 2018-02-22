@@ -1,4 +1,4 @@
-/home/nolanlab/to_sort/recordings/S_2018-02-07_11-23-20_of,
-/run/user/1001/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Tizzy/Cohort4/S/S_2018-02-07_11-23-20_of,
-1,
+/home/nolanlab/to_sort/recordings/2018-02-21_13-15-07,
+/run/user/1001/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Sarah/Experimental_Projects/PVCre1_PIProject_Opto/Data/Ephys/707/Day8/2018-02-21_13-15-07,
+0,
 1
