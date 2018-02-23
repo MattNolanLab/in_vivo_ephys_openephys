@@ -340,11 +340,11 @@ clear variables
 
 exit
 catch
-    disp(strcat('Matlab script failed_',errormessage));
-    disp('returning control to python');
-    fid = fopen( 'matlabcrash.txt', 'wt' );
-    fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
-    fclose(fid);
-    clear variables
-    exit
+   disp(strcat('Matlab script failed_',errormessage));
+   disp('returning control to python');
+   fid = fopen( 'matlabcrash.txt', 'wt' );
+   fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
+   fclose(fid);
+   clear variables
+   exit
 end

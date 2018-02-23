@@ -15,7 +15,6 @@ import os
 def convert_continuous_to_mda(prm):
     file_utility.create_folder_structure(prm)
     file_utility.folders_for_separate_tetrodes(prm)
-    make_sorting_database.create_sorting_folder_structure_separate_tetrodes(prm)
     number_of_tetrodes = prm.get_num_tetrodes()
     folder_path = prm.get_filepath()
     if prm.get_is_windows():
