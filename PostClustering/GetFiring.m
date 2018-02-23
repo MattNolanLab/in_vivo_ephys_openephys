@@ -80,10 +80,10 @@ for p=1:length(curpath)  %1:length(curpath)
         getrid(p)=0;
     end
 end
-curpath=curpath(find(getrid==1));
+
 %% open firings.mda
 channel=[];spikeind=[];cluid=[];tetid=[];numclu=0;numprev=0;
-for p=1:length(curpath)  %1:length(curpath)
+for p=1:length(electrodes)  %1:length(curpath)
 fname=strcat(char(curpath(electrodes(p))), 'firings.mda');
 disp(strcat('Reading firings data - Tetrode= ',num2str(electrodes(p))));
 firings=readmda(fname);
@@ -92,16 +92,17 @@ spikeindtet=firings(2,:);
 cluidtet=firings(3,:);
 tetidtet=ones(size(cluidtet)).*electrodes(p);
 clear firings
-
 %% open raw.mda
 fname=strcat(char(curpath(electrodes(p))), 'filt.mda');
 disp('Reading filtered waveform data');
 raw=readmda(fname);
 %% correct for dead channels
 if size(dead_channels)>0
+    dead_channels_tet=[];
     if separate_tetrodes==1 %do this for separate tetrodes
         if any(ceil(dead_channels/4)==electrodes(p))% check if there is a dead channel on this tetrode
         dead_channels_tet=dead_channels(ceil(dead_channels/4)==electrodes(p));
+        dead_channels_tet=dead_channels_tet-((electrodes(p)-1)*4);
         lives=1:4;
         lives(dead_channels_tet)=[]; % fix raw 
         raw2=NaN(size(raw,1)+length(dead_channels),size(raw,2));
@@ -126,7 +127,6 @@ if size(dead_channels)>0
         end
     end    
 end
-
 % fname=strcat(char(curpath(p)), 'pre.mda');
 % disp('Reading whitened waveform data');
 % white=readmda(fname);
