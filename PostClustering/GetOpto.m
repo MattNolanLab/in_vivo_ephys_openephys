@@ -28,8 +28,8 @@ disp(strcat('there are_ ', num2str(length(mintimes)), ' light events'));
 %% discard theta pulses
 interval=maxtimes-mintimes;
 index=zeros(size(interval));
-index(interval>90)=1;
-index(interval<89)=1;
+index(interval>92)=1;
+index(interval<88)=1;
 mintimes(index==1)=[];
 maxtimes(index==1)=[];
 

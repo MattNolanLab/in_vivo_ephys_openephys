@@ -8,9 +8,10 @@
 %% post-sorting analysis for open-ephys data with bonsai or axona position data
 %% that has been sorted with MountainSort
 %% it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
+errormessage='inital variables';
 try
 SortingComputer=1; % set to 0 for testing not on the sorting computer
-copy=0; % set to 0 for testing without copying data to the server
+copy=1; % set to 0 for testing without copying data to the server
 GSQ=0; % set to 1 if running on old data from GSQ
 %% find input parameters
 if SortingComputer==1;
@@ -170,10 +171,12 @@ errormessage=strcat('getting spike data - ',char(stage(separate_tetrodes+1)));
 if ~exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file')
 if electrodes==0
     [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer);
-    save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'spikeind','tetid','cluid','waveforms');
+    empty=0;
+    save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'empty','spikeind','tetid','cluid','waveforms','-v7.3');
 else
     [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer,electrodes);
-save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'spikeind','tetid','cluid','waveforms');
+    empty=0;
+    save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'empty','spikeind','tetid','cluid','waveforms','-v7.3');
 end
 else
    load(strcat('Firings',num2str(separate_tetrodes),'.mat'));
@@ -204,13 +207,15 @@ end
 %% Get real-time timestamps for each spike
 total_time=max(timestamps)-min(timestamps);
 spiketimes=timestamps(spikeind); % realtimestamps for each spike
-%% Make electrode Cluster separation Plots
-% need to decide which features to plot - probably energy
-% for i=1:length(unique(tetid))
-%     
-% end
-
-
+%% Trim position data to remove during light stimulation
+if OpenField==1 && Opto==1
+posx=posx(post<(min(LEDons)-30));
+posy=posy(post<(min(LEDons)-30));
+hd=hd(post<(min(LEDons)-30));
+HDint=HDint(post<(min(LEDons)-30));
+post=post(post<(min(LEDons)-30));
+end
+%% Calculate Running speed
 if OpenField==1 % only do this if it's an open field session
     errormessage=strcat('calculating running speed - ',char(stage(separate_tetrodes+1)));
     %% make running position data only
@@ -270,15 +275,19 @@ for i=1:numclu
         errormessage=strcat('making position plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
         plotposition(posx,posy,spkx,spky,[fig_rows fig_cols postile]);
         [frmap,posmap,skaggs,spars,cohe,max_firing,coverage]=plotratemap(posx,posy,spkx,spky,pixel_ratio,post,[fig_rows fig_cols ratemaptile], posmaptile);
-        [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
         plotposition(posxrun,posyrun,spkxrun,spkyrun,[fig_rows fig_cols postilerun]);
         [frmaprun,posmaprun,skaggsrun,sparsrun,coherun,max_firingrun,coveragerun]=plotratemap(posxrun,posyrun,spkxrun,spkyrun,pixel_ratio,post,[fig_rows fig_cols ratemaptilerun],posmaptilerun);
-        [grid_scorerun,grid_spacingrun,field_sizerun,grid_orientationrun,grid_ellipticityrun]=plotgrid(frmaprun,[fig_rows fig_cols gridcortilerun]);
-        %% hd plot
-        [frh_hd,meandir_hd,r_hd]=plothd(hd,spkhd,sampling_rate,[fig_rows fig_cols hdpolartile]);
-        %% speed plot
-        [speedscore]=calcspeedscore(post,cluspktimes,speed);
-        plotspeed(speed,spkspeed,sampling_rate,speedscore,[fig_rows fig_cols speedtile]);
+        if sum(isnan(spkx))<length(spkx)
+            [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
+            [grid_scorerun,grid_spacingrun,field_sizerun,grid_orientationrun,grid_ellipticityrun]=plotgrid(frmaprun,[fig_rows fig_cols gridcortilerun]);
+            %% hd plot
+            [frh_hd,meandir_hd,r_hd]=plothd(hd,spkhd,sampling_rate,[fig_rows fig_cols hdpolartile]);
+            %% speed plot
+            [speedscore]=calcspeedscore(post,cluspktimes,speed);
+            plotspeed(speed,spkspeed,sampling_rate,speedscore,[fig_rows fig_cols speedtile]);
+        else
+            frh_hd=NaN; meandir_hd=NaN; r_hd=NaN; skaggs=NaN; spars=NaN; cohe=NaN; max_firing=NaN; grid_score=NaN; skaggsrun=NaN; sparsrun=NaN; coherun=NaN; max_firingrun=NaN; grid_scorerun=NaN;
+        end
     end
     %% optoplots
     if Opto==1 % only do this if it's an opto-tagging session
@@ -338,13 +347,12 @@ end
 disp('finished running matlab script, returning control to python');
 clear variables
 
-exit
+if SortingComputer==1; exit; end
 catch
    disp(strcat('Matlab script failed_',errormessage));
    disp('returning control to python');
    fid = fopen( 'matlabcrash.txt', 'wt' );
    fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
    fclose(fid);
-   clear variables
-   exit
+if SortingComputer==1;    clear variables; exit; end
 end
