@@ -10,7 +10,7 @@
 %% it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
 try
 SortingComputer=1; % set to 0 for testing not on the sorting computer
-copy=1; % set to 0 for testing without copying data to the server
+copy=0; % set to 0 for testing without copying data to the server
 GSQ=0; % set to 1 if running on old data from GSQ
 %% find input parameters
 if SortingComputer==1;
