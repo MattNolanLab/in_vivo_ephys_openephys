@@ -39,7 +39,7 @@ def convert_continuous_to_mda(prm):
                         channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
                         channel_data_all.append(channel_data)
 
-                recording_length = len(channel_data_all[live_channels[0]])
+                recording_length = len(channel_data_all[0])
                 channels_tetrode = np.zeros((number_of_live_ch_in_tetrode, recording_length))
                 for ch in range(number_of_live_ch_in_tetrode):
                     channels_tetrode[ch, :] = channel_data_all[ch]
