@@ -15,11 +15,13 @@ end
 LED=LED-min(LED);
 %% identification of LED pulses
 threshold=median(LED)+std(LED);
+if threshold<0.05 %set minimum amplitude for opto-tagging so it doesn't find false opto-pulses
+    threshold=0.05;
+end
 onindex=LED>threshold; %used to be 0.1
 flip=diff(onindex);
 mintimes=find(flip==1); mintimes=mintimes+1;
 maxtimes=find(flip==-1);
-
 if maxtimes(1)<mintimes(1); maxtimes(1)=[];end % correct for light on at start of session
 if length(mintimes)>length(maxtimes); mintimes(length(mintimes))=[];end %correct for light on at end of session
 
