@@ -11,7 +11,7 @@
 errormessage='inital variables';
 try
 SortingComputer=1; % set to 0 for testing not on the sorting computer
-copy=1; % set to 0 for testing without copying data to the server
+copy=0; % set to 0 for testing without copying data to the server
 GSQ=0; % set to 1 if running on old data from GSQ
 %% find input parameters
 if SortingComputer==1;
@@ -24,7 +24,6 @@ OpenField=double(params(4));
 Opto=double(params(5));
 mkdir(outfile,'Figures');
 cd(path);
-
 %% copy raw to server
 if copy==1;
 errormessage='copying files to server';
@@ -274,8 +273,12 @@ for i=1:numclu
     if OpenField==1 % only do this if it's an open field session
         errormessage=strcat('making position plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
         plotposition(posx,posy,spkx,spky,[fig_rows fig_cols postile]);
+        subplot(fig_rows, fig_cols, postile);
+        title({sprintf('All data ->')});
         [frmap,posmap,skaggs,spars,cohe,max_firing,coverage]=plotratemap(posx,posy,spkx,spky,pixel_ratio,post,[fig_rows fig_cols ratemaptile], posmaptile);
         plotposition(posxrun,posyrun,spkxrun,spkyrun,[fig_rows fig_cols postilerun]);
+        subplot(fig_rows, fig_cols, postilerun);
+        title({sprintf('Running above %.1f cm/sec ->',speedcut)});
         [frmaprun,posmaprun,skaggsrun,sparsrun,coherun,max_firingrun,coveragerun]=plotratemap(posxrun,posyrun,spkxrun,spkyrun,pixel_ratio,post,[fig_rows fig_cols ratemaptilerun],posmaptilerun);
         if sum(isnan(spkx))<length(spkx)
             [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
@@ -345,9 +348,9 @@ copyfile('Figures1/*.png',strcat(outfile,'/SortingFigures_separate_PNG'));
 
 end
 disp('finished running matlab script, returning control to python');
-clear variables
 
-if SortingComputer==1; exit; end
+
+if SortingComputer==1; clear variables; exit; end
 catch
    disp(strcat('Matlab script failed_',errormessage));
    disp('returning control to python');
