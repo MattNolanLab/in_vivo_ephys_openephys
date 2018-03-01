@@ -19,7 +19,7 @@ r = sqrt(totx^2+toty^2);
 rlim = ceil(max(occh)) + 1;
 
 h=polarplot(angles_rad,frh,'r',angles_rad,occh.*(max(frh)/max(occh)),'k');
-                                        
+set(gca,'ThetaZeroLocation', 'top');    %rotate plot so 0=North                                                                            
 set(h(1),'LineWidth',2);
 set(h(2),'LineWidth',1);
 h = title(sprintf('Peak: %.1f Hz, PFD: %.1f^o, |{\\itr}|: %.2f',max(frh),meandir,r));
