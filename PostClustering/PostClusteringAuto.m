@@ -337,7 +337,7 @@ end
 %% copy data to server
 errormessage=strcat('copying figures to server');
 if SortingComputer==1
-    
+%% copy figures to server    
 disp('copying figures to server');
 copyfile('datasave0.mat',strcat(outfile,'datasave_all.mat'));
 copyfile('datasave1.mat',strcat(outfile,'datasave_separate.mat'));
@@ -345,7 +345,18 @@ copyfile('Figures0/*.fig',strcat(outfile,'/SortingFigures_all_M'));
 copyfile('Figures0/*.png',strcat(outfile,'/SortingFigures_all_PNG'));
 copyfile('Figures1/*.fig',strcat(outfile,'/SortingFigures_separate_M'));
 copyfile('Figures1/*.png',strcat(outfile,'/SortingFigures_separate_PNG'));
-
+%% copy cluster metrics to server
+disp('Copying metrics files to datastore');
+mkdir(outfile,'clustermetrics');
+innames={'all_tetrodes','t1','t2','t3','t4'};
+outnames={'all','T1','T2','T3','T4'};
+for i=1:length(innames)
+    in=strcat('Electrophysiology/Spike_sorting/',char(innames(i)),'/cluster_metrics.json');
+    out=strcat(outfile,'/clustermetrics/',char(outnames(i)),'_cluster_metrics.json');
+    if exist(in,'file')
+       copyfile(in,out);
+    end
+end
 end
 disp('finished running matlab script, returning control to python');
 
