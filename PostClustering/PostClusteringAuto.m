@@ -333,8 +333,8 @@ try
     if SortingComputer==1
         %% copy figures and data matrix to server
         disp('copying figures to server');
-        copyfile('datasave0.mat',strcat(outfile,'datasave_all.mat'));
-        copyfile('datasave1.mat',strcat(outfile,'datasave_separate.mat'));
+        copyfile('datasave0.mat',strcat(outfile,'/datasave_all.mat'));
+        copyfile('datasave1.mat',strcat(outfile,'/datasave_separate.mat'));
         copyfile('Figures0/*.fig',strcat(outfile,'/SortingFigures_all_M'));
         copyfile('Figures0/*.png',strcat(outfile,'/SortingFigures_all_PNG'));
         copyfile('Figures1/*.fig',strcat(outfile,'/SortingFigures_separate_M'));
