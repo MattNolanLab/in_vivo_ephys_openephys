@@ -122,7 +122,7 @@ def check_if_matlab_was_successful(recording_to_sort):
 
 # write file 'crash_list.txt' in top level dir with list of recordings that could not be sorted
 def add_to_list_of_failed_sortings(recording_to_sort):
-    if os.path.isfile(recording_to_sort + "/crash_list.txt") is False:
+    if os.path.isfile(to_sort_folder + "/crash_list.txt") is False:
         crash_writer = open(to_sort_folder + 'crash_list.txt', 'w', newline='\n')
 
     else:
