@@ -13,7 +13,7 @@ function PostClusteringAuto(SortingComputer)
 % try-catch-loop for debugging purposes.
 % it should auto-detect problems with missing mda files, opto files and pos files and skip affected plots
 errormessage='inital variables'; % This variable is needed for outputting an error message to Pycharm
-%try
+try
     if ~exist('SortingComputer','var')
     SortingComputer=1; % 1 if running on SortingComputer, else 0
     end
@@ -361,13 +361,13 @@ errormessage='inital variables'; % This variable is needed for outputting an err
             end
         end
     end
-%     disp('finished running matlab script, returning control to python');
-%     if SortingComputer==1; clear variables; exit; end % exit so automatic script can continue on next dataset
-% catch
-%     disp(strcat('Matlab script failed_',errormessage));
-%     disp('returning control to python');
-%     fid = fopen( 'matlabcrash.txt', 'wt' );
-%     fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
-%     fclose(fid);
-%     if SortingComputer==1; clear variables; exit; end % exit so automatic script can continue on next dataset
-% end
+     disp('finished running matlab script, returning control to python');
+     if SortingComputer==1; clear variables; exit; end % exit so automatic script can continue on next dataset
+ catch
+     disp(strcat('Matlab script failed_',errormessage));
+     disp('returning control to python');
+     fid = fopen( 'matlabcrash.txt', 'wt' );
+     fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
+     fclose(fid);
+     if SortingComputer==1; clear variables; exit; end % exit so automatic script can continue on next dataset
+ end
