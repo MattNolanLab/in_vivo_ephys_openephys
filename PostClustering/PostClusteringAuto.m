@@ -15,7 +15,7 @@ function PostClusteringAuto(SortingComputer)
 errormessage='inital variables'; % This variable is needed for outputting an error message to Pycharm
 try
     if ~exist('SortingComputer','var')
-    SortingComputer=1; % 1 if running on SortingComputer, else 0
+        SortingComputer=1; % 1 if running on SortingComputer, else 0
     end
     copy=0; % set to 0 unless you want to copy the mda files to the datastore
     GSQ=0; % set to 1 if running on old data recorded in GSQ
@@ -297,7 +297,7 @@ try
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(1:100),LEDoffs(1:100),cluspktimes(cluspktimes<LEDons(101)),[fig_rows fig_cols optohisttile(3:4)]);
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(101:125),LEDoffs(101:125),cluspktimes(cluspktimes<LEDons(126) & cluspktimes>LEDons(100)),[fig_rows fig_cols optohisttile(1)]);
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(126:175),LEDoffs(126:175),cluspktimes(cluspktimes>LEDons(125)),[fig_rows fig_cols optohisttile(2)]);
-                     else
+                else
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons,LEDoffs,cluspktimes,[fig_rows fig_cols optohisttile]);
                 end
                 if length(onspikes)>0
@@ -361,13 +361,39 @@ try
             end
         end
     end
-     disp('finished running matlab script, returning control to python');
-     if SortingComputer==1; clear variables; exit; end % exit so automatic script can continue on next dataset
- catch
-     disp(strcat('Matlab script failed_',errormessage));
-     disp('returning control to python');
-     fid = fopen( 'matlabcrash.txt', 'wt' );
-     fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
-     fclose(fid);
-     if SortingComputer==1; clear variables; exit; end % exit so automatic script can continue on next dataset
- end
+    if SortingComputer==1; clear variables; disp('finished running matlab script, returning control to python'); exit; end % exit so automatic script can continue on next dataset
+catch
+    disp(strcat('Matlab script failed_',errormessage));
+    fid = fopen( 'matlabcrash.txt', 'a' );
+    fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
+    fclose(fid);
+    if SortingComputer==1;
+        if copy==0
+            try
+                disp('Copying mda files to datastore');
+                mkdir(outfile,'mdafiles');
+                innames={'all_tetrodes','t1','t2','t3','t4'};
+                outnames={'all','T1','T2','T3','T4'};
+                for i=1:length(innames) % loop to copy the filt.mda files
+                    in=strcat('Electrophysiology/Spike_sorting/',char(innames(i)),'/data/filt.mda');
+                    out=strcat(outfile,'/mdafiles/',char(outnames(i)),'_filt.mda');
+                    if exist(in,'file')
+                        copyfile(in,out);
+                    end
+                end
+                for i=1:length(innames) % loop to copy the firings.mda files
+                    in=strcat('Electrophysiology/Spike_sorting/',char(innames(i)),'/data/firings.mda');
+                    out=strcat(outfile,'/mdafiles/',char(outnames(i)),'_firings.mda');
+                    if exist(in,'file')
+                        copyfile(in,out);
+                    end
+                end
+            catch
+                disp('copying MDA files failed')
+            end
+        end
+        clear variables;
+        disp('returning control to python');
+        exit;
+    end % exit so automatic script can continue on next dataset
+end
