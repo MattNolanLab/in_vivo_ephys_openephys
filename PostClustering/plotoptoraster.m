@@ -1,9 +1,13 @@
-function [onspkind]=plotoptoraster(spiketimes,LEDons,LEDoffs,subplots)
+function [onspkind]=plotoptoraster(spiketimes,LEDons,LEDoffs,subplots,GSQ)
 subplot(subplots(1),subplots(2),subplots(3:end));
 pulselength=mean(LEDoffs-LEDons); %0.003 usually
 
 LEDons(length(LEDons)+1)=LEDons(length(LEDons))+1;
 patch([0 pulselength pulselength 0],[0 0 length(LEDoffs) length(LEDoffs)],'cyan','FaceAlpha',0.2,'LineStyle','none');
+if length(LEDoffs)>100 && GSQ==0
+patch([0.02 0.1 0.1 0.02],[101 101 length(LEDoffs) length(LEDoffs)],'black','LineStyle','none');
+patch([-0.05 0 0 -0.05],[101 101 length(LEDoffs) length(LEDoffs)],'black','LineStyle','none');
+end
 hold on
 
 onspkind=[];
