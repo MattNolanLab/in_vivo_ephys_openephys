@@ -185,7 +185,7 @@ def copy_recording_to_sort_to_local(recording_to_sort):
     path_server = server_path_first_half + recording_to_sort
     recording_to_sort_folder = recording_to_sort.split("/")[-1]
     path_local = sorting_folder + recording_to_sort_folder
-    print('I will copy a file from the server now. It will take a while.')
+    print('I will copy a folder from the server now. It will take a while.')
     shutil.copytree(path_server, path_local)
     print('Copying is done, I will attempt to sort.')
 
