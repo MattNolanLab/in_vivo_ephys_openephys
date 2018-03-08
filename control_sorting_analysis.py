@@ -205,6 +205,8 @@ def get_next_recording_on_server_to_sort():
 
             delete_processed_line(list_to_read_path)
             copy_recording_to_sort_to_local(recording_to_sort)
+            recording_to_sort = sorting_folder + recording_to_sort.split("/")[-1]
+
     return recording_to_sort
 
 
