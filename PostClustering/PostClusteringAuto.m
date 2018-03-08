@@ -367,6 +367,12 @@ catch
     fid = fopen( 'matlabcrash.txt', 'a' );
     fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
     fclose(fid);
+    try
+    in='matlabcrash.txt';
+    out=strcat(outfile,'/matlabcrash.txt');
+    copyfile(in,out);
+    catch
+    end
     if SortingComputer==1;
         if copy==0
             try
