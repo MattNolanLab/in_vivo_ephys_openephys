@@ -176,7 +176,7 @@ def check_folder_on_server(name):
     path_to_check = server_path_first_half + name + '/to_sort/'
     recording_to_sort = check_folder(path_to_check)
     if recording_to_sort is not False:
-        shutil.move(recording_to_sort, sorting_folder)
+        shutil.copytree(recording_to_sort, sorting_folder)
         print('I found a recording in ' + name + 's to_sort folder. I will move it to this computer and sort it.')
         return recording_to_sort
     return False
