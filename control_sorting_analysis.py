@@ -16,8 +16,7 @@ server_path_first_half = '/run/user/1001/gvfs/smb-share:server=cmvm.datastore.ed
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
 
 
-def check_folder():
-    sorting_path = sorting_folder
+def check_folder(sorting_path):
     recording_to_sort = False
     for dir, sub_dirs, files in os.walk(sorting_path):
         if not sub_dirs and not files:
@@ -173,18 +172,38 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         shutil.rmtree(recording_to_sort)
 
 
+def check_folder_on_server(name):
+    path_to_check = server_path_first_half + name + '/to_sort/'
+    recording_to_sort = check_folder(path_to_check)
+    if recording_to_sort is not False:
+        shutil.move(recording_to_sort, sorting_folder)
+        print('I found a recording in ' + name + 's to_sort folder. I will move it to this computer and sort it.')
+        return recording_to_sort
+    return False
+
+
+def look_for_recordings_on_server():
+    recording_to_sort = check_folder_on_server('Tizzy')
+    if recording_to_sort is False:
+        recording_to_sort =  check_folder_on_server('Klara')
+        if recording_to_sort is False:
+            recording_to_sort = check_folder_on_server('Sarah')
+    return recording_to_sort
+
+
 def monitor_to_sort():
     start_time = time.time()
     time_to_wait = 60.0
     while True:
         print('I am checking whether there is something to sort.')
-        recording_to_sort = check_folder()
+        recording_to_sort = check_folder(sorting_folder)
 
         if recording_to_sort is not False:
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
-            print('Nothing to sort. I will check again in 1 minute.')
+            print('Nothing to sort. I will check if there is anything waiting on the server, and try again in a minute.')
+            recording_to_sort = look_for_recordings_on_server()
             time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
 
 
