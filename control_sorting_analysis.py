@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import time
+import Logger
 
 import pre_process_ephys_data
 
@@ -14,6 +15,7 @@ to_sort_folder = '/home/nolanlab/to_sort/'
 server_path_first_half = '/run/user/1001/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
 # server_path_fist_half_matlab = 'smb://cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
+downtime_lists_path = '/home/nolanlab/to_sort/sort_downtime/'
 
 
 def check_folder(sorting_path):
@@ -136,7 +138,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         is_vr, is_open_field = get_session_type(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
 
-        sys.stdout = open(server_path_first_half + location_on_server + '/sorting_log.txt', 'w')
+        sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
         pre_process_ephys_data.pre_process_data(recording_to_sort)
 
@@ -172,22 +174,37 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         shutil.rmtree(recording_to_sort)
 
 
-def check_folder_on_server(name):
-    path_to_check = server_path_first_half + name + '/to_sort/'
-    recording_to_sort = check_folder(path_to_check)
-    if recording_to_sort is not False:
-        shutil.copytree(recording_to_sort, sorting_folder)
-        print('I found a recording in ' + name + 's to_sort folder. I will move it to this computer and sort it.')
-        return recording_to_sort
-    return False
+def delete_processed_line(list_to_read_path):
+    with open(list_to_read_path, 'r') as file_in:
+        data = file_in.read().splitlines(True)
+    with open(list_to_read_path, 'w') as file_out:
+        file_out.writelines(data[1:])
 
 
-def look_for_recordings_on_server():
-    recording_to_sort = check_folder_on_server('Tizzy')
-    if recording_to_sort is False:
-        recording_to_sort =  check_folder_on_server('Klara')
-        if recording_to_sort is False:
-            recording_to_sort = check_folder_on_server('Sarah')
+def copy_recording_to_sort_to_local(recording_to_sort):
+    path_server = server_path_first_half + recording_to_sort
+    recording_to_sort_folder = recording_to_sort.split("/")[-1]
+    path_local = sorting_folder + recording_to_sort_folder
+    print('I will copy a file from the server now. It will take a while.')
+    shutil.copytree(path_server, path_local)
+    print('Copying is done, I will attempt to sort.')
+
+
+def get_next_recording_on_server_to_sort():
+    recording_to_sort = False
+    if not os.listdir(downtime_lists_path):
+        return False
+    else:
+        list_to_read = os.listdir(downtime_lists_path)[0]
+        list_to_read_path = downtime_lists_path + list_to_read
+        if os.stat(list_to_read_path).st_size == 0:
+            os.remove(list_to_read_path)
+        else:
+            downtime_file_reader = open(list_to_read_path, 'r+')
+            recording_to_sort = downtime_file_reader.readlines()[0].strip()
+
+            delete_processed_line(list_to_read_path)
+            copy_recording_to_sort_to_local(recording_to_sort)
     return recording_to_sort
 
 
@@ -202,9 +219,14 @@ def monitor_to_sort():
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
-            print('Nothing to sort. I will check if there is anything waiting on the server, and try again in a minute.')
-            recording_to_sort = look_for_recordings_on_server()
-            time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
+            print('Nothing urgent to sort. '
+                  'I will check if there is anything waiting on the server, and try again in a minute.')
+
+            recording_to_sort = get_next_recording_on_server_to_sort()
+            if recording_to_sort is not False:
+                call_spike_sorting_analysis_scripts(recording_to_sort)
+            else:
+                time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
 
 
 def main():
