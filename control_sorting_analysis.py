@@ -194,6 +194,9 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         print('There is a problem with this file. '
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
+        recording_to_sort = False
+
+    return recording_to_sort
 
 
 def get_next_recording_on_server_to_sort():
@@ -210,7 +213,9 @@ def get_next_recording_on_server_to_sort():
             recording_to_sort = downtime_file_reader.readlines()[0].strip()
 
             delete_processed_line(list_to_read_path)
-            copy_recording_to_sort_to_local(recording_to_sort)
+            recording_to_sort = copy_recording_to_sort_to_local(recording_to_sort)
+            if recording_to_sort is False:
+                return False
             recording_to_sort = sorting_folder + recording_to_sort.split("/")[-1]
 
     return recording_to_sort
