@@ -1,5 +1,5 @@
-function [postb,posx,posy,hd,HDint]= GetPosSyncedCorr(pname)
-if ~exist('pname','var')
+function [postb,posx,posy,hd,HDint]= GetPosSyncedCorr(pname,pixel_ratio)
+if ~exist('pname','var') %% attempt to find bonsai file if none has been specified
 pname='*.csv';
 pname=dir(pname);
 try
@@ -10,10 +10,9 @@ catch
     disp('no pos file present')
 end
 end
+if ~exist('pixel_ratio','var'); pixel_ratio=440; end % set default pixel_ratio if none has been specified
 %% Get Bonsai data
-
-[post,posx,posy,hd,HDint,light]= readbonsai(pname,440);
-
+[post,posx,posy,hd,HDint,light]= readbonsai(pname,pixel_ratio);
 %% Get OE Pulse data
 try
     [Sync, LEDtime, ~] = load_open_ephys_data('100_ADC1.continuous');

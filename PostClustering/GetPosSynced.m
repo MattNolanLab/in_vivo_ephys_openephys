@@ -1,9 +1,8 @@
-function [postnew,posx,posy,hd,HDint]= GetPosSynced(pname)
+function [postnew,posx,posy,hd,HDint]= GetPosSynced(pname,pixel_ratio)
 %% get position data
-if ~exist('pname','var')
+if ~exist('pname','var') % tries to find a bonsai file if none has been specified
     pname='*.csv';
-    pname=dir(pname);
-    
+    pname=dir(pname);    
     try
         pname=pname(posind).name;
         disp(pname);
@@ -12,8 +11,9 @@ if ~exist('pname','var')
         disp('no pos file present')
     end
 end
+if ~exist('pixel_ratio','var'); pixel_ratio=490; end % sets a pixel_ratio if none has been specified
 
-[post,posx,posy,hd,HDint,light]= readbonsai(pname,490);
+[post,posx,posy,hd,HDint,light]= readbonsai(pname,pixel_ratio);
 
 %% Get Pulse data
 [Ons,Offs]=GetSync;

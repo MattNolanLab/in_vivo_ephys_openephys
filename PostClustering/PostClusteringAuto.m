@@ -18,7 +18,6 @@ try
         SortingComputer=1; % 1 if running on SortingComputer, else 0
     end
     copy=0; % set to 0 unless you want to copy the mda files to the datastore
-    GSQ=0; % set to 1 if running on old data recorded in GSQ
     %% find input parameters
     if SortingComputer==1
         fid=fopen('home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/PostClusteringParams.txt','r');
@@ -56,20 +55,23 @@ try
         OpenField=1;
         Opto=1;
     end
+    
+    %% Autodetect GSQ and Axona - these variables specify what the position data and pixel ratio will be
+    date=pwd;
+    date=date(strfind(pwd,'_201')+1:strfind(pwd,'_201')+10);
+    serialdate=datenum(date,'yyyy-mm-dd');
+    if serialdate<736847 % GSq axona tracking
+        GSQ=1; Axona=1; pixel_ratio=490;
+    elseif serialdate>736847 && serialdate<737030 % GSq bonsai
+        GSQ=1; Axona=0; pixel_ratio=490;
+    else % HRB bonsai tracking
+        GSQ=0; Axona=0; pixel_ratio=440;
+    end
     %% Initial Variables
-    errormessage='finding session name';
     CreateFolders % creates the /Data and /Figures folders
-    %pname='Tracking_20171216.csv'; % optional override of position data name
-    %OpenField=1; % optional override for OpenField
-    %Opto=1; % optional override for Opto
     speedcut=0.5; %cm/second - threshold running speed to count as moving
     format='png'; % what format to save the output figures (matlab figure saved anyway)
     electrodes=0; % set as 0 if using all tetrodes
-    if GSQ==0
-        pixel_ratio=490; % pixels per m - 1 George Square
-    else
-        pixel_ratio=440; % pixels per m - 6th Floor HRB
-    end
     
     %% Subplot locations for Figure 2
     % these set the positions for each subplot in the final figures
@@ -92,6 +94,7 @@ try
     thetacorrtile=[57 58];          % spike-time autocorrelogram theta
     speedtile = [59 60];            % firing rate v running speed
     %% get session name from the directory name
+    errormessage='finding session name';
     str = pwd; %full path to this directory
     if SortingComputer==1
         idx = strfind(str,'/') ; % i changed this from \
@@ -110,33 +113,36 @@ try
     sessionid=strcat(animal,'-', num2str(date));
     %% Get position data
     errormessage='getting position data';
-    try
-        posnameTiz=strcat(num2str(date(6:7)),num2str(date(9:10)));
-        posnameTiz=dir(strcat('*',posnameTiz,'*')); posnameTiz=posnameTiz.name;
-        if OpenField==1 % only do this if it's an open field session
-            if exist('pname','var')
-                [post,posx,posy,hd,HDint]= GetPosSyncedCorr(pname);
-            elseif any(size(dir('Tracking*'),1))%% if it's Klara's tracking file
-                pname=dir('Tracking*'); pname=pname.name;
-                [post,posx,posy,hd,HDint]= GetPosSyncedCorr(pname);
-            elseif any(size(dir(posnameTiz),1))
-                if GSQ==1%% bonsai George Square
-                    pname=posnameTiz;
-                    [post,posx,posy,hd,HDint]= GetPosSynced(pname);
+    if OpenField==1 % only do this if it's an open field session
+        try
+            if Axona==0
+                posnameTiz=strcat(num2str(date(6:7)),num2str(date(9:10)));
+                posnameTiz=dir(strcat('*',posnameTiz,'*')); posnameTiz=posnameTiz.name;
+                if any(size(dir('Tracking*'),1))%% if it's Klara's tracking file
+                    pname=dir('Tracking*'); pname=pname.name;
+                    [post,posx,posy,hd,HDint]= GetPosSyncedCorr(pname,pixel_ratio);
+                elseif any(size(dir(posnameTiz),1))
+                    if GSQ==1%% bonsai George Square
+                        pname=posnameTiz;
+                        [post,posx,posy,hd,HDint]= GetPosSynced(pname,pixel_ratio);
+                    else
+                        pname=posnameTiz;
+                        [post,posx,posy,hd,HDint]= GetPosSyncedCorr(pname,pixel_ratio);
+                    end
                 else
-                    pname=posnameTiz;
-                    [post,posx,posy,hd,HDint]= GetPosSyncedCorr(pname);
+                    disp('Error: no bonsai position data file');
+                    OpenField=0;
                 end
             elseif any(size(dir('*.POS'),1)) %% if it's the axona position tracking system
                 [post,posx,posy,hd,HDint]= GetPosSyncedAxona;
             else %% to pick up errors
-                disp('Error: no position data file');
+                disp('Error: no axona position data file');
                 OpenField=0;
             end
+        catch
+            disp('Error: problem finding position data file. Trying without position');
+            OpenField=0;
         end
-    catch
-        disp('Error: problem finding position data file. Trying without position');
-        OpenField=0;
     end
     errormessage='getting optotagging data';
     %% Get Real-TimeStamps + light pulse data
@@ -164,13 +170,19 @@ try
     stage={'all tetrodes', 'individual tetrodes'}; % variable for informative error message
     %% Repeat rest of script for both all-tetrodes and separate tetrodes
     for separate_tetrodes=0:1 % make plots for both all-tetrodes and separate
-        if ~exist(strcat('Figures',num2str(separate_tetrodes)),'dir');
+        if ~exist(strcat('Figures',num2str(separate_tetrodes)),'dir')
             mkdir(strcat('Figures',num2str(separate_tetrodes))); % create folder for figures
         end
         %% Get Spike Data
         errormessage=strcat('getting spike data - ',char(stage(separate_tetrodes+1)));
-        if ~exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file') % check if a 'Firings.mat' file exists - this is faster than opening mda files
-            if electrodes==0
+        try 
+           load(strcat('Firings',num2str(separate_tetrodes),'.mat'));
+           size(spikeind); 
+           size(tetid);
+           size(cluid);
+           size(waveforms);
+        catch
+           if electrodes==0
                 [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer); %open mda files and create Firings.mat file
                 empty=0;
                 save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'empty','spikeind','tetid','cluid','waveforms','-v7.3');
@@ -178,9 +190,7 @@ try
                 [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer,electrodes);
                 empty=0;
                 save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'empty','spikeind','tetid','cluid','waveforms','-v7.3');
-            end
-        else
-            load(strcat('Firings',num2str(separate_tetrodes),'.mat'));
+           end
         end
         numclu=length(unique(cluid)); % how many clusters are present
         numtet=length(unique(tetid)); % how many tetrodes have been analysed
@@ -368,14 +378,19 @@ catch
     fprintf(fid,strcat('Matlab crashed while_',(errormessage)));
     fclose(fid);
     try
-    in='matlabcrash.txt';
-    out=strcat(outfile,'/matlabcrash.txt');
-    copyfile(in,out);
+        in='matlabcrash.txt';
+        out=strcat(outfile,'/matlabcrash.txt');
+        copyfile(in,out);
     catch
     end
-    if SortingComputer==1;
-        if copy==0
-            try
+    if SortingComputer==1
+        try
+            if exist(strcat('Firings',num2str(separate_tetrodes),'.mat'),'file')>0
+                disp('copying snippet data to server');
+                for separate_tetrodes=0:1;
+                    copyfile(strcat('Firings',num2str(separate_tetrodes),'.mat'),strcat(outfile,'/Firings',num2str(separate_tetrodes),'.mat'));
+                end
+            else
                 disp('Copying mda files to datastore');
                 mkdir(outfile,'mdafiles');
                 innames={'all_tetrodes','t1','t2','t3','t4'};
@@ -394,12 +409,25 @@ catch
                         copyfile(in,out);
                     end
                 end
-            catch
-                disp('copying MDA files failed')
             end
+            disp('Copying metrics files to datastore');
+            mkdir(outfile,'clustermetrics');
+            innames={'all_tetrodes','t1','t2','t3','t4'};
+            outnames={'all','T1','T2','T3','T4'};
+            for i=1:length(innames)
+                in=strcat('Electrophysiology/Spike_sorting/',char(innames(i)),'/cluster_metrics.json');
+                out=strcat(outfile,'/clustermetrics/',char(outnames(i)),'_cluster_metrics.json');
+                if exist(in,'file')
+                    copyfile(in,out);
+                end
+            end
+        catch
+            disp('copying backup files to server failed');
         end
-        clear variables;
-        disp('returning control to python');
-        exit;
-    end % exit so automatic script can continue on next dataset
+        
+    end
+    clear variables;
+    disp('returning control to python');
+    exit;
+end % exit so automatic script can continue on next dataset
 end
