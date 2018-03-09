@@ -186,8 +186,14 @@ def copy_recording_to_sort_to_local(recording_to_sort):
     recording_to_sort_folder = recording_to_sort.split("/")[-1]
     path_local = sorting_folder + recording_to_sort_folder
     print('I will copy a folder from the server now. It will take a while.')
-    shutil.copytree(path_server, path_local)
-    print('Copying is done, I will attempt to sort.')
+    try:
+        shutil.copytree(path_server, path_local)
+        print('Copying is done, I will attempt to sort.')
+    except Exception as ex:
+        add_to_list_of_failed_sortings(recording_to_sort)
+        print('There is a problem with this file. '
+              'I will move on to the next one. This is what Python says happened:')
+        print(ex)
 
 
 def get_next_recording_on_server_to_sort():
