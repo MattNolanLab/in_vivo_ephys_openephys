@@ -190,12 +190,11 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         shutil.copytree(path_server, path_local)
         print('Copying is done, I will attempt to sort.')
     except Exception as ex:
+        recording_to_sort = False
         add_to_list_of_failed_sortings(recording_to_sort)
         print('There is a problem with this file. '
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
-        recording_to_sort = False
-
     return recording_to_sort
 
 
