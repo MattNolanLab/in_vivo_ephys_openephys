@@ -186,6 +186,10 @@ def copy_recording_to_sort_to_local(recording_to_sort):
     recording_to_sort_folder = recording_to_sort.split("/")[-1]
     path_local = sorting_folder + recording_to_sort_folder
     print('I will copy a folder from the server now. It will take a while.')
+    if os.path.exists(path_server) is False:
+        print('This folder does not exist on the server:')
+        print(path_server)
+        return False
     try:
         shutil.copytree(path_server, path_local)
         print('Copying is done, I will attempt to sort.')
