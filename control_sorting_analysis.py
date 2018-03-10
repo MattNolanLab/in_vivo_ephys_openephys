@@ -128,7 +128,7 @@ def add_to_list_of_failed_sortings(recording_to_sort):
 
     else:
         crash_writer = open(to_sort_folder + '/crash_list.txt', 'a', newline='\n')
-    crashed_recording = recording_to_sort + '\n'
+    crashed_recording = str(recording_to_sort) + '\n'
     crash_writer.write(crashed_recording)
     crash_writer.close()
 
