@@ -5,4 +5,6 @@ plot(posx,posy,'k');
 hold on
 scatter(spkx,spky,'.r');
 axis([min(posx) max(posx) min(posy) max(posy)]);
-set(gca,'xtick',[])
+axis('equal');
+set(gca,'xtick',[]);
+set(gca,'ytick',[]);

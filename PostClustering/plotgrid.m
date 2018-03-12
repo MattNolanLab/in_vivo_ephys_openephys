@@ -18,6 +18,8 @@ set(gca,'ytick',[])
 set(gca,'yticklabel',[])
 set(pos,'linestyle','none');
 set(gca, 'DataAspectRatio', [1 1 1]);
+set(gca,'FontSize',8);
+set(gca,'FontWeight','Normal');
 
 if isnan(grid_score)
     title(sprintf('Too few fields to calculate'),'FontSize', 8);

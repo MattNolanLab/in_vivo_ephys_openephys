@@ -48,4 +48,4 @@ N=N(centers>0);
 centers=centers(centers>0);
 lightlatency=centers(N==max(N)); lightlatency=lightlatency(1);
 percentresponse=sum(response>0)/length(response)*100;
-title({sprintf('SALT p=%.3f, SALT stat=%.3f',lightscore_p,lightscore_I),sprintf('Latency=%.fms Response=%.f%%trials',lightlatency*1000,percentresponse)},'FontSize',7,'FontWeight','Normal');
+title({sprintf('SALT p=%.3f, stat=%.3f',lightscore_p,lightscore_I),sprintf('Latency=%.fms Response=%.f%%trials',lightlatency*1000,percentresponse)},'FontSize',7,'FontWeight','Normal');

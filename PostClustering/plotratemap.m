@@ -32,6 +32,8 @@ set(gca,'ytick',[])
 set(gca,'yticklabel',[])
 set(frco,'linestyle','none');
 set(gca, 'DataAspectRatio', [1 1 1]);
+set(gca,'FontSize',8);
+set(gca,'FontWeight','Normal');
 title({sprintf('Max FR = %.2f Hz, Spatial Info: %.2f b/s',max(max(frmap)),skaggs),sprintf('Sparsity %.2f%%, Coherence %.2f',(spars*100),cohe)});
 
 
@@ -64,6 +66,8 @@ set(gca,'ytick',[])
 set(gca,'yticklabel',[])
 set(pco,'linestyle','none');
 set(gca, 'DataAspectRatio', [1 1 1]);
+set(gca,'FontSize',8);
+set(gca,'FontWeight','Normal');
 coverage=sum(sum(~isnan(posmap)))/(size(posmap,1)*size(posmap,2))*100;
 title({sprintf('Coverage: %.2f %%',coverage)});
 end

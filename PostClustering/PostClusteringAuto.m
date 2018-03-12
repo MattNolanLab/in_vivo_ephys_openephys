@@ -281,11 +281,11 @@ try
                 errormessage=strcat('making position plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
                 plotposition(posx,posy,spkx,spky,[fig_rows fig_cols postile]);
                 subplot(fig_rows, fig_cols, postile);
-                title({sprintf('All data ->')});
+                title({sprintf('All data ->')},'color','k');
                 [frmap,posmap,skaggs,spars,cohe,max_firing,coverage]=plotratemap(posx,posy,spkx,spky,pixel_ratio,post,[fig_rows fig_cols ratemaptile], posmaptile);
                 plotposition(posxrun,posyrun,spkxrun,spkyrun,[fig_rows fig_cols postilerun]);
                 subplot(fig_rows, fig_cols, postilerun);
-                title({sprintf('Running above %.1f cm/sec ->',speedcut)});
+                title({sprintf('Running above %.1f cm/sec ->',speedcut)},'color','k');
                 [frmaprun,posmaprun,skaggsrun,sparsrun,coherun,max_firingrun,coveragerun]=plotratemap(posxrun,posyrun,spkxrun,spkyrun,pixel_ratio,post,[fig_rows fig_cols ratemaptilerun],posmaptilerun);
                 if sum(isnan(spkx))<length(spkx)
                     [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
@@ -320,11 +320,11 @@ try
             %% save plot and store data matrix
             errormessage=strcat('saving figure - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
             id = [sessionid '-Tetrode-' num2str(tet) '-Cluster-' num2str(i)];
-            annotation('textbox', [0.05, 1.0, 1.0, 0], 'string', id);
+            annotation('textbox', [0.1, 1.0, 1.0, 0], 'string', id,'FontSize',20);
             saveas(figure2,fullfile(strcat('Figures',num2str(separate_tetrodes)),id),'fig');
             %saveas(figure2,strcat(outfile,'/Figures/',id),'fig');
             set(gcf,'PaperUnits','centimeters');
-            set(gcf,'PaperPosition',[0 0 50 30]);
+            set(gcf,'PaperPosition',[0 0 56.56 40]);
             saveas(figure2,fullfile(strcat('Figures',num2str(separate_tetrodes)),id),format);
             %saveas(figure2,strcat(outfile,'/Figures/',id),format);
             close(figure2);
