@@ -38,5 +38,5 @@ end
 axis([-0.05 0.1 0 length(LEDoffs)]);
 xlabel('Time (s)');
 ylabel('Trial');
-%set(gca, 'FontSize', 6)
+set(gca,'FontSize',7);
 

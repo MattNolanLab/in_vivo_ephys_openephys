@@ -28,9 +28,10 @@ N=N./length(LEDons);
 subplot(subplots(1),subplots(2),subplots(3:end));
 patch([0 pulselength pulselength 0],[0 0 max(N)+0.05 max(N)+0.05],'cyan','FaceAlpha',0.2,'LineStyle','none');
 hold on
-bar(centers, N,1,'k')
-ylabel('Spikes/Trial');
-xlabel('Time (s)')
+set(gca,'FontSize',8);
+bar(centers, N,1,'k');
+ylabel('Spikes/Trial','FontSize',8);
+xlabel('Time (s)','FontSize',8);
 axis([windowstart windowend 0 max(N)+0.05]);
 totalspikes=length(binspktimes);
 
@@ -47,4 +48,4 @@ N=N(centers>0);
 centers=centers(centers>0);
 lightlatency=centers(N==max(N)); lightlatency=lightlatency(1);
 percentresponse=sum(response>0)/length(response)*100;
-title({sprintf('SALT p =  %.3f , SALT statistic = %.3f',lightscore_p,lightscore_I),sprintf('Mode latency =  %.f ms Light response = %.f %% trials',lightlatency*1000,percentresponse)});
+title({sprintf('SALT p=%.3f, SALT stat=%.3f',lightscore_p,lightscore_I),sprintf('Latency=%.fms Response=%.f%%trials',lightlatency*1000,percentresponse)},'FontSize',7,'FontWeight','Normal');

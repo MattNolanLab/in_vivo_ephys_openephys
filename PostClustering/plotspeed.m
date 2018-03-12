@@ -16,8 +16,10 @@ centres=centres(1:max(find(~isnan(spkrate)))); % trim to useable data
 %make plot
 subplot(subplots(1),subplots(2),subplots(3:end));
 bar(centres, spkrate,1,'k')
+set(gca,'FontSize',8);
 h = title(sprintf('Speedscore= %.2f',speedscore));
 ylabel('FiringRate(Hz)');
 xlabel('Speed (cm/s)')
 axis([0 max(centres)+binsize/2 floor(min(spkrate)-range(spkrate)/10) ceil(max(spkrate)+range(spkrate)/10)]);
+
 

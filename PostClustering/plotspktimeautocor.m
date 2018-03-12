@@ -6,6 +6,7 @@ corr=corr/width;
 bar(tms,corr,1,'k');
 v1 = axis;
 axis([tms(1) tms(end) v1(3) v1(4)]);
+set(gca,'FontSize',7);
 xlabel('Time Lag (ms)');
 
 %% optional stylistic things

@@ -5,6 +5,7 @@ centers = (edges(1:end-1) + edges(2:end))/2;
 N=N./width;
 subplot(subplots(1),subplots(2),subplots(3:end));
 bar(centers, N,1,'k')
+set(gca,'FontSize',7);
 ylabel('FiringRate(Hz)');
 xlabel('Time (s)')
 axis([min(spiketimes) max(spiketimes) 0 max(N)]);

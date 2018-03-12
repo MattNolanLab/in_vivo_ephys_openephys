@@ -69,7 +69,7 @@ try
     end
     %% Initial Variables
     CreateFolders % creates the /Data and /Figures folders
-    speedcut=0.5; %cm/second - threshold running speed to count as moving
+    speedcut=0.7; %cm/second - threshold running speed to count as moving
     format='png'; % what format to save the output figures (matlab figure saved anyway)
     electrodes=0; % set as 0 if using all tetrodes
     
@@ -424,10 +424,9 @@ catch
         catch
             disp('copying backup files to server failed');
         end
-        
-    end
     clear variables;
     disp('returning control to python');
-    exit;
+    exit; 
+    end
 end % exit so automatic script can continue on next dataset
 end
