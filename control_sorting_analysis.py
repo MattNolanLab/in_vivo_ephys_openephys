@@ -236,8 +236,7 @@ def monitor_to_sort():
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
-            print('Nothing urgent to sort. '
-                  'I will check if there is anything waiting on the server, and try again in a minute.')
+            print('Nothing urgent to sort. I will check if there is anything waiting on the server.')
 
             recording_to_sort = get_next_recording_on_server_to_sort()
             if recording_to_sort is not False:
