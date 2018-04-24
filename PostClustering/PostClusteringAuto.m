@@ -303,10 +303,16 @@ try
             if Opto==1 % only do this if it's an opto-tagging session
                 errormessage=strcat('making opto plots - ',char(stage(separate_tetrodes+1)),'cluster - ',num2str(i));
                 [onspikes]=plotoptoraster(cluspktimes,LEDons,LEDoffs,[fig_rows fig_cols optotile],GSQ);
-                if length(LEDons)>174 && GSQ==0
+                if length(LEDons)>174 && length(LEDons)<200 && GSQ==0
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(1:100),LEDoffs(1:100),cluspktimes(cluspktimes<LEDons(101)),[fig_rows fig_cols optohisttile(3:4)]);
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(101:125),LEDoffs(101:125),cluspktimes(cluspktimes<LEDons(126) & cluspktimes>LEDons(100)),[fig_rows fig_cols optohisttile(1)]);
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(126:175),LEDoffs(126:175),cluspktimes(cluspktimes>LEDons(125)),[fig_rows fig_cols optohisttile(2)]);
+                elseif length(LEDons)>200 && GSQ==0
+                    [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(1:100),LEDoffs(1:100),cluspktimes(cluspktimes<LEDons(101)),[fig_rows fig_cols optohisttile(3)]);
+                    [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(101:200),LEDoffs(101:200),cluspktimes(cluspktimes<LEDons(201)),[fig_rows fig_cols optohisttile(4)]);
+                    [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(201:225),LEDoffs(201:225),cluspktimes(cluspktimes<LEDons(226) & cluspktimes>LEDons(200)),[fig_rows fig_cols optohisttile(1)]);
+                    [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(226:275),LEDoffs(226:275),cluspktimes(cluspktimes>LEDons(225)),[fig_rows fig_cols optohisttile(2)]);                 
+                    
                 else
                     [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons,LEDoffs,cluspktimes,[fig_rows fig_cols optohisttile]);
                 end
