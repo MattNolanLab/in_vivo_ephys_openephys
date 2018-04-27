@@ -97,7 +97,7 @@ catch
     exit;
     end
 end % exit so automatic script can continue on next dataset
-%end
+end
 
 function[errormessage, outfile, OpenField, Opto] = find_input_parameters()
     errormessage='inital variables'; % This variable is needed for outputting an error message to Pycharm
