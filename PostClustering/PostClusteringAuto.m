@@ -32,8 +32,13 @@ try
     end
 
     %% Autodetect GSQ and Axona - these variables specify what the position data and pixel ratio will be
-    'png'; % what format to save the output figures (matlab figure saved anyway)
+    [GSQ, Axona, pixel_ratio] = get_acq_system_and_pixel_ratio();
+    %% Initial Variables
+    CreateFolders % creates the /Data and /Figures folders
+    speed_cut=0.7; %cm/second - threshold running speed to count as moving
+    format='png'; % what format to save the output figures (matlab figure saved anyway)
     electrodes=0; % set as 0 if using all tetrodes
+
 
     %% Set subplot locations for Figure 2
     [fig_rows, fig_cols, waveplotstile, postile, ratemaptile, gridcortile, posmaptile, hdpolartile, postilerun, ratemaptilerun, gridcortilerun, posmaptilerun, optoplotstile, optotile, optohisttile, refractoryperiodtile, rasterplottile, thetacorrtile, speedtile] = set_subplots_for_figure();
@@ -91,7 +96,7 @@ catch
     catch
     end
     if SortingComputer==1
-        [errormessage] = try_to_copy_data();
+        [errormessage] = try_to_copy_data(outfile);
     clear variables;
     disp('returning control to python');
     exit;
@@ -267,9 +272,11 @@ function[errormessage, spikeind, tetid, cluid, waveforms, numclu] = get_spike_da
     catch
        if electrodes==0
             [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer); %open mda files and create Firings.mat file
+            empty=0;
             save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'empty','spikeind','tetid','cluid','waveforms','-v7.3');
         else % run on specific tetrodes only if specified in initial variables
             [spikeind,tetid,cluid,waveforms] = GetFiring(separate_tetrodes,SortingComputer,electrodes);
+            empty=0;
             save(strcat('Firings',num2str(separate_tetrodes),'.mat'),'empty','spikeind','tetid','cluid','waveforms','-v7.3');
        end
     end
@@ -277,6 +284,7 @@ function[errormessage, spikeind, tetid, cluid, waveforms, numclu] = get_spike_da
     numtet=length(unique(tetid)); % how many tetrodes have been analysed
     disp(strcat('Found-',num2str(numclu),' clusters, across-',num2str(numtet),' tetrodes' ))
 end
+
 
 function[errormessage, tetid, cluid, waveforms, spikeind] = trim_spiking_data_to_length_of_original_data(tetid, spikeind, timestamps, cluid, waveforms,separate_tetrodes)
     %% trim spiking data to the length of the original data
