@@ -530,6 +530,10 @@ function[errormessage,lightscore_p,lightscore_I,lightlatency,percentresponse,lig
             [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(1:100),LEDoffs(1:100),cluspktimes(cluspktimes<LEDons(101)),[fig_rows fig_cols optohisttile(3:4)]);
             [lightscore_p2,lightscore_I2,lightlatency2,percentresponse2]=plotoptohist(LEDons(101:125),LEDoffs(101:125),cluspktimes(cluspktimes<LEDons(126) & cluspktimes>LEDons(100)),[fig_rows fig_cols optohisttile(1)]);
             [lightscore_p3,lightscore_I3,lightlatency3,percentresponse3]=plotoptohist(LEDons(126:175),LEDoffs(126:175),cluspktimes(cluspktimes>LEDons(125)),[fig_rows fig_cols optohisttile(2)]);
+            lightscore_p4=NaN;
+            lightscore_I4=NaN;
+            lightlatency4=NaN;
+            percentresponse4=NaN;
         elseif length(LEDons)>200 && GSQ==0
             [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons(1:100),LEDoffs(1:100),cluspktimes(cluspktimes<LEDons(101)),[fig_rows fig_cols optohisttile(3)]);
             [lightscore_p2,lightscore_I2,lightlatency2,percentresponse2]=plotoptohist(LEDons(101:200),LEDoffs(101:200),cluspktimes(cluspktimes<LEDons(201)),[fig_rows fig_cols optohisttile(4)]);
@@ -538,6 +542,19 @@ function[errormessage,lightscore_p,lightscore_I,lightlatency,percentresponse,lig
 
         else
             [lightscore_p,lightscore_I,lightlatency,percentresponse]=plotoptohist(LEDons,LEDoffs,cluspktimes,[fig_rows fig_cols optohisttile]);
+            
+            lightscore_p2=NaN;
+            lightscore_I2=NaN;
+            lightlatency2=NaN;
+            percentresponse2=NaN;
+            lightscore_p3=NaN;
+            lightscore_I3=NaN;
+            lightlatency3=NaN;
+            percentresponse3=NaN;
+            lightscore_p4=NaN;
+            lightscore_I4=NaN;
+            lightlatency4=NaN;
+            percentresponse4=NaN;
         end
         if ~isempty(onspikes)
             lightwaves=cluwaves(:,:,onspikes);
