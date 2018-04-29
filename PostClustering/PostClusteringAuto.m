@@ -232,6 +232,9 @@ function[errormessage,OpenField,post,posx,posy,hd,HDint] = get_position_data(Ope
             OpenField=0;
         end
     end
+    if OpenField==0
+        post=NaN;posx=NaN;posy=NaN; hd=NaN; HDint=NaN;
+    end
 end
 
 function[errormessage, LEDons, LEDoffs, timestamps, Opto] = get_time_stamps_and_light_pulses(Opto)
@@ -339,7 +342,10 @@ function[errormessage, speed, posxrun, posyrun, postboundary, sampling_rate] = g
         postboundary=post-[max(diff(post)); diff(post)./2];
         postboundary=[postboundary; max(postboundary)+(max(diff(post))/2)];
         sampling_rate=1/mean(diff(post)); %average position sampling rate. Needed for converting firing rates to Hz
+    else
+        [errormessage, speed, posxrun, posyrun, postboundary, sampling_rate] = deal(NaN);
     end
+    
 end
 
 
@@ -482,6 +488,8 @@ function[errormessage,spkx,spky,spkhd,spkxrun,spkyrun,spkspeed] = find_spike_pos
         spkxrun(cluspktimes>max(post))=NaN; spkxrun(cluspktimes<min(post))=NaN;
         spkyrun(cluspktimes>max(post))=NaN; spkyrun(cluspktimes<min(post))=NaN;
         spkspeed(cluspktimes>max(post))=NaN; spkspeed(cluspktimes<min(post))=NaN;
+    else
+        [errormessage,spkx,spky,spkhd,spkxrun,spkyrun,spkspeed] = deal(NaN);
     end
 
 end
@@ -518,6 +526,8 @@ function[errormessage,skaggs,spars,cohe,max_firing,coverage,skaggsrun,sparsrun,c
         else % create empty variables for saving to data matrix
             frh_hd=NaN; meandir_hd=NaN; r_hd=NaN; skaggs=NaN; spars=NaN; cohe=NaN; max_firing=NaN; grid_score=NaN; skaggsrun=NaN; sparsrun=NaN; coherun=NaN; max_firingrun=NaN; grid_scorerun=NaN;
         end
+    else
+        [errormessage,skaggs,spars,cohe,max_firing,coverage,skaggsrun,sparsrun,coherun,max_firingrun,grid_score,grid_scorerun,frh_hd,meandir_hd,r_hd] = deal(NaN);
     end
 end
 
@@ -560,6 +570,8 @@ function[errormessage,lightscore_p,lightscore_I,lightlatency,percentresponse,lig
             lightwaves=cluwaves(:,:,onspikes);
             [~,~,~]=plotwaveforms(lightwaves,[fig_rows fig_cols optoplotstile],ori);
         end
+    else
+        [errormessage,lightscore_p,lightscore_I,lightlatency,percentresponse,lightscore_p2,lightscore_I2,lightlatency2,percentresponse2,lightscore_p3,lightscore_I3,lightlatency3,percentresponse3,lightscore_p4,lightscore_I4,lightlatency4,percentresponse4]=deal(NaN);
     end
 end
 
