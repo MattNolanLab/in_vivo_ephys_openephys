@@ -516,9 +516,14 @@ function[errormessage,skaggs,spars,cohe,max_firing,coverage,skaggsrun,sparsrun,c
         title({sprintf('Running above %.1f cm/sec ->',speed_cut)},'color','k');
         [frmaprun,~,skaggsrun,sparsrun,coherun,max_firingrun,~]=plotratemap(posxrun,posyrun,spkxrun,spkyrun,pixel_ratio,post,[fig_rows fig_cols ratemaptilerun],posmaptilerun);
         if sum(isnan(spkx))<length(spkx)
-            [grid_score,~,~,~,~]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
-            [grid_scorerun,~,~,~,~]=plotgrid(frmaprun,[fig_rows fig_cols gridcortilerun]);
-            %% hd plot
+            try
+                [grid_score,grid_spacing,field_size,grid_orientation,grid_ellipticity]=plotgrid(frmap,[fig_rows fig_cols gridcortile]);
+                [grid_scorerun,grid_spacingrun,field_sizerun,grid_orientationrun,grid_ellipticityrun]=plotgrid(frmaprun,[fig_rows fig_cols gridcortilerun]);
+            catch
+                disp('Problem with grid plots, grid score is set to NaN.');
+                grid_score=NaN; grid_scorerun=NaN;               
+            end
+                %% hd plot
             [frh_hd,meandir_hd,r_hd]=plothd(hd,spkhd,sampling_rate,[fig_rows fig_cols hdpolartile]);
             %% speed plot
             [speedscore]=calcspeedscore(post,cluspktimes,speed);
