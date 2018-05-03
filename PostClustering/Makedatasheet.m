@@ -7,7 +7,7 @@ dataoutnames={'data_all.csv', 'data_separate.csv'};
 for i=1:length(dataoutnames)
     dataoutname=char(dataoutnames(i));
 fid = fopen(dataoutname, 'w' );
-header={'animal','day','tetrode','cluster','nspikes','coverage','avgFR', 'maxamplitude', 'maxchannel','spkewidth','HD_maxFR','meanHD', 'r_HD', 'skaggs','sparsity','spatialcoherence','maxFRspatial','gridscore','skaggsrun','sparsrun','spatialcoherencerun','maxFRspatialrun','gridscorerun','lightscoreP','lightscoreI','lightlatency','percentresponse','cluster' ,'goodcluster', 'firing_rate', 'FRpass', 'isolation', 'isolationpass' , 'noiseoverlap','noiseoverlappass','peakSNR' ,'peakSNRpass','burstingparent'};
+header={'animal','day','tetrode','cluster','nspikes','coverage','avgFR', 'maxamplitude', 'maxchannel','spkewidth','HD_maxFR','meanHD', 'r_HD', 'skaggs','sparsity','spatialcoherence','maxFRspatial','gridscore','skaggsrun','sparsrun','spatialcoherencerun','maxFRspatialrun','gridscorerun','lightscoreP','lightscoreI','lightlatency','percentresponse','lightscore_p2','lightscore_I2','lightlatency2','percentresponse2','lightscore_p3','lightscore_I3','lightlatency3','percentresponse3','lightscore_p4','lightscore_I4','lightlatency4','percentresponse4','cluster' ,'goodcluster', 'firing_rate', 'FRpass', 'isolation', 'isolationpass' , 'noiseoverlap','noiseoverlappass','peakSNR' ,'peakSNRpass','burstingparent'};
 fprintf(fid,'%s,',header{:});
 fprintf(fid,'\n');
 fclose( fid );
