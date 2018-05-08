@@ -8,6 +8,7 @@ for i=1:length(dataoutnames)
     dataoutname=char(dataoutnames(i));
 fid = fopen(dataoutname, 'w' );
 header={'animal','day','tetrode','cluster','nspikes','coverage','avgFR', 'maxamplitude', 'maxchannel','spkewidth','HD_maxFR','meanHD', 'r_HD', 'skaggs','sparsity','spatialcoherence','maxFRspatial','gridscore','skaggsrun','sparsrun','spatialcoherencerun','maxFRspatialrun','gridscorerun','lightscoreP','lightscoreI','lightlatency','percentresponse','lightscore_p2','lightscore_I2','lightlatency2','percentresponse2','lightscore_p3','lightscore_I3','lightlatency3','percentresponse3','lightscore_p4','lightscore_I4','lightlatency4','percentresponse4','cluster' ,'goodcluster', 'firing_rate', 'FRpass', 'isolation', 'isolationpass' , 'noiseoverlap','noiseoverlappass','peakSNR' ,'peakSNRpass','burstingparent'};
+incoming_header_length = 48;
 fprintf(fid,'%s,',header{:});
 fprintf(fid,'\n');
 fclose( fid );
@@ -35,6 +36,13 @@ if exist('clustermetrics','dir')
     message=1;
     data1 = csvread('datasave_all.csv');
     data2 = csvread('datasave_separate.csv');
+    if length(data1) < incoming_header_length
+        append_data1_with = NaN([size(data1,1),incoming_header_length - length(data1)]);
+        data1 = [data1 append_data1_with];
+        append_data2_with = NaN([size(data2,1),incoming_header_length - length(data2)]);
+        data2 = [data2 append_data2_with];
+    end
+    
     cd ..
     ind=strfind(foldername,'_');
     animal=foldername(1:ind(1)-1);
