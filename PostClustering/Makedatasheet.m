@@ -2,6 +2,8 @@
 % should be run from the animal root folder i.e. Cohort4/U
 % data output will be saved in the animal root folder
 
+%first_part_of_spreadsheet = 27;
+
 %% make output files and header row
 dataoutnames={'data_all.csv', 'data_separate.csv'};
 for i=1:length(dataoutnames)
@@ -32,16 +34,16 @@ cd(foldername);
 %% identify if there are files that need curating and haven't been yet
 try
 if exist('clustermetrics','dir')
-    Curation
+    Curation % this adds curation related info to all_data and separate_data csv files
     message=1;
     data1 = csvread('datasave_all.csv');
     data2 = csvread('datasave_separate.csv');
-    if length(data1) < incoming_header_length
-        append_data1_with = NaN([size(data1,1),incoming_header_length - length(data1)]);
-        data1 = [data1 append_data1_with];
-        append_data2_with = NaN([size(data2,1),incoming_header_length - length(data2)]);
-        data2 = [data2 append_data2_with];
-    end
+% %     if length(data1) < incoming_header_length
+% %         append_data1_with = NaN([size(data1,1),incoming_header_length - length(data1)]);
+% %         data1 = [data1(:,1:first_part_of_spreadsheet) append_data1_with data1(:,first_part_of_spreadsheet+1:end)];
+% %         append_data2_with = NaN([size(data2,1),incoming_header_length - length(data2)]);
+% %         data2 = [data2(:,1:first_part_of_spreadsheet) append_data2_with data2(:,first_part_of_spreadsheet+1:end)];
+% %     end
     
     cd ..
     ind=strfind(foldername,'_');
@@ -51,15 +53,15 @@ if exist('clustermetrics','dir')
 %     dlmwrite('data_separate.csv',data2,'delimiter',',','-append');
     
     for i=1:length(dataoutnames)
-    dataoutname=char(dataoutnames(i));
-    fid = fopen(dataoutname, 'a' );
-    data=eval(strcat('data',num2str(i)));
+        dataoutname=char(dataoutnames(i));
+        fid = fopen(dataoutname, 'a' );
+        data=eval(strcat('data',num2str(i)));
     for r=1:size(data,1)
-    fprintf(fid,'%s,%s,',animal,date);
-    fprintf(fid,'%d,',data(r,:));
-    fprintf(fid,'\n');
+        fprintf(fid,'%s,%s,',animal,date);
+        fprintf(fid,'%d,',data(r,:));
+        fprintf(fid,'\n');
     end
-    fclose( fid );
+        fclose( fid );
     end 
 else
     message=2;
