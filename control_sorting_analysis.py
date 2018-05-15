@@ -55,11 +55,12 @@ def check_if_recording_was_copied(recording_to_sort):
 # return whether it is vr or openfield
 def get_session_type(recording_directory):
     parameters_path = recording_directory + '/parameters.txt'
-    param_file_reader = open(parameters_path, 'r')
-    parameters = param_file_reader.readlines()
-    parameters = list([x.strip() for x in parameters])
-    session_type = parameters[0]
     try:
+        param_file_reader = open(parameters_path, 'r')
+        parameters = param_file_reader.readlines()
+        parameters = list([x.strip() for x in parameters])
+        session_type = parameters[0]
+
         if session_type == 'vr':
             is_vr = True
             is_open_field = False
