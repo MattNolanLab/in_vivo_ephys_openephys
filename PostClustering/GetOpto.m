@@ -1,4 +1,5 @@
 function [LEDons,LEDoffs,LEDtime]=GetOpto
+%%test edit
 %edited 20-Feb-18 to set a threshold for lighton
 %% get LED data
 try
