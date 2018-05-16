@@ -51,7 +51,7 @@ if exist('clustermetrics','dir')
         fid = fopen(dataoutname, 'a' );
         data=eval(strcat('data',num2str(i)));
     for r=1:size(data,1)
-        fprintf(fid,'%s,%s,%s',foldername,animal,date);
+        fprintf(fid,'%s,%s,%s,',foldername,animal,date);
         fprintf(fid,'%d,',data(r,:));
         fprintf(fid,'\n');
     end
