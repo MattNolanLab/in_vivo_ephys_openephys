@@ -9,7 +9,7 @@ dataoutnames={'data_all.csv', 'data_separate.csv'};
 for i=1:length(dataoutnames)
     dataoutname=char(dataoutnames(i));
 fid = fopen(dataoutname, 'w' );
-header={'animal','day','tetrode','cluster','nspikes','coverage','avgFR', 'maxamplitude', 'maxchannel','spkewidth','HD_maxFR','meanHD', 'r_HD', 'skaggs','sparsity','spatialcoherence','maxFRspatial','gridscore','skaggsrun','sparsrun','spatialcoherencerun','maxFRspatialrun','gridscorerun','lightscoreP','lightscoreI','lightlatency','percentresponse','lightscore_p2','lightscore_I2','lightlatency2','percentresponse2','lightscore_p3','lightscore_I3','lightlatency3','percentresponse3','lightscore_p4','lightscore_I4','lightlatency4','percentresponse4','cluster' ,'goodcluster', 'firing_rate', 'FRpass', 'isolation', 'isolationpass' , 'noiseoverlap','noiseoverlappass','peakSNR' ,'peakSNRpass','burstingparent'};
+header={'id','animal','day','tetrode','cluster','nspikes','coverage','avgFR', 'maxamplitude', 'maxchannel','spkewidth','HD_maxFR','meanHD', 'r_HD', 'skaggs','sparsity','spatialcoherence','maxFRspatial','gridscore','skaggsrun','sparsrun','spatialcoherencerun','maxFRspatialrun','gridscorerun','lightscoreP','lightscoreI','lightlatency','percentresponse','lightscore_p2','lightscore_I2','lightlatency2','percentresponse2','lightscore_p3','lightscore_I3','lightlatency3','percentresponse3','lightscore_p4','lightscore_I4','lightlatency4','percentresponse4','cluster' ,'goodcluster', 'firing_rate', 'FRpass', 'isolation', 'isolationpass' , 'noiseoverlap','noiseoverlappass','peakSNR' ,'peakSNRpass','burstingparent'};
 incoming_header_length = 48;
 fprintf(fid,'%s,',header{:});
 fprintf(fid,'\n');
@@ -38,12 +38,6 @@ if exist('clustermetrics','dir')
     message=1;
     data1 = csvread('datasave_all.csv');
     data2 = csvread('datasave_separate.csv');
-% %     if length(data1) < incoming_header_length
-% %         append_data1_with = NaN([size(data1,1),incoming_header_length - length(data1)]);
-% %         data1 = [data1(:,1:first_part_of_spreadsheet) append_data1_with data1(:,first_part_of_spreadsheet+1:end)];
-% %         append_data2_with = NaN([size(data2,1),incoming_header_length - length(data2)]);
-% %         data2 = [data2(:,1:first_part_of_spreadsheet) append_data2_with data2(:,first_part_of_spreadsheet+1:end)];
-% %     end
     
     cd ..
     ind=strfind(foldername,'_');
@@ -57,7 +51,7 @@ if exist('clustermetrics','dir')
         fid = fopen(dataoutname, 'a' );
         data=eval(strcat('data',num2str(i)));
     for r=1:size(data,1)
-        fprintf(fid,'%s,%s,',animal,date);
+        fprintf(fid,'%s,%s,%s',foldername,animal,date);
         fprintf(fid,'%d,',data(r,:));
         fprintf(fid,'\n');
     end
