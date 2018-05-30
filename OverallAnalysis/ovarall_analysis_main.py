@@ -6,6 +6,7 @@ import scipy.io
 import h5py
 import matplotlib.pylab as plt
 import numpy as np
+import os
 
 path_to_data = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/'
 save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
@@ -18,9 +19,28 @@ def describe_dataset(spike_data_frame):
     print('Number of good clusters is:')
     print(number_of_good_cluters.id)
 
-def tag_false_positives(spike_df):
-    pass
 
+def get_list_of_false_positives():
+    if os.path.isfile(false_positives_path) is True:
+        if os.stat(false_positives_path).st_size == 0:
+            os.remove(false_positives_path)
+    false_positive_reader = open(false_positives_path, 'r')
+    false_positives = false_positive_reader.readlines()
+    false_positive_clusters = list([x.strip() for x in false_positives])
+    false_positive_clusters_stripped = (str.strip, false_positive_clusters)
+    return false_positive_clusters_stripped[1]
+
+
+def tag_false_positives(spike_df):
+    false_positives_list = get_list_of_false_positives()
+    spike_df['false_positive'] = spike_df['fig_name_id'].isin(false_positives_list)
+    return spike_df
+
+
+def add_figure_name_id(spike_df):
+    figure_name_ids = spike_df['animal'] + '-' + spike_df['day']+ '-Tetrode-' + spike_df['tetrode'].apply(str) + '-Cluster-' + spike_df['cluster'].apply(str)
+    spike_df['fig_name_id'] = figure_name_ids
+    return spike_df
 
 
 def get_snippets(filename):
@@ -97,9 +117,15 @@ def run_analyses():
     light_responsive = spike_data_frame['lightscoreP'] <= 0.05
 
     #describe_dataset(spike_data_frame)
-    #plot_firing_rate_hist(spike_data_frame)
     #plot_good_cells_per_day(spike_data_frame)
 
+    spike_data_frame = add_figure_name_id(spike_data_frame)
+    spike_data_frame = tag_false_positives(spike_data_frame)
+
+    not_false_positive = spike_data_frame['false_positive'] == 0
+    accepted_clusters = spike_data_frame[good_cluster & not_false_positive]
+
+    plot_firing_rate_hist(spike_data_frame)
 
 
 
