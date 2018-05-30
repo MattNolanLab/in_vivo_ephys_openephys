@@ -66,7 +66,7 @@ def plot_good_cells_per_day(spike_data_frame):
         plt.ylabel('Number of good clusters', fontsize=14)
         by_day.plot(xlim=(-2, 16), ylim=(0, 20), linewidth=6)
         plt.savefig('C:/Users/s1466507/Documents/Ephys/overall_figures/good_cells_per_day' + name + '.png')
-    plt.savefig('C:/Users/s1466507/Documents/Ephys/overall_figures/good_cells_per_day.png')
+    plt.savefig(save_output_path + 'good_cells_per_day.png')
 
 
 def some_examples(spike_data_frame):
@@ -105,10 +105,16 @@ def some_examples(spike_data_frame):
 
 def plot_firing_rate_hist(spike_data_frame):
     plt.style.use('ggplot')
+    plt.hist(spike_data_frame.avgFR, bins=100)
+    plt.savefig(save_output_path + 'firing_rate_histogram.png')
+
+
+def plot_grid_score_hist(spike_data_frame):
+    plt.style.use('ggplot')
     # plt.hist(spike_data_frame.avgFR)
-    good_cluster = spike_data_frame['goodcluster'] == 1
-    plt.hist(spike_data_frame[good_cluster].avgFR, bins=100)
-    plt.show()
+    has_grid_score = spike_data_frame['gridscore'].notnull()
+    plt.hist(spike_data_frame[has_grid_score].gridscore)
+    plt.savefig(save_output_path + 'grid_score_histogram.png')
 
 
 def run_analyses():
@@ -125,7 +131,8 @@ def run_analyses():
     not_false_positive = spike_data_frame['false_positive'] == 0
     accepted_clusters = spike_data_frame[good_cluster & not_false_positive]
 
-    plot_firing_rate_hist(spike_data_frame)
+    plot_firing_rate_hist(accepted_clusters)
+    plot_grid_score_hist(accepted_clusters)
 
 
 
