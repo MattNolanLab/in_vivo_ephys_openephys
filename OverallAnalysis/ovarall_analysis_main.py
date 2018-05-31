@@ -37,6 +37,16 @@ def run_analyses():
     OverallAnalysis.plot_histograms.plot_firing_rate_hist(accepted_clusters, save_output_path)
     OverallAnalysis.plot_histograms.plot_grid_score_hist(accepted_clusters, save_output_path)
     OverallAnalysis.plot_histograms.plot_max_fr_spatial(accepted_clusters, save_output_path)
+    OverallAnalysis.plot_histograms.plot_max_fr_head_dir(accepted_clusters, save_output_path)
+
+    excitatory = accepted_clusters['maxFRspatial'] <= 10
+    excitatory_cells = accepted_clusters[excitatory]
+    OverallAnalysis.plot_histograms.plot_firing_rate_hist(excitatory_cells, save_output_path + 'excitatory_')
+    OverallAnalysis.plot_histograms.plot_grid_score_hist(excitatory_cells, save_output_path + 'excitatory_')
+    OverallAnalysis.plot_histograms.plot_max_fr_spatial(excitatory_cells, save_output_path + 'excitatory_')
+    OverallAnalysis.plot_histograms.plot_max_fr_head_dir(excitatory_cells, save_output_path + 'excitatory_')
+
+    OverallAnalysis.plot_histograms.plot_grid_score_vs_firing_rate(accepted_clusters, save_output_path)
 
 
    #  print(good_light_responsive[["id","cluster","animal", "goodcluster", "lightscoreP"]])
