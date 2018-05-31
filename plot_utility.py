@@ -12,3 +12,11 @@ def draw_reward_zone():
 def draw_black_boxes():
     plt.axvline(15, color='k', linewidth=66, alpha=0.25, zorder=0)
     plt.axvline(185, color='k', linewidth=66, alpha=0.25, zorder=0)
+
+
+def style_plot(ax):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    return plt, ax
