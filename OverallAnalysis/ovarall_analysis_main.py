@@ -2,10 +2,11 @@
 import OverallAnalysis.false_positives
 import OverallAnalysis.plot_histograms
 import OverallAnalysis.describe_dataset
+import OverallAnalysis.read_snippet_data
 import pandas as pd
 from pandas.tools.plotting import parallel_coordinates
 import scipy.io
-import h5py
+
 import matplotlib.pylab as plt
 import numpy as np
 import os
@@ -16,21 +17,12 @@ save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
 false_positives_path = path_to_data + 'false_positives.txt'
 
 
-def get_snippets(filename):
-    path = path_to_data + '/' + filename + 'Firings0.mat'
-    with h5py.File(path, 'r') as snippets:
-        snippets.keys()
-
-    snippets2 = h5py.File(path,'r')
-    data = snippets.get('data/variable1')
-    data = np.array(data) # For converting to numpy array
-
-    return snippets
-
-
 def run_analyses():
     spike_data_frame = pd.read_csv(path_to_data + 'data_all.csv')  # reads csv, puts it in df
     accepted_clusters = OverallAnalysis.false_positives.get_accepted_clusters(spike_data_frame, false_positives_path)
+
+    OverallAnalysis.read_snippet_data.analyze_snippets(spike_data_frame, path_to_data)
+
     OverallAnalysis.describe_dataset.describe_dataset(accepted_clusters)
     OverallAnalysis.describe_dataset.plot_good_cells_per_day(accepted_clusters)
 
@@ -43,8 +35,8 @@ def run_analyses():
     excitatory_cells = accepted_clusters[excitatory]
     OverallAnalysis.plot_histograms.plot_firing_rate_hist(excitatory_cells, save_output_path + 'excitatory_')
     OverallAnalysis.plot_histograms.plot_grid_score_hist(excitatory_cells, save_output_path + 'excitatory_')
-    OverallAnalysis.plot_histograms.plot_max_fr_spatial(excitatory_cells, save_output_path + 'excitatory_')
-    OverallAnalysis.plot_histograms.plot_max_fr_head_dir(excitatory_cells, save_output_path + 'excitatory_')
+    OverallAnalysis.plot_histograms.plot_max_fr_spatial_excitatory(excitatory_cells, save_output_path + 'excitatory_')
+    OverallAnalysis.plot_histograms.plot_max_fr_head_dir_excitatory(excitatory_cells, save_output_path + 'excitatory_')
 
     OverallAnalysis.plot_histograms.plot_grid_score_vs_firing_rate(accepted_clusters, save_output_path)
 
