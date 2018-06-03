@@ -19,7 +19,8 @@ def tag_false_positives(spike_df, false_positives_path):
 
 
 def add_figure_name_id(spike_df):
-    figure_name_ids = spike_df['animal'] + '-' + spike_df['day']+ '-Tetrode-' + spike_df['tetrode'].apply(str) + '-Cluster-' + spike_df['cluster'].apply(str)
+    # todo change order in data and put -  current format M9-10/04/2018-Tetrode-1-Cluster-4
+    figure_name_ids = spike_df['animal'] + '-' + spike_df['day'].apply(str) + '-Tetrode-' + spike_df['tetrode'].apply(str) + '-Cluster-' + spike_df['cluster'].apply(str)
     spike_df['fig_name_id'] = figure_name_ids
     return spike_df
 

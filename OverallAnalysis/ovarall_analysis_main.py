@@ -21,7 +21,7 @@ def run_analyses():
     spike_data_frame = pd.read_csv(path_to_data + 'data_all.csv')  # reads csv, puts it in df
     accepted_clusters = OverallAnalysis.false_positives.get_accepted_clusters(spike_data_frame, false_positives_path)
 
-    OverallAnalysis.read_snippet_data.analyze_snippets(spike_data_frame, path_to_data)
+    OverallAnalysis.read_snippet_data.analyze_snippets(spike_data_frame, path_to_data, save_output_path)
 
     OverallAnalysis.describe_dataset.describe_dataset(accepted_clusters)
     OverallAnalysis.describe_dataset.plot_good_cells_per_day(accepted_clusters)
