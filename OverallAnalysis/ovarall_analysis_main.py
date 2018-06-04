@@ -1,6 +1,6 @@
 #  This script is to perform overall analysis on multiple days recorded from a group of animals
 import OverallAnalysis.false_positives
-import OverallAnalysis.plot_histograms
+import OverallAnalysis.population_plots
 import OverallAnalysis.describe_dataset
 import OverallAnalysis.read_snippet_data
 import pandas as pd
@@ -10,7 +10,7 @@ import scipy.io
 import matplotlib.pylab as plt
 import numpy as np
 import os
-import OverallAnalysis.plot_histograms
+import OverallAnalysis.population_plots
 
 path_to_data = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/'
 save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
@@ -26,19 +26,8 @@ def run_analyses():
     OverallAnalysis.describe_dataset.describe_dataset(accepted_clusters)
     OverallAnalysis.describe_dataset.plot_good_cells_per_day(accepted_clusters)
 
-    OverallAnalysis.plot_histograms.plot_firing_rate_hist(accepted_clusters, save_output_path)
-    OverallAnalysis.plot_histograms.plot_grid_score_hist(accepted_clusters, save_output_path)
-    OverallAnalysis.plot_histograms.plot_max_fr_spatial(accepted_clusters, save_output_path)
-    OverallAnalysis.plot_histograms.plot_max_fr_head_dir(accepted_clusters, save_output_path)
+    OverallAnalysis.population_plots.plot_all(accepted_clusters, save_output_path)
 
-    excitatory = accepted_clusters['maxFRspatial'] <= 10
-    excitatory_cells = accepted_clusters[excitatory]
-    OverallAnalysis.plot_histograms.plot_firing_rate_hist(excitatory_cells, save_output_path + 'excitatory_')
-    OverallAnalysis.plot_histograms.plot_grid_score_hist(excitatory_cells, save_output_path + 'excitatory_')
-    OverallAnalysis.plot_histograms.plot_max_fr_spatial_excitatory(excitatory_cells, save_output_path + 'excitatory_')
-    OverallAnalysis.plot_histograms.plot_max_fr_head_dir_excitatory(excitatory_cells, save_output_path + 'excitatory_')
-
-    OverallAnalysis.plot_histograms.plot_grid_score_vs_firing_rate(accepted_clusters, save_output_path)
 
 
    #  print(good_light_responsive[["id","cluster","animal", "goodcluster", "lightscoreP"]])
