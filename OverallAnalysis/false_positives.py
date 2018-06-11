@@ -33,3 +33,11 @@ def get_accepted_clusters(spike_data_frame, false_positives_path):
     accepted_clusters = spike_data_frame[good_cluster & not_false_positive]
     return accepted_clusters
 
+
+def get_false_positives(spike_data_frame, false_positives_path):
+    spike_data_frame = add_figure_name_id(spike_data_frame)
+    spike_data_frame = tag_false_positives(spike_data_frame, false_positives_path)
+    false_positive = spike_data_frame['false_positive'] == 1
+    good_cluster = spike_data_frame['goodcluster'] == 1
+    false_positives = spike_data_frame[good_cluster & false_positive]
+    return false_positives
