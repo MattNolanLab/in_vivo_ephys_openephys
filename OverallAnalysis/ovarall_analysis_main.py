@@ -1,29 +1,40 @@
 #  This script is to perform overall analysis on multiple days recorded from a group of animals
+import OverallAnalysis.compare_whitening_methods
 import OverallAnalysis.false_positives
 import OverallAnalysis.population_plots
 import OverallAnalysis.describe_dataset
 import OverallAnalysis.read_snippet_data
 import pandas as pd
-from pandas.tools.plotting import parallel_coordinates
-import scipy.io
-
-import matplotlib.pylab as plt
-import numpy as np
-import os
+import OverallAnalysis.overall_params
 import OverallAnalysis.population_plots
 
 path_to_data = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/'
 save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
-false_positives_path = path_to_data + 'false_positives.txt'
+false_positives_path = path_to_data + 'false_positives_all.txt'
+
+params = OverallAnalysis.overall_params.OverallParameters()
+
+
+def initialize_parameters():
+    params.set_isolation(0.9)
+    params.set_noise_overlap(0.05)
+    params.set_snr(1)
+
+    params.set_path_to_data('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/')
+    params.set_save_output_path('C:/Users/s1466507/Documents/Ephys/overall_figures/')
+    params.set_false_positives_path_all(path_to_data + 'false_positives_all.txt')
+    params.set_false_positives_path_separate(path_to_data + 'false_positives_separate.txt')
 
 
 def run_analyses():
+    initialize_parameters()
+    OverallAnalysis.compare_whitening_methods.compare_whitening(params)
+
     spike_data_frame = pd.read_csv(path_to_data + 'data_all.csv')  # reads csv, puts it in df
     accepted_clusters = OverallAnalysis.false_positives.get_accepted_clusters(spike_data_frame, false_positives_path)
-
     OverallAnalysis.read_snippet_data.analyze_snippets(spike_data_frame, path_to_data, save_output_path)
 
-    OverallAnalysis.describe_dataset.describe_dataset(accepted_clusters)
+    # OverallAnalysis.describe_dataset.describe_dataset(accepted_clusters)
     OverallAnalysis.describe_dataset.plot_good_cells_per_day(accepted_clusters)
 
     OverallAnalysis.population_plots.plot_all(accepted_clusters, save_output_path)
