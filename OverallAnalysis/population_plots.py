@@ -16,7 +16,7 @@ def plot_firing_rate_hist(spike_data_frame, save_output_path):
 def plot_max_fr_spatial(spike_data_frame, save_output_path):
     max_fr_spatial = plt.figure()
     ax = max_fr_spatial.add_subplot(111)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    max_fr_spatial, ax = plot_utility.style_plot(ax)
     bins = np.linspace(0, 200, 20)
     ax.hist(spike_data_frame.maxFRspatial, bins, color='navy')
     plt.xlabel('Maximum firing rate')
@@ -27,7 +27,7 @@ def plot_max_fr_spatial(spike_data_frame, save_output_path):
 def plot_max_fr_spatial_excitatory(spike_data_frame, save_output_path):
     max_fr_spatial = plt.figure()
     ax = max_fr_spatial.add_subplot(111)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    max_fr_spatial, ax = plot_utility.style_plot(ax)
     bins = np.linspace(0, 20, 20)
     ax.hist(spike_data_frame.maxFRspatial, bins, color='navy')
     plt.xlabel('Maximum firing rate')
@@ -36,10 +36,9 @@ def plot_max_fr_spatial_excitatory(spike_data_frame, save_output_path):
 
 
 def plot_max_fr_head_dir(spike_data_frame, save_output_path):
-    max_fr_spatial = plt.figure()
-    ax = max_fr_spatial.add_subplot(111)
-    fr_fig, ax = plot_utility.style_plot(ax)
-    max_fr = max(spike_data_frame.HD_maxFR.values)
+    max_fr_hd = plt.figure()
+    ax = max_fr_hd.add_subplot(111)
+    max_fr_hd, ax = plot_utility.style_plot(ax)
     bins = np.linspace(0, 200, 20)
     ax.hist(spike_data_frame.HD_maxFR, bins, color='navy')
     plt.xlabel('Maximum firing rate')
@@ -48,10 +47,9 @@ def plot_max_fr_head_dir(spike_data_frame, save_output_path):
 
 
 def plot_max_fr_head_dir_excitatory(spike_data_frame, save_output_path):
-    max_fr_spatial = plt.figure()
-    ax = max_fr_spatial.add_subplot(111)
-    fr_fig, ax = plot_utility.style_plot(ax)
-    max_fr = max(spike_data_frame.HD_maxFR.values)
+    max_fr_hd = plt.figure()
+    ax = max_fr_hd.add_subplot(111)
+    max_fr_hd, ax = plot_utility.style_plot(ax)
     bins = np.linspace(0, 20, 20)
     ax.hist(spike_data_frame.HD_maxFR, bins, color='navy')
     plt.xlabel('Maximum firing rate')
@@ -62,7 +60,7 @@ def plot_max_fr_head_dir_excitatory(spike_data_frame, save_output_path):
 def plot_grid_score_hist(spike_data_frame, save_output_path):
     grid_sc_fig = plt.figure()
     ax = grid_sc_fig.add_subplot(1, 1, 1)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    grid_sc_fig, ax = plot_utility.style_plot(ax)
     has_grid_score = spike_data_frame['gridscore'].notnull()
     ax.hist(spike_data_frame[has_grid_score].gridscore, color='navy')
     plt.xlabel('Grid score')
@@ -73,7 +71,7 @@ def plot_grid_score_hist(spike_data_frame, save_output_path):
 def plot_grid_score_vs_firing_rate(spike_data_frame, save_output_path):
     grid_sc_vs_fr_fig = plt.figure()
     ax = grid_sc_vs_fr_fig.add_subplot(1, 1, 1)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    grid_sc_vs_fr_fig, ax = plot_utility.style_plot(ax)
     has_grid_score = spike_data_frame['gridscore'].notnull()
     x = spike_data_frame[has_grid_score].avgFR.values
     y = spike_data_frame[has_grid_score].gridscore.values
@@ -84,9 +82,9 @@ def plot_grid_score_vs_firing_rate(spike_data_frame, save_output_path):
 
 
 def plot_hd_score_vs_firing_rate(spike_data_frame, save_output_path):
-    grid_sc_vs_fr_fig = plt.figure()
-    ax = grid_sc_vs_fr_fig.add_subplot(1, 1, 1)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    hd_sc_vs_fr_fig = plt.figure()
+    ax = hd_sc_vs_fr_fig.add_subplot(1, 1, 1)
+    hd_sc_vs_fr_fig, ax = plot_utility.style_plot(ax)
     x = spike_data_frame.avgFR.values
     y = spike_data_frame.HD_maxFR.values
     ax.plot(x, y, 'o', color='navy')
@@ -96,9 +94,9 @@ def plot_hd_score_vs_firing_rate(spike_data_frame, save_output_path):
 
 
 def plot_grid_score_vs_hd_score(spike_data_frame, save_output_path):
-    grid_sc_vs_fr_fig = plt.figure()
-    ax = grid_sc_vs_fr_fig.add_subplot(1, 1, 1)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    grid_sc_vs_hd_fig = plt.figure()
+    ax = grid_sc_vs_hd_fig.add_subplot(1, 1, 1)
+    grid_sc_vs_hd_fig, ax = plot_utility.style_plot(ax)
     has_grid_score = spike_data_frame['gridscore'].notnull()
     x = spike_data_frame[has_grid_score].HD_maxFR.values
     y = spike_data_frame[has_grid_score].gridscore.values
@@ -109,9 +107,9 @@ def plot_grid_score_vs_hd_score(spike_data_frame, save_output_path):
 
 
 def plot_spatial_coherence_vs_firing_rate(spike_data_frame, save_output_path):
-    grid_sc_vs_fr_fig = plt.figure()
-    ax = grid_sc_vs_fr_fig.add_subplot(1, 1, 1)
-    fr_fig, ax = plot_utility.style_plot(ax)
+    grid_spatial_coh_vs_fr_fig = plt.figure()
+    ax = grid_spatial_coh_vs_fr_fig.add_subplot(1, 1, 1)
+    grid_spatial_coh_vs_fr_fig, ax = plot_utility.style_plot(ax)
     x = spike_data_frame.avgFR.values
     y = spike_data_frame.spatialcoherence.values
     ax.plot(x, y, 'o', color='navy')
