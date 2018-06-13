@@ -173,7 +173,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
         shutil.rmtree(recording_to_sort)
-        shutil.rmtree(mountainsort_tmp_folder)
+        if os.path.exists(mountainsort_tmp_folder) is True:
+            shutil.rmtree(mountainsort_tmp_folder)
 
 
 def delete_processed_line(list_to_read_path):
