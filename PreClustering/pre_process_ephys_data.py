@@ -6,7 +6,6 @@ import PreClustering.make_sorting_database
 import PreClustering.parameters
 
 import file_utility
-import vr_process_movement
 from PreClustering import convert_open_ephys_to_mda
 
 prm = PreClustering.parameters.Parameters()
