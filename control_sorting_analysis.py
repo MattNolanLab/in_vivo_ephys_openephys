@@ -5,9 +5,9 @@ import shutil
 import subprocess
 import sys
 import time
-import Logger
 
-import pre_process_ephys_data
+import Logger
+from PreClustering import pre_process_ephys_data
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
