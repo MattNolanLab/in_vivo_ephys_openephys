@@ -100,7 +100,8 @@ def process_a_dir(dir_name):
         print('***************************************************************************************')
 
     if prm.is_vr is True:
-        vr_process_movement.save_or_open_movement_arrays(prm)
+        pass
+        # vr_process_movement.save_or_open_movement_arrays(prm)
 
     # process_optogenetics.process_opto(prm)
 
