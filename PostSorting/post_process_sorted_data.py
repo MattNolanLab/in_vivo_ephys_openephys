@@ -1,5 +1,13 @@
+import PostSorting.parameters
 
-def process_position_data(recording_to_process, session_type):
+prm = PostSorting.parameters.Parameters()
+
+
+def initialize_parameters():
+    prm.set_pixel_ratio(440)
+
+
+def process_position_data(recording_to_process, session_type, prm):
     # sync with ephys
     # call functions that are the same
 
@@ -34,7 +42,8 @@ def make_plots():
 
 
 def post_process_recording(recording_to_process, session_type):
-    process_position_data(recording_to_process, session_type)
+    initialize_parameters()
+    process_position_data(recording_to_process, session_type, prm)
     process_spike_data()
     process_light_stimulation()
     fill_data_frame()
