@@ -1,6 +1,7 @@
 import open_ephys_IO
 import os
 import numpy as np
+import pandas as pd
 
 
 def load_sync_data_ephys(recording_to_process, prm):
@@ -16,6 +17,8 @@ def load_sync_data_ephys(recording_to_process, prm):
     return sync_data, is_found
 
 
-def process_sync_data(recording_to_process, prm):
+def process_sync_data(recording_to_process, prm, spatial_data):
     sync_data, is_found = load_sync_data_ephys(recording_to_process, prm)
+    sync_data_ephys = pd.DataFrame(sync_data)
+    sync_data_ephys.columns = ['sync_pulse']
     return sync_data, is_found

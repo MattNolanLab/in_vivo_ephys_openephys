@@ -45,9 +45,9 @@ def fill_data_frame(spike_data, position_data):
 
 
 def sync_data(recording_to_process, prm, spatial_data):
-    sync_data_ephys, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm)
+    sync_data_ephys, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
     # todo align spatial data with ephys since based on correlation
-    return sync_data_ephys, is_found
+    return sync_data_ephys
 
 
 def output_cluster_scores():
