@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import math_utility
-import matplotlib.pylab as plt
+
 
 import PostSorting.parameters
 
@@ -139,6 +139,7 @@ def process_position_data(recording_folder, params):
     position_data = calculate_position(position_data)  # get central position and interpolate missing data
     position_data = calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
     position_of_mouse = position_data[['time_seconds', 'position_x', 'position_y', 'hd']].copy()
+    return position_of_mouse
 
 
 #  this is here for testing
@@ -151,7 +152,7 @@ def main():
 
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M0_2017-11-21_15-52-53'
-    process_position_data(recording_folder, params)
+    position_of_mouse = process_position_data(recording_folder, params)
 
 
 if __name__ == '__main__':
