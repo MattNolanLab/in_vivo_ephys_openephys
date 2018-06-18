@@ -32,7 +32,7 @@ def process_spike_data():
 
 
 def process_light_stimulation(recording_to_process, prm):
-    PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)
+    opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
 
 
 def fill_data_frame(spike_data, position_data):
