@@ -23,9 +23,10 @@ def get_ons_and_offs(opto_data):
 
 
 def process_opto_data(recording_to_process, prm):
-    opto_on, opto_off = None
+    opto_on = opto_off = None
     opto_data, is_found = load_opto_data(recording_to_process, prm)
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
+
     return opto_on, opto_off, is_found
 

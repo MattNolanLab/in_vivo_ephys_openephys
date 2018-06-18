@@ -2,6 +2,7 @@ import PostSorting.parameters
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_light_data
+import PostSorting.open_field_sync_data
 
 prm = PostSorting.parameters.Parameters()
 
@@ -25,6 +26,8 @@ def process_position_data(recording_to_process, session_type, prm):
         spatial_data = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm)
         # PostSorting.open_field_make_plots.plot_position(spatial_data)
 
+    return spatial_data
+
 
 def process_spike_data():
     # read firing times and put in array
@@ -33,11 +36,18 @@ def process_spike_data():
 
 def process_light_stimulation(recording_to_process, prm):
     opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
+    return opto_on, opto_off, is_found
 
 
 def fill_data_frame(spike_data, position_data):
     # calculate scores - hd, grid etc
     pass
+
+
+def sync_data(recording_to_process, prm, spatial_data):
+    sync_data_ephys, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm)
+    # todo align spatial data with ephys since based on correlation
+    return sync_data_ephys, is_found
 
 
 def output_cluster_scores():
@@ -50,9 +60,12 @@ def make_plots():
 
 def post_process_recording(recording_to_process, session_type):
     initialize_parameters()
-    process_position_data(recording_to_process, session_type, prm)
+    spatial_data = process_position_data(recording_to_process, session_type, prm)
+    opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
+    synced_df = sync_data(recording_to_process, prm, spatial_data)
+
     process_spike_data()
-    process_light_stimulation(recording_to_process, prm)
+    sync_data()
     fill_data_frame()
     output_cluster_scores()
     make_plots()
