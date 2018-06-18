@@ -135,9 +135,9 @@ def process_position_data(recording_folder, params):
     path_to_bonsai_file, is_found = find_bonsai_file(recording_folder)
     position_data = read_position(path_to_bonsai_file)  # raw position data from bonsai output
     position_data = calculate_speed(position_data)
-    position_data = curate_position(position_data, params)
-    position_data = calculate_position(position_data)
-    position_data = calculate_head_direction(position_data)
+    position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
+    position_data = calculate_position(position_data)  # get central position and interpolate missing data
+    position_data = calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
     position_of_mouse = position_data[['time_seconds', 'position_x', 'position_y', 'hd']].copy()
 
 
