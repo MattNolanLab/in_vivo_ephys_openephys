@@ -1,12 +1,15 @@
 import PostSorting.parameters
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_make_plots
+import PostSorting.open_field_light_data
 
 prm = PostSorting.parameters.Parameters()
 
 
 def initialize_parameters():
     prm.set_pixel_ratio(440)
+    prm.set_opto_channel('100_ADC3.continuous')
+    prm.set_sync_channel('100_ADC1.continuous')
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -23,14 +26,13 @@ def process_position_data(recording_to_process, session_type, prm):
         # PostSorting.open_field_make_plots.plot_position(spatial_data)
 
 
-
 def process_spike_data():
     # read firing times and put in array
     pass
 
 
-def process_light_stimulation():
-    pass
+def process_light_stimulation(recording_to_process, prm):
+    PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)
 
 
 def fill_data_frame(spike_data, position_data):
@@ -50,7 +52,7 @@ def post_process_recording(recording_to_process, session_type):
     initialize_parameters()
     process_position_data(recording_to_process, session_type, prm)
     process_spike_data()
-    process_light_stimulation()
+    process_light_stimulation(recording_to_process, prm)
     fill_data_frame()
     output_cluster_scores()
     make_plots()
@@ -67,7 +69,8 @@ def main():
 
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M0_2017-11-21_15-52-53'
-    process_position_data(recording_folder, 'openfield', params)
+    # process_position_data(recording_folder, 'openfield', params)
+    post_process_recording(recording_folder, 'openfield')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
 class Parameters:
 
     pixel_ratio = 0
+    opto_channel = ''
+    sync_channel = ''
 
     def __init__(self):
         return
@@ -10,3 +12,15 @@ class Parameters:
 
     def set_pixel_ratio(self, pr):
         Parameters.pixel_ratio = pr
+
+    def get_opto_channel(self):
+        return Parameters.opto_channel
+
+    def set_opto_channel(self, opto_ch):
+        Parameters.opto_channel = opto_ch
+
+    def get_sync_channel(self):
+        return Parameters.sync_channel
+
+    def set_sync_channel(self, sync_ch):
+        Parameters.sync_channel = sync_ch
