@@ -3,6 +3,7 @@ class Parameters:
     pixel_ratio = 0
     opto_channel = ''
     sync_channel = ''
+    sampling_rate = 0
 
     def __init__(self):
         return
@@ -24,3 +25,9 @@ class Parameters:
 
     def set_sync_channel(self, sync_ch):
         Parameters.sync_channel = sync_ch
+
+    def get_sampling_rate(self):
+        return Parameters.sampling_rate
+
+    def set_sampling_rate(self, sr):
+        Parameters.sampling_rate = sr

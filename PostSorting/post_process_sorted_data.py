@@ -11,6 +11,7 @@ def initialize_parameters():
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
     prm.set_sync_channel('100_ADC1.continuous')
+    prm.set_sampling_rate(30000)
 
 
 def process_position_data(recording_to_process, session_type, prm):
