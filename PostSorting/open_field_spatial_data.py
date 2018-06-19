@@ -47,6 +47,7 @@ def convert_time_to_seconds(position_data):
     position_data['minutes'] = position_data['minutes'].astype(int)
     position_data['seconds'] = position_data['seconds'].astype(float)
     position_data['time_seconds'] = position_data['hours'] * 3600 + position_data['minutes']*60 + position_data['seconds']
+    position_data['time_seconds'] = position_data['time_seconds'] - position_data['time_seconds'][0]
     return position_data
 
 
