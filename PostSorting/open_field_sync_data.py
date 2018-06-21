@@ -1,10 +1,14 @@
+from __future__ import division
 from fractions import Fraction
 import open_ephys_IO
 import os
 import numpy as np
+import math_utility
 import pandas as pd
 import matplotlib.pylab as plt
-from scipy import signal
+import scipy.signal
+import resampy
+
 
 
 def load_sync_data_ephys(recording_to_process, prm):
@@ -34,38 +38,44 @@ def get_ephys_sync_on_and_off_times(sync_data_ephys, prm):
     return sync_data_ephys
 
 
-def check_correlation(sync_data_ephys, spatial_data):
-    # plt.plot(sync_data_ephys['sync_pulse'], color='black')
-    # plt.plot(spatial_data['syncLED'], color='cyan')
-
-    ephys_on = sync_data_ephys['on_index_diff'] == 1
-    on_times_ephys = sync_data_ephys[ephys_on].time
-    video_sync_on = spatial_data['sync_pulse_on_diff'] == 1
-    on_times_video = spatial_data[video_sync_on].time_seconds
-
-    plt.plot(sync_data_ephys[ephys_on].time)
-    lag = np.argmax(np.correlate(spatial_data['time_seconds'], sync_data_ephys_downsampled.time, "full"))
-    on_times_ephys = np.roll(on_times_ephys, shift=int(np.ceil(lag)))
-    plt.plot(on_times_ephys, on_times_video)
-
-    plt.plot(spatial_data['sync_pulse_on_diff'])
-
-    correlate = np.correlate(sync_data_ephys['sync_pulse'], spatial_data['syncLED'], "full")
-    plt.plot(correlate, color='red')
-    plt.show()
+def reduce_noise(pulses, threshold):
+    to_replace = np.where(pulses < threshold)
+    np.put(pulses, to_replace, 0)
+    return pulses
 
 
 def correlate_signals(sync_data_ephys, spatial_data):
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
+    sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
+    # sr_fraction = Fraction(sampling_rate_rate).limit_denominator(max_denominator=1000)
+    # sync_data_ephys['time_downsample'] = resampy.resample(sync_data_ephys['time'].values, avg_sampling_rate_open_ephys, avg_sampling_rate_open_ephys)
+    length = int(len(sync_data_ephys['time']) / sampling_rate_rate)
+    indices = (np.arange(length) * sampling_rate_rate).astype(int)
+    sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
+    sync_data_ephys_downsampled['sync_pulse'] = sync_data_ephys['sync_pulse'][indices]
+    sync_data_ephys_downsampled['time'] = sync_data_ephys['time'][indices]
 
-    fraction = Fraction(avg_sampling_rate_bonsai/avg_sampling_rate_open_ephys).limit_denominator()  # rational fraction of sampling rates
-    sync_data_ephys['time_downsample'] = sync_data_ephys['time'][::int(avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai)]
-    sync_data_ephys_downsampled = sync_data_ephys[pd.notnull(sync_data_ephys['time_downsample'])]
-    lag = np.argmax(np.correlate(spatial_data['time_seconds'], sync_data_ephys['time_downsampled'], "full"))
-    print(sync_data_ephys.head())
+    bonsai = spatial_data['syncLED'].values
+    oe = sync_data_ephys_downsampled.sync_pulse.values
 
+    bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
+    oe = reduce_noise(oe, 0.5)
+
+    if len(bonsai) < len(oe):
+        bonsai = np.pad(bonsai, (0, len(oe)-len(bonsai)), 'constant')
+    if len(oe) < len(bonsai):
+        oe = np.pad(oe, (0, len(bonsai)-len(oe)), 'constant')
+
+    # corr = scipy.signal.fftconvolve(bonsai, oe[::-1])
+    corr = np.correlate(bonsai, oe, "full")
+    lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai
+    spatial_data['synced_time'] = spatial_data.time_seconds - lag
+
+    plt.plot(sync_data_ephys_downsampled['time'].values, sync_data_ephys_downsampled['sync_pulse'].values*2000)
+    plt.plot(spatial_data.synced_time, spatial_data['syncLED'])
+    print(lag)
 
 
 def process_sync_data(recording_to_process, prm, spatial_data):
@@ -76,5 +86,4 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
     correlate_signals(sync_data_ephys, spatial_data)
 
-    check_correlation(sync_data_ephys, spatial_data)
     return sync_data, is_found
