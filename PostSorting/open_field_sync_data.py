@@ -44,38 +44,113 @@ def reduce_noise(pulses, threshold):
     return pulses
 
 
-def correlate_signals(sync_data_ephys, spatial_data):
-    print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
+def pad_shorter_array_with_0s(array1, array2):
+    if len(array1) < len(array2):
+        array1 = np.pad(array1, (0, len(array2)-len(array1)), 'constant')
+    if len(array2) < len(array1):
+        array2 = np.pad(array2, (0, len(array1)-len(array2)), 'constant')
+    return array1, array2
+
+
+def downsample_ephys_data(sync_data_ephys, spatial_data):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
-    # sr_fraction = Fraction(sampling_rate_rate).limit_denominator(max_denominator=1000)
-    # sync_data_ephys['time_downsample'] = resampy.resample(sync_data_ephys['time'].values, avg_sampling_rate_open_ephys, avg_sampling_rate_open_ephys)
     length = int(len(sync_data_ephys['time']) / sampling_rate_rate)
     indices = (np.arange(length) * sampling_rate_rate).astype(int)
     sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
     sync_data_ephys_downsampled['sync_pulse'] = sync_data_ephys['sync_pulse'][indices]
     sync_data_ephys_downsampled['time'] = sync_data_ephys['time'][indices]
+    return sync_data_ephys_downsampled
+
+
+def find_nearest(array, value):
+    array = np.asarray(array)
+    index = (np.abs(array - value)).argmin()
+    return index
+
+
+# this is to remove any extra pulses that one dataset has but not the other
+def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data):
+    oe_time = sync_data_ephys_downsampled.time
+    bonsai_time = spatial_data.synced_time_estimate
+    ephys_start_index = 19*30  # bonsai sampling rate times 19 seconds
+    ephys_start_time = oe_time.values[19*30]
+    bonsai_start_time = bonsai_time.values[19*30]
+    bonsai_start_index = find_nearest(bonsai_time.values, ephys_start_time)
+    return ephys_start_index, bonsai_start_index
+
+
+def detect_last_zero(signal):
+    first_index_in_signal = np.argmin(signal)
+    first_zero_index_in_signal = np.nonzero(signal)[0][0]
+    first_nonzero_index = first_index_in_signal + first_zero_index_in_signal
+    last_zero_index = first_nonzero_index - 1
+    return last_zero_index
+
+
+def correlate_signals(sync_data_ephys, spatial_data):
+    print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
+    sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data)
+    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
 
     bonsai = spatial_data['syncLED'].values
+    oe_high_rate = reduce_noise(sync_data_ephys['sync_pulse'], 0.5)
     oe = sync_data_ephys_downsampled.sync_pulse.values
-
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
-    oe = reduce_noise(oe, 0.5)
-
-    if len(bonsai) < len(oe):
-        bonsai = np.pad(bonsai, (0, len(oe)-len(bonsai)), 'constant')
-    if len(oe) < len(bonsai):
-        oe = np.pad(oe, (0, len(bonsai)-len(oe)), 'constant')
-
-    # corr = scipy.signal.fftconvolve(bonsai, oe[::-1])
+    oe = reduce_noise(oe, 0.01)
+    bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai
-    spatial_data['synced_time'] = spatial_data.time_seconds - lag
+    spatial_data['synced_time_estimate'] = spatial_data.time_seconds - lag  # at this point the lag is about 100 ms
+
+    # plt.plot(spatial_data.time_seconds, spatial_data['syncLED'], color='red')
+    # plt.plot(sync_data_ephys_downsampled['time'].values, sync_data_ephys_downsampled['sync_pulse'].values*2000)
+    # plt.plot(spatial_data.synced_time_estimate, spatial_data['syncLED'])
+
+    ephys_start, bonsai_start = trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data)
+    trimmed_ephys_time = sync_data_ephys_downsampled.time.values[ephys_start:]
+    trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
+    trimmed_ephys_pulses = oe[ephys_start:len(trimmed_ephys_time)]
+
+    trimmed_bonsai_time = spatial_data['synced_time_estimate'].values[bonsai_start:]
+    trimmed_bonsai_pulses = bonsai[bonsai_start:]
+    plt.plot(trimmed_bonsai_time, trimmed_bonsai_pulses, color='green')
+
+    # plt.axvline(x=spatial_data.synced_time_estimate[bonsai_start], color='red')
+    # plt.axvline(x=sync_data_ephys_downsampled.time.values[ephys_start], color='red')
+
+    # oe_rising_edge_index = detect_first_non_zero(oe_high_rate[ephys_start*1000:])
+    # oe_rising_edge_time = sync_data_ephys['time'][oe_rising_edge_index]
+    # bonsai_rising_edge_index = detect_last_zero(bonsai[bonsai_start:])
+    # bonsai_rising_edge_time = spatial_data['time_seconds'][bonsai_rising_edge_index]
+    # plt.axvline(x=bonsai_rising_edge_time + 19, color='blue')
+
+    oe_rising_edge_index = detect_last_zero(trimmed_ephys_pulses)
+    oe_rising_edge_time = trimmed_ephys_time[oe_rising_edge_index]
+    plt.axvline(x=oe_rising_edge_time, color='black')
+
+    bonsai_rising_edge_index = detect_last_zero(trimmed_bonsai_pulses)
+    bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
+    plt.axvline(x=bonsai_rising_edge_time, color='blue')
+
+    lag2 = oe_rising_edge_time - bonsai_rising_edge_time
+    spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
+
+    plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
+    plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
+
+    print(lag2)
+
+    # offset = (bonsai_rising_edge_index - oe_rising_edge_index_downsampled) / avg_sampling_rate_bonsai
+    # spatial_data['synced_time'] = spatial_data.time_seconds + offset
+
+
+
 
     plt.plot(sync_data_ephys_downsampled['time'].values, sync_data_ephys_downsampled['sync_pulse'].values*2000)
     plt.plot(spatial_data.synced_time, spatial_data['syncLED'])
-    print(lag)
+    # print(lag)
 
 
 def process_sync_data(recording_to_process, prm, spatial_data):
