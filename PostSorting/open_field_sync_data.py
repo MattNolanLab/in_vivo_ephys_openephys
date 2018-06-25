@@ -3,6 +3,7 @@ import open_ephys_IO
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pylab as plt
 
 
 def load_sync_data_ephys(recording_to_process, prm):
@@ -70,7 +71,6 @@ def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data):
     bonsai_time = spatial_data.synced_time_estimate
     ephys_start_index = 19*30  # bonsai sampling rate times 19 seconds
     ephys_start_time = oe_time.values[19*30]
-    bonsai_start_time = bonsai_time.values[19*30]
     bonsai_start_index = find_nearest(bonsai_time.values, ephys_start_time)
     return ephys_start_index, bonsai_start_index
 
@@ -130,7 +130,6 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     trimmed_ephys_pulses = oe[ephys_start:len(trimmed_ephys_time)]
     trimmed_bonsai_time = spatial_data['synced_time_estimate'].values[bonsai_start:]
     trimmed_bonsai_pulses = bonsai[bonsai_start:]
-    # plt.plot(trimmed_bonsai_time, trimmed_bonsai_pulses, color='green')
 
     oe_rising_edge_index = detect_last_zero(trimmed_ephys_pulses)
     oe_rising_edge_time = trimmed_ephys_time[oe_rising_edge_index]
@@ -141,7 +140,9 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time
     spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
 
+    # plots for testing
     # plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
+    # trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
     # plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
     return spatial_data
 
