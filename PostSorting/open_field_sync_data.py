@@ -1,14 +1,8 @@
 from __future__ import division
-from fractions import Fraction
 import open_ephys_IO
 import os
 import numpy as np
-import math_utility
 import pandas as pd
-import matplotlib.pylab as plt
-import scipy.signal
-import resampy
-
 
 
 def load_sync_data_ephys(recording_to_process, prm):
@@ -81,6 +75,7 @@ def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data):
     return ephys_start_index, bonsai_start_index
 
 
+#  this is needed for finding the rising edge of the pulse to by synced
 def detect_last_zero(signal):
     first_index_in_signal = np.argmin(signal)
     first_zero_index_in_signal = np.nonzero(signal)[0][0]
@@ -89,68 +84,66 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
-def correlate_signals(sync_data_ephys, spatial_data):
+'''
+The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
+The open ephys GUI receives TTL pulses. Bonsai detects intensity from an LED that lights up whenever the TTL is
+sent to open ephys. The pulses have 20-60 s long randomised gaps in between them. The recordings don't necessarily
+start at the same time, so it is possible that bonsai will have an extra pulse that open ephys does not.
+Open ephys samples at 30000 Hz, and bonsai at 30 Hz, but the webcam frame rate is not precise.
+
+(1) I downsampled the open ephys signal to match the sampling rate of bonsai calculated based on the average
+interval between time stamps.
+(2) I reduced the noise in both signals by setting a threshold and replacing low values with 0s.
+(3) I calculated the correlation between the OE and Bonsai pulses
+(4) I calculated a lag estimate between the two signals based on the highest correlation.
+(5) I shifted the bonsai times by the lag.
+This reduces the delay to <100ms, so the pulses are more or less aligned at this point. The precision is lost because
+of the way I did the downsampling and the variable frame rate of the camera.
+(6) I cut the first 20 seconds of both arrays to make sure the first pulse of the array has a corresponding pulse
+from the other dataset.
+(7) I detected the rising edges of both peaks and subtracted the corresponding time values to get the lag.
+(8) I shifted the bonsai data again by this lag.
+Now the lag is within/around 30ms, so around the frame rate of the camera.
+Eventually, the shifted 'synced' times are added to the spatial dataframe.
+
+'''
+
+
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data)
-    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
 
     bonsai = spatial_data['syncLED'].values
-    oe_high_rate = reduce_noise(sync_data_ephys['sync_pulse'], 0.5)
     oe = sync_data_ephys_downsampled.sync_pulse.values
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
     oe = reduce_noise(oe, 0.01)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
-    corr = np.correlate(bonsai, oe, "full")
-    lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai
+    corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
+
+    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
+    lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
     spatial_data['synced_time_estimate'] = spatial_data.time_seconds - lag  # at this point the lag is about 100 ms
 
-    # plt.plot(spatial_data.time_seconds, spatial_data['syncLED'], color='red')
-    # plt.plot(sync_data_ephys_downsampled['time'].values, sync_data_ephys_downsampled['sync_pulse'].values*2000)
-    # plt.plot(spatial_data.synced_time_estimate, spatial_data['syncLED'])
-
+    # cut off first 19 seconds to make sure there will be a corresponding pulse
     ephys_start, bonsai_start = trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data)
     trimmed_ephys_time = sync_data_ephys_downsampled.time.values[ephys_start:]
-    trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
     trimmed_ephys_pulses = oe[ephys_start:len(trimmed_ephys_time)]
-
     trimmed_bonsai_time = spatial_data['synced_time_estimate'].values[bonsai_start:]
     trimmed_bonsai_pulses = bonsai[bonsai_start:]
-    plt.plot(trimmed_bonsai_time, trimmed_bonsai_pulses, color='green')
-
-    # plt.axvline(x=spatial_data.synced_time_estimate[bonsai_start], color='red')
-    # plt.axvline(x=sync_data_ephys_downsampled.time.values[ephys_start], color='red')
-
-    # oe_rising_edge_index = detect_first_non_zero(oe_high_rate[ephys_start*1000:])
-    # oe_rising_edge_time = sync_data_ephys['time'][oe_rising_edge_index]
-    # bonsai_rising_edge_index = detect_last_zero(bonsai[bonsai_start:])
-    # bonsai_rising_edge_time = spatial_data['time_seconds'][bonsai_rising_edge_index]
-    # plt.axvline(x=bonsai_rising_edge_time + 19, color='blue')
+    # plt.plot(trimmed_bonsai_time, trimmed_bonsai_pulses, color='green')
 
     oe_rising_edge_index = detect_last_zero(trimmed_ephys_pulses)
     oe_rising_edge_time = trimmed_ephys_time[oe_rising_edge_index]
-    plt.axvline(x=oe_rising_edge_time, color='black')
 
     bonsai_rising_edge_index = detect_last_zero(trimmed_bonsai_pulses)
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
-    plt.axvline(x=bonsai_rising_edge_time, color='blue')
 
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time
     spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
 
-    plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
-    plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
-
-    print(lag2)
-
-    # offset = (bonsai_rising_edge_index - oe_rising_edge_index_downsampled) / avg_sampling_rate_bonsai
-    # spatial_data['synced_time'] = spatial_data.time_seconds + offset
-
-
-
-
-    plt.plot(sync_data_ephys_downsampled['time'].values, sync_data_ephys_downsampled['sync_pulse'].values*2000)
-    plt.plot(spatial_data.synced_time, spatial_data['syncLED'])
-    # print(lag)
+    # plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
+    # plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
+    return spatial_data
 
 
 def process_sync_data(recording_to_process, prm, spatial_data):
@@ -159,6 +152,6 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    correlate_signals(sync_data_ephys, spatial_data)
+    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
 
-    return sync_data, is_found
+    return spatial_data, is_found

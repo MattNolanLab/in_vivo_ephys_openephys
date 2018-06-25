@@ -82,7 +82,7 @@ def main():
     params.set_pixel_ratio(440)
 
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
+    # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
     post_process_recording(recording_folder, 'openfield')
 
