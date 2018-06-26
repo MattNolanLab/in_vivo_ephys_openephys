@@ -15,6 +15,7 @@ def initialize_parameters():
 
 
 def process_position_data(recording_to_process, session_type, prm):
+    spatial_data = None
     # sync with ephys
     # call functions that are the same
 
@@ -46,9 +47,8 @@ def fill_data_frame(spike_data, position_data):
 
 
 def sync_data(recording_to_process, prm, spatial_data):
-    sync_data_ephys, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
-    # todo align spatial data with ephys since based on correlation
-    return sync_data_ephys
+    synced_spatial_data, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
+    return synced_spatial_data
 
 
 def output_cluster_scores():
@@ -63,7 +63,7 @@ def post_process_recording(recording_to_process, session_type):
     initialize_parameters()
     spatial_data = process_position_data(recording_to_process, session_type, prm)
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
-    synced_df = sync_data(recording_to_process, prm, spatial_data)
+    synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
 
     process_spike_data()
     sync_data()
