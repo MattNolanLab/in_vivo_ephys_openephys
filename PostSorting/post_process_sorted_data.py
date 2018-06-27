@@ -1,3 +1,4 @@
+import PostSorting.load_firing_data
 import PostSorting.parameters
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_make_plots
@@ -64,10 +65,7 @@ def post_process_recording(recording_to_process, session_type):
     spatial_data = process_position_data(recording_to_process, session_type, prm)
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
-
-    process_spike_data()
-    sync_data()
-    fill_data_frame()
+    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process)
     output_cluster_scores()
     make_plots()
     pass

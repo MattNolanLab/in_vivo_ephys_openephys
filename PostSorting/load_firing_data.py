@@ -1,10 +1,11 @@
 import mdaio
 import numpy as np
 import os
+import pandas as pd
 
 
-def get_firing_info(file_path, tetrode_id):
-    firing_times_path = file_path + '\\Spike_sorting\\t' + tetrode_id + '\\Data\\firings.mda'
+def get_firing_info(file_path):
+    firing_times_path = file_path + '\\Spike_sorting\\all_tetrodes\\data\\firings.mda'
     units_list = None
     firing_info = None
     if os.path.exists(firing_times_path):
@@ -13,35 +14,30 @@ def get_firing_info(file_path, tetrode_id):
     return units_list, firing_info
 
 
-def get_firing_times_of_unit(prm, unit_id):
-    units_list, firing_info = get_firing_info(prm)
-    if unit_id > len(units_list):
-        print('The unit id given to get_firing_times_of_unit does not exist.')
-
-    firing_times_of_unit_indices = np.where(firing_info[2] == unit_id)
-    firing_times_of_unit = np.take(firing_info[1], firing_times_of_unit_indices)
-    return firing_times_of_unit
-
-
-def get_channel_ids_for_unit(prm, unit_id):
-    units_list, firing_info = get_firing_info(prm)
-    if unit_id > len(units_list):
-        print('The unit id given to get_firing_times_of_unit does not exist.')
-
-    firing_ch_ids_indices = np.where(firing_info[2] == unit_id)
-    ch_ids_for_unit = np.take(firing_info[0], firing_ch_ids_indices)
-
-    return ch_ids_for_unit
-
-
-def process_firing_times(prm):
-    units_list, firing_info = get_firing_info(prm)
-    firing_times_unit = get_firing_times_of_unit(prm, 1)
-    ch_ids_unit = get_channel_ids_for_unit(prm, 4)
-    # call histogram/ plotting functions for each cell here
-
+def process_firing_times(recording_to_process):
+    session_id = recording_to_process.split('/')[-1]
+    units_list, firing_info = get_firing_info(recording_to_process)
+    cluster_ids = firing_info[2]
+    firing_times = firing_info[1]
+    primary_channel = firing_info[0]
+    firing_data = pd.DataFrame(columns=['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times'])
+    for cluster in units_list:
+        cluster_firings = firing_times[cluster_ids == cluster]
+        channel_detected = primary_channel[cluster_ids == cluster][0]
+        tetrode = int((channel_detected-1)/4 + 1)
+        ch = int((channel_detected - 1) % 4 + 1)
+        firing_data = firing_data.append({
+            "session_id": session_id,
+            "cluster_id":  int(cluster),
+            "tetrode": tetrode,
+            "primary_channel": ch,
+            "firing_times": cluster_firings
+        }, ignore_index=True)
+    return firing_data
 
 
 def create_firing_data_frame(recording_to_process):
+    spike_data = None
+    spike_data = process_firing_times(recording_to_process)
+    return spike_data
 
-    pass
