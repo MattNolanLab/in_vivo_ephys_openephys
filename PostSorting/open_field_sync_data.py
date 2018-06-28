@@ -156,4 +156,6 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_y', 'hd']].copy()
+    # remove negative time points
+    synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
     return synced_spatial_data, is_found
