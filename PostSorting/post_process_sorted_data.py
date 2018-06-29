@@ -62,7 +62,8 @@ def post_process_recording(recording_to_process, session_type):
     synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process)
-    PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+    spike_data = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+
     output_cluster_scores()
     make_plots()
     pass
