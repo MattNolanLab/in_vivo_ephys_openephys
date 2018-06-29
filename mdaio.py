@@ -302,14 +302,14 @@ def mdaio_test():
             X[m,n]=n*10+m
     writemda32(X,'tmp1.mda')
     Y=readmda('tmp1.mda')
-    print(Y)
-    print(np.absolute(X-Y).max())
+    # print(Y)
+    # print(np.absolute(X-Y).max())
     Z=DiskReadMda('tmp1.mda')
-    print(Z.readChunk(i1=0,i2=4,N1=M,N2=N-4))
+    # print(Z.readChunk(i1=0,i2=4,N1=M,N2=N-4))
 
     A=DiskWriteMda('tmpA.mda',(M,N))
     A.writeChunk(Y,i1=0,i2=0)
     B=readmda('tmpA.mda')
-    print(B.shape)
-    print(B)
+    # print(B.shape)
+    # print(B)
 
