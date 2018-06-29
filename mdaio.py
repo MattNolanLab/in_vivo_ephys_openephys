@@ -55,7 +55,7 @@ class DiskReadMda:
         try:
             f.seek(self._header.header_size+self._header.num_bytes_per_entry*i)
             ret=np.fromfile(f,dtype=self._header.dt,count=N)
-            print(ret.shape)
+            # print(ret.shape)
             f.flush()
             f.close()
             return ret
@@ -191,10 +191,9 @@ def _read_header(path):
         if dt is None:
             print("Invalid data type code: {}".format(dt_code))
             return None
-        print(dt)
-        print(dims)
+        # print(dt)
+        # print(dims)
         H=MdaHeader(dt,dims)
-        print('test')
         f.close()
         return H
     except Exception as e: # catch *all* exceptions
