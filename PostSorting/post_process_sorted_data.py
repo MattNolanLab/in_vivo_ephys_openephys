@@ -52,7 +52,8 @@ def output_cluster_scores():
     pass
 
 
-def make_plots():
+def make_plots(position_data, spike_data):
+    PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spike_data)
     pass
 
 
@@ -64,8 +65,8 @@ def post_process_recording(recording_to_process, session_type):
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process)
     spike_data = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
 
-    output_cluster_scores()
-    make_plots()
+    # output_cluster_scores()
+    make_plots(synced_spatial_data, spike_data)
     pass
 
 
