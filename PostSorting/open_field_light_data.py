@@ -34,13 +34,3 @@ def process_opto_data(recording_to_process, prm):
 
     return opto_on, opto_off, is_found
 
-
-# find first opto pulse and remove spatial data from that point
-def remove_spatial_data_during_opto_stimulation(opto_on, spatial_data, prm):
-    first_opto_pulse_index = prm.get_opto_tagging_start_index()
-    sampling_rate_rate = prm.get_sampling_rate_rate()
-    first_opto_pulse_index_bonsai = first_opto_pulse_index/sampling_rate_rate
-    indices_to_remove = list(spatial_data.index[int(first_opto_pulse_index_bonsai):].values)
-    spatial_data['without_opto_tagging'] = spatial_data.loc[first_opto_pulse_index:,''] = 16
-    # PostSorting.open_field_make_plots.plot_position(spatial_data) # test
-    return spatial_data
