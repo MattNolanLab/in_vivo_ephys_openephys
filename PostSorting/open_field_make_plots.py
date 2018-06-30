@@ -6,11 +6,12 @@ def plot_position(position_data):
     plt.show()
 
 
-def plot_spikes_on_trajectory(position_data, spike_data):
+def plot_spikes_on_trajectory(position_data, spike_data, prm):
+    beginning_of_opto_bonsai = int(prm.get_opto_tagging_start_index()/prm.get_sampling_rate_rate())
     cluster_id = 5  # this is just a test plot, it plots cluster 5
     spikes_on_track = plt.figure()
     ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1, alpha=0.7)
+    ax.plot(position_data['position_x'][:beginning_of_opto_bonsai], position_data['position_y'][:beginning_of_opto_bonsai], color='black', linewidth=2, zorder=1, alpha=0.7)
     ax.scatter(spike_data.position_x[cluster_id], spike_data.position_y[cluster_id], color='red', marker='o', s=10, zorder=2)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)

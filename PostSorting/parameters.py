@@ -4,6 +4,8 @@ class Parameters:
     opto_channel = ''
     sync_channel = ''
     sampling_rate = 0
+    opto_tagging_start_index = None
+    sampling_rate_rate = 0
 
     def __init__(self):
         return
@@ -31,3 +33,18 @@ class Parameters:
 
     def set_sampling_rate(self, sr):
         Parameters.sampling_rate = sr
+
+    def get_opto_tagging_start_index(self):
+            return Parameters.opto_tagging_start_index
+
+    def set_opto_tagging_start_index(self, opto_start):
+        Parameters.opto_tagging_start_index = opto_start
+
+    def get_sampling_rate_rate(self):
+            return Parameters.sampling_rate_rate
+
+    def set_sampling_rate_rate(self, sr):
+        Parameters.sampling_rate_rate = sr
+
+
+

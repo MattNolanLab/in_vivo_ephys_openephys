@@ -47,10 +47,11 @@ def pad_shorter_array_with_0s(array1, array2):
     return array1, array2
 
 
-def downsample_ephys_data(sync_data_ephys, spatial_data):
+def downsample_ephys_data(sync_data_ephys, spatial_data, prm):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
+    prm.set_sampling_rate_rate(sampling_rate_rate)
     length = int(len(sync_data_ephys['time']) / sampling_rate_rate)
     indices = (np.arange(length) * sampling_rate_rate).astype(int)
     sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
@@ -109,9 +110,9 @@ Eventually, the shifted 'synced' times are added to the spatial dataframe.
 '''
 
 
-def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
-    sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data)
+    sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
 
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
@@ -153,7 +154,7 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
+    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_y', 'hd']].copy()
     # remove negative time points
