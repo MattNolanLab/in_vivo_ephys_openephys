@@ -42,5 +42,5 @@ def remove_spatial_data_during_opto_stimulation(opto_on, spatial_data):
     first_opto_pulse_index_bonsai = first_opto_pulse_index/sampling_rate_rate
     indices_to_remove = list(spatial_data.index[int(first_opto_pulse_index_bonsai):].values)
     spatial_data = spatial_data.drop(indices_to_remove, axis=0)
-    PostSorting.open_field_make_plots.plot_position(spatial_data)
+    # PostSorting.open_field_make_plots.plot_position(spatial_data) # test
     return spatial_data
