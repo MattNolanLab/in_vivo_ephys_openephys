@@ -148,6 +148,14 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     return spatial_data
 
 
+def remove_opto_tagging_from_spatial_dat(prm, spatial_data):
+    beginning_of_opto_tagging = prm.get_opto_tagging_start_index()
+    sampling_rate_rate = prm.get_sampling_rate_rate()
+    bonsai_start_index = int(beginning_of_opto_tagging / sampling_rate_rate)
+    spatial_data.drop(range(bonsai_start_index, len(spatial_data)), inplace=True)
+    return spatial_data
+
+
 def process_sync_data(recording_to_process, prm, spatial_data):
     sync_data, is_found = load_sync_data_ephys(recording_to_process, prm)
     sync_data_ephys = pd.DataFrame(sync_data)
@@ -156,8 +164,11 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
     spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
     # synced time in seconds, x and y in cm, hd in degrees
-    synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_y', 'hd']].copy()
+    synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_y', 'hd', 'speed']].copy()
     # remove negative time points
     synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
+
+    synced_spatial_data = remove_opto_tagging_from_spatial_dat(prm, synced_spatial_data)
+
     return synced_spatial_data, is_found
