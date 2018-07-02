@@ -1,5 +1,6 @@
 import PostSorting.load_firing_data
 import PostSorting.parameters
+import PostSorting.open_field_firing_maps
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_light_data
@@ -52,21 +53,23 @@ def output_cluster_scores():
     pass
 
 
-def make_plots(position_data, spike_data, prm):
+def make_plots(position_data, spike_data, firing_maps, prm):
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spike_data, prm)
+    PostSorting.open_field_make_plots.plot_coverage(firing_maps, prm)
     pass
 
 
 def post_process_recording(recording_to_process, session_type):
     initialize_parameters()
     spatial_data = process_position_data(recording_to_process, session_type, prm)
-    synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
+    synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
-    spike_data = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+    spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+    firing_maps = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
 
     # output_cluster_scores()
-    make_plots(synced_spatial_data, spike_data, prm)
+    make_plots(synced_spatial_data, spike_data_spatial, firing_maps, prm)
     pass
 
 
