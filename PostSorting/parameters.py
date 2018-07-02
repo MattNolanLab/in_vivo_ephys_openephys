@@ -1,6 +1,6 @@
 class Parameters:
 
-    pixel_ratio = 0
+    pixel_ratio = None
     opto_channel = ''
     sync_channel = ''
     sampling_rate = 0
