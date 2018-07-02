@@ -74,6 +74,13 @@ def calculate_speed(position_data):
     return position_data
 
 
+def calculate_central_speed(position_data):
+    elapsed_time = position_data['time_seconds'].diff()
+    distance_travelled = np.sqrt(position_data['position_x'].diff().pow(2) + position_data['position_y'].diff().pow(2))
+    position_data['speed'] = distance_travelled / elapsed_time
+    return position_data
+
+
 def remove_jumps(position_data, prm):
     max_speed = 1  # m/s, anything above this is not realistic
     pixel_ratio = prm.get_pixel_ratio()
@@ -132,6 +139,13 @@ def calculate_head_direction(position):
     return position
 
 
+def convert_to_cm(position_data, params):
+    pixel_ratio = params.get_pixel_ratio()
+    position_data['position_x'] = position_data.position_x / pixel_ratio * 100
+    position_data['position_y'] = position_data.position_y / pixel_ratio * 100
+    return position_data
+
+
 def process_position_data(recording_folder, params):
     path_to_bonsai_file, is_found = find_bonsai_file(recording_folder)
     position_data = read_position(path_to_bonsai_file)  # raw position data from bonsai output
@@ -139,7 +153,9 @@ def process_position_data(recording_folder, params):
     position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
     position_data = calculate_position(position_data)  # get central position and interpolate missing data
     position_data = calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
-    position_of_mouse = position_data[['time_seconds', 'position_x', 'position_y', 'hd', 'syncLED']].copy()
+    position_data = calculate_central_speed(position_data)
+    position_data = convert_to_cm(position_data, params)
+    position_of_mouse = position_data[['time_seconds', 'position_x', 'position_y', 'hd', 'syncLED', 'speed']].copy()
     return position_of_mouse
 
 
