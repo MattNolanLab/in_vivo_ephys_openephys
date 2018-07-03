@@ -35,5 +35,5 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
 def plot_coverage(firing_maps, prm):
     coverage = plt.figure()
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax.imshow(firing_maps, cmap='jet', interpolation='nearest')
+    ax.imshow(firing_maps, cmap='jet', interpolation='lanczos')
     plt.savefig('C:/Users/s1466507/Documents/Ephys/overall_figures/' + 'heatmap.png')
