@@ -11,17 +11,21 @@ def calculate_corresponding_indices(spike_data, spatial_data):
 
 def find_firing_location_indices(spike_data, spatial_data):
     spike_data = calculate_corresponding_indices(spike_data, spatial_data)
-    spatial_firing = pd.DataFrame(columns=['position_x', 'position_y', 'hd'])
+    spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels' 'hd'])
     for cluster in range(len(spike_data)):
         bonsai_indices_cluster = spike_data.bonsai_indices[cluster]
         bonsai_indices_cluster_round = bonsai_indices_cluster.round(0)
         spatial_firing = spatial_firing.append({
             "position_x": list(spatial_data.position_x[bonsai_indices_cluster_round]),
+            "position_x_pixels": list(spatial_data.position_x_pixels[bonsai_indices_cluster_round]),
             "position_y":  list(spatial_data.position_y[bonsai_indices_cluster_round]),
+            "position_y_pixels":  list(spatial_data.position_y_pixels[bonsai_indices_cluster_round]),
             "hd": list(spatial_data.hd[bonsai_indices_cluster_round])
         }, ignore_index=True)
     spike_data['position_x'] = spatial_firing.position_x
+    spike_data['position_x_pixels'] = spatial_firing.position_x_pixels
     spike_data['position_y'] = spatial_firing.position_y
+    spike_data['position_y_pixels'] = spatial_firing.position_y_pixels
     spike_data['hd'] = spatial_firing.hd
     return spike_data
 
