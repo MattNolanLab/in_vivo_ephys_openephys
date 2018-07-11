@@ -164,7 +164,7 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
     spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
     # synced time in seconds, x and y in cm, hd in degrees
-    synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_y', 'hd', 'speed']].copy()
+    synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
     # remove negative time points
     synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)

@@ -141,6 +141,8 @@ def calculate_head_direction(position):
 
 def convert_to_cm(position_data, params):
     pixel_ratio = params.get_pixel_ratio()
+    position_data['position_x_pixels'] = position_data.position_x
+    position_data['position_y_pixels'] = position_data.position_y
     position_data['position_x'] = position_data.position_x / pixel_ratio * 100
     position_data['position_y'] = position_data.position_y / pixel_ratio * 100
     return position_data
@@ -163,7 +165,7 @@ def process_position_data(recording_folder, params):
     position_data = calculate_central_speed(position_data)
     position_data = convert_to_cm(position_data, params)
     position_data = shift_to_start_from_zero_at_bottom_left(position_data)
-    position_of_mouse = position_data[['time_seconds', 'position_x', 'position_y', 'hd', 'syncLED', 'speed']].copy()
+    position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
     return position_of_mouse
 
 
