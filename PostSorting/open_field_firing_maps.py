@@ -65,7 +65,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
 
 
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
-    spatial_firing_maps = pd.DataFrame(columns=['firing_map'])
+    print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000
     min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
     smooth = 5 / 100 * prm.get_pixel_ratio()
