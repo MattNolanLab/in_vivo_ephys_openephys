@@ -29,21 +29,21 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
         labelbottom=False) # labels along the bottom edge are off
     ax.set_aspect('equal')
 
-    plt.savefig(prm.get_local_recording_folder_path() + 'spatial_firing.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/spatial_firing.png')
 
 
 def plot_coverage(position_heat_map, prm):
     coverage = plt.figure()
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.imshow(position_heat_map, cmap='jet', interpolation='nearest')
-    plt.savefig(prm.get_local_recording_folder_path() + 'heatmap.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/heatmap.png')
 
 
 def plot_firing_rate_maps(spatial_firing, prm):
     for cluster in range(len(spatial_firing)):
-        firing_rate_map = spatial_firing.firing_maps[cluster].values
+        firing_rate_map = spatial_firing.firing_maps[cluster]
        #  plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(prm.get_local_recording_folder_path() + str(cluster) + 'rate_map' + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/' + str(cluster) + 'rate_map' + '.png')
