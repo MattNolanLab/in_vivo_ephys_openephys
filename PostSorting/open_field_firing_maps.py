@@ -102,6 +102,19 @@ def get_position_heatmap(spatial_data, prm):
     position_heat_map = np.rot90(position_heat_map)
     return position_heat_map
 
+'''
+def get_position_heatmap_vectorized(spatial_data, prm):
+    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
+    bin_size_cm = get_bin_size(prm)
+    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
+
+    position_heat_map = np.zeros((number_of_bins_x, number_of_bins_y))
+
+    px_array = (np.indices(position_heat_map.shape) / number_of_bins_x) * bin_size_cm + (bin_size_cm / 2)
+    py_array = (np.indices(position_heat_map.shape) / number_of_bins_y) * bin_size_cm + (bin_size_cm / 2)
+'''
+
+
 
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
     position_heat_map = get_position_heatmap(spatial_data, prm)

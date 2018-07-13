@@ -10,11 +10,12 @@ import PostSorting.open_field_spatial_firing
 prm = PostSorting.parameters.Parameters()
 
 
-def initialize_parameters():
+def initialize_parameters(recording_to_process):
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
     prm.set_sync_channel('100_ADC1.continuous')
     prm.set_sampling_rate(30000)
+    prm.set_local_recording_folder_path(recording_to_process)
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -53,23 +54,24 @@ def output_cluster_scores():
     pass
 
 
-def make_plots(position_data, spike_data, firing_maps, prm):
+def make_plots(position_data, spike_data, position_heat_map, spatial_firing, prm):
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spike_data, prm)
-    PostSorting.open_field_make_plots.plot_coverage(firing_maps, prm)
+    PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
+    PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     pass
 
 
 def post_process_recording(recording_to_process, session_type):
-    initialize_parameters()
+    initialize_parameters(recording_to_process)
     spatial_data = process_position_data(recording_to_process, session_type, prm)
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
-    firing_maps = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
+    position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
 
     # output_cluster_scores()
-    make_plots(synced_spatial_data, spike_data_spatial, firing_maps, prm)
+    make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, spatial_firing, prm)
     pass
 
 
