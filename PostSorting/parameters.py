@@ -6,6 +6,7 @@ class Parameters:
     sampling_rate = 0
     opto_tagging_start_index = None
     sampling_rate_rate = 0
+    local_recording_folder_path = ''
 
     def __init__(self):
         return
@@ -45,6 +46,12 @@ class Parameters:
 
     def set_sampling_rate_rate(self, sr):
         Parameters.sampling_rate_rate = sr
+
+    def get_local_recording_folder_path(self):
+            return Parameters.local_recording_folder_path
+
+    def set_local_recording_folder_path(self, path):
+        Parameters.local_recording_folder_path = path
 
 
 

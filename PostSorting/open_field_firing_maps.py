@@ -36,7 +36,6 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-@jit
 def calculate_firing_rate_for_cluster(prm, positions_x, positions_y, cluster_firings, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     smooth = 5 / 100 * prm.get_pixel_ratio()
     spike_positions_x = cluster_firings.position_x.values
@@ -47,7 +46,9 @@ def calculate_firing_rate_for_cluster(prm, positions_x, positions_y, cluster_fir
             px = x * bin_size_pixels + (bin_size_pixels / 2)
             py = y * bin_size_pixels + (bin_size_pixels / 2)
             spike_distances = np.sqrt(np.power(px - spike_positions_x, 2) + np.power(py - spike_positions_y, 2))
+            spike_distances = spike_distances[~np.isnan(spike_distances)]
             occupancy_distances = np.sqrt(np.power((px - positions_x), 2) + np.power((py - positions_y), 2))
+            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
@@ -69,15 +70,14 @@ def get_spike_heatmap(spatial_data, firing_data_spatial, prm):
     for cluster in range(len(firing_data_spatial)):
         cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster], 'position_y': firing_data_spatial.position_y_pixels[cluster]})
         firing_rate_map = calculate_firing_rate_for_cluster(prm, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, cluster_firings, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
-        plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
+        # plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         spatial_firing_maps = spatial_firing_maps.append({
-            "firing_map": firing_rate_map
+            "firing_map": np.rot90(firing_rate_map)
         }, ignore_index=True)
     firing_data_spatial['firing_maps'] = spatial_firing_maps.firing_map
     return firing_data_spatial
 
 
-@jit
 def get_position_heatmap(spatial_data, prm):
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
     bin_size_cm = get_bin_size(prm)
@@ -99,15 +99,12 @@ def get_position_heatmap(spatial_data, prm):
             else:
                 position_heat_map[x, y] = None
     # plt.imshow(position_heat_map, cmap='jet', interpolation='nearest')
+    position_heat_map = np.rot90(position_heat_map)
     return position_heat_map
 
 
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
-    position_heat_map = []
     position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap(spatial_data, firing_data_spatial, prm)
-    # position_heat_map = get_position_heatmap(spatial_data)
-    # spike_heat_maps = get_spike_heatmaps(firing_data_spatial)
-    # plt.imshow(spike_heat_maps.firing_maps[5] / position_heat_map, cmap='jet', interpolation='lanczos')
 
-    return position_heat_map
+    return position_heat_map, firing_data_spatial
