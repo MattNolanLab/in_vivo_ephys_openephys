@@ -4,6 +4,7 @@ import matplotlib.pylab as plt
 def plot_position(position_data):
     plt.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=5)
     plt.show()
+    plt.close()
 
 
 def plot_spikes_on_trajectory(position_data, spike_data, prm):
@@ -30,6 +31,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
     ax.set_aspect('equal')
 
     plt.savefig(prm.get_local_recording_folder_path() + '/spatial_firing.png')
+    plt.close()
 
 
 def plot_coverage(position_heat_map, prm):
@@ -37,6 +39,7 @@ def plot_coverage(position_heat_map, prm):
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.imshow(position_heat_map, cmap='jet', interpolation='nearest')
     plt.savefig(prm.get_local_recording_folder_path() + '/heatmap.png')
+    plt.close()
 
 
 def plot_firing_rate_maps(spatial_firing, prm):
@@ -47,3 +50,4 @@ def plot_firing_rate_maps(spatial_firing, prm):
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         plt.savefig(prm.get_local_recording_folder_path() + '/' + str(cluster) + 'rate_map' + '.png')
+        plt.close()
