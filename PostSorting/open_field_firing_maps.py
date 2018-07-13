@@ -5,6 +5,7 @@ import pandas as pd
 from numba import jit
 import numpy as np
 import math
+import time
 
 
 def get_dwell(spatial_data, prm):
@@ -38,32 +39,9 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-def calculate_firing_rate_for_cluster(prm, positions_x, positions_y, cluster_firings, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
-    smooth = 5 / 100 * prm.get_pixel_ratio()
-    spike_positions_x = cluster_firings.position_x.values
-    spike_positions_y = cluster_firings.position_y.values
-    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
-    for x in range(number_of_bins_x):
-        for y in range(number_of_bins_y):
-            px = x * bin_size_pixels + (bin_size_pixels / 2)
-            py = y * bin_size_pixels + (bin_size_pixels / 2)
-            spike_distances = np.sqrt(np.power(px - spike_positions_x, 2) + np.power(py - spike_positions_y, 2))
-            spike_distances = spike_distances[~np.isnan(spike_distances)]
-            occupancy_distances = np.sqrt(np.power((px - positions_x), 2) + np.power((py - positions_y), 2))
-            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
-            bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
-
-            if bin_occupancy >= min_dwell:
-                firing_rate_map[x, y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
-
-            else:
-                firing_rate_map[x, y] = 0
-    return firing_rate_map
-
-
-
-def calculate_firing_rate_for_cluster_parallel(prm, cluster, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
-    smooth = 5 / 100 * prm.get_pixel_ratio()
+def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+    print('Started another cluster')
+    print(cluster)
     cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster], 'position_y': firing_data_spatial.position_y_pixels[cluster]})
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
@@ -86,9 +64,6 @@ def calculate_firing_rate_for_cluster_parallel(prm, cluster, firing_data_spatial
     return firing_rate_map
 
 
-
-
-
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     spatial_firing_maps = pd.DataFrame(columns=['firing_map'])
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000
@@ -98,38 +73,14 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
     num_cores = multiprocessing.cpu_count()
     clusters = range(len(firing_data_spatial))
-    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(prm, cluster, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    time_start = time.time()
+    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    time_end = time.time()
+    print('Making the rate maps took:')
+    time_diff = time_end - time_start
+    print(time_diff)
+    firing_data_spatial['firing_maps'] = firing_rate_maps
 
-    for cluster in range(len(firing_data_spatial)):
-        firing_rate_map = calculate_firing_rate_for_cluster_parallel(prm, cluster, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
-
-        # plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        spatial_firing_maps = spatial_firing_maps.append({
-            "firing_map": np.rot90(firing_rate_map)
-        }, ignore_index=True)
-    firing_data_spatial['firing_maps'] = spatial_firing_maps.firing_map
-
-    return firing_data_spatial
-
-
-
-
-def get_spike_heatmap(spatial_data, firing_data_spatial, prm):
-    spatial_firing_maps = pd.DataFrame(columns=['firing_map'])
-    dt_position_ms = spatial_data.synced_time.diff().mean()*1000
-    min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
-    smooth = 5 / 100 * prm.get_pixel_ratio()
-    bin_size_pixels = get_bin_size(prm)
-    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
-
-    for cluster in range(len(firing_data_spatial)):
-        cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster], 'position_y': firing_data_spatial.position_y_pixels[cluster]})
-        firing_rate_map = calculate_firing_rate_for_cluster(prm, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, cluster_firings, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
-        # plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        spatial_firing_maps = spatial_firing_maps.append({
-            "firing_map": np.rot90(firing_rate_map)
-        }, ignore_index=True)
-    firing_data_spatial['firing_maps'] = spatial_firing_maps.firing_map
     return firing_data_spatial
 
 
@@ -174,6 +125,6 @@ def get_position_heatmap_vectorized(spatial_data, prm):
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
     position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
-    firing_data_spatial = get_spike_heatmap(spatial_data, firing_data_spatial, prm)
+    # firing_data_spatial = get_spike_heatmap(spatial_data, firing_data_spatial, prm)
 
     return position_heat_map, firing_data_spatial
