@@ -51,3 +51,30 @@ def plot_firing_rate_maps(spatial_firing, prm):
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         plt.savefig(prm.get_local_recording_folder_path() + '/' + str(cluster) + 'rate_map' + '.png')
         plt.close()
+
+
+def plot_hd(spatial_firing, prm):
+    for cluster in range(len(spatial_firing)):
+        x_positions = spatial_firing.position_x[cluster]
+        y_positions = spatial_firing.position_y[cluster]
+        hd = spatial_firing.hd[cluster]
+        hd_map_fig = plt.figure()
+        ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        plt.tick_params(
+            axis='both',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            right=False,
+            left=False,
+            labelleft=False,
+            labelbottom=False) # labels along the bottom edge are off
+
+        ax.set_aspect('equal')
+        ax.scatter(x_positions, y_positions, s=20, c=hd, marker='o')
+        plt.savefig(prm.get_local_recording_folder_path() + '/' + str(cluster) + 'hd_map' + '.png')
+        plt.close()

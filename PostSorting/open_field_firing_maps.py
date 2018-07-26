@@ -105,7 +105,7 @@ def get_position_heatmap(spatial_data, prm):
             else:
                 position_heat_map[x, y] = None
     # plt.imshow(position_heat_map, cmap='jet', interpolation='nearest')
-    position_heat_map = np.rot90(position_heat_map)
+    # position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
     return position_heat_map
 
 
