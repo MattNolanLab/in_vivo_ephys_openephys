@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
+import distutils.dir_util
 
 import Logger
 from PreClustering import pre_process_ephys_data
@@ -169,7 +170,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
-        shutil.copyfile(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
+        if os.path.exists(server_path_first_half + location_on_server + '/Figures') is True:
+            shutil.rmtree(server_path_first_half + location_on_server + '/Figures')
+        # todo this is giving an error but actually runs fine
+        shutil.copytree(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
         # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
