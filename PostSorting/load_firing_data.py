@@ -4,8 +4,13 @@ import os
 import pandas as pd
 
 
-def get_firing_info(file_path):
-    firing_times_path = file_path + '\\Spike_sorting\\all_tetrodes\\data\\firings.mda'
+def get_firing_info(file_path, prm):
+    if prm.get_is_windows():
+        firing_times_path = file_path + '\\Electrophysiology\\Spike_sorting\\all_tetrodes\\data\\firings.mda'
+
+    if prm.get_is_ubuntu():
+        firing_times_path = file_path + '/Electrophysiology/Spike_sorting/all_tetrodes/data/firings.mda'
+
     units_list = None
     firing_info = None
     if os.path.exists(firing_times_path):
@@ -16,7 +21,7 @@ def get_firing_info(file_path):
 
 def process_firing_times(recording_to_process, session_type, prm):
     session_id = recording_to_process.split('/')[-1]
-    units_list, firing_info = get_firing_info(recording_to_process)
+    units_list, firing_info = get_firing_info(recording_to_process, prm)
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
     primary_channel = firing_info[0]

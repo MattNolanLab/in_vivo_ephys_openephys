@@ -1,10 +1,10 @@
 import matplotlib.pylab as plt
 import os
+import matplotlib.cm as cm
 
 
 def plot_position(position_data):
     plt.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=5)
-    plt.show()
     plt.close()
 
 
@@ -31,7 +31,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
         labelbottom=False) # labels along the bottom edge are off
     ax.set_aspect('equal')
 
-    plt.savefig(prm.get_local_recording_folder_path() + '/spatial_firing.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spatial_firing.png')
     plt.close()
 
 
@@ -39,7 +39,7 @@ def plot_coverage(position_heat_map, prm):
     coverage = plt.figure()
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.imshow(position_heat_map, cmap='jet', interpolation='nearest')
-    plt.savefig(prm.get_local_recording_folder_path() + '/heatmap.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/heatmap.png')
     plt.close()
 
 
@@ -50,7 +50,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(prm.get_local_recording_folder_path() + '/' + str(cluster) + 'rate_map' + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + str(cluster) + 'rate_map' + '.png')
         plt.close()
 
 
@@ -79,7 +79,7 @@ def plot_hd(spatial_firing, prm):
             labelbottom=False) # labels along the bottom edge are off
 
         ax.set_aspect('equal')
-        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
+        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap='jet')
         plt.colorbar(hd_plot)
         plt.savefig(save_path + '/' + str(cluster) + '_hd_map' + '.png')
         plt.close()

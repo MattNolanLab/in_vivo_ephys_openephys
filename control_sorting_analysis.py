@@ -1,7 +1,8 @@
+from joblib import Parallel, delayed
 import gc
 import glob
 import os
-import PostSorting
+import multiprocessing
 import shutil
 import subprocess
 import sys
@@ -9,6 +10,7 @@ import time
 
 import Logger
 from PreClustering import pre_process_ephys_data
+from PostSorting import post_process_sorted_data
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
@@ -166,7 +168,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
-        PostSorting.post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
+        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
         shutil.copyfile(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
         # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
@@ -189,6 +191,16 @@ def delete_processed_line(list_to_read_path):
         file_out.writelines(data[1:])
 
 
+def copy_file(filename, path_local):
+    if os.path.isfile(filename) is True:
+        if filename.split('.')[-1] == 'txt':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+        if filename.split('.')[-1] == 'csv':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+        if filename.split('.')[-1] == 'continuous':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+
+
 def copy_recording_to_sort_to_local(recording_to_sort):
     path_server = server_path_first_half + recording_to_sort
     recording_to_sort_folder = recording_to_sort.split("/")[-1]
@@ -199,8 +211,13 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         print(path_server)
         return False
     try:
-        shutil.copytree(path_server, path_local)
+        if os.path.exists(path_local) is False:
+            os.makedirs(path_local)
+        num_cores = multiprocessing.cpu_count()
+        Parallel(n_jobs=num_cores)(delayed(copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
+
         print('Copying is done, I will attempt to sort.')
+
     except Exception as ex:
         recording_to_sort = False
         add_to_list_of_failed_sortings(recording_to_sort)

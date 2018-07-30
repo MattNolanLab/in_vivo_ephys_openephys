@@ -1,3 +1,4 @@
+import os
 import PostSorting.load_firing_data
 import PostSorting.parameters
 import PostSorting.open_field_firing_maps
@@ -11,6 +12,7 @@ prm = PostSorting.parameters.Parameters()
 
 
 def initialize_parameters(recording_to_process):
+    prm.set_is_ubuntu(True)
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
     prm.set_sync_channel('100_ADC1.continuous')
@@ -62,7 +64,13 @@ def make_plots(position_data, spike_data, position_heat_map, spatial_firing, prm
     pass
 
 
+def create_folders_for_output(recording_to_process):
+    if os.path.exists(recording_to_process + '/Figures') is False:
+        os.makedirs(recording_to_process + '/Figures')
+
+
 def post_process_recording(recording_to_process, session_type):
+    create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     spatial_data = process_position_data(recording_to_process, session_type, prm)
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
@@ -73,7 +81,7 @@ def post_process_recording(recording_to_process, session_type):
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, spatial_firing, prm)
-    pass
+
 
 
 #  this is here for testing

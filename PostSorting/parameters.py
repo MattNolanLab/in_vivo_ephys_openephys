@@ -1,5 +1,7 @@
 class Parameters:
 
+    is_ubuntu = True
+    is_windows = False
     pixel_ratio = None
     opto_channel = ''
     sync_channel = ''
@@ -10,6 +12,18 @@ class Parameters:
 
     def __init__(self):
         return
+
+    def get_is_ubuntu(self):
+        return Parameters.is_ubuntu
+
+    def set_is_ubuntu(self, is_ub):
+        Parameters.is_ubuntu = is_ub
+
+    def get_is_windows(self):
+        return Parameters.is_windows
+
+    def set_is_windows(self, is_win):
+        Parameters.is_windows = is_win
 
     def get_pixel_ratio(self):
         return Parameters.pixel_ratio
