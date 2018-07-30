@@ -1,6 +1,7 @@
 import gc
 import glob
 import os
+import PostSorting
 import shutil
 import subprocess
 import sys
@@ -133,6 +134,19 @@ def add_to_list_of_failed_sortings(recording_to_sort):
     crash_writer.close()
 
 
+def call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr):
+    write_param_file_for_matlab(recording_to_sort, location_on_server, is_open_field, is_vr)
+    write_shell_script_to_call_matlab(recording_to_sort)
+    gc.collect()
+    os.chmod(recording_to_sort + '/run_matlab.sh', 484)
+    subprocess.call(recording_to_sort + '/run_matlab.sh', shell=True)
+
+    if check_if_matlab_was_successful(recording_to_sort) is not True:
+        raise Exception('Postprocessing failed, matlab crashed.')
+    else:
+        print('Post-processing in Matlab is done.')
+
+
 def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
@@ -149,23 +163,15 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         os.remove('/home/nolanlab/to_sort/run_sorting.sh')
 
         print('MS is done')
-        write_param_file_for_matlab(recording_to_sort, location_on_server, is_open_field, is_vr)
-        write_shell_script_to_call_matlab(recording_to_sort)
-        gc.collect()
-        os.chmod(recording_to_sort + '/run_matlab.sh', 484)
-        subprocess.call(recording_to_sort + '/run_matlab.sh', shell=True)
 
-        if check_if_matlab_was_successful(recording_to_sort) is not True:
-            raise Exception('Postprocessing failed, matlab crashed.')
-        else:
-            print('Post-processing in Matlab is done.')
+        # call python post-sorting scripts
+        print('Post-sorting analysis (Python version) will run now.')
+        PostSorting.post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
+        shutil.copyfile(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
+        # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
-        if is_vr:
-            print('This is a VR session, so I will run the VR related analyses now.')
-            # todo if vr, call Sarah's script
-            pass
     except Exception as ex:
         add_to_list_of_failed_sortings(recording_to_sort)
         print('There is a problem with this file. '
