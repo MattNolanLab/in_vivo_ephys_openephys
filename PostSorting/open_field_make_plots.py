@@ -1,4 +1,5 @@
 import matplotlib.pylab as plt
+import os
 
 
 def plot_position(position_data):
@@ -54,6 +55,9 @@ def plot_firing_rate_maps(spatial_firing, prm):
 
 
 def plot_hd(spatial_firing, prm):
+    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         x_positions = spatial_firing.position_x[cluster]
         y_positions = spatial_firing.position_y[cluster]
@@ -75,6 +79,7 @@ def plot_hd(spatial_firing, prm):
             labelbottom=False) # labels along the bottom edge are off
 
         ax.set_aspect('equal')
-        ax.scatter(x_positions, y_positions, s=20, c=hd, marker='o')
-        plt.savefig(prm.get_local_recording_folder_path() + '/' + str(cluster) + 'hd_map' + '.png')
+        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
+        plt.colorbar(hd_plot)
+        plt.savefig(save_path + '/' + str(cluster) + '_hd_map' + '.png')
         plt.close()
