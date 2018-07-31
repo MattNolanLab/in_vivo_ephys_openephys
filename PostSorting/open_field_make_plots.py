@@ -50,7 +50,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + str(cluster) + 'rate_map' + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + spatial_firing.session_id[cluster] + 'rate_map' + '.png')
         plt.close()
 
 
@@ -81,7 +81,7 @@ def plot_hd(spatial_firing, prm):
         ax.set_aspect('equal')
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap='jet')
         plt.colorbar(hd_plot)
-        plt.savefig(save_path + '/' + str(cluster) + '_hd_map' + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map' + '.png')
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
-        plt.savefig(save_path + '/' + str(cluster) + '_hd_map2' + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map2' + '.png')
         plt.close()
