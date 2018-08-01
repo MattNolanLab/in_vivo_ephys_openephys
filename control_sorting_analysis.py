@@ -1,13 +1,15 @@
+from joblib import Parallel, delayed
 import gc
 import glob
 import os
+import multiprocessing
 import shutil
 import subprocess
 import sys
 import time
-
 import Logger
 from PreClustering import pre_process_ephys_data
+from PostSorting import post_process_sorted_data
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
@@ -74,6 +76,7 @@ def get_session_type(recording_directory):
             is_open_field = False
     except Exception as ex:
         print('There is a problem with the parameter file.')
+        print(ex)
     return is_vr, is_open_field
 
 
@@ -133,6 +136,19 @@ def add_to_list_of_failed_sortings(recording_to_sort):
     crash_writer.close()
 
 
+def call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr):
+    write_param_file_for_matlab(recording_to_sort, location_on_server, is_open_field, is_vr)
+    write_shell_script_to_call_matlab(recording_to_sort)
+    gc.collect()
+    os.chmod(recording_to_sort + '/run_matlab.sh', 484)
+    subprocess.call(recording_to_sort + '/run_matlab.sh', shell=True)
+
+    if check_if_matlab_was_successful(recording_to_sort) is not True:
+        raise Exception('Postprocessing failed, matlab crashed.')
+    else:
+        print('Post-processing in Matlab is done.')
+
+
 def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
@@ -149,23 +165,26 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         os.remove('/home/nolanlab/to_sort/run_sorting.sh')
 
         print('MS is done')
-        write_param_file_for_matlab(recording_to_sort, location_on_server, is_open_field, is_vr)
-        write_shell_script_to_call_matlab(recording_to_sort)
-        gc.collect()
-        os.chmod(recording_to_sort + '/run_matlab.sh', 484)
-        subprocess.call(recording_to_sort + '/run_matlab.sh', shell=True)
 
-        if check_if_matlab_was_successful(recording_to_sort) is not True:
-            raise Exception('Postprocessing failed, matlab crashed.')
-        else:
-            print('Post-processing in Matlab is done.')
+        # call python post-sorting scripts
+        print('Post-sorting analysis (Python version) will run now.')
+        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
+        if os.path.exists(server_path_first_half + location_on_server + '/Figures') is True:
+            shutil.rmtree(server_path_first_half + location_on_server + '/Figures')
+        try:
+            shutil.copytree(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
+        except shutil.Error as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print(message)
+            print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
+                      'I could not resolve, but the files are actually copied successfully.')
+            pass
+
+        # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
-        if is_vr:
-            print('This is a VR session, so I will run the VR related analyses now.')
-            # todo if vr, call Sarah's script
-            pass
     except Exception as ex:
         add_to_list_of_failed_sortings(recording_to_sort)
         print('There is a problem with this file. '
@@ -183,6 +202,16 @@ def delete_processed_line(list_to_read_path):
         file_out.writelines(data[1:])
 
 
+def copy_file(filename, path_local):
+    if os.path.isfile(filename) is True:
+        if filename.split('.')[-1] == 'txt':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+        if filename.split('.')[-1] == 'csv':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+        if filename.split('.')[-1] == 'continuous':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+
+
 def copy_recording_to_sort_to_local(recording_to_sort):
     path_server = server_path_first_half + recording_to_sort
     recording_to_sort_folder = recording_to_sort.split("/")[-1]
@@ -193,8 +222,13 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         print(path_server)
         return False
     try:
-        shutil.copytree(path_server, path_local)
+        if os.path.exists(path_local) is False:
+            os.makedirs(path_local)
+        num_cores = multiprocessing.cpu_count()
+        Parallel(n_jobs=num_cores)(delayed(copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
+
         print('Copying is done, I will attempt to sort.')
+
     except Exception as ex:
         recording_to_sort = False
         add_to_list_of_failed_sortings(recording_to_sort)
