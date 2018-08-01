@@ -7,8 +7,6 @@ import shutil
 import subprocess
 import sys
 import time
-import distutils.dir_util
-
 import Logger
 from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
@@ -78,6 +76,7 @@ def get_session_type(recording_directory):
             is_open_field = False
     except Exception as ex:
         print('There is a problem with the parameter file.')
+        print(ex)
     return is_vr, is_open_field
 
 
@@ -172,8 +171,16 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
         if os.path.exists(server_path_first_half + location_on_server + '/Figures') is True:
             shutil.rmtree(server_path_first_half + location_on_server + '/Figures')
-        # todo this is giving an error but actually runs fine
-        shutil.copytree(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
+        try:
+            shutil.copytree(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
+        except shutil.Error as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print(message)
+            print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
+                      'I could not resolve, but the files are actually copied successfully.')
+            pass
+
         # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
