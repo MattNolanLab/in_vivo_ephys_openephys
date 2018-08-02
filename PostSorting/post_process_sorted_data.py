@@ -60,7 +60,7 @@ def make_plots(position_data, spike_data, position_heat_map, spatial_firing, prm
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spike_data, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
-    PostSorting.open_field_make_plots.plot_hd(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
 
 
 def create_folders_for_output(recording_to_process):
