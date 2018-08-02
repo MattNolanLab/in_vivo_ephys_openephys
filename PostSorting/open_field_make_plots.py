@@ -1,5 +1,6 @@
 import matplotlib.pylab as plt
 import os
+import plot_utility
 import matplotlib.cm as cm
 
 
@@ -64,28 +65,20 @@ def plot_hd(spatial_firing, position_data, prm):
         hd = spatial_firing.hd[cluster]
         hd_map_fig = plt.figure()
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-        plt.tick_params(
-            axis='both',          # changes apply to the x-axis
-            which='both',      # both major and minor ticks are affected
-            bottom=False,      # ticks along the bottom edge are off
-            top=False,         # ticks along the top edge are off
-            right=False,
-            left=False,
-            labelleft=False,
-            labelbottom=False) # labels along the bottom edge are off
-
-        ax.set_aspect('equal')
+        ax = plot_utility.style_open_field_plot(ax)
+        ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
+                alpha=0.7)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap='jet')
         plt.colorbar(hd_plot)
-        ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
-                alpha=0.7)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png')
-        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
+
+        plt.close()
+        hd_map_fig = plt.figure()
+        ax = hd_map_fig.add_subplot(1, 1, 1)
+        ax = plot_utility.style_open_field_plot(ax)
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
                 alpha=0.7)
+        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
+        plt.colorbar(hd_plot)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map2_' + str(cluster + 1) + '.png')
         plt.close()
