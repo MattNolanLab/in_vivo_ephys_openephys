@@ -1,5 +1,6 @@
 import matplotlib.pylab as plt
 import os
+import plot_utility
 import matplotlib.cm as cm
 
 
@@ -50,11 +51,11 @@ def plot_firing_rate_maps(spatial_firing, prm):
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + spatial_firing.session_id[cluster] + 'rate_map' + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + spatial_firing.session_id[cluster] + 'rate_map_' + str(cluster + 1) + '.png')
         plt.close()
 
 
-def plot_hd(spatial_firing, prm):
+def plot_hd(spatial_firing, position_data, prm):
     save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -64,24 +65,20 @@ def plot_hd(spatial_firing, prm):
         hd = spatial_firing.hd[cluster]
         hd_map_fig = plt.figure()
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-        plt.tick_params(
-            axis='both',          # changes apply to the x-axis
-            which='both',      # both major and minor ticks are affected
-            bottom=False,      # ticks along the bottom edge are off
-            top=False,         # ticks along the top edge are off
-            right=False,
-            left=False,
-            labelleft=False,
-            labelbottom=False) # labels along the bottom edge are off
-
-        ax.set_aspect('equal')
+        ax = plot_utility.style_open_field_plot(ax)
+        ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
+                alpha=0.1)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap='jet')
         plt.colorbar(hd_plot)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map' + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png')
+
+        plt.close()
+        hd_map_fig = plt.figure()
+        ax = hd_map_fig.add_subplot(1, 1, 1)
+        ax = plot_utility.style_open_field_plot(ax)
+        ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
+                alpha=0.1)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map2' + '.png')
+        plt.colorbar(hd_plot)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map2_' + str(cluster + 1) + '.png')
         plt.close()
