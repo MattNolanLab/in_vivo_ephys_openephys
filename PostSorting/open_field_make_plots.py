@@ -67,7 +67,7 @@ def plot_hd(spatial_firing, position_data, prm):
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
-                alpha=0.7)
+                alpha=0.1)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap='jet')
         plt.colorbar(hd_plot)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png')
@@ -77,7 +77,7 @@ def plot_hd(spatial_firing, position_data, prm):
         ax = hd_map_fig.add_subplot(1, 1, 1)
         ax = plot_utility.style_open_field_plot(ax)
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
-                alpha=0.7)
+                alpha=0.1)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
         plt.colorbar(hd_plot)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map2_' + str(cluster + 1) + '.png')
