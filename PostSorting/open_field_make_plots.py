@@ -1,7 +1,8 @@
+import cmocean
 import matplotlib.pylab as plt
 import os
 import plot_utility
-import matplotlib.cm as cm
+import numpy as np
 
 
 def plot_position(position_data):
@@ -67,18 +68,32 @@ def plot_hd(spatial_firing, position_data, prm):
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
-                alpha=0.1)
-        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap='jet')
+                alpha=0.2)
+        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png')
-
         plt.close()
+
+
+def plot_hd_smooth(spatial_firing, position_data, prm):
+    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster in range(len(spatial_firing)):
+        x_positions = spatial_firing.position_x[cluster]
+        y_positions = spatial_firing.position_y[cluster]
+        hd = spatial_firing.hd[cluster]
+        # todo remove nan from hd and positions arrays for this analysis
         hd_map_fig = plt.figure()
-        ax = hd_map_fig.add_subplot(1, 1, 1)
+        ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
                 alpha=0.1)
-        hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o')
-        plt.colorbar(hd_plot)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map2_' + str(cluster + 1) + '.png')
+
+        heatmap, _, _ = np.histogram2d(x_positions, y_positions, weights=hd)
+        plt.imshow(heatmap)
+        plt.show()
+
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_smooth' + str(cluster + 1) + '.png')
+
         plt.close()
