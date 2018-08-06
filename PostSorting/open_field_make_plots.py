@@ -86,7 +86,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         hd_hist_cluster = spatial_firing.hd_spike_histogram[cluster]
         theta = np.linspace(0, 2*np.pi, 361)  # x axis
         ax = plt.subplot(1, 1, 1, polar=True)
-        ax = plot_utility.style_plot(ax)
+        ax = plot_utility.style_polar_plot(ax)
         ax.plot(theta[:-1], hd_hist_cluster, color='red', linewidth=2)
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png')
