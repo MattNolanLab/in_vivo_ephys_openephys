@@ -46,7 +46,7 @@ def style_open_field_plot(ax):
 def style_polar_plot(ax):
     ax.spines['polar'].set_visible(False)
     ax.set_yticklabels([])  # remove yticklabels
-    ax.grid(None)
+    # ax.grid(None)
     plt.xticks([math.radians(0), math.radians(90), math.radians(180), math.radians(270)])
     ax.axvline(math.radians(90), color='black', linewidth=1, alpha=0.6)
     ax.axvline(math.radians(180), color='black', linewidth=1, alpha=0.6)
