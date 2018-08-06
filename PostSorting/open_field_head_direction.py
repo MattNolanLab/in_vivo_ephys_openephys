@@ -21,14 +21,28 @@ def get_rolling_sum(array_in, window):
 
 
 def get_hd_histogram(angles):
-    theta = np.linspace(0, 2*np.pi, 360)  # x axis
+    theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
+    smooth_hd = get_rolling_sum(binned_hd, window=23)
+    #ax = plt.subplot(1, 1, 1, polar=True)
+    #ax.grid(True)
+    #ax.plot(theta[:-1], smooth_hd)
+    return smooth_hd
 
 
 def process_hd_data(spatial_firing, spatial_data):
-    cluster = 5
-    angles = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
-    get_hd_histogram(angles)
+    angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
+    hd_histogram = get_hd_histogram(angles_whole_session)
+
+    hd_spike_histograms = []
+    for cluster in range(len(spatial_firing)):
+        angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
+        hd_spike_histogram = get_hd_histogram(angles_spike)
+        hd_spike_histograms.append(hd_spike_histogram)
+
+    spatial_firing['hd_spike_histogram'] = hd_spike_histograms
+
+    return hd_histogram, spatial_firing
 
 
 def main():

@@ -7,6 +7,7 @@ import PostSorting.open_field_make_plots
 import PostSorting.open_field_light_data
 import PostSorting.open_field_sync_data
 import PostSorting.open_field_spatial_firing
+import PostSorting.open_field_head_direction
 
 prm = PostSorting.parameters.Parameters()
 
@@ -56,12 +57,13 @@ def output_cluster_scores():
     pass
 
 
-def make_plots(position_data, spike_data, position_heat_map, spatial_firing, prm):
+def make_plots(position_data, spike_data, position_heat_map, hd_histogram, spatial_firing, prm):
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spike_data, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
-    # PostSorting.open_field_make_plots.plot_hd_smooth(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.plot_hd_smooth(spatial_firing, position_data, prm)
+
 
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
@@ -76,10 +78,13 @@ def post_process_recording(recording_to_process, session_type):
     synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+    # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(spike_data_spatial, prm)
+    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
+
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
 
     # output_cluster_scores()
-    make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, spatial_firing, prm)
+    make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, spatial_firing, prm)
 
 
 
