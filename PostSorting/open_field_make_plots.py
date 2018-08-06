@@ -2,7 +2,9 @@ import cmocean
 import matplotlib.pylab as plt
 import os
 import plot_utility
+import math
 import numpy as np
+from scipy.interpolate import spline
 
 
 def plot_position(position_data):
@@ -75,25 +77,17 @@ def plot_hd(spatial_firing, position_data, prm):
         plt.close()
 
 
-def plot_hd_smooth(spatial_firing, position_data, prm):
+def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
+    print('I will make the polar HD plots now.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
-        x_positions = spatial_firing.position_x[cluster]
-        y_positions = spatial_firing.position_y[cluster]
-        hd = spatial_firing.hd[cluster]
-        # todo remove nan from hd and positions arrays for this analysis
-        hd_map_fig = plt.figure()
-        ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax = plot_utility.style_open_field_plot(ax)
-        ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
-                alpha=0.1)
-
-        heatmap, _, _ = np.histogram2d(x_positions, y_positions, weights=hd)
-        plt.imshow(heatmap)
-        plt.show()
-
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_smooth' + str(cluster + 1) + '.png')
-
+        hd_hist_cluster = spatial_firing.hd_spike_histogram[cluster]
+        theta = np.linspace(0, 2*np.pi, 361)  # x axis
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax = plot_utility.style_plot(ax)
+        ax.plot(theta[:-1], hd_hist_cluster, color='red', linewidth=2)
+        ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png')
         plt.close()

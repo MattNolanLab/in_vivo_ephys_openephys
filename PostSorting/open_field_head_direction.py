@@ -30,14 +30,16 @@ def get_hd_histogram(angles):
     return smooth_hd
 
 
-def process_hd_data(spatial_firing, spatial_data):
+def process_hd_data(spatial_firing, spatial_data, prm):
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)
+    hd_histogram /= prm.get_sampling_rate()
 
     hd_spike_histograms = []
     for cluster in range(len(spatial_firing)):
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
         hd_spike_histogram = get_hd_histogram(angles_spike)
+        hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
