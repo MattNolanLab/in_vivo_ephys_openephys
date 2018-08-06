@@ -1,5 +1,6 @@
 import matplotlib.pylab as plt
 import math
+import numpy as np
 
 
 def draw_reward_zone():
