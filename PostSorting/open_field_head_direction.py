@@ -1,5 +1,6 @@
-import numpy as np
+import math
 import matplotlib.pylab as plt
+import numpy as np
 
 
 def moving_sum(array, window):
@@ -14,8 +15,8 @@ def get_rolling_sum(array_in, window):
     inner_part_result = moving_sum(array_in, window)
     edges = np.append(array_in[-2 * window:], array_in[: 2 * window])
     edges_result = moving_sum(edges, window)
-    end = edges_result[window:len(edges_result)/2]
-    beginning = edges_result[len(edges_result)/2:-window]
+    end = edges_result[window:math.floor(len(edges_result)/2)]
+    beginning = edges_result[math.floor(len(edges_result)/2):-window]
     array_out = np.hstack((beginning, inner_part_result, end))
     return array_out
 
@@ -48,6 +49,10 @@ def process_hd_data(spatial_firing, spatial_data, prm):
 
 
 def main():
+    array_in = [3, 4, 5, 8, 11, 1, 3, 5, 4]
+    window = 3
+    get_rolling_sum(array_in, window)
+
     array_in = [1, 2, 3, 4, 5, 6]
     window = 3
     get_rolling_sum(array_in, window)
