@@ -1,4 +1,6 @@
 import matplotlib.pylab as plt
+import math
+import numpy as np
 
 
 def draw_reward_zone():
@@ -38,4 +40,18 @@ def style_open_field_plot(ax):
         labelbottom=False)  # labels along the bottom edge are off
 
     ax.set_aspect('equal')
+    return ax
+
+
+def style_polar_plot(ax):
+    ax.spines['polar'].set_visible(False)
+    ax.set_yticklabels([])  # remove yticklabels
+    # ax.grid(None)
+    plt.xticks([math.radians(0), math.radians(90), math.radians(180), math.radians(270)])
+    ax.axvline(math.radians(90), color='black', linewidth=1, alpha=0.6)
+    ax.axvline(math.radians(180), color='black', linewidth=1, alpha=0.6)
+    ax.axvline(math.radians(270), color='black', linewidth=1, alpha=0.6)
+    ax.axvline(math.radians(0), color='black', linewidth=1, alpha=0.6)
+    ax.set_theta_direction(-1)
+    ax.set_theta_offset(np.pi/2.0)
     return ax
