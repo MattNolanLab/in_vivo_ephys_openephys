@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-import matplotlib.pylab as plt
+# import matplotlib.pylab as plt
 
 
 # return indices of neighbors of bin considering borders
@@ -56,6 +56,7 @@ def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
     return masked_rate_map, changed
 
 
+# check if the detected field is big enough to be a firing field
 def test_if_field_is_big_enough(field_indices):
     number_of_pixels = len(field_indices)
     if number_of_pixels > 45:
@@ -63,6 +64,7 @@ def test_if_field_is_big_enough(field_indices):
     return False
 
 
+# test if the firing rate of the detected local maximum is higher than average + std firing
 def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
     flat_rate_map = rate_map.flatten()
     rate_map_without_removed_fields = np.take(flat_rate_map, np.where(flat_rate_map >= 0))
@@ -98,12 +100,14 @@ def find_current_maxima_indices(rate_map):
     return field_indices, found_new
 
 
+# mark indices of firing fields that are already found (so we don't find them again)
 def remove_indices_from_rate_map(rate_map, indices):
     for index in indices:
         rate_map[index[0], index[1]] = -10
     return rate_map
 
 
+# find firing fields and add them to spatial firing data frame
 def analyze_firing_fields(spatial_firing):
     firing_fields = []
     for cluster in range(len(spatial_firing)):
@@ -119,7 +123,7 @@ def analyze_firing_fields(spatial_firing):
         # plt.clf()
         firing_fields.append(firing_fields_cluster)
     spatial_firing['firing_fields'] = firing_fields
-    print(spatial_firing.head(1))
+    return spatial_firing
 
 
 def main():
@@ -127,7 +131,7 @@ def main():
     cluster_id = np.arange(len(firing_rate_maps))
     spatial_firing = pd.DataFrame(cluster_id)
     spatial_firing['firing_maps'] = list(firing_rate_maps)
-    firing_fields = analyze_firing_fields(spatial_firing)
+    spatial_firing = analyze_firing_fields(spatial_firing)
 
 if __name__ == '__main__':
     main()

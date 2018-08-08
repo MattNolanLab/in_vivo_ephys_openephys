@@ -2,6 +2,7 @@ import os
 import PostSorting.load_firing_data
 import PostSorting.parameters
 import PostSorting.open_field_firing_maps
+import PostSorting.open_field_firing_fields
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_light_data
@@ -82,6 +83,7 @@ def post_process_recording(recording_to_process, session_type):
     # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, spatial_firing, prm)
