@@ -112,7 +112,7 @@ def analyze_firing_fields(spatial_firing):
     firing_fields = []
     for cluster in range(len(spatial_firing)):
         firing_fields_cluster = []
-        rate_map = spatial_firing.firing_maps[cluster]
+        rate_map = spatial_firing.firing_maps[cluster].copy()
         found_new = True
         while found_new:
             # plt.show()
