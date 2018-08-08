@@ -48,6 +48,11 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     return hd_histogram, spatial_firing
 
 
+def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices):
+    hd_array = []
+
+
+
 def main():
     array_in = [3, 4, 5, 8, 11, 1, 3, 5, 4]
     window = 3

@@ -8,6 +8,7 @@ import random
 
 from scipy.interpolate import spline
 import PostSorting.parameters
+import  PostSorting.open_field_head_direction
 
 import pandas as pd
 import PostSorting.open_field_firing_fields
@@ -120,6 +121,7 @@ def plot_hd_for_firing_fields(spatial_firing, prm):
             for field_id, field in enumerate(firing_fields_cluster):
                 for bin in field:
                     plt.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=5)
+            PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field)
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png')
             plt.close()
 
@@ -132,6 +134,8 @@ def main():
     spatial_firing = pd.DataFrame(cluster_id)
     spatial_firing['firing_maps'] = list(firing_rate_maps)
     spatial_firing['session_id'] = 'M5_2018-03-06_15-34-44_of'
+    hd = np.load(prm.get_local_recording_folder_path() + 'M5_2018-03-06_15-34-44_of_hd.npy')
+    spatial_firing['hd'] = list(hd)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
     plot_hd_for_firing_fields(spatial_firing, prm)
 if __name__ == '__main__':
