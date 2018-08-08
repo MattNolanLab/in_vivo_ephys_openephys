@@ -48,8 +48,11 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     return hd_histogram, spatial_firing
 
 
-def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices):
+def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster):
     hd_array = []
+    # find indices for each bin in place field based on x and y coordinates
+
+    # take hd of these
 
 
 
