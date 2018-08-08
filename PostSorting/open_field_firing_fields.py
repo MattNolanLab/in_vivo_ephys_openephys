@@ -68,7 +68,7 @@ def test_if_field_is_big_enough(field_indices):
 def test_if_field_is_small_enough(field_indices, rate_map):
     number_of_pixels_in_field = len(field_indices)
     number_of_pixels_on_map = len(rate_map.flatten())
-    if number_of_pixels_in_field > number_of_pixels_in_field / 2:
+    if number_of_pixels_in_field > number_of_pixels_on_map/ 2:
         return False
     else:
         return True
