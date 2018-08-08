@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pylab as plt
 
 
+# return indices of neighbors of bin considering borders
 def find_neighbors(bin_to_test, max_x, max_y):
     x = bin_to_test[0]
     y = bin_to_test[1]
@@ -23,12 +24,19 @@ def find_neighbors(bin_to_test, max_x, max_y):
     if x == 0 and y == 0:
         neighbors = [[x, y+1], [x+1, y]]
 
+    if x == max_x and y == 0:
+        neighbors = [[x, y+1], [x-1, y]]
+
+    if y == max_y and x == 0:
+        neighbors = [[x, y-1], [x+1, y]]
+
     return neighbors
 
 
+# return the masked rate map and change the neighbor's indices to 1 if they are above threshold
 def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
     changed = False
-    threshold = firing_rate_of_max * 80 / 100
+    threshold = firing_rate_of_max * 20 / 100
 
     firing_field_bins = np.array(np.where(masked_rate_map == True))
     firing_field_bins = firing_field_bins.T
@@ -48,32 +56,70 @@ def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
     return masked_rate_map, changed
 
 
+def test_if_field_is_big_enough(field_indices):
+    number_of_pixels = len(field_indices)
+    if number_of_pixels > 45:
+        return True
+    return False
+
+
+def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
+    flat_rate_map = rate_map.flatten()
+    rate_map_without_removed_fields = np.take(flat_rate_map, np.where(flat_rate_map >= 0))
+    average_rate = np.mean(rate_map_without_removed_fields)
+    std_rate = np.std(rate_map)
+
+    firing_rate_of_highest_bin = rate_map[highest_rate_bin[0], highest_rate_bin[1]]
+
+    if firing_rate_of_highest_bin > average_rate + std_rate:
+        return True
+    else:
+        return False
+
+
+# find indices for an individual firing field
 def find_current_maxima_indices(rate_map):
-    higest_rate_bin = np.unravel_index(rate_map.argmax(), rate_map.shape)
-    plt.imshow(rate_map)
-    plt.scatter(higest_rate_bin[1], higest_rate_bin[0], marker='o', s=500, color='yellow')
+    highest_rate_bin = np.unravel_index(rate_map.argmax(), rate_map.shape)
+    found_new = test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin)
+    if found_new is False:
+        return None, found_new
 
+    # plt.imshow(rate_map)
+    # plt.scatter(highest_rate_bin[1], highest_rate_bin[0], marker='o', s=500, color='yellow')
     masked_rate_map = np.full((rate_map.shape[0], rate_map.shape[1]), False)
-    masked_rate_map[higest_rate_bin] = True
+    masked_rate_map[highest_rate_bin] = True
     changed = True
-    tested_bins = []
     while changed:
-        masked_rate_map, changed = find_neighborhood(masked_rate_map, rate_map, rate_map[higest_rate_bin])
+        masked_rate_map, changed = find_neighborhood(masked_rate_map, rate_map, rate_map[highest_rate_bin])
 
-    field_indices = np.where(masked_rate_map > 0).T
+    field_indices = np.array(np.where(masked_rate_map > 0)).T
+    found_new = test_if_field_is_big_enough(field_indices)
 
-    return field_indices
+    return field_indices, found_new
+
+
+def remove_indices_from_rate_map(rate_map, indices):
+    for index in indices:
+        rate_map[index[0], index[1]] = -10
+    return rate_map
 
 
 def analyze_firing_fields(spatial_firing):
-    cluster = 5
-    rate_map = spatial_firing.firing_maps[cluster]
-    field = find_current_maxima_indices(rate_map)
-
-    #  check which other indices belong there
-
-
-
+    firing_fields = []
+    for cluster in range(len(spatial_firing)):
+        firing_fields_cluster = []
+        rate_map = spatial_firing.firing_maps[cluster]
+        found_new = True
+        while found_new:
+            # plt.show()
+            field_indices, found_new = find_current_maxima_indices(rate_map)
+            if found_new:
+                firing_fields_cluster.append(field_indices)
+                rate_map = remove_indices_from_rate_map(rate_map, field_indices)
+        # plt.clf()
+        firing_fields.append(firing_fields_cluster)
+    spatial_firing['firing_fields'] = firing_fields
+    print(spatial_firing.head(1))
 
 
 def main():
@@ -81,7 +127,7 @@ def main():
     cluster_id = np.arange(len(firing_rate_maps))
     spatial_firing = pd.DataFrame(cluster_id)
     spatial_firing['firing_maps'] = list(firing_rate_maps)
-    analyze_firing_fields(spatial_firing)
+    firing_fields = analyze_firing_fields(spatial_firing)
 
 if __name__ == '__main__':
     main()
