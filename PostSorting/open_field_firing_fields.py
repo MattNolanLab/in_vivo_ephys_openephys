@@ -64,6 +64,16 @@ def test_if_field_is_big_enough(field_indices):
     return False
 
 
+# this is to avoid identifying the whole rate map as a field
+def test_if_field_is_small_enough(field_indices, rate_map):
+    number_of_pixels_in_field = len(field_indices)
+    number_of_pixels_on_map = len(rate_map.flatten())
+    if number_of_pixels_in_field > number_of_pixels_in_field / 2:
+        return False
+    else:
+        return True
+
+
 # test if the firing rate of the detected local maximum is higher than average + std firing
 def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
     flat_rate_map = rate_map.flatten()
@@ -96,6 +106,11 @@ def find_current_maxima_indices(rate_map):
 
     field_indices = np.array(np.where(masked_rate_map > 0)).T
     found_new = test_if_field_is_big_enough(field_indices)
+    if found_new is False:
+        return None, found_new
+    found_new = test_if_field_is_small_enough(field_indices, rate_map)
+    if found_new is False:
+        field_indices = None
 
     return field_indices, found_new
 
