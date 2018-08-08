@@ -108,14 +108,20 @@ def plot_hd_for_firing_fields(spatial_firing, prm):
         firing_rate_map = spatial_firing.firing_maps[cluster]
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)
+        ax = plot_utility.style_open_field_plot(ax)
         ax.imshow(firing_rate_map)
 
         if len(spatial_firing.firing_fields[cluster]) > 0:
             firing_fields_cluster = spatial_firing.firing_fields[cluster]
-            colors = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(len(firing_fields_cluster))]
+            colors = []
+            for i in range(len(firing_fields_cluster)):
+                colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
+
             for field_id, field in enumerate(firing_fields_cluster):
                 for bin in field:
-                    plt.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=20)
+                    plt.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=5)
+            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png')
+            plt.close()
 
 
 def main():
@@ -125,6 +131,7 @@ def main():
     cluster_id = np.arange(len(firing_rate_maps))
     spatial_firing = pd.DataFrame(cluster_id)
     spatial_firing['firing_maps'] = list(firing_rate_maps)
+    spatial_firing['session_id'] = 'M5_2018-03-06_15-34-44_of'
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
     plot_hd_for_firing_fields(spatial_firing, prm)
 if __name__ == '__main__':
