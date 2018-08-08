@@ -64,6 +64,7 @@ def make_plots(position_data, spike_data, position_heat_map, hd_histogram, spati
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, prm)
 
 
 def create_folders_for_output(recording_to_process):
@@ -84,6 +85,7 @@ def post_process_recording(recording_to_process, session_type):
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, prm)
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, spatial_firing, prm)
