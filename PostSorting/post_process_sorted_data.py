@@ -10,6 +10,8 @@ import PostSorting.open_field_sync_data
 import PostSorting.open_field_spatial_firing
 import PostSorting.open_field_head_direction
 
+import pandas as pd
+
 prm = PostSorting.parameters.Parameters()
 
 
@@ -72,6 +74,10 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Figures')
 
 
+def save_data_frames(spatial_firing, synced_spatial_data):
+    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
+    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+
 def post_process_recording(recording_to_process, session_type):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
@@ -85,7 +91,9 @@ def post_process_recording(recording_to_process, session_type):
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    save_data_frames(spatial_firing, synced_spatial_data)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, prm)
+
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, spatial_firing, prm)
