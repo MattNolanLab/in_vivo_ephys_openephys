@@ -103,7 +103,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
 
 def mark_firing_field_with_scatter(field, plot, colors, field_id):
     for bin in field:
-        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=3)
+        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=1)
     return plot
 
 
@@ -153,7 +153,8 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
                 hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
 
-            plt.tight_layout()
+            #plt.tight_layout()
+            gs.update(wspace=1, hspace=0.5)
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png')
             plt.close()
 
