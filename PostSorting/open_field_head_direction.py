@@ -100,7 +100,6 @@ def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
     return hd_in_field
 
 
-
 def main():
     array_in = [3, 4, 5, 8, 11, 1, 3, 5, 4]
     window = 3
