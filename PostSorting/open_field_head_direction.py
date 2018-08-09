@@ -51,7 +51,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     return hd_histogram, spatial_firing
 
 
-def get_indices_for_bin(bin, rate_map_indices, spatial_firing_cluster, prm):
+def get_indices_for_bin(bin, rate_map_indices, spatial_data, prm):
     bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
     bin_x = bin[0]
     bin_x_left_pixels = bin_x * bin_size_pixels
@@ -60,12 +60,12 @@ def get_indices_for_bin(bin, rate_map_indices, spatial_firing_cluster, prm):
     bin_y_bottom_pixels = bin_y * bin_size_pixels
     bin_y_top_pixels = bin_y * (bin_size_pixels + 1)
 
-    left_x_border = spatial_firing_cluster.x > bin_x_left_pixels
-    right_x_border = spatial_firing_cluster.x < bin_x_right_pixels
-    bottom_y_border = spatial_firing_cluster.y > bin_y_bottom_pixels
-    top_y_border = spatial_firing_cluster.y < bin_y_top_pixels
+    left_x_border = spatial_data.x > bin_x_left_pixels
+    right_x_border = spatial_data.x < bin_x_right_pixels
+    bottom_y_border = spatial_data.y > bin_y_bottom_pixels
+    top_y_border = spatial_data.y < bin_y_top_pixels
 
-    inside_bin = spatial_firing_cluster[left_x_border & right_x_border & bottom_y_border & top_y_border]
+    inside_bin = spatial_data[left_x_border & right_x_border & bottom_y_border & top_y_border]
     return inside_bin
 
 
@@ -83,6 +83,9 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
         hd = inside_bin.hd.values
         hd_in_field.append(hd)
     return hd_in_field
+
+
+
 
 
 def main():
