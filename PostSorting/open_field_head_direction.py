@@ -75,7 +75,8 @@ def get_hd_in_field(rate_map_indices, spatial_data, prm):
     for bin_in_field in rate_map_indices:
         inside_bin = get_indices_for_bin(bin_in_field, rate_map_indices, spatial_data, prm)
         hd = inside_bin.hd.values
-        hd_in_field.append(hd)
+        hd_in_field.extend(hd)
+
     return hd_in_field
 
 
