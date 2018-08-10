@@ -2,12 +2,15 @@ import os
 import PostSorting.load_firing_data
 import PostSorting.parameters
 import PostSorting.open_field_firing_maps
+import PostSorting.open_field_firing_fields
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_light_data
 import PostSorting.open_field_sync_data
 import PostSorting.open_field_spatial_firing
 import PostSorting.open_field_head_direction
+
+import pandas as pd
 
 prm = PostSorting.parameters.Parameters()
 
@@ -63,11 +66,17 @@ def make_plots(position_data, spike_data, position_heat_map, hd_histogram, spati
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
 
 
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
         os.makedirs(recording_to_process + '/Figures')
+
+
+def save_data_frames(spatial_firing, synced_spatial_data):
+    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
+    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
 
 
 def post_process_recording(recording_to_process, session_type):
@@ -82,6 +91,8 @@ def post_process_recording(recording_to_process, session_type):
     # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    save_data_frames(spatial_firing, synced_spatial_data)
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, spatial_firing, prm)

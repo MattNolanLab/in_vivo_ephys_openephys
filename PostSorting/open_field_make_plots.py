@@ -1,10 +1,18 @@
 import cmocean
 import matplotlib.pylab as plt
+from matplotlib.gridspec import GridSpec
 import os
 import plot_utility
 import math
 import numpy as np
+import random
+
 from scipy.interpolate import spline
+import PostSorting.parameters
+import  PostSorting.open_field_head_direction
+
+import pandas as pd
+import PostSorting.open_field_firing_fields
 
 
 def plot_position(position_data):
@@ -91,3 +99,76 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png')
         plt.close()
+
+
+def mark_firing_field_with_scatter(field, plot, colors, field_id):
+    for bin in field:
+        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=1)
+    return plot
+
+
+def generate_colors(number_of_firing_fields):
+    colors = []
+    for i in range(number_of_firing_fields):
+        colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
+    return colors
+
+
+def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
+    print('I will make the polar HD plots for individual firing fields now.')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/firing_field_plots'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster in range(len(spatial_firing)):
+        number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        firing_rate_map = spatial_firing.firing_maps[cluster]
+        if number_of_firing_fields > 0:
+            fig = plt.figure()
+            gs = GridSpec(2, number_of_firing_fields + 1)
+            of_plot = plt.subplot(gs[0:2, 0:2])
+            of_plot.axis('off')
+            of_plot.imshow(firing_rate_map)
+
+            firing_fields_cluster = spatial_firing.firing_fields[cluster]
+            colors = generate_colors(number_of_firing_fields)
+
+            for field_id, field in enumerate(firing_fields_cluster):
+                of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id)
+
+                hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
+                hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
+                hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
+                # hd_hist_session /= prm.get_sampling_rate()
+                hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
+                # hd_hist_cluster = hd_hist_cluster / hd_hist_session
+
+                theta = np.linspace(0, 2*np.pi, 361)  # x axis
+                plot_row = field_id % 2
+                print(plot_row)
+                plot_col = math.floor(field_id/2) + 2
+                print(plot_col)
+                hd_plot_field = plt.subplot(gs[plot_row, plot_col], polar=True)
+                hd_plot_field = plot_utility.style_polar_plot(hd_plot_field)
+
+                hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
+                hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
+
+            #plt.tight_layout()
+            gs.update(wspace=1, hspace=0.5)
+            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png')
+            plt.close()
+
+
+def main():
+    prm = PostSorting.parameters.Parameters()
+    prm.set_pixel_ratio(440)
+    prm.set_sampling_rate(30000)
+    prm.set_local_recording_folder_path('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/')
+    firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
+    spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
+    spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+    #spatial_firing['firing_maps'] = list(firing_rate_maps)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    plot_hd_for_firing_fields(spatial_firing, spatial_data, prm)
+if __name__ == '__main__':
+    main()
