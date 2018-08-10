@@ -124,6 +124,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
         firing_rate_map = spatial_firing.firing_maps[cluster]
         if number_of_firing_fields > 0:
             fig = plt.figure()
+            fig.set_size_inches(30, 15, forward=True)
             gs = GridSpec(2, number_of_firing_fields + 1)
             of_plot = plt.subplot(gs[0:2, 0:2])
             of_plot.axis('off')
