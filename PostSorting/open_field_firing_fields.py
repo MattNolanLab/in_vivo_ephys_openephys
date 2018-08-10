@@ -38,7 +38,7 @@ def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
     changed = False
     threshold = firing_rate_of_max * 20 / 100
 
-    firing_field_bins = np.array(np.where(masked_rate_map == True))
+    firing_field_bins = np.array(np.where(masked_rate_map > 0))
     firing_field_bins = firing_field_bins.T
 
     for bin_to_test in firing_field_bins:
@@ -50,7 +50,7 @@ def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
 
             firing_rate = rate_map[neighbor[0], neighbor[1]]
             if firing_rate >= threshold:
-                masked_rate_map[neighbor[0], neighbor[1]] = True
+                masked_rate_map[neighbor[0], neighbor[1]] = 1
                 changed = True
 
     return masked_rate_map, changed
@@ -98,8 +98,8 @@ def find_current_maxima_indices(rate_map):
 
     # plt.imshow(rate_map)
     # plt.scatter(highest_rate_bin[1], highest_rate_bin[0], marker='o', s=500, color='yellow')
-    masked_rate_map = np.full((rate_map.shape[0], rate_map.shape[1]), False)
-    masked_rate_map[highest_rate_bin] = True
+    masked_rate_map = np.full((rate_map.shape[0], rate_map.shape[1]), 0)
+    masked_rate_map[highest_rate_bin] = 1
     changed = True
     while changed:
         masked_rate_map, changed = find_neighborhood(masked_rate_map, rate_map, rate_map[highest_rate_bin])
