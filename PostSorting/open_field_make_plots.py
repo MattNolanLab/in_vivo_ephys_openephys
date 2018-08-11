@@ -186,7 +186,7 @@ def make_combined_figure(prm, spatial_firing):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.close('all')
-    figures_path = prm.get_local_recording_folder_path() + 'Figures/'
+    figures_path = prm.get_local_recording_folder_path() + '/Figures/'
     for cluster in range(len(spatial_firing)):
         coverage_path = figures_path + 'session/heatmap.png'
         spike_scatter_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spikes_on_trajectory.png'
@@ -235,7 +235,7 @@ def main():
     prm = PostSorting.parameters.Parameters()
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    prm.set_local_recording_folder_path('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/')
+    prm.set_local_recording_folder_path('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of')
     firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
