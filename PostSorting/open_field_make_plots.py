@@ -227,7 +227,7 @@ def make_combined_figure(prm, spatial_firing):
             firing_fields_plot.axis('off')
             firing_fields_plot.imshow(firing_fields)
 
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + str(cluster + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
         plt.close()
 
 
