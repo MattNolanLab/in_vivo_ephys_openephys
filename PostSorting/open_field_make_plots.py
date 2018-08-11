@@ -110,10 +110,12 @@ def mark_firing_field_with_scatter(field, plot, colors, field_id):
     return plot
 
 
+# generate more random colors if necessary
 def generate_colors(number_of_firing_fields):
-    colors = []
-    for i in range(number_of_firing_fields):
-        colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
+    colors = [[0, 1, 0], [1, 1, 0], [0, 1, 1], [0, 0, 0], [1, 0, 1]]  # green, yellow, cyan, black, pink
+    if number_of_firing_fields > len(colors):
+        for i in range(number_of_firing_fields):
+            colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
     return colors
 
 
