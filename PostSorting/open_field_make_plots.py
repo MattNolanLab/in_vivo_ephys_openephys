@@ -180,7 +180,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
             plt.close()
 
 
-def make_combined_plot(prm, spatial_firing):
+def make_combined_figure(prm, spatial_firing):
     print('I will make the combined images now.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/combined'
     if os.path.exists(save_path) is False:
@@ -240,7 +240,7 @@ def main():
     firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
-    make_combined_plot(prm, spatial_firing)
+    make_combined_figure(prm, spatial_firing)
 
     plot_spikes_on_trajectory(spatial_data, spatial_firing, prm)
     #spatial_firing['firing_maps'] = list(firing_rate_maps)

@@ -67,6 +67,7 @@ def make_plots(position_data, spike_data, position_heat_map, hd_histogram, spati
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
 def create_folders_for_output(recording_to_process):
