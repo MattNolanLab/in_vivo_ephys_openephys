@@ -3,13 +3,9 @@ import matplotlib.pylab as plt
 from matplotlib.gridspec import GridSpec
 import matplotlib.image as mpimg
 import os
-from PIL import Image
 import plot_utility
 import math
 import numpy as np
-import random
-
-from scipy.interpolate import spline
 import PostSorting.parameters
 import  PostSorting.open_field_head_direction
 
@@ -97,7 +93,7 @@ def plot_hd(spatial_firing, position_data, prm):
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
                 alpha=0.2)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
-        plt.colorbar(hd_plot)
+        plt.colorbar(hd_plot, fraction=0.046, pad=0.04)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
