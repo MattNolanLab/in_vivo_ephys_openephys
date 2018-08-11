@@ -21,6 +21,7 @@ def plot_position(position_data):
 
 
 def plot_spikes_on_trajectory(position_data, spike_data, prm):
+    print('I will make scatter plots of spikes on the trajectory on the animal.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/firing_scatters'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -50,6 +51,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
 
 
 def plot_coverage(position_heat_map, prm):
+    print('I will plot a heat map of the position of the animal to show coverage.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/session'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -61,6 +63,7 @@ def plot_coverage(position_heat_map, prm):
 
 
 def plot_firing_rate_maps(spatial_firing, prm):
+    print('I will make rate map plots.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/rate_maps'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -75,6 +78,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
 
 
 def plot_hd(spatial_firing, position_data, prm):
+    print('I will plot HD on open field maps as a scatter plot for each cluster.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots_2d'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
