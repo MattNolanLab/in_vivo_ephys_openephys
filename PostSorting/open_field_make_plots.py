@@ -56,18 +56,21 @@ def plot_coverage(position_heat_map, prm):
 
 
 def plot_firing_rate_maps(spatial_firing, prm):
+    save_path = prm.get_local_recording_folder_path() + '/Figures/rate_maps'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         firing_rate_map = spatial_firing.firing_maps[cluster]
        #  plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + spatial_firing.session_id[cluster] + 'rate_map_' + str(cluster + 1) + '.png')
+        plt.savefig(save_path + spatial_firing.session_id[cluster] + 'rate_map_' + str(cluster + 1) + '.png')
         plt.close()
 
 
 def plot_hd(spatial_firing, position_data, prm):
-    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots'
+    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots_2d'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
@@ -87,7 +90,7 @@ def plot_hd(spatial_firing, position_data, prm):
 
 def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
     print('I will make the polar HD plots now.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots'
+    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots_polar'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
