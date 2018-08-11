@@ -21,32 +21,32 @@ def plot_position(position_data):
 
 
 def plot_spikes_on_trajectory(position_data, spike_data, prm):
-    save_path = prm.get_local_recording_folder_path() + '/Figures/session'
+    save_path = prm.get_local_recording_folder_path() + '/Figures/firing_scatters'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    cluster_id = 5  # this is just a test plot, it plots cluster 5
-    spikes_on_track = plt.figure()
-    ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    for cluster_id in range(len(spike_data)):
+        spikes_on_track = plt.figure()
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-    ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1, alpha=0.7)
-    ax.scatter(spike_data.position_x[cluster_id], spike_data.position_y[cluster_id], color='red', marker='o', s=10, zorder=2)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    plt.tick_params(
-        axis='both',          # changes apply to the x-axis
-        which='both',      # both major and minor ticks are affected
-        bottom=False,      # ticks along the bottom edge are off
-        top=False,         # ticks along the top edge are off
-        right=False,
-        left=False,
-        labelleft=False,
-        labelbottom=False)  # labels along the bottom edge are off
-    ax.set_aspect('equal')
+        ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1, alpha=0.7)
+        ax.scatter(spike_data.position_x[cluster_id], spike_data.position_y[cluster_id], color='red', marker='o', s=10, zorder=2)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        plt.tick_params(
+            axis='both',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            right=False,
+            left=False,
+            labelleft=False,
+            labelbottom=False)  # labels along the bottom edge are off
+        ax.set_aspect('equal')
 
-    plt.savefig(save_path + '/' + spike_data.session_id + '_spatial_firing.png')
-    plt.close()
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png')
+        plt.close()
 
 
 def plot_coverage(position_heat_map, prm):
@@ -175,6 +175,7 @@ def main():
     firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+    plot_spikes_on_trajectory(spatial_data, spatial_firing, prm)
     #spatial_firing['firing_maps'] = list(firing_rate_maps)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
     plot_hd_for_firing_fields(spatial_firing, spatial_data, prm)
