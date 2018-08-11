@@ -27,6 +27,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
         os.makedirs(save_path)
     for cluster_id in range(len(spike_data)):
         spikes_on_track = plt.figure()
+        spikes_on_track.set_size_inches(10, 10, forward=True)
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1, alpha=0.7)
@@ -46,7 +47,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
             labelbottom=False)  # labels along the bottom edge are off
         ax.set_aspect('equal')
 
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png')
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png', dpi=400)
         plt.close()
 
 
@@ -56,9 +57,10 @@ def plot_coverage(position_heat_map, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     coverage = plt.figure()
+    coverage.set_size_inches(10, 10, forward=True)
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.imshow(position_heat_map, cmap='jet', interpolation='nearest')
-    plt.savefig(save_path + '/heatmap.png')
+    plt.savefig(save_path + '/heatmap.png', dpi=400)
     plt.close()
 
 
@@ -69,11 +71,12 @@ def plot_firing_rate_maps(spatial_firing, prm):
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         firing_rate_map = spatial_firing.firing_maps[cluster]
+        firing_rate_map.set_size_inches(10, 10, forward=True)
        #  plt.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png', dpi=400)
         plt.close()
 
 
@@ -87,13 +90,14 @@ def plot_hd(spatial_firing, position_data, prm):
         y_positions = spatial_firing.position_y[cluster]
         hd = spatial_firing.hd[cluster]
         hd_map_fig = plt.figure()
+        hd_map_fig.set_size_inches(10, 10, forward=True)
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1,
                 alpha=0.2)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=400)
         plt.close()
 
 
@@ -103,13 +107,17 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        hd_polar_fig = plt.figure()
+        hd_polar_fig.set_size_inches(10, 10, forward=True)
+        ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
         hd_hist_cluster = spatial_firing.hd_spike_histogram[cluster]
         theta = np.linspace(0, 2*np.pi, 361)  # x axis
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
         ax.plot(theta[:-1], hd_hist_cluster, color='red', linewidth=2)
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=400)
         plt.close()
 
 
@@ -138,7 +146,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
         firing_rate_map = spatial_firing.firing_maps[cluster]
         if number_of_firing_fields > 0:
             fig = plt.figure()
-            fig.set_size_inches(30, 15, forward=True)
+            fig.set_size_inches(40, 20, forward=True)
             gs = GridSpec(2, number_of_firing_fields + 1)
             of_plot = plt.subplot(gs[0:2, 0:2])
             of_plot.axis('off')
@@ -170,7 +178,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
 
             #plt.tight_layout()
             gs.update(wspace=1, hspace=0.5)
-            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png')
+            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png', dpi=400)
             plt.close()
 
 
