@@ -129,7 +129,7 @@ def mark_firing_field_with_scatter(field, plot, colors, field_id):
 
 # generate more random colors if necessary
 def generate_colors(number_of_firing_fields):
-    colors = [[0, 1, 0], [1, 1, 0], [0, 1, 1], [0, 0, 0], [1, 0, 1]]  # green, yellow, cyan, black, pink
+    colors = [[0, 1, 0], [1, 1, 0], [0, 1, 1], [1, 0, 1]]  # green, yellow, cyan, pink
     if number_of_firing_fields > len(colors):
         for i in range(number_of_firing_fields):
             colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
@@ -167,9 +167,9 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
 
                 theta = np.linspace(0, 2*np.pi, 361)  # x axis
                 plot_row = field_id % 2
-                print(plot_row)
+                # print(plot_row)
                 plot_col = math.floor(field_id/2) + 2
-                print(plot_col)
+                # print(plot_col)
                 hd_plot_field = plt.subplot(gs[plot_row, plot_col], polar=True)
                 hd_plot_field = plot_utility.style_polar_plot(hd_plot_field)
 
