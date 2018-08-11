@@ -1,7 +1,9 @@
 import cmocean
 import matplotlib.pylab as plt
 from matplotlib.gridspec import GridSpec
+import matplotlib.image as mpimg
 import os
+from PIL import Image
 import plot_utility
 import math
 import numpy as np
@@ -96,7 +98,7 @@ def plot_hd(spatial_firing, position_data, prm):
                 alpha=0.2)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -144,6 +146,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
         number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         firing_rate_map = spatial_firing.firing_maps[cluster]
         if number_of_firing_fields > 0:
+            plt.clf()
             fig = plt.figure()
             fig.set_size_inches(20, 10, forward=True)
             gs = GridSpec(2, number_of_firing_fields + 1)
@@ -181,6 +184,57 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
             plt.close()
 
 
+def make_combined_plot(prm, spatial_firing):
+    print('I will make the combined images now.')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/combined'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.clf()
+    figures_path = prm.get_local_recording_folder_path() + 'Figures/'
+    cluster = 5
+
+    coverage_path = figures_path + 'session/heatmap.png'
+    spike_scatter_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spikes_on_trajectory.png'
+    rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png'
+    head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png'
+    head_direction_map_path = figures_path + 'head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png'
+    firing_fields_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png'
+
+    grid = plt.GridSpec(3, 3, wspace=0, hspace=0)
+    if os.path.exists(spike_scatter_path):
+        spike_scatter = mpimg.imread(spike_scatter_path)
+        spike_scatter_plot = plt.subplot(grid[0, 0])
+        spike_scatter_plot.imshow(spike_scatter)
+    if os.path.exists(rate_map_path):
+        rate_map = mpimg.imread(rate_map_path)
+        rate_map_plot = plt.subplot(grid[0, 1])
+        rate_map_plot.imshow(rate_map)
+    if os.path.exists(coverage_path):
+        coverage = mpimg.imread(coverage_path)
+        coverage_plot = plt.subplot(grid[0, 2])
+        coverage_plot.imshow(coverage)
+    if os.path.exists(head_direction_polar_path):
+        polar_hd = mpimg.imread(head_direction_polar_path)
+        polar_hd_plot = plt.subplot(grid[1, 0])
+        polar_hd_plot.imshow(polar_hd)
+    if os.path.exists(head_direction_map_path):
+        hd_map = mpimg.imread(head_direction_map_path)
+        hd_map_plot = plt.subplot(grid[1, 1])
+        hd_map_plot.imshow(hd_map)
+    if os.path.exists(firing_fields_path):
+        firing_fields = mpimg.imread(firing_fields_path)
+        firing_fields_plot = plt.subplot(grid[2, 0:])
+        firing_fields_plot.imshow(firing_fields)
+
+    plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + str(cluster + 1) + '.png', dpi=300)
+    plt.close()
+
+
+
+
+
+
+
 def main():
     prm = PostSorting.parameters.Parameters()
     prm.set_pixel_ratio(440)
@@ -189,6 +243,8 @@ def main():
     firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+    make_combined_plot(prm, spatial_firing)
+
     plot_spikes_on_trajectory(spatial_data, spatial_firing, prm)
     #spatial_firing['firing_maps'] = list(firing_rate_maps)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
