@@ -65,7 +65,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
         firing_rate_map_fig = plt.figure()
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.savefig(save_path + spatial_firing.session_id[cluster] + 'rate_map_' + str(cluster + 1) + '.png')
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png')
         plt.close()
 
 
