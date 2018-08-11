@@ -21,7 +21,9 @@ def plot_position(position_data):
 
 
 def plot_spikes_on_trajectory(position_data, spike_data, prm):
-
+    save_path = prm.get_local_recording_folder_path() + '/Figures/session'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     cluster_id = 5  # this is just a test plot, it plots cluster 5
     spikes_on_track = plt.figure()
     ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -40,10 +42,10 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
         right=False,
         left=False,
         labelleft=False,
-        labelbottom=False) # labels along the bottom edge are off
+        labelbottom=False)  # labels along the bottom edge are off
     ax.set_aspect('equal')
 
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spatial_firing.png')
+    plt.savefig(save_path + '/' + spike_data.session_id + '_spatial_firing.png')
     plt.close()
 
 
