@@ -46,8 +46,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
             labelleft=False,
             labelbottom=False)  # labels along the bottom edge are off
         ax.set_aspect('equal')
-
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png', dpi=300)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
