@@ -50,10 +50,13 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
 
 
 def plot_coverage(position_heat_map, prm):
+    save_path = prm.get_local_recording_folder_path() + '/Figures/session'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     coverage = plt.figure()
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.imshow(position_heat_map, cmap='jet', interpolation='nearest')
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/heatmap.png')
+    plt.savefig(save_path + '/heatmap.png')
     plt.close()
 
 
