@@ -57,6 +57,7 @@ def plot_coverage(position_heat_map, prm):
     coverage.set_size_inches(5, 5, forward=True)
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.imshow(position_heat_map, cmap=cmocean.cm.thermal, interpolation='nearest')
+    plt.title('coverage', y=1.08)
     plt.savefig(save_path + '/heatmap.png', dpi=300)
     plt.close()
 
@@ -72,7 +73,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.title(str(spatial_firing.max_firing_rate[cluster]) + ' Hz', y=1.08)
+        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz', y=1.08)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png', dpi=300)
         plt.close()
 
@@ -94,6 +95,7 @@ def plot_hd(spatial_firing, position_data, prm):
                 alpha=0.2)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot, fraction=0.046, pad=0.04)
+        plt.title('head-direction', y=1.08)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
@@ -113,7 +115,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         ax = plot_utility.style_polar_plot(ax)
         ax.plot(theta[:-1], hd_hist_cluster, color='red', linewidth=2)
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
-        plt.title(str(spatial_firing.max_firing_rate_hd[cluster]) + ' Hz', y=1.08)
+        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz', y=1.08)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300)
         plt.close()
 
