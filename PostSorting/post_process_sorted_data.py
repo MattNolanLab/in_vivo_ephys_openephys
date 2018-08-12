@@ -46,27 +46,19 @@ def process_light_stimulation(recording_to_process, prm):
     return opto_on, opto_off, is_found
 
 
-def fill_data_frame(spike_data, position_data):
-    # calculate scores - hd, grid etc
-    pass
-
-
 def sync_data(recording_to_process, prm, spatial_data):
     synced_spatial_data, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
     return synced_spatial_data
 
 
-def output_cluster_scores():
-    pass
-
-
-def make_plots(position_data, spike_data, position_heat_map, hd_histogram, spatial_firing, prm):
-    PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spike_data, prm)
+def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
+    PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
 def create_folders_for_output(recording_to_process):
@@ -95,7 +87,7 @@ def post_process_recording(recording_to_process, session_type):
     save_data_frames(spatial_firing, synced_spatial_data)
 
     # output_cluster_scores()
-    make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, spatial_firing, prm)
+    make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
 
 
 
