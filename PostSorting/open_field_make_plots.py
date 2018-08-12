@@ -19,7 +19,7 @@ def plot_position(position_data):
 
 
 def plot_spikes_on_trajectory(position_data, spike_data, prm):
-    print('I will make scatter plots of spikes on the trajectory on the animal.')
+    print('I will make scatter plots of spikes on the trajectory of the animal.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/firing_scatters'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
