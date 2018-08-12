@@ -159,9 +159,9 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
                 hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
                 hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
-                # hd_hist_session /= prm.get_sampling_rate()
+                hd_hist_session /= prm.get_sampling_rate()
                 hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
-                # hd_hist_cluster = hd_hist_cluster / hd_hist_session
+                hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
                 theta = np.linspace(0, 2*np.pi, 361)  # x axis
                 plot_row = field_id % 2
