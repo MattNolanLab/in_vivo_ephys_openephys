@@ -68,7 +68,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         firing_rate_map = spatial_firing.firing_maps[cluster]
-        plt.title(spatial_firing.max_firing_rate[cluster] + ' Hz', y=1.08)
+        plt.title(str(spatial_firing.max_firing_rate[cluster]) + ' Hz', y=1.08)
         firing_rate_map_fig = plt.figure()
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -107,7 +107,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         hd_polar_fig = plt.figure()
         hd_polar_fig.set_size_inches(5, 5, forward=True)
         ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        plt.title(spatial_firing.max_firing_rate_hd[cluster] + ' Hz', y=1.08)
+        plt.title(str(spatial_firing.max_firing_rate_hd[cluster]) + ' Hz', y=1.08)
         hd_hist_cluster = spatial_firing.hd_spike_histogram[cluster]
         theta = np.linspace(0, 2*np.pi, 361)  # x axis
         ax = plt.subplot(1, 1, 1, polar=True)
