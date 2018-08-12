@@ -123,5 +123,5 @@ def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
     position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
     position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
-    firing_data_spatial = find_maximum_firing_rate(spatial_data)
+    firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
     return position_heat_map, firing_data_spatial
