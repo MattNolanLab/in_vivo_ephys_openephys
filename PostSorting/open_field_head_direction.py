@@ -33,6 +33,7 @@ def get_hd_histogram(angles):
     return smooth_hd
 
 
+# max firing rate at the angle where the firing rate is highest
 def get_max_firing_rate(spatial_firing):
     max_firing_rates = []
     preferred_directions = []
@@ -42,14 +43,15 @@ def get_max_firing_rate(spatial_firing):
         max_firing_rates.append(max_firing_rate)
 
         preferred_direction = np.where(hd_hist == max_firing_rate)
-        preferred_directions.append(preferred_direction)
+        preferred_directions.append(preferred_direction[0])
 
-    spatial_firing['max_firing_rate_hd'] = max_firing_rates
+    spatial_firing['max_firing_rate_hd'] = np.array(max_firing_rates) / 1000  # Hz
     spatial_firing['preferred_HD'] = preferred_directions
     return spatial_firing
 
 
 def process_hd_data(spatial_firing, spatial_data, prm):
+    print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)
     hd_histogram /= prm.get_sampling_rate()
