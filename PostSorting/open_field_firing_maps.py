@@ -105,14 +105,23 @@ def get_position_heatmap(spatial_data, prm):
                 position_heat_map[x, y] = bin_occupancy
             else:
                 position_heat_map[x, y] = None
-    # plt.imshow(position_heat_map, cmap='jet', interpolation='nearest')
-    # position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
     return position_heat_map
+
+
+# this is the firing rate in the bin with the highest rate
+def find_maximum_firing_rate(spatial_firing):
+    max_firing_rates = []
+    for cluster in range(len(spatial_firing)):
+        firing_rate_map = spatial_firing.firing_maps[cluster]
+        max_firing_rate = np.max(firing_rate_map.flatten())
+        max_firing_rates.append(max_firing_rate)
+    spatial_firing['max_firing_rate'] = max_firing_rates
+    return spatial_firing
 
 
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
     position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
     position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
-    plt.imshow(position_heat_map, cmap='jet', interpolation='nearest')
+    spatial_data = find_maximum_firing_rate(spatial_data)
     return position_heat_map, firing_data_spatial
