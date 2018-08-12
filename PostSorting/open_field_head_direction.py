@@ -29,11 +29,24 @@ def get_hd_histogram(angles):
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=23)
-    #ax = plt.subplot(1, 1, 1, polar=True)
-    #ax.grid(True)
-    #ax.plot(theta[:-1], smooth_hd)
     plt.close()
     return smooth_hd
+
+
+def get_max_firing_rate(spatial_firing):
+    max_firing_rates = []
+    preferred_directions = []
+    for cluster in range(len(spatial_firing)):
+        hd_hist = spatial_firing.hd_spike_histogram[cluster]
+        max_firing_rate = np.max(hd_hist.flatten())
+        max_firing_rates.append(max_firing_rate)
+
+        preferred_direction = np.where(hd_hist == max_firing_rate)
+        preferred_directions.append(preferred_direction)
+
+    spatial_firing['max_firing_rate'] = max_firing_rates
+    spatial_firing['preferred_HD'] = preferred_directions
+    return spatial_firing
 
 
 def process_hd_data(spatial_firing, spatial_data, prm):
@@ -49,16 +62,18 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         hd_spike_histograms.append(hd_spike_histogram)
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
+    spatial_firing = get_max_firing_rate(spatial_firing)
 
     return hd_histogram, spatial_firing
 
 
-def get_indices_for_bin(bin, rate_map_indices, spatial_data, prm):
+# get HD data for a specific bin of the rate map
+def get_indices_for_bin(bin_in_field, spatial_data, prm):
     bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
-    bin_x = bin[0]
+    bin_x = bin_in_field[0]
     bin_x_left_pixels = bin_x * bin_size_pixels
     bin_x_right_pixels = bin_x * (bin_size_pixels + 1)
-    bin_y = bin[1]
+    bin_y = bin_in_field[1]
     bin_y_bottom_pixels = bin_y * bin_size_pixels
     bin_y_top_pixels = bin_y * (bin_size_pixels + 1)
 
@@ -75,7 +90,7 @@ def get_indices_for_bin(bin, rate_map_indices, spatial_data, prm):
 def get_hd_in_field(rate_map_indices, spatial_data, prm):
     hd_in_field = []
     for bin_in_field in rate_map_indices:
-        inside_bin = get_indices_for_bin(bin_in_field, rate_map_indices, spatial_data, prm)
+        inside_bin = get_indices_for_bin(bin_in_field, spatial_data, prm)
         hd = inside_bin.hd.values
         hd_in_field.extend(hd)
 
@@ -94,6 +109,7 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
     return hd_in_field
 
 
+# return array of HD angles in subfield when from the whole session
 def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
     spatial_data_field = pd.DataFrame()
     spatial_data_field['x'] = spatial_data.position_x_pixels
@@ -104,18 +120,7 @@ def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
 
 
 def main():
-    array_in = [3, 4, 5, 8, 11, 1, 3, 5, 4]
-    window = 3
-    get_rolling_sum(array_in, window)
-
-    array_in = [1, 2, 3, 4, 5, 6]
-    window = 3
-    get_rolling_sum(array_in, window)
-
-    array_in = [3, 4, 5, 8, 11, 1, 3, 5]
-    window = 5
-    get_rolling_sum(array_in, window)
-
+    pass
 
 if __name__ == '__main__':
     main()
