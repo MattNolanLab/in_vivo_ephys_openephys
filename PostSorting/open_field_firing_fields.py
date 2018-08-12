@@ -124,6 +124,7 @@ def remove_indices_from_rate_map(rate_map, indices):
 
 # find firing fields and add them to spatial firing data frame
 def analyze_firing_fields(spatial_firing):
+    print('I will identify individual firing fields if possible.')
     firing_fields = []
     for cluster in range(len(spatial_firing)):
         firing_fields_cluster = []
