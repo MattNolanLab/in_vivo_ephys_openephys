@@ -44,7 +44,7 @@ def get_max_firing_rate(spatial_firing):
         preferred_direction = np.where(hd_hist == max_firing_rate)
         preferred_directions.append(preferred_direction)
 
-    spatial_firing['max_firing_rate'] = max_firing_rates
+    spatial_firing['max_firing_rate_hd'] = max_firing_rates
     spatial_firing['preferred_HD'] = preferred_directions
     return spatial_firing
 
