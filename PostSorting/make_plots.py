@@ -24,7 +24,7 @@ def plot_spike_histogram(spatial_firing, prm):
         plt.title('total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08)
         plt.xlabel('time (sampling points)')
         plt.ylabel('number of spikes')
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_hitogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -47,5 +47,5 @@ def plot_firing_rate_vs_speed(spatial_firing, prm):
             plt.bar(center, hist, align='center', width=width)
         plt.xlabel('speed [cm/s]')
         plt.ylabel('firing rate [Hz]')
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_hitogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()

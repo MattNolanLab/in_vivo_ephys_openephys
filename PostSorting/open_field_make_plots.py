@@ -197,15 +197,20 @@ def make_combined_figure(prm, spatial_firing):
         head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png'
         head_direction_map_path = figures_path + 'head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png'
         firing_fields_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png'
-        spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_hitogram.png'
+        spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
+        speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
 
         grid = plt.GridSpec(5, 3, wspace=0.2, hspace=0.2)
-        if os.path.exists(spike_scatter_path):
+        if os.path.exists(spike_histogram_path):
             spike_hist = mpimg.imread(spike_histogram_path)
             spike_hist_plot = plt.subplot(grid[0, 0])
             spike_hist_plot.axis('off')
             spike_hist_plot.imshow(spike_hist)
-
+        if os.path.exists(speed_histogram_path):
+            speed_hist = mpimg.imread(spike_histogram_path)
+            speed_hist_plot = plt.subplot(grid[0, 1])
+            speed_hist_plot.axis('off')
+            speed_hist_plot.imshow(speed_hist)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
             spike_scatter_plot = plt.subplot(grid[1, 0])
