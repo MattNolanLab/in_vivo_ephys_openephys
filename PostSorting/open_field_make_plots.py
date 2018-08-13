@@ -202,7 +202,7 @@ def make_combined_figure(prm, spatial_firing):
         grid = plt.GridSpec(5, 3, wspace=0, hspace=0)
         if os.path.exists(spike_scatter_path):
             spike_hist = mpimg.imread(spike_histogram_path)
-            spike_hist_plot = plt.subplot(grid[1, 0])
+            spike_hist_plot = plt.subplot(grid[0, 0])
             spike_hist_plot.axis('off')
             spike_hist_plot.imshow(spike_hist)
 
