@@ -11,7 +11,7 @@ def add_temporal_firing_properties_to_df(spatial_firing, prm):
         total_number_of_spikes_per_cluster.append(total_number_of_spikes)
         mean_firing_rates.append(mean_firing_rate)
 
-    spatial_firing['total_number_of_spikes'] = total_number_of_spikes_per_cluster
+    spatial_firing['number_of_spikes'] = total_number_of_spikes_per_cluster
     spatial_firing['mean_firing_rate'] = mean_firing_rates
 
     return spatial_firing
