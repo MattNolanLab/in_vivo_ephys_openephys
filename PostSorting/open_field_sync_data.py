@@ -158,7 +158,6 @@ def remove_opto_tagging_from_spatial_dat(prm, spatial_data):
 
 def process_sync_data(recording_to_process, prm, spatial_data):
     sync_data, is_found = load_sync_data_ephys(recording_to_process, prm)
-    prm.set_total_lenth_sampling_points(len(sync_data))
     sync_data_ephys = pd.DataFrame(sync_data)
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
@@ -171,5 +170,6 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
 
     synced_spatial_data = remove_opto_tagging_from_spatial_dat(prm, synced_spatial_data)
+    prm.set_total_lenth_sampling_points(len(synced_spatial_data))
 
     return synced_spatial_data, is_found
