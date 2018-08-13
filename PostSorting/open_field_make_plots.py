@@ -169,7 +169,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 theta = np.linspace(0, 2*np.pi, 361)  # x axis
                 plot_row = field_id % 2
                 # print(plot_row)
-                plot_col = math.floor(field_id/2) + 2
+                plot_col = math.floor(field_id/2) + 1
                 # print(plot_col)
                 hd_plot_field = plt.subplot(gs[plot_row, plot_col], polar=True)
                 hd_plot_field = plot_utility.style_polar_plot(hd_plot_field)
