@@ -39,7 +39,7 @@ def plot_firing_rate_vs_speed(spatial_firing, prm):
         spike_hist.set_size_inches(5, 2.5, forward=True)
         ax = spike_hist.add_subplot(1, 1, 1)
         speed_hist, ax = plot_utility.style_plot(ax)
-        number_of_bins = int((speed_cluster[-1] - speed_cluster[0]))
+        number_of_bins = int((speed_cluster[-1] - speed_cluster[1]))
         if number_of_bins > 0:
             hist, bins = np.histogram(speed_cluster, bins=number_of_bins)
             width = bins[1] - bins[0]
