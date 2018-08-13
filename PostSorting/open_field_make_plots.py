@@ -148,7 +148,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
             plt.clf()
             fig = plt.figure()
             fig.set_size_inches(20, 10, forward=True)
-            gs = GridSpec(2, number_of_firing_fields + 1)
+            gs = GridSpec(2, number_of_firing_fields + 2)
             of_plot = plt.subplot(gs[0:2, 0:2])
             of_plot.axis('off')
             of_plot.imshow(firing_rate_map)
@@ -169,7 +169,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 theta = np.linspace(0, 2*np.pi, 361)  # x axis
                 plot_row = field_id % 2
                 # print(plot_row)
-                plot_col = math.floor(field_id/2) + 1
+                plot_col = math.floor(field_id/2) + 2
                 # print(plot_col)
                 hd_plot_field = plt.subplot(gs[plot_row, plot_col], polar=True)
                 hd_plot_field = plot_utility.style_polar_plot(hd_plot_field)
