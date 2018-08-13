@@ -18,7 +18,7 @@ def plot_spike_histogram(spatial_firing, prm):
         number_of_bins = int((firings_cluster[-1] - firings_cluster[0]) / (5*30000))
         hist, bin_edges = np.histogram(firings_cluster, bins=number_of_bins)
         ax.hist(hist, len(hist), color='black')
-        plt.title('total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster] + ' Hz', 0)), y=1.08)
+        plt.title('total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08)
         plt.xlabel('sampling points (30000 per second)')
         plt.ylabel('Number of spikes')
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_hitogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
