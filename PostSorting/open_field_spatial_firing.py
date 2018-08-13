@@ -28,7 +28,7 @@ def find_firing_location_indices(spike_data, spatial_data):
     spike_data['position_y'] = spatial_firing.position_y
     spike_data['position_y_pixels'] = spatial_firing.position_y_pixels
     spike_data['hd'] = spatial_firing.hd
-    spike_data['speed'] = spike_data.speed
+    spike_data['speed'] = spatial_firing.speed
     return spike_data
 
 
