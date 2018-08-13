@@ -199,7 +199,7 @@ def make_combined_figure(prm, spatial_firing):
         firing_fields_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png'
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_hitogram.png'
 
-        grid = plt.GridSpec(5, 3, wspace=0, hspace=0)
+        grid = plt.GridSpec(5, 3, wspace=0.2, hspace=0.2)
         if os.path.exists(spike_scatter_path):
             spike_hist = mpimg.imread(spike_histogram_path)
             spike_hist_plot = plt.subplot(grid[0, 0])
