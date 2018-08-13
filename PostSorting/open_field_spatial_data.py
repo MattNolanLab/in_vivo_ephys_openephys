@@ -162,9 +162,9 @@ def process_position_data(recording_folder, params):
     position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
     position_data = calculate_position(position_data)  # get central position and interpolate missing data
     position_data = calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
-    position_data = calculate_central_speed(position_data)
     position_data = shift_to_start_from_zero_at_bottom_left(position_data)
     position_data = convert_to_cm(position_data, params)
+    position_data = calculate_central_speed(position_data)
     position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
     return position_of_mouse
 
