@@ -30,7 +30,7 @@ def plot_spike_histogram(spatial_firing, prm):
 
 
 def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
-    sampling_rate = prm.get_sampling_rate()
+    sampling_rate = 30
     print('I will plot spikes vs speed for the whole session excluding opto tagging.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/firing_properties'
     number_of_bins = int((max(spatial_data.speed) - min(spatial_data.speed)))
@@ -48,9 +48,13 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
             hist, bins = np.histogram(speed_cluster[1:], bins=number_of_bins, range=(min(spatial_data.speed), max(spatial_data.speed)))
             width = bins[1] - bins[0]
             center = (bins[:-1] + bins[1:]) / 2
-            plt.bar(center, hist/session_hist, align='center', width=width, color='black')
+            center = center[[np.where(session_hist > session_hist*0.005)]]
+            rate = hist/session_hist
+            rate = rate[[np.where(session_hist > session_hist*0.005)]]
+            plt.bar(center[0], rate[0]*sampling_rate, align='center', width=width, color='black')
         plt.xlabel('speed [cm/s]')
         plt.ylabel('firing rate [Hz]')
-        plt.xlim(0, 60)
+        plt.xlim(0, 30)
+        plt.ylim(max((hist*sampling_rate)/session_hist))
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
