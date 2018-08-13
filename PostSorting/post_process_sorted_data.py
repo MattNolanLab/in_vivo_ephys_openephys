@@ -55,6 +55,7 @@ def sync_data(recording_to_process, prm, spatial_data):
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
+    PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
@@ -83,7 +84,7 @@ def post_process_recording(recording_to_process, session_type):
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
-
+    PostSorting.make_plots.plot_firing_rate_vs_speed(spike_data_spatial, prm)
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
     # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
 
