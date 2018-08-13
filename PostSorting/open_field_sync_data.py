@@ -170,6 +170,6 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
 
     synced_spatial_data = remove_opto_tagging_from_spatial_dat(prm, synced_spatial_data)
-    prm.set_total_lenth_sampling_points(len(synced_spatial_data))
+    prm.set_total_length_sampling_points(len(synced_spatial_data))
 
     return synced_spatial_data, is_found
