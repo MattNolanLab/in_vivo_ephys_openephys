@@ -1,4 +1,4 @@
-
+# calculate number of spikes and mean firing rate for each cluster and add to spatial firing df
 def add_temporal_firing_properties_to_df(spatial_firing, prm):
     total_number_of_spikes_per_cluster = []
     mean_firing_rates = []
