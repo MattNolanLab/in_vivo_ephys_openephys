@@ -21,7 +21,7 @@ def find_firing_location_indices(spike_data, spatial_data):
             "position_y":  list(spatial_data.position_y[bonsai_indices_cluster_round]),
             "position_y_pixels":  list(spatial_data.position_y_pixels[bonsai_indices_cluster_round]),
             "hd": list(spatial_data.hd[bonsai_indices_cluster_round]),
-            "speed": list(spike_data.speed[bonsai_indices_cluster_round])
+            "speed": list(spatial_data.speed[bonsai_indices_cluster_round])
         }, ignore_index=True)
     spike_data['position_x'] = spatial_firing.position_x
     spike_data['position_x_pixels'] = spatial_firing.position_x_pixels
