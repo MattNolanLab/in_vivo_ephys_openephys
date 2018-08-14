@@ -27,4 +27,5 @@ def load_curation_metrics(spike_data_frame, prm):
         spike_data_frame['noise_overlap'] = noise_overlaps
         spike_data_frame['peak_snr'] = signal_to_noise_ratios
         spike_data_frame['peak_amp'] = peak_amplitudes
+    return spike_data_frame
 
