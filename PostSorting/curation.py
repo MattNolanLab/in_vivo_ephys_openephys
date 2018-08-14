@@ -29,3 +29,19 @@ def load_curation_metrics(spike_data_frame, prm):
         spike_data_frame['peak_amp'] = peak_amplitudes
     return spike_data_frame
 
+
+def curate_data(spike_data_frame, prm):
+    spike_data_frame = load_curation_metrics(spike_data_frame, prm)
+    isolation_threshold = 0.9
+    noise_overlap_threshold = 0.05
+    peak_snr_threshold = 1
+
+    isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
+    low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
+    high_peak_snr = spike_data_frame['peak_snr'] > peak_snr_threshold
+
+    good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr].copy()
+
+    return good_cluster
+
+
