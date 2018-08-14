@@ -50,6 +50,23 @@ def get_max_firing_rate(spatial_firing):
     return spatial_firing
 
 
+def calculate_r_score(spatial_firing):
+    hd_scores = []
+    for cluster in range(len(spatial_firing)):
+        hd_hist = spatial_firing.hd_spike_histogram[cluster]
+        angles = np.linspace(-179, 180, 360)
+        angles_rad = angles*np.pi/180
+        dy = np.sin(angles_rad)
+        dx = np.cos(angles_rad)
+
+        totx = sum(dx * hd_hist)/sum(hd_hist)
+        toty = sum(dy * hd_hist)/sum(hd_hist)
+        r = np.sqrt(totx*totx + toty*toty)
+        hd_scores.append(r)
+    spatial_firing['hd_score'] = np.array(hd_scores)
+    return spatial_firing
+
+
 def process_hd_data(spatial_firing, spatial_data, prm):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
@@ -65,7 +82,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
     spatial_firing = get_max_firing_rate(spatial_firing)
-
+    spatial_firing = calculate_r_score(spatial_firing)
     return hd_histogram, spatial_firing
 
 
