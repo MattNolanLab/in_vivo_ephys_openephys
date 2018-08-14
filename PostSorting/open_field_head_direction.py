@@ -38,6 +38,7 @@ def get_max_firing_rate(spatial_firing):
     max_firing_rates = []
     preferred_directions = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         hd_hist = spatial_firing.hd_spike_histogram[cluster]
         max_firing_rate = np.max(hd_hist.flatten())
         max_firing_rates.append(max_firing_rate)
@@ -53,6 +54,7 @@ def get_max_firing_rate(spatial_firing):
 def calculate_hd_score(spatial_firing):
     hd_scores = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
         angles = np.linspace(-179, 180, 360)
         angles_rad = angles*np.pi/180
@@ -75,6 +77,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
 
     hd_spike_histograms = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram

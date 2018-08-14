@@ -42,7 +42,8 @@ def gaussian_kernel(kernx):
 def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     print(cluster)
-    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster], 'position_y': firing_data_spatial.position_y_pixels[cluster]})
+    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
+    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
     firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
@@ -112,6 +113,7 @@ def get_position_heatmap(spatial_data, prm):
 def find_maximum_firing_rate(spatial_firing):
     max_firing_rates = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_rate_map = spatial_firing.firing_maps[cluster]
         max_firing_rate = np.max(firing_rate_map.flatten())
         max_firing_rates.append(max_firing_rate)

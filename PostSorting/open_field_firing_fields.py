@@ -127,6 +127,7 @@ def analyze_firing_fields(spatial_firing):
     print('I will identify individual firing fields if possible.')
     firing_fields = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_fields_cluster = []
         rate_map = spatial_firing.firing_maps[cluster].copy()
         found_new = True

@@ -12,6 +12,7 @@ def plot_spike_histogram(spatial_firing, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         firings_cluster = spatial_firing.firing_times[cluster]
         spike_hist = plt.figure()
         spike_hist.set_size_inches(5, 2.5, forward=True)
@@ -39,6 +40,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         speed_cluster = spatial_firing.speed[cluster]
         speed_cluster = sorted(speed_cluster)
         spike_hist = plt.figure()

@@ -24,6 +24,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_id in range(len(spike_data)):
+        cluster_id = spike_data.cluster_id.values[cluster_id] - 1
         spikes_on_track = plt.figure()
         spikes_on_track.set_size_inches(5, 5, forward=True)
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -70,6 +71,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_rate_map = spatial_firing.firing_maps[cluster]
         firing_rate_map_fig = plt.figure()
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
@@ -87,6 +89,7 @@ def plot_hd(spatial_firing, position_data, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         x_positions = spatial_firing.position_x[cluster]
         y_positions = spatial_firing.position_y[cluster]
         hd = spatial_firing.hd[cluster]
@@ -109,6 +112,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         hd_polar_fig = plt.figure()
         hd_polar_fig.set_size_inches(5, 5, forward=True)
         ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -144,6 +148,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         firing_rate_map = spatial_firing.firing_maps[cluster]
         if number_of_firing_fields > 0:
@@ -193,6 +198,7 @@ def make_combined_figure(prm, spatial_firing):
     plt.close('all')
     figures_path = prm.get_local_recording_folder_path() + '/Figures/'
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         coverage_path = figures_path + 'session/heatmap.png'
         spike_scatter_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spikes_on_trajectory.png'
         rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png'
