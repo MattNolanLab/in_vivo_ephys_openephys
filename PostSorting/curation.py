@@ -7,7 +7,7 @@ def load_curation_metrics(spike_data_frame, prm):
     noise_overlaps = []
     signal_to_noise_ratios = []
     peak_amplitudes = []
-    path_to_metrics = prm.get_local_recording_folder_path() + '\\Electrophysiology\\Spike_sorting\\all_tetrodes\\cluster_metrics.json'
+    path_to_metrics = prm.get_local_recording_folder_path() + '/Electrophysiology/Spike_sorting/all_tetrodes/cluster_metrics.json'
     if os.path.exists(path_to_metrics):
         with open(path_to_metrics) as metrics_file:
             cluster_metrics = json.load(metrics_file)
