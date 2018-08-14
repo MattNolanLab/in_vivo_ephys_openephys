@@ -50,7 +50,7 @@ def get_max_firing_rate(spatial_firing):
     return spatial_firing
 
 
-def calculate_r_score(spatial_firing):
+def calculate_hd_score(spatial_firing):
     hd_scores = []
     for cluster in range(len(spatial_firing)):
         hd_hist = spatial_firing.hd_spike_histogram[cluster]
@@ -82,7 +82,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
     spatial_firing = get_max_firing_rate(spatial_firing)
-    spatial_firing = calculate_r_score(spatial_firing)
+    spatial_firing = calculate_hd_score(spatial_firing)
     return hd_histogram, spatial_firing
 
 
