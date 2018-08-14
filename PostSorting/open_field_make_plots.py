@@ -210,7 +210,7 @@ def make_combined_figure(prm, spatial_firing):
             speed_hist = mpimg.imread(speed_histogram_path)
             speed_hist_plot = plt.subplot(grid[0, 1])
             speed_hist_plot.axis('off')
-            # speed_hist_plot.imshow(speed_hist)
+            speed_hist_plot.imshow(speed_hist)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
             spike_scatter_plot = plt.subplot(grid[1, 0])
