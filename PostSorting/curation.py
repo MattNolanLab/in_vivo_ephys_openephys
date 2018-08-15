@@ -35,13 +35,16 @@ def curate_data(spike_data_frame, prm):
     isolation_threshold = 0.9
     noise_overlap_threshold = 0.05
     peak_snr_threshold = 1
+    firing_rate_threshold = 0.5
 
     isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
     low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
     high_peak_snr = spike_data_frame['peak_snr'] > peak_snr_threshold
+    high_mean_firing_rate = spike_data_frame['mean_firing_rate'] > firing_rate_threshold
 
-    good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr].copy()
+    good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
+    noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
 
-    return good_cluster
+    return good_cluster, noisy_cluster
 
 

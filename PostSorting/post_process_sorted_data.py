@@ -83,12 +83,12 @@ def post_process_recording(recording_to_process, session_type):
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
-    spike_data = PostSorting.curation.curate_data(spike_data, prm)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
     # this means that there are no good clusters and the analysis will not run
     if len(spike_data) == 0:
         return
 
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
     # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
