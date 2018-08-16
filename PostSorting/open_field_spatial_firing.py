@@ -11,8 +11,9 @@ def calculate_corresponding_indices(spike_data, spatial_data):
 
 def find_firing_location_indices(spike_data, spatial_data):
     spike_data = calculate_corresponding_indices(spike_data, spatial_data)
-    spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels' 'hd'])
+    spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed'])
     for cluster in range(len(spike_data)):
+        cluster = spike_data.cluster_id.values[cluster] - 1
         bonsai_indices_cluster = spike_data.bonsai_indices[cluster]
         bonsai_indices_cluster_round = bonsai_indices_cluster.round(0)
         spatial_firing = spatial_firing.append({
@@ -20,13 +21,15 @@ def find_firing_location_indices(spike_data, spatial_data):
             "position_x_pixels": list(spatial_data.position_x_pixels[bonsai_indices_cluster_round]),
             "position_y":  list(spatial_data.position_y[bonsai_indices_cluster_round]),
             "position_y_pixels":  list(spatial_data.position_y_pixels[bonsai_indices_cluster_round]),
-            "hd": list(spatial_data.hd[bonsai_indices_cluster_round])
+            "hd": list(spatial_data.hd[bonsai_indices_cluster_round]),
+            "speed": list(spatial_data.speed[bonsai_indices_cluster_round])
         }, ignore_index=True)
-    spike_data['position_x'] = spatial_firing.position_x
-    spike_data['position_x_pixels'] = spatial_firing.position_x_pixels
-    spike_data['position_y'] = spatial_firing.position_y
-    spike_data['position_y_pixels'] = spatial_firing.position_y_pixels
-    spike_data['hd'] = spatial_firing.hd
+    spike_data['position_x'] = spatial_firing.position_x.values
+    spike_data['position_x_pixels'] = spatial_firing.position_x_pixels.values
+    spike_data['position_y'] = spatial_firing.position_y.values
+    spike_data['position_y_pixels'] = spatial_firing.position_y_pixels.values
+    spike_data['hd'] = spatial_firing.hd.values
+    spike_data['speed'] = spatial_firing.speed.values
     return spike_data
 
 

@@ -1,4 +1,5 @@
 import os
+import PostSorting.curation
 import PostSorting.load_firing_data
 import PostSorting.parameters
 import PostSorting.open_field_firing_maps
@@ -9,6 +10,8 @@ import PostSorting.open_field_light_data
 import PostSorting.open_field_sync_data
 import PostSorting.open_field_spatial_firing
 import PostSorting.open_field_head_direction
+import PostSorting.temporal_firing
+import PostSorting.make_plots
 
 import pandas as pd
 
@@ -52,6 +55,8 @@ def sync_data(recording_to_process, prm, spatial_data):
 
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
+    PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
+    PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
@@ -64,11 +69,13 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
         os.makedirs(recording_to_process + '/Figures')
+    if os.path.exists(recording_to_process + '/DataFrames') is False:
+        os.makedirs(recording_to_process + '/DataFrames')
 
 
 def save_data_frames(spatial_firing, synced_spatial_data):
-    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
-    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
+    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
 
 
 def post_process_recording(recording_to_process, session_type):
@@ -78,17 +85,22 @@ def post_process_recording(recording_to_process, session_type):
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+    # this means that there are no good clusters and the analysis will not run
+    if len(spike_data) == 0:
+        return
+
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
     # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
-    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
     save_data_frames(spatial_firing, synced_spatial_data)
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
-
 
 
 #  this is here for testing

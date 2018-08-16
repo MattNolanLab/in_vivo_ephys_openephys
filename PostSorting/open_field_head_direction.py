@@ -2,6 +2,7 @@ import math
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
+import kuiper
 
 import PostSorting.open_field_firing_maps
 
@@ -25,38 +26,101 @@ def get_rolling_sum(array_in, window):
 
 
 def get_hd_histogram(angles):
+    plt.figure()
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=23)
-    #ax = plt.subplot(1, 1, 1, polar=True)
-    #ax.grid(True)
-    #ax.plot(theta[:-1], smooth_hd)
+    plt.close()
     return smooth_hd
 
 
+# max firing rate at the angle where the firing rate is highest
+def get_max_firing_rate(spatial_firing):
+    max_firing_rates = []
+    preferred_directions = []
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        hd_hist = spatial_firing.hd_spike_histogram[cluster]
+        max_firing_rate = np.max(hd_hist.flatten())
+        max_firing_rates.append(max_firing_rate)
+
+        preferred_direction = np.where(hd_hist == max_firing_rate)
+        preferred_directions.append(preferred_direction[0])
+
+    spatial_firing['max_firing_rate_hd'] = np.array(max_firing_rates) / 1000  # Hz
+    spatial_firing['preferred_HD'] = preferred_directions
+    return spatial_firing
+
+
+def get_hd_score_for_cluster(hd_hist):
+    angles = np.linspace(-179, 180, 360)
+    angles_rad = angles*np.pi/180
+    dy = np.sin(angles_rad)
+    dx = np.cos(angles_rad)
+
+    totx = sum(dx * hd_hist)/sum(hd_hist)
+    toty = sum(dy * hd_hist)/sum(hd_hist)
+    r = np.sqrt(totx*totx + toty*toty)
+    return r
+
+
+def calculate_hd_score(spatial_firing):
+    hd_scores = []
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
+        r = get_hd_score_for_cluster(hd_hist)
+        hd_scores.append(r)
+    spatial_firing['hd_score'] = np.array(hd_scores)
+    return spatial_firing
+
+
+'''
+p is the probability of obtaining two samples this different from the same distribution
+stats is the raw test statistic
+'''
+
+
+def compare_hd_distributions_in_cluster_to_session(session_angles, cluster_angles):
+    stats, p = kuiper.kuiper_two(session_angles, cluster_angles)
+    return stats, p
+
+
 def process_hd_data(spatial_firing, spatial_data, prm):
+    print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)
     hd_histogram /= prm.get_sampling_rate()
 
     hd_spike_histograms = []
+    hd_p_values = []
+    hd_stat = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
+        stats, p = compare_hd_distributions_in_cluster_to_session(angles_whole_session, angles_spike)
+        hd_p_values.append(p)
+        hd_stat.append(stats)
+
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
-
+    spatial_firing['hd_p'] = hd_p_values
+    spatial_firing['hd_stat'] = hd_stat
+    spatial_firing = get_max_firing_rate(spatial_firing)
+    spatial_firing = calculate_hd_score(spatial_firing)
     return hd_histogram, spatial_firing
 
 
-def get_indices_for_bin(bin, rate_map_indices, spatial_data, prm):
+# get HD data for a specific bin of the rate map
+def get_indices_for_bin(bin_in_field, spatial_data, prm):
     bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
-    bin_x = bin[0]
+    bin_x = bin_in_field[0]
     bin_x_left_pixels = bin_x * bin_size_pixels
     bin_x_right_pixels = bin_x * (bin_size_pixels + 1)
-    bin_y = bin[1]
+    bin_y = bin_in_field[1]
     bin_y_bottom_pixels = bin_y * bin_size_pixels
     bin_y_top_pixels = bin_y * (bin_size_pixels + 1)
 
@@ -73,7 +137,7 @@ def get_indices_for_bin(bin, rate_map_indices, spatial_data, prm):
 def get_hd_in_field(rate_map_indices, spatial_data, prm):
     hd_in_field = []
     for bin_in_field in rate_map_indices:
-        inside_bin = get_indices_for_bin(bin_in_field, rate_map_indices, spatial_data, prm)
+        inside_bin = get_indices_for_bin(bin_in_field, spatial_data, prm)
         hd = inside_bin.hd.values
         hd_in_field.extend(hd)
 
@@ -87,33 +151,24 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
     spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
     spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
     spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
-
     hd_in_field = get_hd_in_field(rate_map_indices, spatial_firing_cluster, prm)
+    hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field
 
 
+# return array of HD angles in subfield when from the whole session
 def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
     spatial_data_field = pd.DataFrame()
     spatial_data_field['x'] = spatial_data.position_x_pixels
     spatial_data_field['y'] = spatial_data.position_y_pixels
     spatial_data_field['hd'] = spatial_data.hd
     hd_in_field = get_hd_in_field(rate_map_indices, spatial_data_field, prm)
+    hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field
 
 
 def main():
-    array_in = [3, 4, 5, 8, 11, 1, 3, 5, 4]
-    window = 3
-    get_rolling_sum(array_in, window)
-
-    array_in = [1, 2, 3, 4, 5, 6]
-    window = 3
-    get_rolling_sum(array_in, window)
-
-    array_in = [3, 4, 5, 8, 11, 1, 3, 5]
-    window = 5
-    get_rolling_sum(array_in, window)
-
+    pass
 
 if __name__ == '__main__':
     main()

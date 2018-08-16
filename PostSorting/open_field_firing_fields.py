@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import PostSorting.open_field_head_direction
 
 # import matplotlib.pylab as plt
 
@@ -112,7 +113,7 @@ def find_current_maxima_indices(rate_map):
     if found_new is False:
         field_indices = None
 
-    return field_indices, found_new
+    return field_indices, found_new, rate_map[highest_rate_bin]
 
 
 # mark indices of firing fields that are already found (so we don't find them again)
@@ -123,21 +124,97 @@ def remove_indices_from_rate_map(rate_map, indices):
 
 
 # find firing fields and add them to spatial firing data frame
-def analyze_firing_fields(spatial_firing):
+def analyze_firing_fields(spatial_firing, spatial_data, prm):
+    print('I will identify individual firing fields if possible.')
     firing_fields = []
+    max_firing_rates = []
     for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_fields_cluster = []
+        max_firing_rates_cluster = []
         rate_map = spatial_firing.firing_maps[cluster].copy()
         found_new = True
         while found_new:
             # plt.show()
-            field_indices, found_new = find_current_maxima_indices(rate_map)
+            field_indices, found_new, max_firing_rate = find_current_maxima_indices(rate_map)
             if found_new:
                 firing_fields_cluster.append(field_indices)
+                max_firing_rates_cluster.append(max_firing_rate)
                 rate_map = remove_indices_from_rate_map(rate_map, field_indices)
         # plt.clf()
         firing_fields.append(firing_fields_cluster)
+        max_firing_rates.append(max_firing_rates_cluster)
+
     spatial_firing['firing_fields'] = firing_fields
+    spatial_firing['field_max_firing_rate'] = max_firing_rates
+    spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm)
+    return spatial_firing
+
+
+def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
+    print('I will analyze head-direction in the detected firing fields.')
+    hd_session_all = []
+    hd_cluster_all = []
+    field_p_all = []
+    field_stat_all = []
+    max_firing_rates_all = []
+    preferred_hd_all = []
+    hd_score_all = []
+
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        firing_fields_cluster = spatial_firing.firing_fields[cluster]
+        hd_session = []
+        hd_cluster = []
+        field_p = []
+        field_stat = []
+        max_firing_rate = []
+        preferred_hd = []
+        hd_score = []
+
+        if number_of_firing_fields > 0:
+            for field_id, field in enumerate(firing_fields_cluster):
+                hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
+                hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
+                p, stat = PostSorting.open_field_head_direction.compare_hd_distributions_in_cluster_to_session(hd_in_field_session, hd_in_field_cluster)
+                hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
+                hd_hist_session /= prm.get_sampling_rate()
+                hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
+                hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
+                max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
+                hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
+                preferred_direction = np.where(hd_hist_cluster == max_firing_rate_cluster)
+                hd_session.append(list(hd_hist_session))
+                hd_cluster.append(list(hd_hist_cluster))
+                field_p.append(p)
+                field_stat.append(stat)
+                max_firing_rate.append(max_firing_rate_cluster/1000)
+                preferred_hd.append(preferred_direction[0])
+                hd_score.append(hd_score_cluster)
+        else:
+            hd_session.append([None])
+            hd_cluster.append([None])
+            field_p.append([None])
+            field_stat.append([None])
+            max_firing_rate.append(None)
+            preferred_hd.append(None)
+            hd_score.append(None)
+        hd_session_all.append(hd_session)
+        hd_cluster_all.append(hd_cluster)
+        field_p_all.append(field_p)
+        field_stat_all.append(field_stat)
+        max_firing_rates_all.append(max_firing_rate)
+        preferred_hd_all.append(preferred_hd)
+        hd_score_all.append(hd_score)
+
+    spatial_firing['firing_fields_hd_session'] = hd_session_all
+    spatial_firing['firing_fields_hd_cluster'] = hd_cluster_all
+    spatial_firing['field_hd_p'] = field_p_all
+    spatial_firing['field_stat'] = field_stat_all
+    spatial_firing['field_hd_max_rate'] = max_firing_rates_all
+    spatial_firing['field_preferred_hd'] = preferred_hd_all
+    spatial_firing['field_hd_score'] = hd_score_all
     return spatial_firing
 
 

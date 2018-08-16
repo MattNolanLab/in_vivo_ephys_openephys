@@ -9,6 +9,7 @@ class Parameters:
     opto_tagging_start_index = None
     sampling_rate_rate = 0
     local_recording_folder_path = ''
+    total_length_sampling_points = 0
 
     def __init__(self):
         return
@@ -66,6 +67,12 @@ class Parameters:
 
     def set_local_recording_folder_path(self, path):
         Parameters.local_recording_folder_path = path
+
+    def get_total_length_sampling_points(self):
+        return Parameters.total_length_sampling_points
+
+    def set_total_length_sampling_points(self, length):
+        Parameters.total_length_sampling_points = length
 
 
 
