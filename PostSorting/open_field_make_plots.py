@@ -122,7 +122,9 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         ax = plot_utility.style_polar_plot(ax)
         ax.plot(theta[:-1], hd_hist_cluster, color='red', linewidth=2)
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
-        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.preferred_HD[cluster][0], 0)) + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)), y=1.08, fontsize=12)
+        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', preferred HD: ' +
+                  str(round(spatial_firing.preferred_HD[cluster][0], 0)) + ', hd score: ' +
+                  str(round(spatial_firing.hd_score[cluster], 2)) + '\nKuiper p: ' + spatial_firing.hd_p[cluster], y=1.08, fontsize=12)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300)
         plt.close()
 
@@ -142,6 +144,18 @@ def generate_colors(number_of_firing_fields):
     return colors
 
 
+def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id):
+    plt.figure()
+    theta = np.linspace(0, 2*np.pi, 361)  # x axis
+    hd_plot_field = plt.plot()
+    hd_plot_field = plot_utility.style_polar_plot(hd_plot_field)
+
+    hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
+    hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
+    plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_' + str(field_id + 1) + '.png', dpi=300)
+    plt.close()
+
+
 def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
     print('I will make the polar HD plots for individual firing fields now.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/firing_field_plots'
@@ -153,10 +167,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
         firing_rate_map = spatial_firing.firing_maps[cluster]
         if number_of_firing_fields > 0:
             plt.clf()
-            fig = plt.figure()
-            fig.set_size_inches(20, 10, forward=True)
-            gs = GridSpec(2, number_of_firing_fields + 2)
-            of_plot = plt.subplot(gs[0:2, 0:2])
+            of_plot = plt.plot()
             of_plot.axis('off')
             of_plot.imshow(firing_rate_map)
 
@@ -173,20 +184,9 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
                 hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
-                theta = np.linspace(0, 2*np.pi, 361)  # x axis
-                plot_row = field_id % 2
-                # print(plot_row)
-                plot_col = math.floor(field_id/2) + 2
-                # print(plot_col)
-                hd_plot_field = plt.subplot(gs[plot_row, plot_col], polar=True)
-                hd_plot_field = plot_utility.style_polar_plot(hd_plot_field)
+                save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id)
 
-                hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
-                hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
-
-            #plt.tight_layout()
-            gs.update(wspace=1, hspace=0.5)
-            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png', dpi=300)
+            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300)
             plt.close()
 
 
@@ -204,11 +204,15 @@ def make_combined_figure(prm, spatial_firing):
         rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png'
         head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png'
         head_direction_map_path = figures_path + 'head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png'
-        firing_fields_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_' + str(cluster + 1) + '.png'
+        firing_fields_rate_map_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png'
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
+        firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
 
-        grid = plt.GridSpec(5, 3, wspace=0.2, hspace=0.2)
+        number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        number_of_rows = math.ceil(number_of_firing_fields/3) + 3
+
+        grid = plt.GridSpec(number_of_rows, 3, wspace=0.2, hspace=0.2)
         if os.path.exists(spike_histogram_path):
             spike_hist = mpimg.imread(spike_histogram_path)
             spike_hist_plot = plt.subplot(grid[0, 0])
@@ -244,11 +248,20 @@ def make_combined_figure(prm, spatial_firing):
             hd_map_plot = plt.subplot(grid[2, 1])
             hd_map_plot.axis('off')
             hd_map_plot.imshow(hd_map)
-        if os.path.exists(firing_fields_path):
-            firing_fields = mpimg.imread(firing_fields_path)
-            firing_fields_plot = plt.subplot(grid[3:5, 0:2])
+        if os.path.exists(firing_fields_rate_map_path):
+            firing_fields = mpimg.imread(firing_fields_rate_map_path)
+            firing_fields_plot = plt.subplot(grid[3, 0])
             firing_fields_plot.axis('off')
             firing_fields_plot.imshow(firing_fields)
+        for field in range(number_of_firing_fields):
+            path = firing_field_path + str(field + 1) + '.png'
+            firing_field_polar = mpimg.imread(path)
+            row = math.floor(field/3) + 4
+            col = field % 3
+            firing_fields_polar_plot = plt.subplot(grid[row, col])
+            firing_fields_polar_plot.axis('off')
+            firing_fields_polar_plot.imshow(firing_field_polar)
+
 
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
         plt.close()
