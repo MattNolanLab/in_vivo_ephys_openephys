@@ -162,6 +162,18 @@ def copy_output_to_server(recording_to_sort, location_on_server):
               'I could not resolve, but the files are actually copied successfully.')
         pass
 
+    if os.path.exists(server_path_first_half + location_on_server + '/DataFrames') is True:
+        shutil.rmtree(server_path_first_half + location_on_server + '/DataFrames')
+    try:
+        shutil.copytree(recording_to_sort + '/DataFrames', server_path_first_half + location_on_server + '/DataFrames')
+    except shutil.Error as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print(message)
+        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
+              'I could not resolve, but the files are actually copied successfully.')
+        pass
+
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
@@ -185,6 +197,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
+
 
         # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
