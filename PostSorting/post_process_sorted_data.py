@@ -69,11 +69,13 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
         os.makedirs(recording_to_process + '/Figures')
+    if os.path.exists(recording_to_process + '/DataFrames') is False:
+        os.makedirs(recording_to_process + '/DataFrames')
 
 
 def save_data_frames(spatial_firing, synced_spatial_data):
-    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
-    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
+    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
 
 
 def post_process_recording(recording_to_process, session_type):
@@ -94,7 +96,7 @@ def post_process_recording(recording_to_process, session_type):
     # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
-    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
     save_data_frames(spatial_firing, synced_spatial_data)
 
     # output_cluster_scores()

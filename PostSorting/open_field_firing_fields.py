@@ -113,7 +113,7 @@ def find_current_maxima_indices(rate_map):
     if found_new is False:
         field_indices = None
 
-    return field_indices, found_new
+    return field_indices, found_new, rate_map[highest_rate_bin]
 
 
 # mark indices of firing fields that are already found (so we don't find them again)
@@ -127,20 +127,26 @@ def remove_indices_from_rate_map(rate_map, indices):
 def analyze_firing_fields(spatial_firing, spatial_data, prm):
     print('I will identify individual firing fields if possible.')
     firing_fields = []
+    max_firing_rates = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_fields_cluster = []
+        max_firing_rates_cluster = []
         rate_map = spatial_firing.firing_maps[cluster].copy()
         found_new = True
         while found_new:
             # plt.show()
-            field_indices, found_new = find_current_maxima_indices(rate_map)
+            field_indices, found_new, max_firing_rate = find_current_maxima_indices(rate_map)
             if found_new:
                 firing_fields_cluster.append(field_indices)
+                max_firing_rates_cluster.append(max_firing_rate)
                 rate_map = remove_indices_from_rate_map(rate_map, field_indices)
         # plt.clf()
         firing_fields.append(firing_fields_cluster)
+        max_firing_rates.append(max_firing_rates_cluster)
+
     spatial_firing['firing_fields'] = firing_fields
+    spatial_firing['field_max_firing_rate'] = max_firing_rates
     spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm)
     return spatial_firing
 
