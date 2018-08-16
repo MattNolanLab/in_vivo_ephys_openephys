@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import PostSorting.open_field_head_direction
 
 # import matplotlib.pylab as plt
 
@@ -123,7 +124,7 @@ def remove_indices_from_rate_map(rate_map, indices):
 
 
 # find firing fields and add them to spatial firing data frame
-def analyze_firing_fields(spatial_firing):
+def analyze_firing_fields(spatial_firing, spatial_data, prm):
     print('I will identify individual firing fields if possible.')
     firing_fields = []
     for cluster in range(len(spatial_firing)):
@@ -140,6 +141,45 @@ def analyze_firing_fields(spatial_firing):
         # plt.clf()
         firing_fields.append(firing_fields_cluster)
     spatial_firing['firing_fields'] = firing_fields
+    spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm)
+    return spatial_firing
+
+
+def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
+    print('I will analyze head-direction in the detected firing fields.')
+    hd_session_all = []
+    hd_cluster_all = []
+
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        firing_fields_cluster = spatial_firing.firing_fields[cluster]
+        hd_session = []
+        hd_cluster = []
+        field_p = []
+        field_stat = []
+        if number_of_firing_fields > 0:
+            for field_id, field in enumerate(firing_fields_cluster):
+                hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
+                hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
+                p, stat = PostSorting.open_field_head_direction.compare_hd_distributions_in_cluster_to_session(hd_in_field_session, hd_in_field_cluster)
+                hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
+                hd_hist_session /= prm.get_sampling_rate()
+                hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
+                hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
+
+                hd_session.append(list(hd_hist_session))
+                hd_cluster.append(list(hd_hist_cluster))
+                field_p.append(p)
+                field_stat.append(stat)
+        else:
+            hd_session.append([None])
+            hd_cluster.append([None])
+        hd_session_all.append(hd_session)
+        hd_cluster_all.append(hd_cluster)
+
+    spatial_firing['firing_fields_hd_session'] = hd_session_all
+    spatial_firing['firing_fields_hd_cluster'] = hd_cluster_all
     return spatial_firing
 
 
