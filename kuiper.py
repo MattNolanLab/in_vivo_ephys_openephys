@@ -1,7 +1,7 @@
 # By Anne M. Archibald, 2007 and 2009
 import numpy as np
 from numpy import copy, sort, amax, arange, exp, sqrt, abs, floor, searchsorted
-import scipy
+import scipy.special
 import itertools
 
 
@@ -31,12 +31,12 @@ def kuiper_FPP(D,N):
         raise ValueError("Must have 0 <= D <= 2 by definition of the Kuiper test")
 
     if D < 2./N:
-        return 1. - scipy.factorial(N)*(D-1./N)**(N-1)
+        return 1. - scipy.special.factorial(N)*(D-1./N)**(N-1)
     elif D < 3./N:
         k = -(N*D-1.)/2.
         r = sqrt(k**2 - (N*D-2.)/2.)
         a, b = -k+r, -k-r
-        return 1. - scipy.factorial(N-1)*(b**(N-1.)*(1.-a)-a**(N-1.)*(1.-b))/float(N)**(N-2)*(b-a)
+        return 1. - scipy.special.factorial(N-1)*(b**(N-1.)*(1.-a)-a**(N-1.)*(1.-b))/float(N)**(N-2)*(b-a)
     elif (D>0.5 and N%2==0) or (D>(N-1.)/(2.*N) and N%2==1):
         def T(t):
             y = D+t/float(N)
@@ -44,7 +44,7 @@ def kuiper_FPP(D,N):
         s = 0.
         # NOTE: the upper limit of this sum is taken from Stephens 1965
         for t in range(int(floor(N*(1-D)))+1):
-            term = T(t)*scipy.comb(N,t)*(1-D-t/float(N))**(N-t-1)
+            term = T(t)*scipy.special.comb(N,t)*(1-D-t/float(N))**(N-t-1)
             s += term
         return s
     else:
