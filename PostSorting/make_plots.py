@@ -15,7 +15,7 @@ def plot_spike_histogram(spatial_firing, prm):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         firings_cluster = spatial_firing.firing_times[cluster]
         spike_hist = plt.figure()
-        spike_hist.set_size_inches(5, 2.5, forward=True)
+        spike_hist.set_size_inches(5, 5, forward=True)
         ax = spike_hist.add_subplot(1, 1, 1)
         spike_hist, ax = plot_utility.style_plot(ax)
         number_of_bins = int((firings_cluster[-1] - firings_cluster[0]) / (5*sampling_rate))
@@ -44,7 +44,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         speed_cluster = spatial_firing.speed[cluster]
         speed_cluster = sorted(speed_cluster)
         spike_hist = plt.figure()
-        spike_hist.set_size_inches(5, 2.5, forward=True)
+        spike_hist.set_size_inches(5, 5, forward=True)
         ax = spike_hist.add_subplot(1, 1, 1)
         speed_hist, ax = plot_utility.style_plot(ax)
         if number_of_bins > 0:
