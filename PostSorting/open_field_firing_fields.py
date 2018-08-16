@@ -94,8 +94,9 @@ def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
 def find_current_maxima_indices(rate_map):
     highest_rate_bin = np.unravel_index(rate_map.argmax(), rate_map.shape)
     found_new = test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin)
+    max_fr = rate_map[highest_rate_bin]
     if found_new is False:
-        return None, found_new
+        return None, found_new, None
 
     # plt.imshow(rate_map)
     # plt.scatter(highest_rate_bin[1], highest_rate_bin[0], marker='o', s=500, color='yellow')
@@ -108,12 +109,12 @@ def find_current_maxima_indices(rate_map):
     field_indices = np.array(np.where(masked_rate_map > 0)).T
     found_new = test_if_field_is_big_enough(field_indices)
     if found_new is False:
-        return None, found_new
+        return None, found_new, None
     found_new = test_if_field_is_small_enough(field_indices, rate_map)
     if found_new is False:
         field_indices = None
 
-    return field_indices, found_new, rate_map[highest_rate_bin]
+    return field_indices, found_new, max_fr
 
 
 # mark indices of firing fields that are already found (so we don't find them again)

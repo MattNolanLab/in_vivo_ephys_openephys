@@ -153,7 +153,7 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
     hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
     hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
     plt.tight_layout()
-    plt.title('max_fr: ' +str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2)) + ', max fr_hd: ' + str(round(spatial_firing.field_hd_max_rate[cluster][field_id], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.field_preferred_hd[cluster][field_id][0], 0)) + '\nhd score: ' + str(round(spatial_firing.field_hd_score[cluster][field_id], 2)) + '\nKuiper p: ' + str(spatial_firing.hd_p[cluster]), y=1.08, fontsize=12)
+    plt.title('max_fr: ' +str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2)) + ', max fr_hd: ' + str(round(spatial_firing.field_hd_max_rate[cluster][field_id], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.field_preferred_hd[cluster][field_id][0], 0)) + '\nhd score: ' + str(round(spatial_firing.field_hd_score[cluster][field_id], 2)) + '\nKuiper p: ' + str(spatial_firing.field_hd_p[cluster]), y=1.08, fontsize=12)
     # plt.title('Kuiper p: ' + str(spatial_firing.field_hd_p[cluster][field_id]), y=1.08, fontsize=12)
     plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_' + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     plt.close()
