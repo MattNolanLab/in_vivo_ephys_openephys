@@ -146,8 +146,8 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
     spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
     spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
     spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
-
     hd_in_field = get_hd_in_field(rate_map_indices, spatial_firing_cluster, prm)
+    hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field
 
 
@@ -158,6 +158,7 @@ def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
     spatial_data_field['y'] = spatial_data.position_y_pixels
     spatial_data_field['hd'] = spatial_data.hd
     hd_in_field = get_hd_in_field(rate_map_indices, spatial_data_field, prm)
+    hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field
 
 
