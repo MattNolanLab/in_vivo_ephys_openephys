@@ -58,7 +58,7 @@ def sync_data(recording_to_process, prm, spatial_data):
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
-    #PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
+    PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
