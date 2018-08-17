@@ -186,6 +186,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
                 max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
                 hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
                 preferred_direction = np.where(hd_hist_cluster == max_firing_rate_cluster)
+
                 hd_session.append(list(hd_hist_session))
                 hd_cluster.append(list(hd_hist_cluster))
                 field_p.append(p)

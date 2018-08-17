@@ -31,6 +31,8 @@ def process_opto_data(recording_to_process, prm):
         opto_on, opto_off = get_ons_and_offs(opto_data)
         first_opto_pulse_index = min(opto_on[0])
         prm.set_opto_tagging_start_index(first_opto_pulse_index)
+    else:
+        prm.set_opto_tagging_start_index(None)
 
     return opto_on, opto_off, is_found
 
