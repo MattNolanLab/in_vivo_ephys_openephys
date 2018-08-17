@@ -83,6 +83,9 @@ def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters):
 def post_process_recording(recording_to_process, session_type):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
+
+    # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
+    opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
@@ -104,8 +107,6 @@ def post_process_recording(recording_to_process, session_type):
         # output_cluster_scores()
         make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
 
-    # process opto data
-    opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
 
 
 #  this is here for testing
