@@ -108,7 +108,6 @@ def post_process_recording(recording_to_process, session_type):
         make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
 
 
-
 #  this is here for testing
 def main():
     print('-------------------------------------------------------------')
