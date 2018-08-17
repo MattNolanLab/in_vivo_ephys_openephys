@@ -73,9 +73,10 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/DataFrames')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data):
+def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters):
     spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
     synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
+    bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
 
 
 def post_process_recording(recording_to_process, session_type):
@@ -97,7 +98,7 @@ def post_process_recording(recording_to_process, session_type):
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
-    save_data_frames(spatial_firing, synced_spatial_data)
+    save_data_frames(spatial_firing, synced_spatial_data, bad_clusters)
 
     # output_cluster_scores()
     make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
