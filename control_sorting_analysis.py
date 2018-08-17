@@ -10,6 +10,7 @@ import time
 import Logger
 from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
+from PostSorting import post_process_sorted_data_vr
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
@@ -194,7 +195,11 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
-        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
+        if is_open_field:
+            post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
+        if is_vr:
+            post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr')
+
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
 

@@ -11,6 +11,13 @@ class Parameters:
     local_recording_folder_path = ''
     total_length_sampling_points = 0
 
+    # vr parameters
+    first_trial_channel = ''  # vr
+    second_trial_channel = ''  # vr
+    movement_channel = ''  # vr
+    stop_threshold = 0.7  # vr
+    track_length = 200  # vr
+
     def __init__(self):
         return
 
@@ -73,6 +80,46 @@ class Parameters:
 
     def set_total_length_sampling_points(self, length):
         Parameters.total_length_sampling_points = length
+
+    # Parameters specific to VR
+    def get_first_trial_channel(self):
+        return Parameters.first_trial_channel
+
+
+    def set_first_trial_channel(self, first_trial_channel):
+        Parameters.first_trial_channel = first_trial_channel
+
+
+    def get_second_trial_channel(self):
+        return Parameters.second_trial_channel
+
+
+    def set_second_trial_channel(self, second_trial_channel):
+        Parameters.second_trial_channel = second_trial_channel
+
+
+    def get_movement_channel(self):
+        return Parameters.movement_channel
+
+
+    def set_movement_channel(self, movement_channel):
+        Parameters.movement_channel = movement_channel
+
+
+    def get_track_length(self):
+        return Parameters.track_length
+
+
+    def set_track_length(self, track_length):
+        Parameters.track_length = track_length
+
+
+    def get_stop_threshold(self):
+        return Parameters.stop_threshold
+
+
+    def set_stop_threshold(self, st):
+        Parameters.stop_threshold = st
 
 
 
