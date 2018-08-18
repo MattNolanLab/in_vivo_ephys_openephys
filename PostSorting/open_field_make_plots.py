@@ -234,7 +234,7 @@ def make_combined_figure(prm, spatial_firing):
             autocorrelogram_10_plot.axis('off')
             autocorrelogram_10_plot.imshow(autocorrelogram_10)
         if os.path.exists(autocorrelogram_250_path):
-            autocorrelogram_250 = mpimg.imread(autocorrelogram_10_path)
+            autocorrelogram_250 = mpimg.imread(autocorrelogram_250_path)
             autocorrelogram_250_plot = plt.subplot(grid[1, 4])
             autocorrelogram_250_plot.axis('off')
             autocorrelogram_250_plot.imshow(autocorrelogram_250)
