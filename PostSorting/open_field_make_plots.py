@@ -213,11 +213,17 @@ def make_combined_figure(prm, spatial_firing):
         firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
         autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
+        waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
 
         number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         number_of_rows = math.ceil(number_of_firing_fields/5) + 2
 
         grid = plt.GridSpec(number_of_rows, 5, wspace=0.2, hspace=0.2)
+        if os.path.exists(waveforms_path):
+            waveforms = mpimg.imread(waveforms_path)
+            waveforms_plot = plt.subplot(grid[0, 0])
+            waveforms_plot.axis('off')
+            waveforms_plot.imshow(waveforms)
         if os.path.exists(spike_histogram_path):
             spike_hist = mpimg.imread(spike_histogram_path)
             spike_hist_plot = plt.subplot(grid[0, 3])

@@ -109,3 +109,30 @@ def plot_autocorrelograms(spike_data, prm):
         plt.bar(time, corr, align='center', width=1, color='black')
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
+
+
+def plot_waveforms(spike_data, prm):
+    print('I will plot the waveform shapes for each cluster.')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/firing_properties'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster in range(len(spike_data)):
+        cluster = spike_data.cluster_id.values[cluster] - 1
+        max_channel = spike_data.primary_channel[cluster]
+        highest_value = np.max(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
+        fig = plt.figure(figsize=(5, 5))
+        grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
+        snippet_plot1 = plt.subplot(grid[0, 0])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot1.plot(spike_data.random_snippets[cluster][0, :, :] * -1, color='black')
+        snippet_plot2 = plt.subplot(grid[0, 1])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot2.plot(spike_data.random_snippets[cluster][1, :, :] * -1, color='black')
+        snippet_plot3 = plt.subplot(grid[1, 0])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot3.plot(spike_data.random_snippets[cluster][2, :, :] * -1, color='black')
+        snippet_plot4 = plt.subplot(grid[1, 1])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot4.plot(spike_data.random_snippets[cluster][3, :, :] * -1, color='black')
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
