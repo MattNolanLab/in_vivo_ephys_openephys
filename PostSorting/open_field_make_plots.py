@@ -230,37 +230,37 @@ def make_combined_figure(prm, spatial_firing):
             speed_hist_plot.imshow(speed_hist)
         if os.path.exists(autocorrelogram_10_path):
             autocorrelogram_10 = mpimg.imread(autocorrelogram_10_path)
-            autocorrelogram_10_plot = plt.subplot(grid[1, 3])
+            autocorrelogram_10_plot = plt.subplot(grid[0, 1])
             autocorrelogram_10_plot.axis('off')
             autocorrelogram_10_plot.imshow(autocorrelogram_10)
         if os.path.exists(autocorrelogram_250_path):
             autocorrelogram_250 = mpimg.imread(autocorrelogram_250_path)
-            autocorrelogram_250_plot = plt.subplot(grid[1, 4])
+            autocorrelogram_250_plot = plt.subplot(grid[0, 2])
             autocorrelogram_250_plot.axis('off')
             autocorrelogram_250_plot.imshow(autocorrelogram_250)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
-            spike_scatter_plot = plt.subplot(grid[0, 0])
+            spike_scatter_plot = plt.subplot(grid[1, 0])
             spike_scatter_plot.axis('off')
             spike_scatter_plot.imshow(spike_scatter)
         if os.path.exists(rate_map_path):
             rate_map = mpimg.imread(rate_map_path)
-            rate_map_plot = plt.subplot(grid[0, 1])
+            rate_map_plot = plt.subplot(grid[1, 1])
             rate_map_plot.axis('off')
             rate_map_plot.imshow(rate_map)
         if os.path.exists(coverage_path):
             coverage = mpimg.imread(coverage_path)
-            coverage_plot = plt.subplot(grid[0, 2])
+            coverage_plot = plt.subplot(grid[1, 2])
             coverage_plot.axis('off')
             coverage_plot.imshow(coverage)
         if os.path.exists(head_direction_polar_path):
             polar_hd = mpimg.imread(head_direction_polar_path)
-            polar_hd_plot = plt.subplot(grid[1, 0])
+            polar_hd_plot = plt.subplot(grid[1, 3])
             polar_hd_plot.axis('off')
             polar_hd_plot.imshow(polar_hd)
         if os.path.exists(head_direction_map_path):
             hd_map = mpimg.imread(head_direction_map_path)
-            hd_map_plot = plt.subplot(grid[1, 1])
+            hd_map_plot = plt.subplot(grid[1, 4])
             hd_map_plot.axis('off')
             hd_map_plot.imshow(hd_map)
         if os.path.exists(firing_fields_rate_map_path):

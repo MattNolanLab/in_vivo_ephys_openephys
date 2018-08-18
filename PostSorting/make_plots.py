@@ -99,12 +99,13 @@ def plot_autocorrelograms(spike_data, prm):
         firing_times_cluster = spike_data.firing_times[cluster]
         #lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
         corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 20)
-
+        plt.xlim(-10, 10)
         plt.bar(time, corr, align='center', width=1, color='black')
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
         plt.figure()
         corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 500)
+        plt.xlim(-250, 250)
         plt.bar(time, corr, align='center', width=1, color='black')
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
