@@ -66,6 +66,40 @@ def calculate_trial_numbers(position_data):
 
 
 
+def load_trial_types_from_continuous(prm):
+
+    first=[]
+    file_path = prm.get_filepath() + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    trial_first = open_ephys_IO.get_data_continuous(prm, file_path)
+    first.append(trial_first)
+    first = np.asarray(first)
+
+    second=[]
+    file_path = prm.get_filepath() + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    trial_second = open_ephys_IO.get_data_continuous(prm, file_path)
+    second.append(trial_second)
+    second = np.asarray(second)
+
+    return first, second
+
+
+
+def calculate_trial_types_from_continuous(prm, first,second):
+
+    print('loading trial types...')
+    trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
+    for point,p in enumerate(trial_type):
+        #print(point, p, second[0,point])
+        if second[0,point] < 3: # if beaconed
+            trial_type[point] = 0
+            #print('beaconed')
+        if second[0,point] > 2:
+            trial_type[point] = 1
+            #print('non-beaconed/probe')
+
+    print('trial types loaded from continuous')
+    return trial_type
+
 def calculate_instant_velocity(position_data):
     print('I am calculating velocity...')
 
