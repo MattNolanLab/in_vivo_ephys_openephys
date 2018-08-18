@@ -1,6 +1,7 @@
 import os
 import PostSorting.curation
 import PostSorting.load_firing_data
+import PostSorting.load_snippet_data
 import PostSorting.parameters
 import PostSorting.open_field_firing_maps
 import PostSorting.open_field_firing_fields
@@ -12,6 +13,8 @@ import PostSorting.open_field_spatial_firing
 import PostSorting.open_field_head_direction
 import PostSorting.temporal_firing
 import PostSorting.make_plots
+
+import matplotlib.pylab as plt
 
 import pandas as pd
 
@@ -95,6 +98,7 @@ def post_process_recording(recording_to_process, session_type):
         spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, bad_clusters)
             return

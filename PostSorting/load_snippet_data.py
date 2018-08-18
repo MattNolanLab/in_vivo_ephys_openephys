@@ -1,6 +1,7 @@
 import os
 import mdaio
 import numpy as np
+import matplotlib.pylab as plt
 
 
 def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets):
@@ -12,7 +13,7 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
     for index, event in enumerate(random_indices):
         snippets_indices = np.arange(firing_times[event]-15, firing_times[event]+15, 1).astype(int)
         snippets[:, :, index] = filtered_data[channels[0]:channels[3]+1, snippets_indices]
-
+    # plt.plot(snippets[3,:,:]) # example ch plot
     return snippets
 
 
@@ -35,4 +36,5 @@ def get_snippets(firing_data, prm):
             snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50)
             snippets_all_clusters.append(snippets)
     firing_data['random_snippets'] = snippets_all_clusters
+    #plt.plot(firing_data.random_snippets[4][3,:,:])
     return firing_data
