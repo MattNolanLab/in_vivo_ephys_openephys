@@ -84,21 +84,24 @@ def load_trial_types_from_continuous(prm):
 
 
 
-def calculate_trial_types_from_continuous(prm, first,second):
+def calculate_trial_types_from_continuous(prm, position_data):
 
-    print('loading trial types...')
+    print('I am loading trial types from continuous...')
+
+    first, second = load_trial_types_from_continuous(prm)
     trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
     for point,p in enumerate(trial_type):
-        #print(point, p, second[0,point])
         if second[0,point] < 3: # if beaconed
             trial_type[point] = 0
-            #print('beaconed')
         if second[0,point] > 2:
             trial_type[point] = 1
-            #print('non-beaconed/probe')
+
+    position_data['trial_type'] = trial_type
 
     print('trial types loaded from continuous')
-    return trial_type
+
+    return position_data
+
 
 def calculate_instant_velocity(position_data):
     print('I am calculating velocity...')
@@ -163,6 +166,8 @@ def process_position_data(recording_folder):
     #position_data = calculate_instant_velocity(position_data)
 
     position_data = calculate_trial_numbers(position_data)
+
+    position_data = calculate_trial_types(position_data)
 
     #position_data = calculate_stops(position_data)
 
