@@ -37,7 +37,7 @@ def calculate_track_location(position_data, recording_folder):
 
 def calculate_time(position_data):
     print('I am calculating time...')
-    position_data['time_ms'] = position_data['position_cm'].index/30
+    position_data['time_ms'] = position_data['position_cm'].index/30 # convert sampling rate to time by dividing by 30
     return position_data
 
 
@@ -66,16 +66,16 @@ def calculate_trial_numbers(position_data):
 
 
 
-def load_trial_types_from_continuous(prm):
+def load_trial_types_from_continuous(recording_folder):
 
     first=[]
-    file_path = prm.get_filepath() + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    file_path = recording_folder + '/' + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_first = open_ephys_IO.get_data_continuous(prm, file_path)
     first.append(trial_first)
     first = np.asarray(first)
 
     second=[]
-    file_path = prm.get_filepath() + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    file_path = recording_folder + '/' + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_second = open_ephys_IO.get_data_continuous(prm, file_path)
     second.append(trial_second)
     second = np.asarray(second)
@@ -84,11 +84,13 @@ def load_trial_types_from_continuous(prm):
 
 
 
-def calculate_trial_types_from_continuous(prm, position_data):
+def calculate_trial_types(position_data, recording_folder):
 
     print('I am loading trial types from continuous...')
 
-    first, second = load_trial_types_from_continuous(prm)
+    first, second = load_trial_types_from_continuous(recording_folder)
+
+
     trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
     for point,p in enumerate(trial_type):
         if second[0,point] < 3: # if beaconed
@@ -167,7 +169,7 @@ def process_position_data(recording_folder):
 
     position_data = calculate_trial_numbers(position_data)
 
-    position_data = calculate_trial_types(position_data)
+    position_data = calculate_trial_types(position_data, recording_folder)
 
     #position_data = calculate_stops(position_data)
 
