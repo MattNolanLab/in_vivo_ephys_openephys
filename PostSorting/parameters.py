@@ -9,7 +9,9 @@ class Parameters:
     opto_tagging_start_index = None
     sampling_rate_rate = 0
     local_recording_folder_path = ''
+    file_path = []
     total_length_sampling_points = 0
+    dead_channels = []
 
     # vr parameters
     first_trial_channel = ''  # vr
@@ -75,12 +77,35 @@ class Parameters:
     def set_local_recording_folder_path(self, path):
         Parameters.local_recording_folder_path = path
 
+    def get_filepath(self):
+        return Parameters.file_path
+
+    def set_file_path(self, path):
+        Parameters.file_path = path
+
     def get_total_length_sampling_points(self):
         return Parameters.total_length_sampling_points
 
     def set_total_length_sampling_points(self, length):
         Parameters.total_length_sampling_points = length
 
+    def get_dead_channels(self):
+        return Parameters.dead_channels
+
+    def set_dead_channels(d_ch = [], *args):
+        dead_ch = []
+        for dead_chan in args:
+            dead_ch.append(dead_chan)
+
+        Parameters.dead_channels = dead_ch
+
+    def get_dead_channel_path(self):
+        return Parameters.dead_channel_path
+
+    def set_dead_channel_path(self, dead_ch):
+        Parameters.dead_channel_path = dead_ch
+
+    #######################################################
     # Parameters specific to VR
     def get_first_trial_channel(self):
         return Parameters.first_trial_channel
@@ -120,6 +145,8 @@ class Parameters:
 
     def set_stop_threshold(self, st):
         Parameters.stop_threshold = st
+
+
 
 
 

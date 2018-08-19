@@ -205,7 +205,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
             copy_output_to_server(recording_to_sort, location_on_server)
 
 
-        # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
+        #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
