@@ -211,11 +211,19 @@ def make_combined_figure(prm, spatial_firing):
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
         firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
+        autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
+        autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
+        waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
 
         number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         number_of_rows = math.ceil(number_of_firing_fields/5) + 2
 
         grid = plt.GridSpec(number_of_rows, 5, wspace=0.2, hspace=0.2)
+        if os.path.exists(waveforms_path):
+            waveforms = mpimg.imread(waveforms_path)
+            waveforms_plot = plt.subplot(grid[0, 0])
+            waveforms_plot.axis('off')
+            waveforms_plot.imshow(waveforms)
         if os.path.exists(spike_histogram_path):
             spike_hist = mpimg.imread(spike_histogram_path)
             spike_hist_plot = plt.subplot(grid[0, 3])
@@ -226,29 +234,39 @@ def make_combined_figure(prm, spatial_firing):
             speed_hist_plot = plt.subplot(grid[0, 4])
             speed_hist_plot.axis('off')
             speed_hist_plot.imshow(speed_hist)
+        if os.path.exists(autocorrelogram_10_path):
+            autocorrelogram_10 = mpimg.imread(autocorrelogram_10_path)
+            autocorrelogram_10_plot = plt.subplot(grid[0, 1])
+            autocorrelogram_10_plot.axis('off')
+            autocorrelogram_10_plot.imshow(autocorrelogram_10)
+        if os.path.exists(autocorrelogram_250_path):
+            autocorrelogram_250 = mpimg.imread(autocorrelogram_250_path)
+            autocorrelogram_250_plot = plt.subplot(grid[0, 2])
+            autocorrelogram_250_plot.axis('off')
+            autocorrelogram_250_plot.imshow(autocorrelogram_250)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
-            spike_scatter_plot = plt.subplot(grid[0, 0])
+            spike_scatter_plot = plt.subplot(grid[1, 0])
             spike_scatter_plot.axis('off')
             spike_scatter_plot.imshow(spike_scatter)
         if os.path.exists(rate_map_path):
             rate_map = mpimg.imread(rate_map_path)
-            rate_map_plot = plt.subplot(grid[0, 1])
+            rate_map_plot = plt.subplot(grid[1, 1])
             rate_map_plot.axis('off')
             rate_map_plot.imshow(rate_map)
         if os.path.exists(coverage_path):
             coverage = mpimg.imread(coverage_path)
-            coverage_plot = plt.subplot(grid[0, 2])
+            coverage_plot = plt.subplot(grid[1, 2])
             coverage_plot.axis('off')
             coverage_plot.imshow(coverage)
         if os.path.exists(head_direction_polar_path):
             polar_hd = mpimg.imread(head_direction_polar_path)
-            polar_hd_plot = plt.subplot(grid[1, 0])
+            polar_hd_plot = plt.subplot(grid[1, 3])
             polar_hd_plot.axis('off')
             polar_hd_plot.imshow(polar_hd)
         if os.path.exists(head_direction_map_path):
             hd_map = mpimg.imread(head_direction_map_path)
-            hd_map_plot = plt.subplot(grid[1, 1])
+            hd_map_plot = plt.subplot(grid[1, 4])
             hd_map_plot.axis('off')
             hd_map_plot.imshow(hd_map)
         if os.path.exists(firing_fields_rate_map_path):

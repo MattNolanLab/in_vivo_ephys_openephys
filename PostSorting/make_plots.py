@@ -62,38 +62,31 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         plt.close()
 
 
-def calculate_autocorrelogram_hist(spikes, binsize, window):
+def calculate_autocorrelogram_hist(spikes, bin_size, window):
     number_of_bins = int(math.ceil(spikes[-1]*1000))
     train = np.zeros(number_of_bins)
     bins = np.zeros(len(spikes))
 
     for spike in range(len(spikes)):
-        bin = math.ceil(spikes[spike]*1000)
+        bin = math.floor(spikes[spike]*1000)
         train[bin] = train[bin] + 1
         bins[spike] = bin
 
     counts = np.zeros(window+1)
     counted = 0
-
     for b in range(len(bins)):
         bin = bins[b]
-        if (bin > ((window/2) + 1)) and (bin < len(train) - window/2 + 1):
-            counts = counts + train[bin - window/2:bin + window/2 + 1]
-            counted = counted +  sum(train[bin-window/2:bin+window/2]) - train[bin]
+        if (bin > (window/2) + 1) and (bin < len(train) - window/2):
+            counts = counts + train[bin - window/2 :bin + window/2+1]
+            counted = counted + sum(train[bin-window/2 - 1:bin + window/2]) - train[bin]
 
-    counts[window/2+1] = 0
+    counts[window/2] = 0
     if max(counts) == 0 and counted == 0:
         counted = 1
 
     corr = counts / counted
-    time = np.arange(-window/2, binsize/2, binsize)
+    time = np.arange(-window/2, window/2 + 1, bin_size)
     return corr, time
-
-
-
-
-
-
 
 
 def plot_autocorrelograms(spike_data, prm):
@@ -104,10 +97,42 @@ def plot_autocorrelograms(spike_data, prm):
     for cluster in range(len(spike_data)):
         cluster = spike_data.cluster_id.values[cluster] - 1
         firing_times_cluster = spike_data.firing_times[cluster]
-        lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
+        #lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
+        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 20)
+        plt.xlim(-10, 10)
+        plt.bar(time, corr, align='center', width=1, color='black')
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
         plt.figure()
+        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 500)
+        plt.xlim(-250, 250)
+        plt.bar(time, corr, align='center', width=1, color='black')
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
 
 
-        plt.show()
-
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+def plot_waveforms(spike_data, prm):
+    print('I will plot the waveform shapes for each cluster.')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/firing_properties'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster in range(len(spike_data)):
+        cluster = spike_data.cluster_id.values[cluster] - 1
+        max_channel = spike_data.primary_channel[cluster]
+        highest_value = np.max(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
+        fig = plt.figure(figsize=(5, 5))
+        grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
+        snippet_plot1 = plt.subplot(grid[0, 0])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot1.plot(spike_data.random_snippets[cluster][0, :, :] * -1, color='black')
+        snippet_plot2 = plt.subplot(grid[0, 1])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot2.plot(spike_data.random_snippets[cluster][1, :, :] * -1, color='black')
+        snippet_plot3 = plt.subplot(grid[1, 0])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot3.plot(spike_data.random_snippets[cluster][2, :, :] * -1, color='black')
+        snippet_plot4 = plt.subplot(grid[1, 1])
+        plt.ylim(-highest_value, highest_value)
+        snippet_plot4.plot(spike_data.random_snippets[cluster][3, :, :] * -1, color='black')
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
