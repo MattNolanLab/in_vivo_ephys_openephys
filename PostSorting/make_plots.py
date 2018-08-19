@@ -63,6 +63,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
 
 
 def calculate_autocorrelogram_hist(spikes, bin_size, window):
+    half_window = int(window/2)
     number_of_bins = int(math.ceil(spikes[-1]*1000))
     train = np.zeros(number_of_bins)
     bins = np.zeros(len(spikes))
@@ -75,17 +76,19 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     counts = np.zeros(window+1)
     counted = 0
     for b in range(len(bins)):
-        bin = bins[b]
-        if (bin > (window/2) + 1) and (bin < len(train) - window/2):
-            counts = counts + train[bin - window/2 :bin + window/2+1]
-            counted = counted + sum(train[bin-window/2 - 1:bin + window/2]) - train[bin]
+        bin = int(bins[b])
+        window_start = int(bin - half_window)
+        window_end = int(bin + half_window + 1)
+        if (window_start > 0) and (window_end < len(train)):
+            counts = counts + train[window_start:window_end]
+            counted = counted + sum(train[window_start:window_end]) - train[bin]
 
-    counts[window/2] = 0
+    counts[half_window] = 0
     if max(counts) == 0 and counted == 0:
         counted = 1
 
     corr = counts / counted
-    time = np.arange(-window/2, window/2 + 1, bin_size)
+    time = np.arange(-half_window, half_window + 1, bin_size)
     return corr, time
 
 
