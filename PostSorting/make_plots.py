@@ -134,5 +134,6 @@ def plot_waveforms(spike_data, prm):
         snippet_plot4 = plt.subplot(grid[1, 1])
         plt.ylim(-highest_value, highest_value)
         snippet_plot4.plot(spike_data.random_snippets[cluster][3, :, :] * -1, color='black')
+        plt.tight_layout()
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
