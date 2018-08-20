@@ -8,10 +8,11 @@ import matplotlib.pylab as plt
 def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, prm):
     PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
-    for dead_ch in range(len(dead_channels[0])):
-        to_insert = np.zeros(len(filtered_data[0]))
-        filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
-    random_indices = np.ceil(np.random.uniform(16, len(firing_times), number_of_snippets-16)).astype(int)
+    if len(dead_channels) != 0:
+        for dead_ch in range(len(dead_channels[0])):
+            to_insert = np.zeros(len(filtered_data[0]))
+            filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
+    random_indices = np.ceil(np.random.uniform(16, len(firing_times)-16, number_of_snippets)).astype(int)
     snippets = np.zeros((4, 30, number_of_snippets))
 
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
