@@ -37,8 +37,9 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
     save_path = prm.get_local_recording_folder_path() + '/Figures/firing_properties'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    number_of_bins = math.ceil(max(spatial_data.speed)) - math.floor(min(spatial_data.speed))
-    session_hist, bins_s = np.histogram(spatial_data.speed, bins=number_of_bins, range=(math.floor(min(spatial_data.speed)), math.ceil(max(spatial_data.speed))))
+    speed = spatial_data.speed[~np.isnan(spatial_data.speed)]
+    number_of_bins = math.ceil(max(speed)) - math.floor(min(speed))
+    session_hist, bins_s = np.histogram(speed, bins=number_of_bins, range=(math.floor(min(speed)), math.ceil(max(speed))))
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         speed_cluster = spatial_firing.speed[cluster]
@@ -48,7 +49,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         ax = spike_hist.add_subplot(1, 1, 1)
         speed_hist, ax = plot_utility.style_plot(ax)
         if number_of_bins > 0:
-            hist, bins = np.histogram(speed_cluster[1:], bins=number_of_bins, range=(math.floor(min(spatial_data.speed)), math.ceil(max(spatial_data.speed))))
+            hist, bins = np.histogram(speed_cluster[1:], bins=number_of_bins, range=(math.floor(min(speed)), math.ceil(max(speed))))
             width = bins[1] - bins[0]
             center = (bins[:-1] + bins[1:]) / 2
             center = center[[np.where(session_hist > sum(session_hist)*0.005)]]
@@ -126,16 +127,16 @@ def plot_waveforms(spike_data, prm):
         fig = plt.figure(figsize=(5, 5))
         grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
         snippet_plot1 = plt.subplot(grid[0, 0])
-        plt.ylim(-highest_value, highest_value)
+        plt.ylim(-highest_value, highest_value + 30)
         snippet_plot1.plot(spike_data.random_snippets[cluster][0, :, :] * -1, color='black')
         snippet_plot2 = plt.subplot(grid[0, 1])
-        plt.ylim(-highest_value, highest_value)
+        plt.ylim(-highest_value, highest_value + 30)
         snippet_plot2.plot(spike_data.random_snippets[cluster][1, :, :] * -1, color='black')
         snippet_plot3 = plt.subplot(grid[1, 0])
-        plt.ylim(-highest_value, highest_value)
+        plt.ylim(-highest_value, highest_value + 30)
         snippet_plot3.plot(spike_data.random_snippets[cluster][2, :, :] * -1, color='black')
         snippet_plot4 = plt.subplot(grid[1, 1])
-        plt.ylim(-highest_value, highest_value)
+        plt.ylim(-highest_value, highest_value + 30)
         snippet_plot4.plot(spike_data.random_snippets[cluster][3, :, :] * -1, color='black')
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
