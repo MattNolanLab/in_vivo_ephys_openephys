@@ -32,8 +32,6 @@ def plot_spikes_on_track(spatial_firing):
 def plot_firing_rate_maps(spike_data):
     print('I am plotting firing rate maps...')
 
-    #for cluster in range(len(spatial_firing)):
-
     for cluster in range(len(spike_data)):
         avg_spikes_on_track = plt.figure()
 
