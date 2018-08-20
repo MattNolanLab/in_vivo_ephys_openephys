@@ -13,7 +13,7 @@ def plot_spikes_on_track(spatial_firing):
     spikes_on_track = plt.figure()
     ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-    ax.plot(spatial_firing.position_cm[cluster], spatial_firing.trial_number[cluster], '|', color='black', markersize=12)
+    ax.plot(spatial_firing.position_cm[41], spatial_firing.trial_number[41], '|', color='black', markersize=12)
     ax.plot(spatial_firing.nonbeaconed_location[cluster], spatial_firing.nonbeaconed_trial_number[cluster], '|', color='Blue', markersize=12)
     plt.show()
 
@@ -24,7 +24,7 @@ def plot_spikes_on_track(spatial_firing):
     ax.xaxis.set_ticks_position('bottom')
 
     plot_utility.style_track_plot(ax)
-    x_max = max(spatial_firing.trial_number[cluster])+0.5
+    x_max = max(spatial_firing.trial_number[41])+0.5
     plot_utility.style_vr_plot(ax, x_max)
 
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + spatial_firing.session_id[cluster] + 'track_firing_' + str(cluster + 1) + '.png')
