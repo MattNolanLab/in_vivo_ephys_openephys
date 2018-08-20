@@ -43,7 +43,7 @@ def process_firing_times(recording_to_process, session_type, prm):
                 "firing_times_opto": cluster_firings_opto
             }, ignore_index=True)
     else:
-        firing_data = pd.DataFrame(columns=['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times'])
+        firing_data = pd.DataFrame(columns=['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'position_cm', 'trial_number', 'trial_type'])
         for cluster in units_list:
             cluster_firings = firing_times[cluster_ids == cluster]
             channel_detected = primary_channel[cluster_ids == cluster][0]
