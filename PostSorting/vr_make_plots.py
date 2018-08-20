@@ -33,10 +33,12 @@ def plot_firing_rate_maps(spike_data):
     print('I am plotting firing rate maps...')
 
     for cluster in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_index = cluster_index+41
         avg_spikes_on_track = plt.figure()
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.plot(range(40), spike_data.avg_spike_per_bin[cluster+41], '-')
+        ax.plot(range(40), spike_data.avg_spike_per_bin[cluster_index], '-')
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Avg spikes', fontsize=14, labelpad = 10)

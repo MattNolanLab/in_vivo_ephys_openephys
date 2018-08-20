@@ -8,7 +8,8 @@ def find_firing_location_indices(spike_data, spatial_data):
     print('I am extracting firing locations...')
     spatial_firing = pd.DataFrame(columns=['position_cm', 'trial_number', 'trial_type', 'dwell_time_ms'])
     for cluster in range(len(spike_data)):
-        cluster_firing_indices = spike_data.firing_times[cluster]
+        cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_firing_indices = spike_data.firing_times[cluster_index]
         spatial_firing = spatial_firing.append({
             "position_cm": list(spatial_data.position_cm[cluster_firing_indices]),
             "trial_number": list(spatial_data.trial_number[cluster_firing_indices]),

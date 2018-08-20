@@ -37,9 +37,10 @@ def calculate_firing_rate(spike_data, spatial_data):
     firing_rate_map = pd.DataFrame(columns=['trial_number', 'bin_count', 'spike_number', 'dwell_time_ms'])
 
     for cluster in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster] - 1
         bin_size_cm,number_of_bins = get_bin_size(spatial_data)
         number_of_trials = spatial_data.trial_number.max() # total number of trials
-        cluster_df = spike_data.iloc[[cluster]] # dataframe for that cluster
+        cluster_df = spike_data.iloc[[cluster_index]] # dataframe for that cluster
         trials = np.array(cluster_df.trial_number.tolist())
         locations = np.array(cluster_df.position_cm.tolist())
         for t in range(1,int(number_of_trials)):
