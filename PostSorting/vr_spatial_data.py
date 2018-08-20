@@ -90,7 +90,6 @@ def calculate_trial_types(position_data, recording_folder):
 
     first, second = load_trial_types_from_continuous(recording_folder)
 
-
     trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
     for point,p in enumerate(trial_type):
         if second[0,point] < 3: # if beaconed

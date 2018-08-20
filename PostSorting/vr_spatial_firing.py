@@ -8,14 +8,15 @@ prm = PostSorting.parameters.Parameters()
 def find_firing_location_indices(spike_data, spatial_data):
     print('I am extracting firing locations...')
     #for cluster in range(len(spike_data)):
-    cluster = 0
+    cluster = 5
     #cluster_index = spike_data.cluster_id.values[cluster] - 1
     cluster_firing_indices = spike_data.firing_times[cluster]
     spike_data = spike_data.append({
         "position_cm": list(spatial_data.position_cm[cluster_firing_indices]),
         "trial_number": list(spatial_data.trial_number[cluster_firing_indices]),
         "trial_type":  list(spatial_data.trial_type[cluster_firing_indices])
-    }, index=[cluster])
+    }, ignore_index=True)
+
     print('Firing locations have been extracted for each cluster')
     return spike_data
 
@@ -36,8 +37,8 @@ def split_spatial_firing_by_trial_type(spike_data):
     locations = np.array(cluster_df.position_cm.tolist())
     trial_type = np.array(cluster_df.trial_type.tolist())
 
-    beaconed_trial_indices=np.where(trial_type == 0)
-    nonbeaconed_trial_indices=np.where(trial_type == 1)
+    surplus,beaconed_trial_indices=np.where(trial_type == 0)
+    surplus,nonbeaconed_trial_indices=np.where(trial_type == 1)
     beaconed_locations = np.take(locations, beaconed_trial_indices)
     nonbeaconed_locations = np.take(locations, nonbeaconed_trial_indices)
     beaconed_trials = np.take(trials, beaconed_trial_indices)
