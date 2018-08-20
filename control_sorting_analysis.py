@@ -6,6 +6,7 @@ import multiprocessing
 import shutil
 import subprocess
 import sys
+import traceback
 import time
 import Logger
 from PreClustering import pre_process_ephys_data
@@ -204,7 +205,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
             copy_output_to_server(recording_to_sort, location_on_server)
 
 
-        # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
+        #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
@@ -213,6 +214,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         print('There is a problem with this file. '
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_tb(exc_traceback)
         shutil.rmtree(recording_to_sort)
         if os.path.exists(mountainsort_tmp_folder) is True:
             shutil.rmtree(mountainsort_tmp_folder)

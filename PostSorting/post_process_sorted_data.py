@@ -28,6 +28,7 @@ def initialize_parameters(recording_to_process):
     prm.set_sync_channel('100_ADC1.continuous')
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
+    prm.set_file_path(recording_to_process)  # todo clean this
 
 
 def process_position_data(recording_to_process, session_type, prm):

@@ -1,11 +1,17 @@
 import os
 import mdaio
 import numpy as np
+import PreClustering.dead_channels
 import matplotlib.pylab as plt
 
 
-def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets):
-    random_indices = np.ceil(np.random.uniform(0, len(firing_times), number_of_snippets)).astype(int)
+def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, prm):
+    PreClustering.dead_channels.get_dead_channel_ids(prm)
+    dead_channels = prm.get_dead_channels()
+    for dead_ch in range(len(dead_channels[0])):
+        to_insert = np.zeros(len(filtered_data[0]))
+        filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
+    random_indices = np.ceil(np.random.uniform(16, len(firing_times), number_of_snippets-16)).astype(int)
     snippets = np.zeros((4, 30, number_of_snippets))
 
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
@@ -33,7 +39,7 @@ def get_snippets(firing_data, prm):
         for cluster in range(len(firing_data)):
             cluster = firing_data.cluster_id.values[cluster] - 1
             firing_times = firing_data.firing_times[cluster]
-            snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50)
+            snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50, prm)
             snippets_all_clusters.append(snippets)
     firing_data['random_snippets'] = snippets_all_clusters
     #plt.plot(firing_data.random_snippets[4][3,:,:])
