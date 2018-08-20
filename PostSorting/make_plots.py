@@ -69,7 +69,7 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     train = np.zeros(number_of_bins)
     bins = np.zeros(len(spikes))
 
-    for spike in range(len(spikes)):
+    for spike in range(len(spikes)-1):
         bin = math.floor(spikes[spike]*1000)
         train[bin] = train[bin] + 1
         bins[spike] = bin
