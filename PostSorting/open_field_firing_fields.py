@@ -1,5 +1,7 @@
+import os
 import numpy as np
 import pandas as pd
+import subprocess
 import PostSorting.open_field_head_direction
 
 # import matplotlib.pylab as plt
@@ -158,6 +160,24 @@ def save_hd_in_fields(hd_session, hd_cluster, field_id, prm):
     np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_cluster.csv', hd_cluster, delimiter=',')
 
 
+def write_shell_script_to_call_r_analysis(prm):
+    firing_field_path = prm.get_filepath() + '/Firing_fields'
+    script_path = prm.get_filepath() + '/Firing_fields' + '/run_r.sh'
+    batch_writer = open(script_path, 'w', newline='\n')
+    batch_writer.write('#!/bin/bash\n')
+    batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
+    batch_writer.write('echo "This is a shell script that will call R to analyze firing fields."\n')
+    batch_writer.write('Rscript /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostSorting/process_fields.r ' + firing_field_path)
+    batch_writer.close()
+
+
+def analyze_fields_r(prm):
+    path = prm.get_filepath() + '/Firing_fields'
+    write_shell_script_to_call_r_analysis(prm)
+    os.chmod(path + '/run_r.sh', 484)
+    subprocess.call(path + '/run_r.sh', shell=True)
+
+
 def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
     print('I will analyze head-direction in the detected firing fields.')
     hd_session_all = []
@@ -209,6 +229,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
             max_firing_rate.append(None)
             preferred_hd.append(None)
             hd_score.append(None)
+        analyze_fields_r(prm)
         hd_session_all.append(hd_session)
         hd_cluster_all.append(hd_cluster)
         field_p_all.append(field_p)

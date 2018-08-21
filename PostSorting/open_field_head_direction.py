@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import kuiper
 import scipy
-from astropy import stats
 
 import PostSorting.open_field_firing_maps
 
@@ -84,8 +83,8 @@ stats is the raw test statistic
 
 
 def compare_hd_distributions_in_cluster_to_session(session_angles, cluster_angles):
-    #stats_old, p_old = kuiper.kuiper_two(session_angles, cluster_angles)
-    stat, p = stats.kuiper_two(session_angles, cluster_angles)
+    stat, p = kuiper.kuiper_two(session_angles, cluster_angles)
+    #stat, p = stats.kuiper_two(session_angles, cluster_angles)
     #stat, p = scipy.stats.ks_2samp(session_angles, cluster_angles)
     return stat, p
 
