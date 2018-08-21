@@ -152,6 +152,12 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
     return spatial_firing
 
 
+def save_hd_in_fields(hd_session, hd_cluster, field_id, prm):
+    save_path = prm.get_filepath() + '/Firing_fields/'
+    np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_session.csv', hd_session, delimiter=',')
+    np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_cluster.csv', hd_cluster, delimiter=',')
+
+
 def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
     print('I will analyze head-direction in the detected firing fields.')
     hd_session_all = []
@@ -178,6 +184,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
             for field_id, field in enumerate(firing_fields_cluster):
                 hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
                 hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
+                save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, field_id, prm)
                 p, stat = PostSorting.open_field_head_direction.compare_hd_distributions_in_cluster_to_session(hd_in_field_session, hd_in_field_cluster)
                 hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
                 hd_hist_session /= prm.get_sampling_rate()
