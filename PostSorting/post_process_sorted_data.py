@@ -78,6 +78,8 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Figures')
     if os.path.exists(recording_to_process + '/DataFrames') is False:
         os.makedirs(recording_to_process + '/DataFrames')
+    if os.path.exists(recording_to_process + '/Firing_fields') is False:
+        os.makedirs(recording_to_process + '/Firing_fields')
 
 
 def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters):
