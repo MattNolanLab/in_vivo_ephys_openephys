@@ -87,20 +87,17 @@ def load_trial_types_from_continuous(recording_folder):
 def calculate_trial_types(position_data, recording_folder):
 
     print('I am loading trial types from continuous...')
-
     first, second = load_trial_types_from_continuous(recording_folder)
 
     trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
     for point,p in enumerate(trial_type):
         if second[0,point] < 3: # if beaconed
             trial_type[point] = 0
-        if second[0,point] > 2:
+        if second[0,point] > 3: # if non beaconed
             trial_type[point] = 1
 
     position_data['trial_type'] = trial_type
-
     print('trial types loaded from continuous')
-
     return position_data
 
 
@@ -110,9 +107,9 @@ def calculate_instant_velocity(position_data):
     location = position_data.position_cm  # Get the raw location from the movement channel
 
     sampling_points_per200ms = int(prm.get_sampling_rate()/5)
-    # Rearrange arrays in a way that they just need to be subtracted from each other
-    end_of_loc_to_subtr = location[:-sampling_points_per200ms]
-    beginning_of_loc_to_subtr = location[:sampling_points_per200ms]
+
+    end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
 
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
     velocity = location - location_to_subtract_from
