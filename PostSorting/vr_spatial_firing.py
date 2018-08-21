@@ -13,7 +13,8 @@ def add_columns_to_dataframe(spike_data):
     spike_data["beaconed_trial_number"] = ""
     spike_data["nonbeaconed_position_cm"] = ""
     spike_data["nonbeaconed_trial_number"] = ""
-    spike_data["avg_spike_per_bin"] = ""
+    spike_data["avg_spike_per_bin_b"] = ""
+    spike_data["avg_spike_per_bin_nb"] = ""
     return spike_data
 
 
@@ -32,6 +33,7 @@ def find_firing_location_indices(spike_data, spatial_data):
 
 
 def split_spatial_firing_by_trial_type(spike_data):
+    print('Splitting firing locations by trial type...')
     cluster_index=5
     cluster_df = spike_data.iloc[[cluster_index]] # dataframe for that cluster
     trials = np.array(cluster_df.trial_number.tolist())
@@ -47,7 +49,8 @@ def split_spatial_firing_by_trial_type(spike_data):
     spike_data.loc[cluster_index].beaconed_position_cm = list(beaconed_locations)
     spike_data.loc[cluster_index].beaconed_trial_number = list(beaconed_trials)
     spike_data.loc[cluster_index].nonbeaconed_position_cm = list(nonbeaconed_locations)
-    spike_data.loc[cluster_index].beaconed_trial_number = list(nonbeaconed_trials)
+    spike_data.loc[cluster_index].nonbeaconed_trial_number = list(nonbeaconed_trials)
+    print('Firing locations have been split by trial type')
     return spike_data
 
 
