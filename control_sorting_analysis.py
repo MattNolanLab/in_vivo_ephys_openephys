@@ -176,6 +176,18 @@ def copy_output_to_server(recording_to_sort, location_on_server):
               'I could not resolve, but the files are actually copied successfully.')
         pass
 
+    if os.path.exists(server_path_first_half + location_on_server + '/Firing_fields') is True:
+        shutil.rmtree(server_path_first_half + location_on_server + '/Firing_fields')
+    try:
+        shutil.copytree(recording_to_sort + '/Firing_fields', server_path_first_half + location_on_server + '/Firing_fields')
+    except shutil.Error as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print(message)
+        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
+              'I could not resolve, but the files are actually copied successfully.')
+        pass
+
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
