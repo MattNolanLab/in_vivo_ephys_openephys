@@ -24,7 +24,6 @@ def calculate_track_location(position_data, recording_folder):
     recorded_location = get_raw_location(recording_folder)
 
     print('I am converting raw location input to cm...')
-
     recorded_startpoint = np.amin(recorded_location)
     recorded_endpoint = np.amax(recorded_location)
     recorded_track_length = recorded_endpoint - recorded_startpoint
@@ -42,6 +41,7 @@ def calculate_time(position_data):
 
 
 def calculate_dwell_time(position_data):
+    print('I am calculating dwell time...')
     position_data['dwell_time_ms'] = position_data['time_ms'].diff()
     return position_data
 
@@ -65,7 +65,6 @@ def calculate_trial_numbers(position_data):
     return position_data
 
 
-
 def load_trial_types_from_continuous(recording_folder):
 
     first=[]
@@ -83,21 +82,19 @@ def load_trial_types_from_continuous(recording_folder):
     return first, second
 
 
-
 def calculate_trial_types(position_data, recording_folder):
 
-    print('I am loading trial types from continuous...')
+    print('I am calculating trial types from continuous...')
     first, second = load_trial_types_from_continuous(recording_folder)
 
     trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
     for point,p in enumerate(trial_type):
         if second[0,point] < 2: # if beaconed
             trial_type[point] = 0
-        if second[0,point] > 3: # if non beaconed
+        if second[0,point] > 2: # if non beaconed
             trial_type[point] = 1
 
     position_data['trial_type'] = trial_type
-    print('trial types loaded from continuous')
     return position_data
 
 
