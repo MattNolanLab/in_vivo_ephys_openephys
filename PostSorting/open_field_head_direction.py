@@ -101,17 +101,17 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
-        stats, p = compare_hd_distributions_in_cluster_to_session(angles_whole_session, angles_spike)
-        hd_p_values.append(p)
-        hd_stat.append(stats)
+        # stats, p = compare_hd_distributions_in_cluster_to_session(angles_whole_session, angles_spike)
+        # hd_p_values.append(p)
+        # hd_stat.append(stats)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
-    spatial_firing['hd_p'] = hd_p_values
-    spatial_firing['hd_stat'] = hd_stat
+    # spatial_firing['hd_p'] = hd_p_values
+    # spatial_firing['hd_stat'] = hd_stat
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
     return hd_histogram, spatial_firing
