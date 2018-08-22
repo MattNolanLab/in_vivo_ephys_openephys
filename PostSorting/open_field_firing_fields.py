@@ -154,8 +154,12 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
     return spatial_firing
 
 
-def save_hd_in_fields(hd_session, hd_cluster, field_id, prm):
-    save_path = prm.get_filepath() + '/Firing_fields/'
+# save hd that corresponds to fields
+def save_hd_in_fields(hd_session, hd_cluster, cluster, field_id, prm):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    save_path = fields_path + str(int(cluster+1)) + '/'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_session.csv', hd_session, delimiter=',')
     np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_cluster.csv', hd_cluster, delimiter=',')
 
@@ -171,8 +175,10 @@ def write_shell_script_to_call_r_analysis(prm):
     batch_writer.close()
 
 
-def analyze_fields_r(prm):
-    path = prm.get_filepath() + '/Firing_fields'
+# calculate statistics for hd in fields
+def analyze_fields_r(prm, cluster):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    path = fields_path + str(int(cluster+1)) + '/'
     write_shell_script_to_call_r_analysis(prm)
     os.chmod(path + '/run_r.sh', 484)
     subprocess.call(path + '/run_r.sh', shell=True)
@@ -200,7 +206,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
             for field_id, field in enumerate(firing_fields_cluster):
                 hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
                 hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
-                save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, field_id, prm)
+                save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, cluster, field_id, prm)
                 hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
                 hd_hist_session /= prm.get_sampling_rate()
                 hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
@@ -214,7 +220,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
                 max_firing_rate.append(max_firing_rate_cluster/1000)
                 preferred_hd.append(preferred_direction[0])
                 hd_score.append(hd_score_cluster)
-            analyze_fields_r(prm)
+            analyze_fields_r(prm, cluster)
         else:
             hd_session.append([None])
             hd_cluster.append([None])
