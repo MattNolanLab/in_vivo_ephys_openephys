@@ -225,7 +225,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
                 preferred_hd.append(preferred_direction[0])
                 hd_score.append(hd_score_cluster)
 
-            analyze_fields_r(prm, cluster + 1)
+            analyze_fields_r(prm, cluster)
         else:
             hd_session.append([None])
             hd_cluster.append([None])
@@ -238,6 +238,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
         max_firing_rates_all.append(max_firing_rate)
         preferred_hd_all.append(preferred_hd)
         hd_score_all.append(hd_score)
+
 
     spatial_firing['firing_fields_hd_session'] = hd_session_all
     spatial_firing['firing_fields_hd_cluster'] = hd_cluster_all
