@@ -285,7 +285,6 @@ def make_combined_figure(prm, spatial_firing):
             firing_fields_polar_plot.axis('off')
             firing_fields_polar_plot.imshow(firing_field_polar)
 
-
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
         plt.close()
 
