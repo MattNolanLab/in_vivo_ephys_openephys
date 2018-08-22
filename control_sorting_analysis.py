@@ -196,13 +196,13 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
-        #pre_process_ephys_data.pre_process_data(recording_to_sort)
+        pre_process_ephys_data.pre_process_data(recording_to_sort)
 
         print('I finished pre-processing the first recording. I will call MountainSort now.')
-        #os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
+        os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
 
-        #subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
-        #os.remove('/home/nolanlab/to_sort/run_sorting.sh')
+        subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
+        os.remove('/home/nolanlab/to_sort/run_sorting.sh')
 
         print('MS is done')
 

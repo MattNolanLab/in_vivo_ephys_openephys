@@ -157,7 +157,7 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
 # save hd that corresponds to fields
 def save_hd_in_fields(hd_session, hd_cluster, cluster, field_id, prm):
     fields_path = prm.get_filepath() + '/Firing_fields/'
-    save_path = fields_path + str(int(cluster)) + '/'
+    save_path = fields_path + str(int(cluster + 1)) + '/'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_session.csv', hd_session, delimiter=',')
@@ -165,7 +165,7 @@ def save_hd_in_fields(hd_session, hd_cluster, cluster, field_id, prm):
 
 
 def write_shell_script_to_call_r_analysis(prm, cluster):
-    firing_field_path = prm.get_filepath() + '/Firing_fields/' + str(int(cluster)) + '/'
+    firing_field_path = prm.get_filepath() + '/Firing_fields/' + str(int(cluster + 1)) + '/'
     script_path = prm.get_filepath() + '/Firing_fields' + '/run_r.sh'
     batch_writer = open(script_path, 'w', newline='\n')
     batch_writer.write('#!/bin/bash\n')
