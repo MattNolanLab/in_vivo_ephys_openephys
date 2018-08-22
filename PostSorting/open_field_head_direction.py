@@ -76,19 +76,6 @@ def calculate_hd_score(spatial_firing):
     return spatial_firing
 
 
-'''
-p is the probability of obtaining two samples this different from the same distribution
-stats is the raw test statistic
-'''
-
-
-def compare_hd_distributions_in_cluster_to_session(session_angles, cluster_angles):
-    stat, p = kuiper.kuiper_two(session_angles, cluster_angles)
-    #stat, p = stats.kuiper_two(session_angles, cluster_angles)
-    #stat, p = scipy.stats.ks_2samp(session_angles, cluster_angles)
-    return stat, p
-
-
 def process_hd_data(spatial_firing, spatial_data, prm):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
@@ -96,22 +83,15 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     hd_histogram /= prm.get_sampling_rate()
 
     hd_spike_histograms = []
-    hd_p_values = []
-    hd_stat = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
-        # stats, p = compare_hd_distributions_in_cluster_to_session(angles_whole_session, angles_spike)
-        # hd_p_values.append(p)
-        # hd_stat.append(stats)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
-    # spatial_firing['hd_p'] = hd_p_values
-    # spatial_firing['hd_stat'] = hd_stat
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
     return hd_histogram, spatial_firing
