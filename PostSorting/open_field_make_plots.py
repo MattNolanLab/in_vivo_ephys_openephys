@@ -218,7 +218,7 @@ def make_combined_figure(prm, spatial_firing):
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
 
         number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
-        number_of_rows = math.ceil(number_of_firing_fields/5) + 2
+        number_of_rows = math.ceil((number_of_firing_fields + 1)/5) + 2
 
         grid = plt.GridSpec(number_of_rows, 5, wspace=0.2, hspace=0.2)
         if os.path.exists(waveforms_path):
