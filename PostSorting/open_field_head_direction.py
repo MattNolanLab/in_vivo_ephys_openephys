@@ -106,6 +106,22 @@ def analyze_hd_r(prm, cluster):
     subprocess.call(path + '/run_r.sh', shell=True)
 
 
+def put_stat_results_in_spatial_df(spatial_firing, prm):
+    df_stats = pd.DataFrame([])
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        fields_path = prm.get_filepath() + '/Firing_fields/'
+        path_to_hd_stats = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
+        hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
+        df_stats = df_stats.append(hd_stats_cluster_df)
+    spatial_firing['watson_test_hd'] = df_stats.Watson_two_sample.values
+    spatial_firing['kuiper_cluster'] = df_stats.Kuiper_Cluster.values
+    spatial_firing['kuiper_session'] = df_stats.Kuiper_Session.values
+    spatial_firing['watson_cluster'] = df_stats.Watson_Cluster.values
+    spatial_firing['watson_session'] = df_stats.Watson_Session.values
+    return spatial_firing
+
+
 def process_hd_data(spatial_firing, spatial_data, prm):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
@@ -124,6 +140,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
+    spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
