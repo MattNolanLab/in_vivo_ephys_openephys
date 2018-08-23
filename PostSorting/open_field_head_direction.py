@@ -1,9 +1,9 @@
+import os
 import math
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-import kuiper
-import scipy
+import subprocess
 
 import PostSorting.open_field_firing_maps
 
@@ -76,6 +76,36 @@ def calculate_hd_score(spatial_firing):
     return spatial_firing
 
 
+# save hd
+def save_hd_for_r(hd_session, hd_cluster, cluster, prm):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    save_path = fields_path + str(int(cluster + 1)) + '_whole_field/'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    np.savetxt(save_path + 'session.csv', hd_session, delimiter=',')
+    np.savetxt(save_path + 'cluster.csv', hd_cluster, delimiter=',')
+
+
+def write_shell_script_to_call_r_analysis(prm, cluster):
+    firing_field_path = prm.get_filepath() + '/Firing_fields/' + str(int(cluster + 1)) + '_whole_field/'
+    script_path = prm.get_filepath() + '/Firing_fields' + '/run_r.sh'
+    batch_writer = open(script_path, 'w', newline='\n')
+    batch_writer.write('#!/bin/bash\n')
+    batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
+    batch_writer.write('echo "This is a shell script that will call R to analyze firing fields."\n')
+    batch_writer.write('Rscript /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostSorting/process_fields.r ' + firing_field_path)
+    batch_writer.close()
+
+
+# calculate statistics for hd in fields
+def analyze_hd_r(prm, cluster):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    path = fields_path
+    write_shell_script_to_call_r_analysis(prm, cluster)
+    os.chmod(path + '/run_r.sh', 484)
+    subprocess.call(path + '/run_r.sh', shell=True)
+
+
 def process_hd_data(spatial_firing, spatial_data, prm):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
@@ -86,6 +116,9 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
+
+        save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
+        analyze_hd_r(prm, cluster)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
