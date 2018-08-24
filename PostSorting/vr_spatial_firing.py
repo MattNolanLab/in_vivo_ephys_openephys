@@ -13,42 +13,52 @@ def add_columns_to_dataframe(spike_data):
     spike_data["beaconed_trial_number"] = ""
     spike_data["nonbeaconed_position_cm"] = ""
     spike_data["nonbeaconed_trial_number"] = ""
+    spike_data["probe_position_cm"] = ""
+    spike_data["probe_trial_number"] = ""
     spike_data["avg_spike_per_bin_b"] = ""
     spike_data["avg_spike_per_bin_nb"] = ""
+    spike_data["avg_spike_per_bin_p"] = ""
     return spike_data
 
 
 def find_firing_location_indices(spike_data, spatial_data):
     print('I am extracting firing locations for each cluster...')
-    cluster = 5
-    #for cluster in range(len(spike_data)):
-    #cluster_index = spike_data.cluster_id.values[cluster] - 1
-    cluster_firing_indices = spike_data.firing_times[cluster]
-
-    spike_data.loc[cluster].position_cm = list(spatial_data.position_cm[cluster_firing_indices])
-    spike_data.loc[cluster].trial_number = list(spatial_data.trial_number[cluster_firing_indices])
-    spike_data.loc[cluster].trial_type = list(spatial_data.trial_type[cluster_firing_indices])
+    #cluster = 5
+    for cluster in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_firing_indices = spike_data.firing_times[cluster_index]
+        if len(cluster_firing_indices) > 2000:
+            continue
+        spike_data.loc[cluster_index].position_cm = list(spatial_data.position_cm[cluster_firing_indices])
+        spike_data.loc[cluster_index].trial_number = list(spatial_data.trial_number[cluster_firing_indices])
+        spike_data.loc[cluster_index].trial_type = list(spatial_data.trial_type[cluster_firing_indices])
     return spike_data
 
 
 def split_spatial_firing_by_trial_type(spike_data):
     print('I am splitting firing locations by trial type...')
-    cluster_index=5
-    cluster_df = spike_data.iloc[[cluster_index]] # dataframe for that cluster
-    trials = np.array(cluster_df.trial_number.tolist())
-    locations = np.array(cluster_df.position_cm.tolist())
-    trial_type = np.array(cluster_df.trial_type.tolist())
-    beaconed_trial_indices=np.where(trial_type == 0)[1]#find indices where is beaconed trial
-    nonbeaconed_trial_indices=np.where(trial_type == 1)[1]#find indices where is nonbeaconed trial
-    beaconed_locations = np.take(locations, beaconed_trial_indices) #split location and trial number
-    nonbeaconed_locations = np.take(locations, nonbeaconed_trial_indices)
-    beaconed_trials = np.take(trials, beaconed_trial_indices)
-    nonbeaconed_trials = np.take(trials, nonbeaconed_trial_indices)
+    for cluster in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_df = spike_data.iloc[[cluster_index]] # dataframe for that cluster
+        trials = np.array(cluster_df.trial_number.tolist())
+        locations = np.array(cluster_df.position_cm.tolist())
+        trial_type = np.array(cluster_df.trial_type.tolist())
+        beaconed_trial_indices=np.where(trial_type == 0)[1]#find indices where is beaconed trial
+        nonbeaconed_trial_indices=np.where(trial_type == 1)[1]#find indices where is nonbeaconed trial
+        probe_trial_indices=np.where(trial_type == 2)[1]#find indices where is probe trial
+        beaconed_locations = np.take(locations, beaconed_trial_indices) #split location and trial number
+        nonbeaconed_locations = np.take(locations, nonbeaconed_trial_indices)
+        probe_locations = np.take(locations, probe_trial_indices)
+        beaconed_trials = np.take(trials, beaconed_trial_indices)
+        nonbeaconed_trials = np.take(trials, nonbeaconed_trial_indices)
+        probe_trials = np.take(trials, probe_trial_indices)
 
-    spike_data.loc[cluster_index].beaconed_position_cm = list(beaconed_locations)
-    spike_data.loc[cluster_index].beaconed_trial_number = list(beaconed_trials)
-    spike_data.loc[cluster_index].nonbeaconed_position_cm = list(nonbeaconed_locations)
-    spike_data.loc[cluster_index].nonbeaconed_trial_number = list(nonbeaconed_trials)
+        spike_data.loc[cluster_index].beaconed_position_cm = list(beaconed_locations)
+        spike_data.loc[cluster_index].beaconed_trial_number = list(beaconed_trials)
+        spike_data.loc[cluster_index].nonbeaconed_position_cm = list(nonbeaconed_locations)
+        spike_data.loc[cluster_index].nonbeaconed_trial_number = list(nonbeaconed_trials)
+        spike_data.loc[cluster_index].probe_position_cm = list(probe_locations)
+        spike_data.loc[cluster_index].probe_trial_number = list(probe_trials)
     return spike_data
 
 
