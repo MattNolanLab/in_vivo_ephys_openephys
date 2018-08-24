@@ -89,10 +89,12 @@ def calculate_trial_types(position_data, recording_folder):
 
     trial_type = np.zeros((first.shape[1]));trial_type[:]=np.nan
     for point,p in enumerate(trial_type):
-        if second[0,point] < 2: # if beaconed
+        if second[0,point] < 2 and first[0,point] < 2: # if beaconed
             trial_type[point] = 0
-        if second[0,point] > 2: # if non beaconed
+        if second[0,point] > 2 and first[0,point] < 2: # if beaconed
             trial_type[point] = 1
+        if second[0,point] > 2 and first[0,point] > 2: # if non beaconed
+            trial_type[point] = 2
 
     position_data['trial_type'] = trial_type
     return position_data
