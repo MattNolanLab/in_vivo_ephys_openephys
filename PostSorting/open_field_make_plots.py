@@ -144,7 +144,7 @@ def generate_colors(number_of_firing_fields):
     return colors
 
 
-def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id):
+def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, name):
     field_polar = plt.figure()
     field_polar.set_size_inches(5, 5, forward=True)
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
@@ -157,7 +157,7 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
     #+ '\nKuiper p: ' + str(spatial_firing.field_hd_p[cluster][field_id])
     plt.title('max_fr: ' +str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2)) + ', max fr_hd: ' + str(round(spatial_firing.field_hd_max_rate[cluster][field_id], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.field_preferred_hd[cluster][field_id][0], 0)) + '\nhd score: ' + str(round(spatial_firing.field_hd_score[cluster][field_id], 2)), y=1.08, fontsize=12)
     # plt.title('Kuiper p: ' + str(spatial_firing.field_hd_p[cluster][field_id]), y=1.08, fontsize=12)
-    plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_' + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
+    plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     plt.close()
 
 
@@ -187,9 +187,10 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 hd_hist_session = spatial_firing.firing_fields_hd_session[cluster][field_id]
                 hd_hist_session = np.array(hd_hist_session) / prm.get_sampling_rate()
                 hd_hist_cluster = np.array(spatial_firing.firing_fields_hd_cluster[cluster][field_id])
-                hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
+                hd_hist_cluster_normalized = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
-                save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id)
+                save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster_normalized, cluster, spatial_firing, colors, field_id, '_firing_field_')
+                save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, '_firing_field_raw')
 
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
             plt.close()
