@@ -1,11 +1,11 @@
 #! /usr/bin/Rscript
 args = commandArgs(trailingOnly=TRUE)
-
+.libPaths("/home/nolanlab/R/x86_64-pc-linux-gnu-library/3.4")
 library(tidyverse)
 library(circular)
 
-
 #setwd("C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/Firing_fields")
+#setwd("/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of/Firing_fields")
 setwd(args[1])
 
 # load data

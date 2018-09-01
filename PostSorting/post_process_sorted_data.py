@@ -113,8 +113,7 @@ def post_process_recording(recording_to_process, session_type):
         position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
         spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
         save_data_frames(spatial_firing, synced_spatial_data, bad_clusters)
-        # output_cluster_scores()
-        make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
+        make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
 #  this is here for testing

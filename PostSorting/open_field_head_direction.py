@@ -1,10 +1,9 @@
+import os
 import math
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-import kuiper
-import scipy
-from astropy import stats
+import subprocess
 
 import PostSorting.open_field_firing_maps
 
@@ -77,17 +76,50 @@ def calculate_hd_score(spatial_firing):
     return spatial_firing
 
 
-'''
-p is the probability of obtaining two samples this different from the same distribution
-stats is the raw test statistic
-'''
+# save hd
+def save_hd_for_r(hd_session, hd_cluster, cluster, prm):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    save_path = fields_path + str(int(cluster + 1)) + '_whole_field/'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    np.savetxt(save_path + 'session.csv', hd_session, delimiter=',')
+    np.savetxt(save_path + 'cluster.csv', hd_cluster, delimiter=',')
 
 
-def compare_hd_distributions_in_cluster_to_session(session_angles, cluster_angles):
-    #stats_old, p_old = kuiper.kuiper_two(session_angles, cluster_angles)
-    stat, p = stats.kuiper_two(session_angles, cluster_angles)
-    #stat, p = scipy.stats.ks_2samp(session_angles, cluster_angles)
-    return stat, p
+def write_shell_script_to_call_r_analysis(prm, cluster):
+    firing_field_path = prm.get_filepath() + '/Firing_fields/' + str(int(cluster + 1)) + '_whole_field/'
+    script_path = prm.get_filepath() + '/Firing_fields' + '/run_r.sh'
+    batch_writer = open(script_path, 'w', newline='\n')
+    batch_writer.write('#!/bin/bash\n')
+    batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
+    batch_writer.write('echo "This is a shell script that will call R to analyze firing fields."\n')
+    batch_writer.write('Rscript /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostSorting/process_fields.r ' + firing_field_path)
+    batch_writer.close()
+
+
+# calculate statistics for hd in fields
+def analyze_hd_r(prm, cluster):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    path = fields_path
+    write_shell_script_to_call_r_analysis(prm, cluster)
+    os.chmod(path + '/run_r.sh', 484)
+    subprocess.call(path + '/run_r.sh', shell=True)
+
+
+def put_stat_results_in_spatial_df(spatial_firing, prm):
+    df_stats = pd.DataFrame([])
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        fields_path = prm.get_filepath() + '/Firing_fields/'
+        path_to_hd_stats = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
+        hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
+        df_stats = df_stats.append(hd_stats_cluster_df)
+    spatial_firing['watson_test_hd'] = df_stats.Watson_two_sample.values
+    spatial_firing['kuiper_cluster'] = df_stats.Kuiper_Cluster.values
+    spatial_firing['kuiper_session'] = df_stats.Kuiper_Session.values
+    spatial_firing['watson_cluster'] = df_stats.Watson_Cluster.values
+    spatial_firing['watson_session'] = df_stats.Watson_Session.values
+    return spatial_firing
 
 
 def process_hd_data(spatial_firing, spatial_data, prm):
@@ -97,22 +129,19 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     hd_histogram /= prm.get_sampling_rate()
 
     hd_spike_histograms = []
-    hd_p_values = []
-    hd_stat = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
-        stats, p = compare_hd_distributions_in_cluster_to_session(angles_whole_session, angles_spike)
-        hd_p_values.append(p)
-        hd_stat.append(stats)
+
+        save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
+        analyze_hd_r(prm, cluster)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
+    spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
-    spatial_firing['hd_p'] = hd_p_values
-    spatial_firing['hd_stat'] = hd_stat
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
     return hd_histogram, spatial_firing
