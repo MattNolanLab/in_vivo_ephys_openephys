@@ -61,3 +61,6 @@ knitr::kable(table)
 
 # save table as csv
 write_csv(table, "circular_out.csv")
+
+# close open files
+closeAllConnections()
