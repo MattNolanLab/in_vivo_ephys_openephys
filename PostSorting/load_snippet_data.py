@@ -18,7 +18,7 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
 
     for index, event in enumerate(random_indices):
-        snippets_indices = np.arange(firing_times[event]-15, firing_times[event]+15, 1).astype(int)
+        snippets_indices = np.arange(firing_times[event]-10, firing_times[event]+20, 1).astype(int)
         snippets[:, :, index] = filtered_data[channels[0]:channels[3]+1, snippets_indices]
     # plt.plot(snippets[3,:,:]) # example ch plot
     return snippets
