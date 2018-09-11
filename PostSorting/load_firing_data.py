@@ -19,6 +19,14 @@ def get_firing_info(file_path, prm):
     return units_list, firing_info
 
 
+# if the recording has dead channels, detected channels need to be shifted to get read channel ids
+def correct_detected_ch_for_dead_channels(dead_channels, primary_channels):
+    for dead_channel in dead_channels:
+        indices_to_add_to = np.where(primary_channels >= dead_channel)
+        primary_channels[indices_to_add_to] += 1
+    return primary_channels
+
+
 def process_firing_times(recording_to_process, session_type, prm):
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info = get_firing_info(recording_to_process, prm)
