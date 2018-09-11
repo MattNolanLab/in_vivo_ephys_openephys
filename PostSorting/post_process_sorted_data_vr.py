@@ -5,6 +5,7 @@ import PostSorting.vr_spatial_data
 import PostSorting.vr_make_plots
 import PostSorting.vr_spatial_firing
 import PostSorting.vr_firing_maps
+import PostSorting.density_estimation_sskernel
 
 prm = PostSorting.parameters.Parameters()
 
@@ -28,8 +29,9 @@ def process_position_data(recording_to_process):
 
 
 def make_plots(spike_data, spatial_data):
-    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data)
-    #PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data)
+    #PostSorting.vr_make_plots.plot_stops_on_track(spatial_data)
+    #PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data)
+    PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data)
 
 
 def create_folders_for_output(recording_to_process):
