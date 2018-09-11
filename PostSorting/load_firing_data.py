@@ -2,6 +2,7 @@ import mdaio
 import numpy as np
 import os
 import pandas as pd
+import PreClustering.dead_channels
 
 
 def get_firing_info(file_path, prm):
@@ -27,12 +28,22 @@ def correct_detected_ch_for_dead_channels(dead_channels, primary_channels):
     return primary_channels
 
 
+def correct_for_dead_channels(primary_channels, prm):
+    PreClustering.dead_channels.get_dead_channel_ids(prm)
+    dead_channels = prm.get_dead_channels()
+    if len(dead_channels) != 0:
+        dead_channels = list(map(int, dead_channels[0]))
+        primary_channels = correct_detected_ch_for_dead_channels(dead_channels, primary_channels)
+    return primary_channels
+
+
 def process_firing_times(recording_to_process, session_type, prm):
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info = get_firing_info(recording_to_process, prm)
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
+    primary_channel = correct_for_dead_channels(primary_channel, prm)
     if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
         firing_data = pd.DataFrame(columns=['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'])
         for cluster in units_list:
