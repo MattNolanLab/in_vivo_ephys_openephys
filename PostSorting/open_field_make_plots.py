@@ -7,7 +7,7 @@ import plot_utility
 import math
 import numpy as np
 import PostSorting.parameters
-import  PostSorting.open_field_head_direction
+import PostSorting.open_field_head_direction
 
 import pandas as pd
 import PostSorting.open_field_firing_fields
