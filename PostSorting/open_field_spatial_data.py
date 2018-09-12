@@ -1,5 +1,6 @@
 import csv
 import glob
+import hd_sampling_analysis
 import numpy as np
 import os
 import pandas as pd
@@ -154,7 +155,6 @@ def shift_to_start_from_zero_at_bottom_left(position_data):
     position_data['position_y'] = position_data.position_y - min(position_data.position_y) #+ 0.0001
     return position_data
 
-
 def process_position_data(recording_folder, params):
     position_of_mouse = None
     path_to_bonsai_file, is_found = find_bonsai_file(recording_folder)
@@ -168,6 +168,7 @@ def process_position_data(recording_folder, params):
         position_data = convert_to_cm(position_data, params)
         position_data = calculate_central_speed(position_data)
         position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
+        hd_sampling_analysis.check_if_hd_sampling_was_high_enough(position_of_mouse, params)
     return position_of_mouse, is_found
 
 
