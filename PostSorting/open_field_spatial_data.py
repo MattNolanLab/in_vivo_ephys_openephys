@@ -151,9 +151,10 @@ def convert_to_cm(position_data, params):
 
 def shift_to_start_from_zero_at_bottom_left(position_data):
     # this is copied from MATLAB script, 0.0001 is here to 'avoid bin zero in first point'
-    position_data['position_x'] = position_data.position_x - min(position_data.position_x) #+ 0.0001
-    position_data['position_y'] = position_data.position_y - min(position_data.position_y) #+ 0.0001
+    position_data['position_x'] = position_data.position_x - min(position_data.position_x[~np.isnan(position_data.position_x)]) #+ 0.0001
+    position_data['position_y'] = position_data.position_y - min(position_data.position_y[~np.isnan(position_data.position_y)]) #+ 0.0001
     return position_data
+
 
 def process_position_data(recording_folder, params):
     position_of_mouse = None
