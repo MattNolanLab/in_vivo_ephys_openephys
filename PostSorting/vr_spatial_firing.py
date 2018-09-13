@@ -1,4 +1,3 @@
-import pandas as pd
 import PostSorting.parameters
 import numpy as np
 

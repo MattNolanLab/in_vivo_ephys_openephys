@@ -1,13 +1,7 @@
 import matplotlib.pylab as plt
 import plot_utility
 import PostSorting.parameters
-from scipy.interpolate import spline
-import numpy as np
-from scipy import signal
-import pandas as pd
-import scipy.ndimage
-from scipy.signal import gaussian
-from scipy.ndimage import filters
+
 
 prm = PostSorting.parameters.Parameters()
 
