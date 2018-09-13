@@ -30,7 +30,7 @@ def process_position_data(recording_to_process):
 
 def make_plots(spike_data, spatial_data):
     #PostSorting.vr_make_plots.plot_stops_on_track(spatial_data)
-    #PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data)
+    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data)
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data)
 
 
