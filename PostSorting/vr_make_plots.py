@@ -2,18 +2,56 @@ import matplotlib.pylab as plt
 import plot_utility
 import PostSorting.parameters
 
+
 prm = PostSorting.parameters.Parameters()
 
 
-def plot_spikes_on_track(spatial_firing):
-    print('I am plotting spike rastas...')
+def plot_stops_on_track(spatial_data):
+    print('I am plotting stop rasta...')
+    spikes_on_track = plt.figure(figsize=(6,8))
+    ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
 
-    for cluster in range(len(spatial_firing)):
+    ax.plot(spatial_data.stop_location_cm, spatial_data.stop_trial_number, 'o', color='0.3', markersize=4, alpha = 0.2)
+    ax.plot(spatial_data.first_series_location_cm, spatial_data.first_series_trial_number, 'o', color='Black', markersize=4)
+    #ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=4)
+    plt.ylabel('Spikes on trials', fontsize=14, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
+    plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plot_utility.style_track_plot(ax, 200)
+    x_max = max(spatial_data.trial_number)+0.5
+    plot_utility.style_vr_plot(ax, x_max)
+
+    ax = spikes_on_track.add_subplot(2, 1, 2)  # specify (nrows, ncols, axnum)
+
+    ax.plot(spatial_data.position_bins,spatial_data.average_stops, '-', color='Black')
+
+    plt.ylabel('Spikes on trials', fontsize=14, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
+    plt.xlim(0,200)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plot_utility.style_track_plot(ax, 200)
+    x_max = max(spatial_data.average_stops)+0.5
+    plot_utility.style_vr_plot(ax, x_max)
+
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/stops_on_track_' + '.png')
+    plt.close()
+
+
+def plot_spikes_on_track(spike_data,spatial_data):
+    print('I am plotting spike rastas...')
+    #cluster_index = 5
+    for cluster_index in range(len(spike_data)):
+        #cluster_index = spike_data.cluster_id.values[cluster] - 1
         spikes_on_track = plt.figure()
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-        ax.plot(spatial_firing.position_cm[cluster], spatial_firing.trial_number[cluster], '|', color='black', markersize=12)
-        plt.show()
+        cluster_firing_indices = spike_data.firing_times[cluster_index]
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=12)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=12)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=12)
 
         plt.ylabel('Spikes on trials', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
@@ -21,30 +59,38 @@ def plot_spikes_on_track(spatial_firing):
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
 
-        plot_utility.style_track_plot(ax)
-        x_max = max(spatial_firing.trial_number[cluster])+0.5
+        plot_utility.style_track_plot(ax, 200)
+        x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/' + spatial_firing.session_id[cluster] + 'track_firing_' + str(cluster + 1) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/track_firing_Cluster_' + str(cluster_index) + '.png')
         plt.close()
-
 
 def plot_firing_rate_maps(spike_data):
     print('I am plotting firing rate maps...')
-
-    for cluster in range(len(spike_data)):
+    #cluster_index = 5
+    for cluster_index in range(len(spike_data)):
+        #cluster_index = spike_data.cluster_id.values[cluster] - 1
         avg_spikes_on_track = plt.figure()
 
+        bins=range(200)
+        unsmooth_b = spike_data.avg_spike_per_bin_b[cluster_index]
+        unsmooth_nb = spike_data.avg_spike_per_bin_nb[cluster_index]
+        unsmooth_p = spike_data.avg_spike_per_bin_p[cluster_index]
+
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.plot(range(40), spike_data.avg_spike_per_bin[cluster], '-')
+        ax.plot(bins, unsmooth_b, '-', color='Black')
+        ax.plot(bins, unsmooth_nb, '-', color='Red')
+        ax.plot(bins, unsmooth_p, '-', color='Blue')
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
-        plt.ylabel('Avg spikes', fontsize=14, labelpad = 10)
+        plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
-
-        plt.xlim(0,40)
-        x_max = max(spike_data.avg_spike_per_bin[cluster])+0.5
+        plt.xlim(0,200)
+        x_max = max(spike_data.avg_spike_per_bin_b[cluster_index])+0.1
         plot_utility.style_vr_plot(ax, x_max)
+        plot_utility.style_track_plot(ax, 200)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/rate_map_' + str(1) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/rate_map_Cluster_' + str(cluster_index) + '.png')
         plt.close()
+

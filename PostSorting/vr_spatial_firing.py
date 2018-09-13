@@ -1,30 +1,66 @@
-import pandas as pd
 import PostSorting.parameters
+import numpy as np
 
 prm = PostSorting.parameters.Parameters()
 
 
+def add_columns_to_dataframe(spike_data):
+    spike_data["x_position_cm"] = ""
+    spike_data["y_position_cm"] = ""
+    spike_data["trial_number"] = ""
+    spike_data["trial_type"] = ""
+    spike_data["beaconed_position_cm"] = ""
+    spike_data["beaconed_trial_number"] = ""
+    spike_data["nonbeaconed_position_cm"] = ""
+    spike_data["nonbeaconed_trial_number"] = ""
+    spike_data["probe_position_cm"] = ""
+    spike_data["probe_trial_number"] = ""
+    spike_data["avg_spike_per_bin_b"] = ""
+    spike_data["avg_spike_per_bin_nb"] = ""
+    spike_data["avg_spike_per_bin_p"] = ""
+    return spike_data
+
+
 def find_firing_location_indices(spike_data, spatial_data):
-    print('I am extracting firing locations...')
-    spatial_firing = pd.DataFrame(columns=['position_cm', 'trial_number', 'trial_type', 'dwell_time_ms'])
-    for cluster in range(len(spike_data)):
-        cluster_firing_indices = spike_data.firing_times[cluster]
-        spatial_firing = spatial_firing.append({
-            "position_cm": list(spatial_data.position_cm[cluster_firing_indices]),
-            "trial_number": list(spatial_data.trial_number[cluster_firing_indices]),
-            "trial_type":  list(spatial_data.trial_type[cluster_firing_indices]),
-            "dwell_time_ms":  list(spatial_data.dwell_time_ms[cluster_firing_indices]),
-        }, ignore_index=True)
-        spike_data['position_cm'] = spatial_firing.position_cm
-        spike_data['trial_number'] = spatial_firing.trial_number
-        spike_data['trial_type'] = spatial_firing.trial_type
-        spike_data['dwell_time_ms'] = spatial_firing.dwell_time_ms
-        print('Firing locations have been extracted for each cluster')
+    print('I am extracting firing locations for each cluster...')
+    #cluster_index = 5
+    for cluster_index in range(len(spike_data)-1):
+        #cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_firing_indices = spike_data.firing_times[cluster_index]
+        spike_data.x_position_cm[cluster_index] = spatial_data.x_position_cm[cluster_firing_indices].values
+        spike_data.trial_number[cluster_index] = spatial_data.trial_number[cluster_firing_indices].values
+        spike_data.trial_type[cluster_index] = spatial_data.trial_type[cluster_firing_indices].values
+    return spike_data
+
+
+def split_spatial_firing_by_trial_type(spike_data):
+    print('I am splitting firing locations by trial type...')
+    #cluster_index = 5
+    for cluster_index in range(len(spike_data)-1):
+        #cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_df = spike_data.iloc[[cluster_index]] # dataframe for that cluster
+        trials = np.array(cluster_df['trial_number'].tolist())
+        locations = np.array(cluster_df['x_position_cm'].tolist())
+        trial_type = np.array(cluster_df['trial_type'].tolist())
+
+        beaconed_locations = np.take(locations, np.where(trial_type == 0)[1]) #split location and trial number
+        nonbeaconed_locations = np.take(locations,np.where(trial_type == 1)[1])
+        probe_locations = np.take(locations, np.where(trial_type == 2)[1])
+        beaconed_trials = np.take(trials, np.where(trial_type == 0)[1])
+        nonbeaconed_trials = np.take(trials, np.where(trial_type == 1)[1])
+        probe_trials = np.take(trials, np.where(trial_type == 2)[1])
+
+        spike_data.loc[cluster_index].beaconed_position_cm = list(beaconed_locations)
+        spike_data.loc[cluster_index].beaconed_trial_number = list(beaconed_trials)
+        spike_data.loc[cluster_index].nonbeaconed_position_cm = list(nonbeaconed_locations)
+        spike_data.loc[cluster_index].nonbeaconed_trial_number = list(nonbeaconed_trials)
+        spike_data.loc[cluster_index].probe_position_cm = list(probe_locations)
+        spike_data.loc[cluster_index].probe_trial_number = list(probe_trials)
     return spike_data
 
 
 def process_spatial_firing(spike_data, spatial_data):
-
-    spatial_firing = find_firing_location_indices(spike_data, spatial_data)
-
+    spatial_firing = add_columns_to_dataframe(spike_data)
+    spatial_firing = find_firing_location_indices(spatial_firing, spatial_data)
+    spatial_firing = split_spatial_firing_by_trial_type(spatial_firing)
     return spatial_firing
