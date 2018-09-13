@@ -28,6 +28,7 @@ def initialize_parameters(recording_to_process):
     prm.set_sync_channel('100_ADC1.continuous')
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
+    prm.set_file_path(recording_to_process)  # todo clean this
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -77,6 +78,8 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Figures')
     if os.path.exists(recording_to_process + '/DataFrames') is False:
         os.makedirs(recording_to_process + '/DataFrames')
+    if os.path.exists(recording_to_process + '/Firing_fields') is False:
+        os.makedirs(recording_to_process + '/Firing_fields')
 
 
 def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters):
@@ -110,8 +113,7 @@ def post_process_recording(recording_to_process, session_type):
         position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
         spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
         save_data_frames(spatial_firing, synced_spatial_data, bad_clusters)
-        # output_cluster_scores()
-        make_plots(synced_spatial_data, spike_data_spatial, position_heat_map, hd_histogram, prm)
+        make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
 #  this is here for testing

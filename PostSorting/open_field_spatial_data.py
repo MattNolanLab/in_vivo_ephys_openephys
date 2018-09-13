@@ -1,5 +1,6 @@
 import csv
 import glob
+import hd_sampling_analysis
 import numpy as np
 import os
 import pandas as pd
@@ -150,8 +151,8 @@ def convert_to_cm(position_data, params):
 
 def shift_to_start_from_zero_at_bottom_left(position_data):
     # this is copied from MATLAB script, 0.0001 is here to 'avoid bin zero in first point'
-    position_data['position_x'] = position_data.position_x - min(position_data.position_x) #+ 0.0001
-    position_data['position_y'] = position_data.position_y - min(position_data.position_y) #+ 0.0001
+    position_data['position_x'] = position_data.position_x - min(position_data.position_x[~np.isnan(position_data.position_x)]) #+ 0.0001
+    position_data['position_y'] = position_data.position_y - min(position_data.position_y[~np.isnan(position_data.position_y)]) #+ 0.0001
     return position_data
 
 
@@ -168,6 +169,7 @@ def process_position_data(recording_folder, params):
         position_data = convert_to_cm(position_data, params)
         position_data = calculate_central_speed(position_data)
         position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
+        hd_sampling_analysis.check_if_hd_sampling_was_high_enough(position_of_mouse, params)
     return position_of_mouse, is_found
 
 

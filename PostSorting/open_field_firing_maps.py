@@ -26,8 +26,8 @@ def get_bin_size(prm):
 
 def get_number_of_bins(spatial_data, prm):
     bin_size_pixels = get_bin_size(prm)
-    length_of_arena_x = spatial_data.position_x_pixels.max()
-    length_of_arena_y = spatial_data.position_y_pixels.max()
+    length_of_arena_x = spatial_data.position_x_pixels[~np.isnan(spatial_data.position_x_pixels)].max()
+    length_of_arena_y = spatial_data.position_y_pixels[~np.isnan(spatial_data.position_y_pixels)].max()
     number_of_bins_x = math.ceil(length_of_arena_x / bin_size_pixels)
     number_of_bins_y = math.ceil(length_of_arena_y / bin_size_pixels)
     return number_of_bins_x, number_of_bins_y

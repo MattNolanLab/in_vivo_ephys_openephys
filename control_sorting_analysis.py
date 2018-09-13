@@ -6,6 +6,7 @@ import multiprocessing
 import shutil
 import subprocess
 import sys
+import traceback
 import time
 import Logger
 from PreClustering import pre_process_ephys_data
@@ -175,6 +176,18 @@ def copy_output_to_server(recording_to_sort, location_on_server):
               'I could not resolve, but the files are actually copied successfully.')
         pass
 
+    if os.path.exists(server_path_first_half + location_on_server + '/Firing_fields') is True:
+        shutil.rmtree(server_path_first_half + location_on_server + '/Firing_fields')
+    try:
+        shutil.copytree(recording_to_sort + '/Firing_fields', server_path_first_half + location_on_server + '/Firing_fields')
+    except shutil.Error as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print(message)
+        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
+              'I could not resolve, but the files are actually copied successfully.')
+        pass
+
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
@@ -204,15 +217,20 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
             copy_output_to_server(recording_to_sort, location_on_server)
 
 
-        # call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
+        #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
     except Exception as ex:
         add_to_list_of_failed_sortings(recording_to_sort)
+        location_on_server = get_location_on_server(recording_to_sort)
+        if os.path.exists(recording_to_sort + '/Figures') is True:
+            copy_output_to_server(recording_to_sort, location_on_server)
         print('There is a problem with this file. '
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_tb(exc_traceback)
         shutil.rmtree(recording_to_sort)
         if os.path.exists(mountainsort_tmp_folder) is True:
             shutil.rmtree(mountainsort_tmp_folder)

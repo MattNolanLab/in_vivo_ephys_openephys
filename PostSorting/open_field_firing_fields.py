@@ -1,5 +1,7 @@
+import os
 import numpy as np
 import pandas as pd
+import subprocess
 import PostSorting.open_field_head_direction
 
 # import matplotlib.pylab as plt
@@ -152,12 +154,54 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
     return spatial_firing
 
 
+# save hd that corresponds to fields
+def save_hd_in_fields(hd_session, hd_cluster, cluster, field_id, prm):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    save_path = fields_path + str(int(cluster + 1)) + '/'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_session.csv', hd_session, delimiter=',')
+    np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_cluster.csv', hd_cluster, delimiter=',')
+
+
+def write_shell_script_to_call_r_analysis(prm, cluster):
+    firing_field_path = prm.get_filepath() + '/Firing_fields/' + str(int(cluster + 1)) + '/'
+    script_path = prm.get_filepath() + '/Firing_fields' + '/run_r.sh'
+    batch_writer = open(script_path, 'w', newline='\n')
+    batch_writer.write('#!/bin/bash\n')
+    batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
+    batch_writer.write('echo "This is a shell script that will call R to analyze firing fields."\n')
+    batch_writer.write('Rscript /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostSorting/process_fields.r ' + firing_field_path)
+    batch_writer.close()
+
+
+# calculate statistics for hd in fields
+def analyze_fields_r(prm, cluster):
+    fields_path = prm.get_filepath() + '/Firing_fields/'
+    path = fields_path
+    write_shell_script_to_call_r_analysis(prm, cluster)
+    os.chmod(path + '/run_r.sh', 484)
+    subprocess.call(path + '/run_r.sh', shell=True)
+
+
+def analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field_id):
+    hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
+    hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
+    save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, cluster, field_id, prm)
+    hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
+    hd_hist_session /= prm.get_sampling_rate()
+    hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
+    hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
+    max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
+    hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
+    preferred_direction = np.where(hd_hist_cluster == max_firing_rate_cluster)
+    return hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction
+
+
 def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
     print('I will analyze head-direction in the detected firing fields.')
     hd_session_all = []
     hd_cluster_all = []
-    field_p_all = []
-    field_stat_all = []
     max_firing_rates_all = []
     preferred_hd_all = []
     hd_score_all = []
@@ -168,64 +212,37 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
         firing_fields_cluster = spatial_firing.firing_fields[cluster]
         hd_session = []
         hd_cluster = []
-        field_p = []
-        field_stat = []
         max_firing_rate = []
         preferred_hd = []
         hd_score = []
 
         if number_of_firing_fields > 0:
             for field_id, field in enumerate(firing_fields_cluster):
-                hd_in_field_session = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
-                hd_in_field_cluster = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
-                p, stat = PostSorting.open_field_head_direction.compare_hd_distributions_in_cluster_to_session(hd_in_field_session, hd_in_field_cluster)
-                hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
-                hd_hist_session /= prm.get_sampling_rate()
-                hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
-                hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
-                max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
-                hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
-                preferred_direction = np.where(hd_hist_cluster == max_firing_rate_cluster)
-
+                hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction = analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field_id)
                 hd_session.append(list(hd_hist_session))
                 hd_cluster.append(list(hd_hist_cluster))
-                field_p.append(p)
-                field_stat.append(stat)
                 max_firing_rate.append(max_firing_rate_cluster/1000)
                 preferred_hd.append(preferred_direction[0])
                 hd_score.append(hd_score_cluster)
+
+            analyze_fields_r(prm, cluster)
         else:
             hd_session.append([None])
             hd_cluster.append([None])
-            field_p.append([None])
-            field_stat.append([None])
             max_firing_rate.append(None)
             preferred_hd.append(None)
             hd_score.append(None)
+
         hd_session_all.append(hd_session)
         hd_cluster_all.append(hd_cluster)
-        field_p_all.append(field_p)
-        field_stat_all.append(field_stat)
         max_firing_rates_all.append(max_firing_rate)
         preferred_hd_all.append(preferred_hd)
         hd_score_all.append(hd_score)
 
+
     spatial_firing['firing_fields_hd_session'] = hd_session_all
     spatial_firing['firing_fields_hd_cluster'] = hd_cluster_all
-    spatial_firing['field_hd_p'] = field_p_all
-    spatial_firing['field_stat'] = field_stat_all
     spatial_firing['field_hd_max_rate'] = max_firing_rates_all
     spatial_firing['field_preferred_hd'] = preferred_hd_all
     spatial_firing['field_hd_score'] = hd_score_all
     return spatial_firing
-
-
-def main():
-    firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
-    cluster_id = np.arange(len(firing_rate_maps))
-    spatial_firing = pd.DataFrame(cluster_id)
-    spatial_firing['firing_maps'] = list(firing_rate_maps)
-    spatial_firing = analyze_firing_fields(spatial_firing)
-
-if __name__ == '__main__':
-    main()
