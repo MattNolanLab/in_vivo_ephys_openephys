@@ -115,6 +115,15 @@ def plot_autocorrelograms(spike_data, prm):
         plt.close()
 
 
+def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel):
+    snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
+    plt.ylim(lowest_value - 10, highest_value + 30)
+    plot_utility.style_plot(snippet_plot)
+    snippet_plot.plot(spike_data.random_snippets[cluster][channel, :, :] * -1, color='lightslategray')
+    snippet_plot.plot(np.mean(spike_data.random_snippets[cluster][channel, :, :], 1) * -1, color='red')
+    plt.xticks([0, 10, 30], [-10, 0, 20])
+
+
 def plot_waveforms(spike_data, prm):
     print('I will plot the waveform shapes for each cluster.')
     save_path = prm.get_local_recording_folder_path() + '/Figures/firing_properties'
@@ -124,19 +133,11 @@ def plot_waveforms(spike_data, prm):
         cluster = spike_data.cluster_id.values[cluster] - 1
         max_channel = spike_data.primary_channel[cluster]
         highest_value = np.max(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
+        lowest_value = np.min(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
         fig = plt.figure(figsize=(5, 5))
         grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
-        snippet_plot1 = plt.subplot(grid[0, 0])
-        plt.ylim(-highest_value, highest_value + 30)
-        snippet_plot1.plot(spike_data.random_snippets[cluster][0, :, :] * -1, color='black')
-        snippet_plot2 = plt.subplot(grid[0, 1])
-        plt.ylim(-highest_value, highest_value + 30)
-        snippet_plot2.plot(spike_data.random_snippets[cluster][1, :, :] * -1, color='black')
-        snippet_plot3 = plt.subplot(grid[1, 0])
-        plt.ylim(-highest_value, highest_value + 30)
-        snippet_plot3.plot(spike_data.random_snippets[cluster][2, :, :] * -1, color='black')
-        snippet_plot4 = plt.subplot(grid[1, 1])
-        plt.ylim(-highest_value, highest_value + 30)
-        snippet_plot4.plot(spike_data.random_snippets[cluster][3, :, :] * -1, color='black')
+        for channel in range(4):
+            plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel)
+
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
