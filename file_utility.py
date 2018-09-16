@@ -48,7 +48,7 @@ def set_continuous_data_path(prm):
 
 def set_dead_channel_path(prm):
     file_path = prm.get_filepath()
-    dead_ch_path = file_path + "dead_channels.txt"
+    dead_ch_path = file_path + "/dead_channels.txt"
     prm.set_dead_channel_path(dead_ch_path)
 
 
