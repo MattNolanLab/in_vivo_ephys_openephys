@@ -19,6 +19,7 @@ def initialize_parameters(recording_to_process):
     prm.set_movement_channel('100_ADC2.continuous')
     prm.set_first_trial_channel('100_ADC4.continuous')
     prm.set_second_trial_channel('100_ADC5.continuous')
+    prm.set_file_path(recording_to_process)  # todo clean this
 
 
 def process_position_data(recording_to_process):
