@@ -9,10 +9,11 @@ def get_dead_channel_ids(prm):
     if os.path.isfile(dead_ch_path) is True:
         if os.stat(dead_ch_path).st_size == 0:
             os.remove(dead_ch_path)
-        dead_channel_reader = open(dead_ch_path, 'r')
-        dead_channels = dead_channel_reader.readlines()
-        dead_channels = list([x.strip() for x in dead_channels])
-        prm.set_dead_channels(dead_channels)
+        else:
+            dead_channel_reader = open(dead_ch_path, 'r')
+            dead_channels = dead_channel_reader.readlines()
+            dead_channels = list([x.strip() for x in dead_channels])
+            prm.set_dead_channels(dead_channels)
 
     else:
         print('There are no dead channels in this recording, or dead_channels.txt is missing.')
