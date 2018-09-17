@@ -24,9 +24,9 @@ def initialize_parameters(recording_to_process):
     prm.set_file_path(recording_to_process)  # todo clean this
 
 
-def process_position_data(recording_to_process):
+def process_position_data(recording_to_process, prm):
     vr_spatial_data = None
-    vr_spatial_data = PostSorting.vr_spatial_data.process_position_data(recording_to_process)
+    vr_spatial_data = PostSorting.vr_spatial_data.process_position_data(recording_to_process, prm)
     return vr_spatial_data
 
 
@@ -44,7 +44,7 @@ def create_folders_for_output(recording_to_process):
 def post_process_recording(recording_to_process, session_type):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    spatial_data = process_position_data(recording_to_process)
+    spatial_data = process_position_data(recording_to_process, prm)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
