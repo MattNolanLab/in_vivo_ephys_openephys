@@ -2,6 +2,7 @@ import os
 import PostSorting.curation
 import PostSorting.load_firing_data
 import PostSorting.parameters
+import PostSorting.temporal_firing
 import PostSorting.vr_spatial_data
 import PostSorting.vr_make_plots
 import PostSorting.vr_spatial_firing
@@ -45,6 +46,7 @@ def post_process_recording(recording_to_process, session_type):
     initialize_parameters(recording_to_process)
     spatial_data = process_position_data(recording_to_process)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
