@@ -1,6 +1,10 @@
 import numpy as np
 
 
+def calculate_grid_score():
+    pass
+
+
 def get_shifted_map(firing_rate_map, x, y):
     shifted_map = []
     return shifted_map
@@ -21,12 +25,4 @@ def get_correlation_vector(firing_rate_map):
             if len(shifted_map) > 20:
                 correlation_vector[correlation_x, correlation_y] = np.correlate(firing_rate_map, shifted_map)
 
-
-
     return correlation_vector
-
-
-
-
-def get_grid_score():
-    pass
