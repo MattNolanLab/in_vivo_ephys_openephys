@@ -40,6 +40,7 @@ def get_snippets(firing_data, prm):
         for cluster in range(len(firing_data)):
             cluster = firing_data.cluster_id.values[cluster] - 1
             firing_times = firing_data.firing_times[cluster]
+
             snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50, prm)
             snippets_all_clusters.append(snippets)
     firing_data['random_snippets'] = snippets_all_clusters

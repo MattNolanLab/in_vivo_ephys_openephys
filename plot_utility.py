@@ -2,6 +2,8 @@ import matplotlib.pylab as plt
 import math
 import numpy as np
 import random
+import PostSorting.parameters
+prm = PostSorting.parameters.Parameters()
 
 
 '''
@@ -102,17 +104,18 @@ def style_vr_plot(ax, x_max):
 
     #ax.set_aspect('equal')
 
-    ax.axvline(0, linewidth = 3, color = 'black') # bold line on the y axis
-    ax.axhline(0, linewidth = 3, color = 'black') # bold line on the x axis
+    ax.axvline(0, linewidth = 2, color = 'black') # bold line on the y axis
+    ax.axhline(0, linewidth = 2, color = 'black') # bold line on the x axis
     plt.ylim(0, x_max)
 
     return ax
 
 
-def style_track_plot(ax):
-    ax.axvspan(88, 88+22, facecolor='DarkGreen', alpha=.25, linewidth =0)
-    ax.axvspan(0, 30, facecolor='k', linewidth =0, alpha=.25) # black box
-    ax.axvspan(200-30, 200, facecolor='k', linewidth =0, alpha=.25)# black box
+def style_track_plot(ax, bins):
+    divider = prm.get_track_length()/bins
+    ax.axvspan(88/divider, (88+22)/divider, facecolor='DarkGreen', alpha=.25, linewidth =0)
+    ax.axvspan(0, 30/divider, facecolor='k', linewidth =0, alpha=.25) # black box
+    ax.axvspan((200-30)/divider, 200/divider, facecolor='k', linewidth =0, alpha=.25)# black box
 
 
 def makelegend(fig,ax, x_location):
@@ -126,7 +129,7 @@ def makelegend(fig,ax, x_location):
 
 def adjust_spine_thickness(ax):
     for axis in ['left','bottom']:
-        ax.spines[axis].set_linewidth(2)
+        ax.spines[axis].set_linewidth(1)
 
 
 def adjust_spines(ax,spines):
