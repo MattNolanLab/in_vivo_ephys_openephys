@@ -43,24 +43,28 @@ def calculate_firing_rate(spike_data, spatial_data):
     bin_size_cm,number_of_bins = get_bin_size(spatial_data)
     number_of_trials = spatial_data.trial_number.max() # total number of trials
 
-    #cluster_index = 5
     for cluster_index in range(len(spike_data)-1):
         firing_rate_map = pd.DataFrame(columns=['trial_number', 'bin_count', 'b_spike_number', 'nb_spike_number','p_spike_number','dwell_time_ms'])
-        #cluster_index = spike_data.cluster_id.values[cluster] - 1
-        trials_b = np.array(spike_data.loc[cluster_index].beaconed_trial_number);locations_b = np.array(spike_data.loc[cluster_index].beaconed_position_cm)
-        trials_nb = np.array(spike_data.loc[cluster_index].nonbeaconed_trial_number);locations_nb = np.array(spike_data.loc[cluster_index].nonbeaconed_position_cm)
-        trials_p = np.array(spike_data.loc[cluster_index].probe_trial_number);locations_p = np.array(spike_data.loc[cluster_index].probe_position_cm)
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
+        trials_nb = np.array(spike_data.at[cluster_index,'nonbeaconed_trial_number']);locations_nb = np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm'])
+        trials_p = np.array(spike_data.at[cluster_index, 'probe_trial_number']);locations_p = np.array(spike_data.at[cluster_index, 'probe_position_cm'])
 
         for t in range(1,int(number_of_trials)):
             try:
                 trial_locations_b = np.take(locations_b, np.where(trials_b == t)[0])
                 trial_locations_nb = np.take(locations_nb, np.where(trials_nb == t)[0])
                 trial_locations_p = np.take(locations_p, np.where(trials_p == t)[0])
-                for loc in range(int(number_of_bins)):
-                    spikes_in_bin_b = trial_locations_b[np.where(np.logical_and(trial_locations_b > loc, trial_locations_b <= (loc+1)))]
-                    spikes_in_bin_nb = trial_locations_nb[np.where(np.logical_and(trial_locations_nb > loc, trial_locations_nb <= (loc+1)))]
-                    spikes_in_bin_p = trial_locations_p[np.where(np.logical_and(trial_locations_p > loc, trial_locations_p <= (loc+1)))]
-                    firing_rate_map = firing_rate_map.append({"trial_number": int(t), "bin_count": int(loc), "b_spike_number":  len(spikes_in_bin_b), "nb_spike_number":  len(spikes_in_bin_nb), "p_spike_number":  len(spikes_in_bin_p)}, ignore_index=True)
+                if len(trial_locations_b) > 1:
+                    for loc in range(int(number_of_bins)):
+                        spikes_in_bin_b = trial_locations_b[np.where(np.logical_and(trial_locations_b > float(loc), trial_locations_b <= (loc+1)))]
+                        spikes_in_bin_nb = trial_locations_nb[np.where(np.logical_and(trial_locations_nb > loc, trial_locations_nb <= (loc+1)))]
+                        spikes_in_bin_p = trial_locations_p[np.where(np.logical_and(trial_locations_p > loc, trial_locations_p <= (loc+1)))]
+                        firing_rate_map = firing_rate_map.append({"trial_number": int(t), "bin_count": int(loc), "b_spike_number":  len(spikes_in_bin_b), "nb_spike_number":  len(spikes_in_bin_nb), "p_spike_number":  len(spikes_in_bin_p)}, ignore_index=True)
+                else:
+                    for loc in range(int(number_of_bins)):
+                        firing_rate_map = firing_rate_map.append({"trial_number": int(t), "bin_count": int(loc), "b_spike_number": 0, "nb_spike_number": 0,"p_spike_number": 0}, ignore_index=True)
+
             except IndexError: # if there is no spikes on that trial
                 for loc in range(int(number_of_bins)):
                     firing_rate_map = firing_rate_map.append({"trial_number": int(t),"bin_count": int(loc),"b_spike_number":  0, "nb_spike_number":  0, "p_spike_number":  0}, ignore_index=True)
@@ -72,9 +76,9 @@ def calculate_firing_rate(spike_data, spatial_data):
 
         avg_spike_per_bin_b,avg_spike_per_bin_nb,avg_spike_per_bin_p = average_spikes_over_trials(firing_rate_map,number_of_bins)
 
-        spike_data.loc[cluster_index].avg_spike_per_bin_b = list(avg_spike_per_bin_b)
-        spike_data.loc[cluster_index].avg_spike_per_bin_nb = list(avg_spike_per_bin_nb)
-        spike_data.loc[cluster_index].avg_spike_per_bin_p = list(avg_spike_per_bin_p)
+        spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(avg_spike_per_bin_b)
+        spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(avg_spike_per_bin_nb)
+        spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(avg_spike_per_bin_p)
     return spike_data
 
 
