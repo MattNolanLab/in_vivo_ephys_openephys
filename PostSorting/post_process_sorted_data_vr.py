@@ -36,10 +36,19 @@ def make_plots(spike_data, spatial_data):
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data)
 
 
+def save_data_frames(spatial_firing, spatial_data, bad_clusters):
+    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
+    spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
+    bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
+
+
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
         os.makedirs(recording_to_process + '/Figures')
-
+    if os.path.exists(recording_to_process + '/DataFrames') is False:
+        os.makedirs(recording_to_process + '/DataFrames')
+    if os.path.exists(recording_to_process + '/Firing_fields') is False:
+        os.makedirs(recording_to_process + '/Firing_fields')
 
 def post_process_recording(recording_to_process, session_type):
     create_folders_for_output(recording_to_process)
@@ -48,6 +57,11 @@ def post_process_recording(recording_to_process, session_type):
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+
+    if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
+        save_data_frames(spike_data, spatial_data, bad_clusters)
+        return
+
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
 
