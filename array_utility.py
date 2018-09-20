@@ -12,7 +12,6 @@ def shift(array_to_shift, n):
 # shift 2d array by n (not roll)
 def shift_2d(array_to_shift, n, axis):
     shifted_array = np.empty_like(array_to_shift)
-
     if axis == 0:
         if n >= 0:
             shifted_array[:n, :] = np.nan
