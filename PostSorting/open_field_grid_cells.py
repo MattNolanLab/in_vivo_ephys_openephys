@@ -7,7 +7,6 @@ def calculate_grid_score():
 
 
 def get_shifted_map(firing_rate_map, x, y):
-    map = np.zeros((firing_rate_map.shape[0], firing_rate_map.shape[1]))
     shifted_map = array_utility.shift_2d(firing_rate_map, x, 0)
     shifted_map = array_utility.shift_2d(shifted_map, y, 1)
 
