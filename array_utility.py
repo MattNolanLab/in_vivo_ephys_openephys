@@ -15,16 +15,16 @@ def shift_2d(array_to_shift, n, axis):
     if axis == 0:  # shift along x axis
         if n >= 0:
             shifted_array[:n, :] = np.nan
-            shifted_array[n:, :] = array_to_shift[:-n]
+            shifted_array[n:, :] = array_to_shift[:-n, :]
         else:
             shifted_array[n:, :] = np.nan
-            shifted_array[:n, :] = array_to_shift[-n:]
+            shifted_array[:n, :] = array_to_shift[-n:, :]
     if axis == 1:  # shift along y axis
         if n >= 0:
             shifted_array[:, :n] = np.nan
-            shifted_array[:, n:] = array_to_shift[:-n]
+            shifted_array[:, n:] = array_to_shift[:, -n]
         else:
             shifted_array[:, n:] = np.nan
-            shifted_array[:, :n] = array_to_shift[-n:]
+            shifted_array[:, :n] = array_to_shift[:, -n:]
     return shifted_array
 
