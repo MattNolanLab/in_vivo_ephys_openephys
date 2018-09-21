@@ -21,7 +21,9 @@ axis : shift along this axis (should be 0 or 1)
 def shift_2d(array_to_shift, n, axis):
     shifted_array = np.zeros_like(array_to_shift)
     if axis == 0:  # shift along x axis
-        if n >= 0:
+        if n == 0:
+            return array_to_shift
+        if n > 0:
             shifted_array[:, :n] = 0
             shifted_array[:, n:] = array_to_shift[:, :-n]
         else:
@@ -29,7 +31,9 @@ def shift_2d(array_to_shift, n, axis):
             shifted_array[:, :n] = array_to_shift[:, -n:]
 
     if axis == 1:  # shift along y axis
-        if n >= 0:
+        if n == 0:
+            return array_to_shift
+        elif n > 0:
             shifted_array[-n:, :] = 0
             shifted_array[:-n, :] = array_to_shift[n:, :]
         else:
