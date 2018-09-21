@@ -4,6 +4,17 @@ sys.path.append("..")
 import array_utility
 
 
+def test_shift():
+    array_to_shift = np.array([0, 1, 2, 3])
+    n = 2
+    desired_result = np.array([0, 0, 0, 1])
+    result = array_utility.shift(array_to_shift, n)
+
+    n = -2
+    desired_result = np.array([2, 3, 0, 0])
+    result = array_utility.shift(array_to_shift, n)
+
+
 def test_shift_2d():
     # shift right along x
     array_to_shift = np.array([[1, 1, 1, 1], [2, 2, 2, 9], [3, 3, 3, 3], [4, 4, 4, 4], [5, 5, 5, 5], [6, 6, 6, 6]])
