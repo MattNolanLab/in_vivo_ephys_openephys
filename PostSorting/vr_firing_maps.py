@@ -26,8 +26,8 @@ def average_spikes_over_trials(firing_rate_map,number_of_bins):
     number_of_trials = firing_rate_map.trial_number.max() # total number of trials
     for loc in range(int(number_of_bins)):
         spikes_across_trials_b=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'b_spike_number'])/number_of_trials
-        spikes_across_trials_nb=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'nb_spike_number'])/number_of_trials
-        spikes_across_trials_p=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'p_spike_number'])/number_of_trials
+        spikes_across_trials_nb=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'nb_spike_number'])/(number_of_trials/10)
+        spikes_across_trials_p=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'p_spike_number'])/(number_of_trials/10)
         avg_spikes_across_trials_b[loc] = spikes_across_trials_b
         avg_spikes_across_trials_nb[loc] = spikes_across_trials_nb
         avg_spikes_across_trials_p[loc] = spikes_across_trials_p
