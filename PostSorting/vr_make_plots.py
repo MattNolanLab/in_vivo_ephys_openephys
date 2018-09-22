@@ -1,7 +1,7 @@
 import matplotlib.pylab as plt
 import plot_utility
 import PostSorting.parameters
-
+import numpy as np
 
 prm = PostSorting.parameters.Parameters()
 
@@ -74,9 +74,10 @@ def plot_firing_rate_maps(spike_data):
         avg_spikes_on_track = plt.figure()
 
         bins=range(200)
-        unsmooth_b = spike_data.at[cluster_index, 'avg_spike_per_bin_b']
-        unsmooth_nb = spike_data.at[cluster_index, 'avg_spike_per_bin_nb']
-        unsmooth_p = spike_data.at[cluster_index, 'avg_spike_per_bin_p']
+
+        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
+        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
+        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(bins, unsmooth_b, '-', color='Black')
