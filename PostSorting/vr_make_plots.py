@@ -44,7 +44,7 @@ def plot_spikes_on_track(spike_data,spatial_data):
     print('I am plotting spike rastas...')
     #cluster_index = 5
     for cluster_index in range(len(spike_data)):
-        #cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         spikes_on_track = plt.figure()
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -70,18 +70,21 @@ def plot_firing_rate_maps(spike_data):
     print('I am plotting firing rate maps...')
     #cluster_index = 5
     for cluster_index in range(len(spike_data)):
-        #cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure()
 
         bins=range(200)
-        unsmooth_b = spike_data.avg_spike_per_bin_b[cluster_index]
-        unsmooth_nb = spike_data.avg_spike_per_bin_nb[cluster_index]
-        unsmooth_p = spike_data.avg_spike_per_bin_p[cluster_index]
+        unsmooth_b = spike_data.at[cluster_index, 'avg_spike_per_bin_b']
+        unsmooth_nb = spike_data.at[cluster_index, 'avg_spike_per_bin_nb']
+        unsmooth_p = spike_data.at[cluster_index, 'avg_spike_per_bin_p']
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(bins, unsmooth_b, '-', color='Black')
-        ax.plot(bins, unsmooth_nb, '-', color='Red')
-        ax.plot(bins, unsmooth_p, '-', color='Blue')
+        try:
+            ax.plot(bins, unsmooth_nb, '-', color='Red')
+            ax.plot(bins, unsmooth_p, '-', color='Blue')
+        except ValueError:
+            continue
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
