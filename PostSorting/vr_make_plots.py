@@ -63,7 +63,7 @@ def plot_spikes_on_track(spike_data,spatial_data):
         x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/track_firing_Cluster_' + str(cluster_index) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/track_firing_Cluster_' + str(cluster_index +1) + '.png')
         plt.close()
 
 def plot_firing_rate_maps(spike_data):
@@ -95,6 +95,6 @@ def plot_firing_rate_maps(spike_data):
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/rate_map_Cluster_' + str(cluster_index) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/rate_map_Cluster_' + str(cluster_index +1) + '.png')
         plt.close()
 
