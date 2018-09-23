@@ -7,6 +7,7 @@ import PostSorting.vr_spatial_data
 import PostSorting.vr_make_plots
 import PostSorting.vr_spatial_firing
 import PostSorting.vr_firing_maps
+import PostSorting.make_plots
 
 prm = PostSorting.parameters.Parameters()
 
