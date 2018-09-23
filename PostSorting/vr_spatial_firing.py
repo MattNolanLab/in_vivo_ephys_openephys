@@ -22,7 +22,7 @@ def add_columns_to_dataframe(spike_data):
 
 
 def add_position_x(spike_data, spatial_data_x):
-    for cluster_index in range(len(spike_data) - 1):
+    for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
         spike_data.x_position_cm[cluster_index] = spatial_data_x[cluster_firing_indices]
@@ -30,7 +30,7 @@ def add_position_x(spike_data, spatial_data_x):
 
 
 def add_trial_number(spike_data, spatial_data_trial_number):
-    for cluster_index in range(len(spike_data) - 1):
+    for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
         spike_data.trial_number[cluster_index] = spatial_data_trial_number[cluster_firing_indices].values.astype(np.uint16)
@@ -38,7 +38,7 @@ def add_trial_number(spike_data, spatial_data_trial_number):
 
 
 def add_trial_type(spike_data, spatial_data_trial_type):
-    for cluster_index in range(len(spike_data) - 1):
+    for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
         #spike_data.trial_type[cluster_index] = spatial_data_trial_type[cluster_firing_indices].astype(np.uint8)
@@ -60,7 +60,7 @@ def find_firing_location_indices(spike_data, spatial_data):
 def split_spatial_firing_by_trial_type(spike_data):
     print('I am splitting firing locations by trial type...')
     #cluster_index = 5
-    for cluster_index in range(len(spike_data) -1):
+    for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_df = spike_data.loc[[cluster_index]] # dataframe for that cluster
         trials = np.array(cluster_df['trial_number'].tolist())
