@@ -53,12 +53,14 @@ def get_rate_map_autocorrelogram(firing_rate_map):
     return correlation_vector
 
 
+# make autocorr map binary based on threshold
 def threshold_autocorrelation_map(autocorrelation_map):
     autocorrelation_map[autocorrelation_map > 0.2] = 1
     autocorrelation_map[autocorrelation_map <= 0.2] = 0
     return autocorrelation_map
 
 
+# find peaks of autocorrelogram
 def find_autocorrelogram_peaks(autocorrelation_map):
     autocorrelation_map_thresholded = threshold_autocorrelation_map(autocorrelation_map)
     autocorr_map_labels = measure.label(autocorrelation_map_thresholded)  # each field is labelled with a single digit
