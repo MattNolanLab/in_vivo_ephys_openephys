@@ -1,11 +1,8 @@
 import numpy as np
 import pandas as pd
 import array_utility
+from skimage import measure
 import matplotlib.pylab as plt
-
-
-def calculate_grid_score():
-    pass
 
 
 # shifts array by x and y
@@ -56,14 +53,66 @@ def get_rate_map_autocorrelogram(firing_rate_map):
     return correlation_vector
 
 
+def threshold_autocorrelation_map(autocorrelation_map):
+    autocorrelation_map[autocorrelation_map > 0.2] = 1
+    autocorrelation_map[autocorrelation_map <= 0.2] = 0
+    return autocorrelation_map
+
+
+def find_autocorrelogram_peaks(autocorrelation_map):
+    autocorrelation_map_thresholded = threshold_autocorrelation_map(autocorrelation_map)
+    autocorr_map_labels = measure.label(autocorrelation_map_thresholded)  # each field is labelled with a single digit
+    field_properties = measure.regionprops(autocorr_map_labels)
+    return field_properties
+
+
+# calculate distances between the middle of the rate map autocorrelogram and the field centres
+def find_field_distances_from_mid_point(autocorr_map, field_properties):
+    distances = []
+    mid_point_coord_x = np.ceil(autocorr_map.shape[0] / 2)
+    mid_point_coord_y = np.ceil(autocorr_map.shape[1] / 2)
+
+    for field in range(len(field_properties)):
+        field_central_x = field_properties[field].centroid[0]
+        field_central_y = field_properties[field].centroid[1]
+        distance = np.sqrt(np.square(field_central_x - mid_point_coord_x) + np.square(field_central_y - mid_point_coord_y))
+        distances.append(distance)
+    return distances
+
+
+def calculate_grid_spacing(field_distances, bin_size):
+    grid_spacing = np.median(field_distances) * bin_size
+    return grid_spacing
+
+
+def calculate_grid_metrics(autocorr_map, field_properties):
+    bin_size = 2.5  # cm
+    field_distances_from_mid_point = find_field_distances_from_mid_point(autocorr_map, field_properties)
+    # the field with the shortest distance is the middle and the next 6 closest are the middle 6
+    field_distances_from_mid_point = np.array(field_distances_from_mid_point)[~np.isnan(field_distances_from_mid_point)]
+    ring_distances = np.sort(field_distances_from_mid_point)[1:7]
+    grid_spacing = calculate_grid_spacing(ring_distances, bin_size)
+    return grid_spacing
+
+
 def process_grid_data(spatial_firing):
     rate_map_correlograms = []
+    grid_spacings = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_rate_map = spatial_firing.firing_maps[cluster]
         rate_map_correlogram = get_rate_map_autocorrelogram(firing_rate_map)
         rate_map_correlograms.append(rate_map_correlogram)
+        field_properties = find_autocorrelogram_peaks(rate_map_correlogram)
+        if len(field_properties) > 7:
+            grid_spacing = calculate_grid_metrics(rate_map_correlogram, field_properties)
+            grid_spacings.append(grid_spacing)
+        else:
+            print('Not enough fields to calculate grid metrics.')
+            rate_map_correlograms.append(np.nan)
+            grid_spacings.append(np.nan)
     spatial_firing['rate_map_autocorrelogram'] = rate_map_correlograms
+    spatial_firing['grid_spacing'] = grid_spacings
     return spatial_firing
 
 
