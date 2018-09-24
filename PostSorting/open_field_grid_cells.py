@@ -7,6 +7,7 @@ import matplotlib.pylab as plt
 def calculate_grid_score():
     pass
 
+
 # shifts array by x and y
 def get_shifted_map(firing_rate_map, x, y):
     shifted_map = array_utility.shift_2d(firing_rate_map, x, 0)
@@ -33,7 +34,7 @@ calculated for all positions and returned as a correlation_vector. TThe correlat
 '''
 
 
-def get_correlation_vector(firing_rate_map):
+def get_rate_map_autocorrelogram(firing_rate_map):
     length_y = firing_rate_map.shape[0] -1
     length_x = firing_rate_map.shape[1] - 1
     correlation_vector = np.empty((length_x * 2 + 1, length_x * 2 + 1)) * 0
@@ -56,10 +57,13 @@ def get_correlation_vector(firing_rate_map):
 
 
 def process_grid_data(spatial_firing):
+    rate_map_correlograms = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_rate_map = spatial_firing.firing_maps[cluster]
-        correlation_vector = get_correlation_vector(firing_rate_map)
+        rate_map_correlogram = get_rate_map_autocorrelogram(firing_rate_map)
+        rate_map_correlograms.append(rate_map_correlogram)
+    spatial_firing['rate_map_autocorrelogram'] = rate_map_correlograms
 
 
 #  this is here for testing
