@@ -64,6 +64,7 @@ def process_grid_data(spatial_firing):
         rate_map_correlogram = get_rate_map_autocorrelogram(firing_rate_map)
         rate_map_correlograms.append(rate_map_correlogram)
     spatial_firing['rate_map_autocorrelogram'] = rate_map_correlograms
+    return spatial_firing
 
 
 #  this is here for testing
