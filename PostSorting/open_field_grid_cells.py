@@ -80,6 +80,13 @@ def find_field_distances_from_mid_point(autocorr_map, field_properties):
     return distances
 
 
+'''
+Grid spacing/wavelength:
+Defined by Hafting, Fyhn, Molden, Moser, Moser (2005) as the distance from the central autocorrelogram peak to the
+vertices of the inner hexagon in the autocorrelogram (the median of the six distances). This should be in cm.
+'''
+
+
 def calculate_grid_spacing(field_distances, bin_size):
     grid_spacing = np.median(field_distances) * bin_size
     return grid_spacing
