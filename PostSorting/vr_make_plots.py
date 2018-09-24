@@ -49,9 +49,9 @@ def plot_spikes_on_track(spike_data,spatial_data):
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=12)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=12)
-        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=12)
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=8)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=8)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=8)
 
         plt.ylabel('Spikes on trials', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
