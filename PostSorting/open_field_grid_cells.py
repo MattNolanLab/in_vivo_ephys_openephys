@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import array_utility
 from skimage import measure
+from scipy import misc
+from scipy.ndimage import rotate
 import matplotlib.pylab as plt
 
 
@@ -107,8 +109,40 @@ def calculate_field_size(field_properties, field_distances, bin_size):
     return field_size
 
 
-def calculate_grid_score(autocorr_map, ring_distances):
+# https://stackoverflow.com/questions/481144/equation-for-testing-if-a-point-is-inside-a-circle
+def in_circle(center_x, center_y, radius, x, y):
+    square_dist = (center_x - x) ** 2 + (center_y - y) ** 2
+    return square_dist <= radius ** 2
+
+
+def remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances):
+    ring_distances = np.sort(field_distances)[1:7]
+    inner_radius = (np.mean(ring_distances) * 0.5) / 2
+    outer_radius = (np.mean(ring_distances) * 2.5) / 2
+    center_x = field_properties[np.argmin(field_distances)].centroid[0]
+    center_y = field_properties[np.argmin(field_distances)].centroid[1]
+    for row in range(len(autocorr_map.shape[0])):
+        for column in range(len(autocorr_map.shape[1])):
+            in_ring = in_circle(center_x, center_y, outer_radius, row, column)
+            in_middle = in_circle(center_x, center_y, inner_radius, row, column)
+            if not in_ring or in_middle:
+                autocorr_map[row, column] = np.nan
+    return autocorr_map
+
+
+def calculate_grid_score(autocorr_map, field_properties, field_distances):
     grid_score = []
+    for angle in range(30, 180, 30):
+        rotated_map = rotate(autocorr_map, angle)
+        remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)  # todo test
+        # do pairwise Pearson correlation
+        '''
+        matlab code missing:
+        [R P] = corrcoef(amap,amap2,'rows','pairwise');
+		r = R(1,2);		% get r value
+		corrs(angle) = r;
+		grid_score = nanmin(corrs([2,4])) - nanmax(corrs([1,3,5]));
+        '''
     return grid_score
 
 
@@ -120,7 +154,7 @@ def calculate_grid_metrics(autocorr_map, field_properties):
     ring_distances = np.sort(field_distances_from_mid_point)[1:7]
     grid_spacing = calculate_grid_spacing(ring_distances, bin_size)
     field_size = calculate_field_size(field_properties, field_distances_from_mid_point, bin_size)
-    grid_score = calculate_grid_score(autocorr_map, ring_distances)
+    grid_score = calculate_grid_score(autocorr_map, field_distances_from_mid_point, field_properties)
     return grid_spacing, field_size, grid_score
 
 
