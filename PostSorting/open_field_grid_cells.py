@@ -94,6 +94,24 @@ def calculate_grid_spacing(field_distances, bin_size):
     return grid_spacing
 
 
+'''
+Defined by Wills, Barry, Cacucci (2012) as the square root of the area of the central peak of the autocorrelogram
+divided by pi. (This should be in cm2.)
+'''
+
+
+def calculate_field_size(field_properties, field_distances, bin_size):
+    central_field_index = np.argmin(field_distances)
+    field_size_pixels = field_properties[central_field_index].area  # number of pixels in central field
+    field_size = np.sqrt(field_size_pixels * np.squeeze(bin_size)) / np.pi
+    return field_size
+
+
+def calculate_grid_score(autocorr_map, ring_distances):
+    grid_score = []
+    return grid_score
+
+
 def calculate_grid_metrics(autocorr_map, field_properties):
     bin_size = 2.5  # cm
     field_distances_from_mid_point = find_field_distances_from_mid_point(autocorr_map, field_properties)
@@ -101,12 +119,16 @@ def calculate_grid_metrics(autocorr_map, field_properties):
     field_distances_from_mid_point = np.array(field_distances_from_mid_point)[~np.isnan(field_distances_from_mid_point)]
     ring_distances = np.sort(field_distances_from_mid_point)[1:7]
     grid_spacing = calculate_grid_spacing(ring_distances, bin_size)
-    return grid_spacing
+    field_size = calculate_field_size(field_properties, field_distances_from_mid_point, bin_size)
+    grid_score = calculate_grid_score(autocorr_map, ring_distances)
+    return grid_spacing, field_size, grid_score
 
 
 def process_grid_data(spatial_firing):
     rate_map_correlograms = []
     grid_spacings = []
+    field_sizes = []
+    grid_scores = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_rate_map = spatial_firing.firing_maps[cluster]
@@ -114,14 +136,20 @@ def process_grid_data(spatial_firing):
         rate_map_correlograms.append(rate_map_correlogram)
         field_properties = find_autocorrelogram_peaks(rate_map_correlogram)
         if len(field_properties) > 7:
-            grid_spacing = calculate_grid_metrics(rate_map_correlogram, field_properties)
+            grid_spacing, field_size, grid_score = calculate_grid_metrics(rate_map_correlogram, field_properties)
             grid_spacings.append(grid_spacing)
+            field_sizes.append(field_size)
+            grid_scores.append(grid_score)
         else:
             print('Not enough fields to calculate grid metrics.')
             rate_map_correlograms.append(np.nan)
             grid_spacings.append(np.nan)
+            field_sizes.append(np.nan)
+            grid_scores.append(np.nan)
     spatial_firing['rate_map_autocorrelogram'] = rate_map_correlograms
     spatial_firing['grid_spacing'] = grid_spacings
+    spatial_firing['field_size'] = field_sizes
+    spatial_firing['grid_score'] = grid_scores
     return spatial_firing
 
 
