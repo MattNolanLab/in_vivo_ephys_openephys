@@ -115,14 +115,15 @@ def in_circle(center_x, center_y, radius, x, y):
     return square_dist <= radius ** 2
 
 
+#  replace values not in the grid ring with nan
 def remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances):
-    ring_distances = np.sort(field_distances)[1:7]
+    ring_distances = get_ring_distances(field_distances)
     inner_radius = (np.mean(ring_distances) * 0.5) / 2
     outer_radius = (np.mean(ring_distances) * 2.5) / 2
     center_x = field_properties[np.argmin(field_distances)].centroid[0]
     center_y = field_properties[np.argmin(field_distances)].centroid[1]
-    for row in range(len(autocorr_map.shape[0])):
-        for column in range(len(autocorr_map.shape[1])):
+    for row in range(autocorr_map.shape[0]):
+        for column in range(autocorr_map.shape[1]):
             in_ring = in_circle(center_x, center_y, outer_radius, row, column)
             in_middle = in_circle(center_x, center_y, inner_radius, row, column)
             if not in_ring or in_middle:
@@ -133,8 +134,8 @@ def remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field
 def calculate_grid_score(autocorr_map, field_properties, field_distances):
     grid_score = []
     for angle in range(30, 180, 30):
-        rotated_map = rotate(autocorr_map, angle)
-        remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)  # todo test
+        rotated_map = rotate(autocorr_map, angle) # todo fix this
+        remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)
         # do pairwise Pearson correlation
         '''
         matlab code missing:
@@ -146,15 +147,20 @@ def calculate_grid_score(autocorr_map, field_properties, field_distances):
     return grid_score
 
 
+def get_ring_distances(field_distances_from_mid_point):
+    field_distances_from_mid_point = np.array(field_distances_from_mid_point)[~np.isnan(field_distances_from_mid_point)]
+    ring_distances = np.sort(field_distances_from_mid_point)[1:7]
+    return ring_distances
+
+
 def calculate_grid_metrics(autocorr_map, field_properties):
     bin_size = 2.5  # cm
     field_distances_from_mid_point = find_field_distances_from_mid_point(autocorr_map, field_properties)
     # the field with the shortest distance is the middle and the next 6 closest are the middle 6
-    field_distances_from_mid_point = np.array(field_distances_from_mid_point)[~np.isnan(field_distances_from_mid_point)]
-    ring_distances = np.sort(field_distances_from_mid_point)[1:7]
+    ring_distances = get_ring_distances(field_distances_from_mid_point)
     grid_spacing = calculate_grid_spacing(ring_distances, bin_size)
     field_size = calculate_field_size(field_properties, field_distances_from_mid_point, bin_size)
-    grid_score = calculate_grid_score(autocorr_map, field_distances_from_mid_point, field_properties)
+    grid_score = calculate_grid_score(autocorr_map, field_properties, field_distances_from_mid_point)
     return grid_spacing, field_size, grid_score
 
 
