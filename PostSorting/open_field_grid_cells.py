@@ -7,6 +7,7 @@ from scipy.ndimage import rotate
 import matplotlib.pylab as plt
 
 
+
 # shifts array by x and y
 def get_shifted_map(firing_rate_map, x, y):
     shifted_map = array_utility.shift_2d(firing_rate_map, x, 0)
@@ -133,17 +134,16 @@ def remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field
 
 def calculate_grid_score(autocorr_map, field_properties, field_distances):
     grid_score = []
+    correlation_coefficients = []
     for angle in range(30, 180, 30):
-        rotated_map = rotate(autocorr_map, angle) # todo fix this
-        remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)
-        # do pairwise Pearson correlation
-        '''
-        matlab code missing:
-        [R P] = corrcoef(amap,amap2,'rows','pairwise');
-		r = R(1,2);		% get r value
-		corrs(angle) = r;
-		grid_score = nanmin(corrs([2,4])) - nanmax(corrs([1,3,5]));
-        '''
+        autocorr_map_to_rotate = np.nan_to_num(autocorr_map)
+        rotated_map = rotate(autocorr_map_to_rotate, angle, reshape=False)  # todo fix this
+        autocorr_map_ring = remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)
+        rotated_map_ring = remove_inside_and_outside_of_grid_ring(rotated_map, field_properties, field_distances)
+        pearson_coeff = np.corrcoef(autocorr_map_ring, rotated_map_ring)[0][1]  # todo this has to be the same as corrcoef(amap,amap2,'rows','pairwise');  r = R(1,2);
+        correlation_coefficients.append(pearson_coeff)
+    grid_score = min(correlation_coefficients[i] for i in [1, 3]) - max(correlation_coefficients[i] for i in [0, 2, 4])
+
     return grid_score
 
 
