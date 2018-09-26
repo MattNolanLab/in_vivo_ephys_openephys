@@ -7,7 +7,6 @@ from scipy.ndimage import rotate
 import matplotlib.pylab as plt
 
 
-
 # shifts array by x and y
 def get_shifted_map(firing_rate_map, x, y):
     shifted_map = array_utility.shift_2d(firing_rate_map, x, 0)
@@ -15,15 +14,28 @@ def get_shifted_map(firing_rate_map, x, y):
     return shifted_map
 
 
-# remove from both where either of them is not a number (nan)
-def remove_zeros(firing_rate_map, shifted_map):
-    shifted_map = shifted_map.flatten()
-    firing_rate_map = firing_rate_map.flatten()
-    shifted_map_tmp = np.take(shifted_map, np.where(firing_rate_map != 0))
-    firing_rate_map_tmp = np.take(firing_rate_map, np.where(shifted_map != 0))
-    shifted_map = np.take(shifted_map_tmp, np.where(shifted_map_tmp[0] != 0))
-    firing_rate_map = np.take(firing_rate_map_tmp, np.where(firing_rate_map_tmp[0] != 0))
-    return firing_rate_map.flatten(), shifted_map.flatten()
+# remove from both where either of them is 0
+def remove_zeros(array1, array2):
+    array2 = np.nan_to_num(array2).flatten()
+    array1 = np.nan_to_num(array1).flatten()
+    array2_tmp = np.take(array2, np.where(array1 != 0))
+    array1_tmp = np.take(array1, np.where(array2 != 0))
+    array2 = np.take(array2_tmp, np.where(array2_tmp[0] != 0))
+    array1 = np.take(array1_tmp, np.where(array1_tmp[0] != 0))
+    return array1.flatten(), array2.flatten()
+
+
+# remove from both where either of them is not a number (nan) - I am not proud of this, but nothing worked with np.nan
+def remove_nans(array1, array2):
+    array2 = array2.flatten()
+    array2[np.isnan(array2)] = 666
+    array1 = array1.flatten()
+    array1[np.isnan(array1)] = 666
+    array2_tmp = np.take(array2, np.where(array1 != 666))
+    array1_tmp = np.take(array1, np.where(array2 != 666))
+    array2 = np.take(array2_tmp, np.where(array2_tmp[0] != 666))
+    array1 = np.take(array1_tmp, np.where(array1_tmp[0] != 666))
+    return array1.flatten(), array2.flatten()
 
 
 
@@ -133,14 +145,15 @@ def remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field
 
 
 def calculate_grid_score(autocorr_map, field_properties, field_distances):
-    grid_score = []
     correlation_coefficients = []
     for angle in range(30, 180, 30):
         autocorr_map_to_rotate = np.nan_to_num(autocorr_map)
         rotated_map = rotate(autocorr_map_to_rotate, angle, reshape=False)  # todo fix this
         autocorr_map_ring = remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)
         rotated_map_ring = remove_inside_and_outside_of_grid_ring(rotated_map, field_properties, field_distances)
-        pearson_coeff = np.corrcoef(autocorr_map_ring, rotated_map_ring)[0][1]  # todo this has to be the same as corrcoef(amap,amap2,'rows','pairwise');  r = R(1,2);
+
+        autocorr_map_ring_to_correlate, rotated_map_ring_to_correlate = remove_nans(autocorr_map_ring, rotated_map_ring)
+        pearson_coeff = np.corrcoef(autocorr_map_ring_to_correlate, rotated_map_ring_to_correlate)[0][1]
         correlation_coefficients.append(pearson_coeff)
     grid_score = min(correlation_coefficients[i] for i in [1, 3]) - max(correlation_coefficients[i] for i in [0, 2, 4])
 
