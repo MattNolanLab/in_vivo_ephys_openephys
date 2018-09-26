@@ -144,6 +144,15 @@ def remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field
     return autocorr_map
 
 
+'''
+Defined by Krupic, Bauza, Burton, Barry, O'Keefe (2015) as the difference between the minimum correlation coefficient
+for autocorrelogram rotations of 60 and 120 degrees and the maximum correlation coefficient for autocorrelogram
+rotations of 30, 90 and 150 degrees. This score can vary between -2 and 2, although generally values above
+below -1.5 or above 1.5 are uncommon.
+'''
+
+
+# TODO this gives different results relative to the matlab script -  need to find out why
 def calculate_grid_score(autocorr_map, field_properties, field_distances):
     correlation_coefficients = []
     for angle in range(30, 180, 30):
@@ -151,12 +160,10 @@ def calculate_grid_score(autocorr_map, field_properties, field_distances):
         rotated_map = rotate(autocorr_map_to_rotate, angle, reshape=False)  # todo fix this
         autocorr_map_ring = remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)
         rotated_map_ring = remove_inside_and_outside_of_grid_ring(rotated_map, field_properties, field_distances)
-
         autocorr_map_ring_to_correlate, rotated_map_ring_to_correlate = remove_nans(autocorr_map_ring, rotated_map_ring)
         pearson_coeff = np.corrcoef(autocorr_map_ring_to_correlate, rotated_map_ring_to_correlate)[0][1]
         correlation_coefficients.append(pearson_coeff)
     grid_score = min(correlation_coefficients[i] for i in [1, 3]) - max(correlation_coefficients[i] for i in [0, 2, 4])
-
     return grid_score
 
 
