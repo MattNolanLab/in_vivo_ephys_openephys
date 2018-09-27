@@ -29,8 +29,13 @@ def process_opto_data(recording_to_process, prm):
     opto_data, is_found = load_opto_data(recording_to_process, prm)
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
-        first_opto_pulse_index = min(opto_on[0])
-        prm.set_opto_tagging_start_index(first_opto_pulse_index)
+        if not np.asarray(opto_on):
+            prm.set_opto_tagging_start_index(None)
+            is_found = None
+        else:
+            first_opto_pulse_index = min(opto_on[0])
+            prm.set_opto_tagging_start_index(first_opto_pulse_index)
+
     else:
         prm.set_opto_tagging_start_index(None)
 
