@@ -129,6 +129,25 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         plt.close()
 
 
+def plot_rate_map_autocorrelogram(spatial_firing, prm):
+    print('I will make the rate map autocorrelogram grid plots now.')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/rate_map_autocorrelogram'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        rate_map_autocorr_fig = plt.figure()
+        rate_map_autocorr_fig.set_size_inches(5, 5, forward=True)
+        ax = rate_map_autocorr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        rate_map_autocorr = spatial_firing.rate_map_autocorrelogram[cluster]
+        ax = plt.subplot(1, 1, 1)
+        ax = plot_utility.style_open_field_plot(ax)
+        ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
+        plt.tight_layout()
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+        plt.close()
+
+
 def mark_firing_field_with_scatter(field, plot, colors, field_id):
     for bin in field:
         plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=5)
@@ -217,11 +236,12 @@ def make_combined_figure(prm, spatial_firing):
         autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
+        rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
 
         number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
-        number_of_rows = math.ceil((number_of_firing_fields + 1)/5) + 2
+        number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
 
-        grid = plt.GridSpec(number_of_rows, 5, wspace=0.2, hspace=0.2)
+        grid = plt.GridSpec(number_of_rows, 6, wspace=0.2, hspace=0.2)
         if os.path.exists(waveforms_path):
             waveforms = mpimg.imread(waveforms_path)
             waveforms_plot = plt.subplot(grid[0, 0])
@@ -257,19 +277,24 @@ def make_combined_figure(prm, spatial_firing):
             rate_map_plot = plt.subplot(grid[1, 1])
             rate_map_plot.axis('off')
             rate_map_plot.imshow(rate_map)
+        if os.path.exists(rate_map_autocorrelogram_path):
+            rate_map_autocorr = mpimg.imread(rate_map_autocorrelogram_path)
+            rate_map_autocorr_plot = plt.subplot(grid[1, 2])
+            rate_map_autocorr_plot.axis('off')
+            rate_map_autocorr_plot.imshow(rate_map_autocorr)
         if os.path.exists(coverage_path):
             coverage = mpimg.imread(coverage_path)
-            coverage_plot = plt.subplot(grid[1, 2])
+            coverage_plot = plt.subplot(grid[1, 3])
             coverage_plot.axis('off')
             coverage_plot.imshow(coverage)
         if os.path.exists(head_direction_polar_path):
             polar_hd = mpimg.imread(head_direction_polar_path)
-            polar_hd_plot = plt.subplot(grid[1, 3])
+            polar_hd_plot = plt.subplot(grid[1, 4])
             polar_hd_plot.axis('off')
             polar_hd_plot.imshow(polar_hd)
         if os.path.exists(head_direction_map_path):
             hd_map = mpimg.imread(head_direction_map_path)
-            hd_map_plot = plt.subplot(grid[1, 4])
+            hd_map_plot = plt.subplot(grid[1, 5])
             hd_map_plot.axis('off')
             hd_map_plot.imshow(hd_map)
         if os.path.exists(firing_fields_rate_map_path):
