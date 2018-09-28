@@ -158,8 +158,9 @@ def calculate_grid_score(autocorr_map, field_properties, field_distances):
     for angle in range(30, 180, 30):
         autocorr_map_to_rotate = np.nan_to_num(autocorr_map)
         rotated_map = rotate(autocorr_map_to_rotate, angle, reshape=False)  # todo fix this
+        rotated_map_binary = np.round(rotated_map)
         autocorr_map_ring = remove_inside_and_outside_of_grid_ring(autocorr_map, field_properties, field_distances)
-        rotated_map_ring = remove_inside_and_outside_of_grid_ring(rotated_map, field_properties, field_distances)
+        rotated_map_ring = remove_inside_and_outside_of_grid_ring(rotated_map_binary, field_properties, field_distances)
         autocorr_map_ring_to_correlate, rotated_map_ring_to_correlate = remove_nans(autocorr_map_ring, rotated_map_ring)
         pearson_coeff = np.corrcoef(autocorr_map_ring_to_correlate, rotated_map_ring_to_correlate)[0][1]
         correlation_coefficients.append(pearson_coeff)
