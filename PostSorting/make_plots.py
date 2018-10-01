@@ -117,6 +117,7 @@ def plot_autocorrelograms(spike_data, prm):
 
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel):
     snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
+    highest_value = np.max(np.mean(spike_data.random_snippets[cluster][channel, :, :], 1))
     plt.ylim(lowest_value - 10, highest_value + 30)
     plot_utility.style_plot(snippet_plot)
     snippet_plot.plot(spike_data.random_snippets[cluster][channel, :, :] * -1, color='lightslategray')
