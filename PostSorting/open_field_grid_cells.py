@@ -194,7 +194,7 @@ def process_grid_data(spatial_firing):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         firing_rate_map = spatial_firing.firing_maps[cluster]
         rate_map_correlogram = get_rate_map_autocorrelogram(firing_rate_map)
-        rate_map_correlograms.append(rate_map_correlogram)
+        rate_map_correlograms.append(np.copy(rate_map_correlogram))
         field_properties = find_autocorrelogram_peaks(rate_map_correlogram)
         if len(field_properties) > 7:
             grid_spacing, field_size, grid_score = calculate_grid_metrics(rate_map_correlogram, field_properties)
@@ -203,7 +203,6 @@ def process_grid_data(spatial_firing):
             grid_scores.append(grid_score)
         else:
             print('Not enough fields to calculate grid metrics.')
-            rate_map_correlograms.append(np.nan)
             grid_spacings.append(np.nan)
             field_sizes.append(np.nan)
             grid_scores.append(np.nan)
