@@ -62,6 +62,7 @@ def post_process_recording(recording_to_process, session_type):
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
+        PostSorting.vr_make_plots.plot_stops_on_track(spatial_data)
         save_data_frames(spike_data, spatial_data, bad_clusters)
         return
 
