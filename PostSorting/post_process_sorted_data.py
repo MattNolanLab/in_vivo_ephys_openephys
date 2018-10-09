@@ -112,7 +112,7 @@ def post_process_recording(recording_to_process, session_type):
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
         position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
-        # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+        spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
         spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
         save_data_frames(spatial_firing, synced_spatial_data, bad_clusters)
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
