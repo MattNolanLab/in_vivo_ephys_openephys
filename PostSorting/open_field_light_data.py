@@ -29,7 +29,7 @@ def process_opto_data(recording_to_process, prm):
     opto_data, is_found = load_opto_data(recording_to_process, prm)
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
-        if not np.asarray(opto_on):
+        if not np.asarray(opto_on).size:
             prm.set_opto_tagging_start_index(None)
             is_found = None
         else:
