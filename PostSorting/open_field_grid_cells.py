@@ -47,7 +47,7 @@ calculated for all positions and returned as a correlation_vector. TThe correlat
 
 
 def get_rate_map_autocorrelogram(firing_rate_map):
-    length_y = firing_rate_map.shape[0] -1
+    length_y = firing_rate_map.shape[0] - 1
     length_x = firing_rate_map.shape[1] - 1
     correlation_vector = np.empty((length_x * 2 + 1, length_x * 2 + 1)) * 0
     for shift_x in range(-length_x, length_x + 1):
