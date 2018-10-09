@@ -1,3 +1,4 @@
+import os
 import matplotlib.pylab as plt
 import plot_utility
 import PostSorting.parameters
@@ -8,6 +9,9 @@ prm = PostSorting.parameters.Parameters()
 
 def plot_stops_on_track(spatial_data):
     print('I am plotting stop rasta...')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     spikes_on_track = plt.figure(figsize=(6,8))
     ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -36,13 +40,15 @@ def plot_stops_on_track(spatial_data):
     x_max = max(spatial_data.average_stops)+0.5
     plot_utility.style_vr_plot(ax, x_max)
 
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/stops_on_track_' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stops_on_track_' + '.png')
     plt.close()
 
 
 def plot_spikes_on_track(spike_data,spatial_data):
     print('I am plotting spike rastas...')
-    #cluster_index = 5
+    save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         spikes_on_track = plt.figure()
@@ -63,12 +69,14 @@ def plot_spikes_on_track(spike_data,spatial_data):
         x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/track_firing_Cluster_' + str(cluster_index +1) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/track_firing_Cluster_' + str(cluster_index +1) + '.png')
         plt.close()
 
 def plot_firing_rate_maps(spike_data):
     print('I am plotting firing rate maps...')
-    #cluster_index = 5
+    save_path = prm.get_local_recording_folder_path() + '/Figures/spike_rate'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure()
@@ -95,6 +103,6 @@ def plot_firing_rate_maps(spike_data):
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/rate_map_Cluster_' + str(cluster_index +1) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/rate_map_Cluster_' + str(cluster_index +1) + '.png')
         plt.close()
 
