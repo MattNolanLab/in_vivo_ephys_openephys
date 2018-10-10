@@ -52,6 +52,8 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/DataFrames')
     if os.path.exists(recording_to_process + '/Firing_fields') is False:
         os.makedirs(recording_to_process + '/Firing_fields')
+    if os.path.exists(recording_to_process + '/Data_test') is False:
+        os.makedirs(recording_to_process + '/Data_test')
 
 def post_process_recording(recording_to_process, session_type):
     create_folders_for_output(recording_to_process)
