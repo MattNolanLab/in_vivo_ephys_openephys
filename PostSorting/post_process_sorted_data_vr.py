@@ -33,6 +33,7 @@ def process_position_data(recording_to_process, prm):
 
 def make_plots(spike_data, spatial_data):
     PostSorting.make_plots.plot_waveforms(spike_data, prm)
+    PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     #PostSorting.vr_make_plots.plot_stops_on_track(spatial_data)
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data)
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data)
@@ -79,7 +80,7 @@ def main():
 
     params = PostSorting.parameters.Parameters()
 
-    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/mcos/M1_D16_2018-06-21_13-38-50'
+    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M6_D5_2018-10-08_15-23-43'
     print('Processing ' + str(recording_folder))
 
     post_process_recording(recording_folder, 'vr')
