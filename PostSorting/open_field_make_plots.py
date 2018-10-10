@@ -140,11 +140,12 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
         rate_map_autocorr_fig.set_size_inches(5, 5, forward=True)
         ax = rate_map_autocorr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         rate_map_autocorr = spatial_firing.rate_map_autocorrelogram[cluster]
-        ax = plt.subplot(1, 1, 1)
-        ax = plot_utility.style_open_field_plot(ax)
-        ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
-        plt.tight_layout()
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+        if rate_map_autocorr.size:
+            ax = plt.subplot(1, 1, 1)
+            ax = plot_utility.style_open_field_plot(ax)
+            ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
+            plt.tight_layout()
+            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
         plt.close()
 
 
