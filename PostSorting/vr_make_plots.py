@@ -6,6 +6,7 @@ import numpy as np
 
 prm = PostSorting.parameters.Parameters()
 
+
 def split_stop_data_by_trial_type(spatial_data):
     locations = np.array(spatial_data.at[0,'stop_location_cm'])
     trials = np.array(spatial_data.at[0,'stop_trial_number'])
@@ -42,9 +43,8 @@ def plot_stops_on_track(spatial_data):
     x_max = max(spatial_data.trial_number)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_raster_' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
-
 
 
 def plot_stop_histogram(spatial_data):
@@ -64,9 +64,8 @@ def plot_stop_histogram(spatial_data):
     x_max = max(spatial_data.average_stops)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_histogram_' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
-
 
 
 def plot_speed_histogram(spatial_data):
@@ -87,7 +86,7 @@ def plot_speed_histogram(spatial_data):
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
 
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/speed_histogram_' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
 
 
@@ -137,10 +136,9 @@ def plot_combined_behaviour(spatial_data):
     plot_utility.style_track_plot(ax, 200)
     x_max = max(spatial_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
+    plt.subplots_adjust(hspace = .5, wspace = .35,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
 
-    plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/combined_behaviour_' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/combined_behaviour' + '.png', dpi=200)
     plt.close()
 
 
@@ -169,8 +167,9 @@ def plot_spikes_on_track(spike_data,spatial_data):
         x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/track_firing_Cluster_' + str(cluster_index +1) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
+
 
 def plot_firing_rate_maps(spike_data):
     print('I am plotting firing rate maps...')
@@ -203,6 +202,6 @@ def plot_firing_rate_maps(spike_data):
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/rate_map_Cluster_' + str(cluster_index +1) + '.png')
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
