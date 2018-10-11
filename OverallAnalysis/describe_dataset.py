@@ -97,6 +97,38 @@ def describe_dataset(spike_data_frame):
     print('Number of cells in deep layers:')
     print(len(spike_data_frame_l5))
 
+    print('Average firing rate in the deep layers in excitatory cells is:')
+    excitatory_deep = spike_data_frame_l5['avgFR'] <= 10
+    print(spike_data_frame_l5.avgFR[excitatory_deep].mean())
+    print(spike_data_frame_l5.avgFR[excitatory_deep].std())
+
+    print('Average firing rate in the superficial layers in excitatory cells is:')
+    excitatory_superficial = spike_data_frame_superficial['avgFR'] <= 10
+    print(spike_data_frame_superficial[excitatory_superficial].avgFR.mean())
+    print(spike_data_frame_superficial[excitatory_superficial].avgFR.std())
+
+    print('Number of excitatory cells in superficial layers:')
+    print(len(spike_data_frame_superficial[excitatory_superficial]))
+
+    print('Number of excitatory cells in deep layers:')
+    print(len(spike_data_frame_l5[excitatory_deep]))
+
+    print('Average firing rate in the deep layers in inhibitory cells is:')
+    inhibitory_deep = spike_data_frame_l5['avgFR'] > 10
+    print(spike_data_frame_l5.avgFR[inhibitory_deep].mean())
+    print(spike_data_frame_l5.avgFR[inhibitory_deep].std())
+
+    print('Average firing rate in the superficial layers in inhibitory cells is:')
+    inhibitory_superficial = spike_data_frame_superficial['avgFR'] > 10
+    print(spike_data_frame_superficial[inhibitory_superficial].avgFR.mean())
+    print(spike_data_frame_superficial[inhibitory_superficial].avgFR.std())
+
+    print('Number of excitatory cells in superficial layers:')
+    print(len(spike_data_frame_superficial[inhibitory_superficial]))
+
+    print('Number of excitatory cells in deep layers:')
+    print(len(spike_data_frame_l5[inhibitory_deep]))
+
 
 def plot_good_cells_per_day(spike_data_frame):
     for name, group in spike_data_frame.groupby('animal'):

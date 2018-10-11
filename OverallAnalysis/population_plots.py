@@ -27,7 +27,7 @@ def plot_avg_firing_combined_excitatory(superficial, deep, path, name):
     # ax.hist(all_cells.avgFR, bins=400, cumulative=True, histtype='step', normed=True, color='k')
     ax.hist(superficial.avgFR[excitatory_superficial], bins=800, cumulative=True, histtype='step', normed=True, color='red')
     ax.hist(deep.avgFR[excitatory_deep], bins=800, cumulative=True, histtype='step', normed=True, color='navy')
-    plt.xlim(0, 10)
+    plt.xlim(0, 9.5)
     plt.ylim(0, 1)
     plt.xlabel('Average firing rate')
     plt.ylabel('Fraction')
