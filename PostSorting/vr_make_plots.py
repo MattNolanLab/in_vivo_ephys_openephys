@@ -32,7 +32,7 @@ def plot_stops_on_track(spatial_data):
     ax.plot(probe[:,0], probe[:,1], 'o', color='red', markersize=2)
     #ax.plot(spatial_data.first_series_location_cm, spatial_data.first_series_trial_number, 'o', color='Black', markersize=4)
     #ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=4)
-    plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+    plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
     plt.xlim(0,200)
@@ -48,14 +48,14 @@ def plot_stops_on_track(spatial_data):
 
 
 def plot_stop_histogram(spatial_data):
-    print('I am plotting stop histogram...')
+    print('plotting stop histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
     ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.plot(spatial_data.position_bins,spatial_data.average_stops, '-', color='Black')
-    plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+    plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,200)
     ax.yaxis.set_ticks_position('left')
@@ -70,20 +70,20 @@ def plot_stop_histogram(spatial_data):
 
 
 def plot_speed_histogram(spatial_data):
-    print('I am plotting speed histogram...')
+    print('plotting speed histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.plot(spatial_data.position_bins,spatial_data.binned_speed_ms, '-', color='Black')
-    plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+    plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,200)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.average_stops)+0.5
+    x_max = max(spatial_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
 
@@ -92,7 +92,7 @@ def plot_speed_histogram(spatial_data):
 
 
 def plot_combined_behaviour(spatial_data):
-    print('I am making combined behaviour plot...')
+    print('making combined behaviour plot...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -106,7 +106,7 @@ def plot_combined_behaviour(spatial_data):
     ax.plot(probe[:,0], probe[:,1], 'o', color='red', markersize=2)
     #ax.plot(spatial_data.first_series_location_cm, spatial_data.first_series_trial_number, 'o', color='Black', markersize=4)
     #ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=4)
-    plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+    plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
     plt.xlim(0,200)
@@ -118,7 +118,7 @@ def plot_combined_behaviour(spatial_data):
 
     ax = combined.add_subplot(3, 1, 2)  # specify (nrows, ncols, axnum)
     ax.plot(spatial_data.position_bins,spatial_data.average_stops, '-', color='Black')
-    plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+    plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,200)
     ax.yaxis.set_ticks_position('left')
@@ -129,13 +129,13 @@ def plot_combined_behaviour(spatial_data):
 
     ax = combined.add_subplot(3, 1, 3)  # specify (nrows, ncols, axnum)
     ax.plot(spatial_data.position_bins,spatial_data.binned_speed_ms, '-', color='Black')
-    plt.ylabel('Average_speed (cm/s)', fontsize=12, labelpad = 10)
+    plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,200)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.average_stops)+0.5
+    x_max = max(spatial_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
 
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
@@ -145,7 +145,7 @@ def plot_combined_behaviour(spatial_data):
 
 
 def plot_spikes_on_track(spike_data,spatial_data):
-    print('I am plotting spike rastas...')
+    print('plotting spike rastas...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
