@@ -22,7 +22,7 @@ def plot_stops_on_track(spatial_data):
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    stops_on_track = plt.figure(figsize=(6,8))
+    stops_on_track = plt.figure(figsize=(6,6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
     beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(spatial_data)
@@ -48,11 +48,11 @@ def plot_stops_on_track(spatial_data):
 
 
 def plot_stop_histogram(spatial_data):
-    print('I am plotting stop rasta...')
+    print('I am plotting stop histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    stop_histogram = plt.figure(figsize=(6,8))
+    stop_histogram = plt.figure(figsize=(6,4))
     ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.plot(spatial_data.position_bins,spatial_data.average_stops, '-', color='Black')
     plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
@@ -70,11 +70,11 @@ def plot_stop_histogram(spatial_data):
 
 
 def plot_speed_histogram(spatial_data):
-    print('I am plotting stop rasta...')
+    print('I am plotting speed histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    speed_histogram = plt.figure(figsize=(6,8))
+    speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.plot(spatial_data.position_bins,spatial_data.binned_speed_ms, '-', color='Black')
     plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
@@ -92,11 +92,11 @@ def plot_speed_histogram(spatial_data):
 
 
 def plot_combined_behaviour(spatial_data):
-    print('I am plotting stop rasta...')
+    print('I am making combined behaviour plot...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    combined = plt.figure(figsize=(6,8))
+    combined = plt.figure(figsize=(6,9))
     ax = combined.add_subplot(3, 1, 1)  # specify (nrows, ncols, axnum)
 
     beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(spatial_data)
