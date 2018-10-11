@@ -105,3 +105,8 @@ def plot_good_cells_per_day(spike_data_frame):
         plt.ylabel('Number of good clusters', fontsize=14)
         by_day.plot(xlim=(-2, 16), ylim=(0, 20), linewidth=6)
         plt.savefig('C:/Users/s1466507/Documents/Ephys/overall_figures/good_cells_per_day/good_cells_per_day_' + name + '.png')
+
+
+def describe_all_recordings(spike_data_frame):
+    print('Number of recording days per animal:')
+    print(spike_data_frame.groupby('animal').id.nunique())
