@@ -2,7 +2,6 @@ import PostSorting.parameters
 import numpy as np
 import pandas as pd
 
-prm = PostSorting.parameters.Parameters()
 import PostSorting.vr_spatial_data
 
 
