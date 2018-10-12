@@ -4,8 +4,6 @@ import plot_utility
 import PostSorting.parameters
 import numpy as np
 
-prm = PostSorting.parameters.Parameters()
-
 
 def split_stop_data_by_trial_type(spatial_data):
     locations = np.array(spatial_data.at[0,'stop_location_cm'])
@@ -18,7 +16,7 @@ def split_stop_data_by_trial_type(spatial_data):
     return beaconed, nonbeaconed, probe
 
 
-def plot_stops_on_track(spatial_data):
+def plot_stops_on_track(spatial_data, prm):
     print('I am plotting stop rasta...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -47,7 +45,7 @@ def plot_stops_on_track(spatial_data):
     plt.close()
 
 
-def plot_stop_histogram(spatial_data):
+def plot_stop_histogram(spatial_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -68,7 +66,7 @@ def plot_stop_histogram(spatial_data):
     plt.close()
 
 
-def plot_speed_histogram(spatial_data):
+def plot_speed_histogram(spatial_data, prm):
     print('plotting speed histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -90,7 +88,7 @@ def plot_speed_histogram(spatial_data):
     plt.close()
 
 
-def plot_combined_behaviour(spatial_data):
+def plot_combined_behaviour(spatial_data, prm):
     print('making combined behaviour plot...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -142,7 +140,7 @@ def plot_combined_behaviour(spatial_data):
     plt.close()
 
 
-def plot_spikes_on_track(spike_data,spatial_data):
+def plot_spikes_on_track(spike_data,spatial_data, prm):
     print('plotting spike rastas...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
@@ -171,7 +169,7 @@ def plot_spikes_on_track(spike_data,spatial_data):
         plt.close()
 
 
-def plot_firing_rate_maps(spike_data):
+def plot_firing_rate_maps(spike_data, prm):
     print('I am plotting firing rate maps...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
