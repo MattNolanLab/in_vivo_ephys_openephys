@@ -31,7 +31,7 @@ def init_data_file_names(prm, beginning, end):
 
 
 def set_continuous_data_path(prm):
-    file_path = prm.get_file_path()
+    file_path = prm.get_filepath()
     continuous_file_name_1 = '105_CH'
     continuous_file_name_end_1 = '_0'
     continuous_file_name_2 = '100_CH'
@@ -47,13 +47,13 @@ def set_continuous_data_path(prm):
 
 
 def set_dead_channel_path(prm):
-    file_path = prm.get_file_path()
+    file_path = prm.get_filepath()
     dead_ch_path = file_path + "/dead_channels.txt"
     prm.set_dead_channel_path(dead_ch_path)
 
 
 def create_behaviour_folder_structure(prm):
-    movement_path = prm.get_file_path() + 'Behaviour'
+    movement_path = prm.get_filepath() + 'Behaviour'
     prm.set_behaviour_path(movement_path)
 
     if prm.get_is_windows():
