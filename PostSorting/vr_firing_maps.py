@@ -2,7 +2,6 @@ import PostSorting.parameters
 import numpy as np
 import pandas as pd
 
-prm = PostSorting.parameters.Parameters()
 import PostSorting.vr_spatial_data
 
 
@@ -25,13 +24,18 @@ def average_spikes_over_trials(firing_rate_map,number_of_bins, beaconed_trial_no
     avg_spikes_across_trials_p = np.zeros((len(range(int(number_of_bins)))))
     number_of_trials = firing_rate_map.trial_number.max() # total number of trials
     for loc in range(int(number_of_bins)):
-        spikes_across_trials_b=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'b_spike_number'])/beaconed_trial_no
-        spikes_across_trials_nb=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'nb_spike_number'])/nonbeaconed_trial_no
-        spikes_across_trials_p=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'p_spike_number'])/probe_trial_no
-        avg_spikes_across_trials_b[loc] = spikes_across_trials_b
-        avg_spikes_across_trials_nb[loc] = spikes_across_trials_nb
-        avg_spikes_across_trials_p[loc] = spikes_across_trials_p
-
+        try:
+            spikes_across_trials_b=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'b_spike_number'])/beaconed_trial_no
+            avg_spikes_across_trials_b[loc] = spikes_across_trials_b
+        except ZeroDivisionError:
+            continue
+        try:
+            spikes_across_trials_nb=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'nb_spike_number'])/nonbeaconed_trial_no
+            avg_spikes_across_trials_nb[loc] = spikes_across_trials_nb
+            spikes_across_trials_p=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'p_spike_number'])/probe_trial_no
+            avg_spikes_across_trials_p[loc] = spikes_across_trials_p
+        except ZeroDivisionError:
+            continue
     avg_spikes_across_trials_b = PostSorting.vr_spatial_data.get_rolling_sum(np.nan_to_num(avg_spikes_across_trials_b), 10)
     avg_spikes_across_trials_nb = PostSorting.vr_spatial_data.get_rolling_sum(np.nan_to_num(avg_spikes_across_trials_nb), 10)
     avg_spikes_across_trials_p = PostSorting.vr_spatial_data.get_rolling_sum(np.nan_to_num(avg_spikes_across_trials_p), 10)
