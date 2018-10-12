@@ -30,7 +30,7 @@ def plot_avg_firing_combined_excitatory(superficial, deep, path, name):
     plt.xlim(0, 9.5)
     plt.ylim(0, 1)
     plt.xlabel('Average firing rate')
-    plt.ylabel('Fraction')
+    plt.ylabel('Number of cells')
     plt.savefig(path + 'avg_firing_rate_histogram_combined_excitatory' + name + '.png')
     plt.close()
 
@@ -71,9 +71,11 @@ def plot_firing_rate_hist(spike_data_frame, save_output_path, name):
     fr_fig = plt.figure()
     ax = fr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     fr_fig, ax = plot_utility.style_plot(ax)
-    ax.hist(spike_data_frame.avgFR[~spike_data_frame.avgFR.isnull()], bins=50, cumulative=True, histtype='step', normed=True, color='navy')
+    ax.hist(spike_data_frame.avgFR[~spike_data_frame.avgFR.isnull()], bins=50, color='navy')
     plt.xlabel('Average firing rate')
     plt.ylabel('Fraction')
+    plt.xlim(0, 100)
+    plt.axvline(x=10, color='red')
     plt.savefig(save_output_path + 'avg_firing_rate_histogram' + name + '.png')
     plt.close()
 
