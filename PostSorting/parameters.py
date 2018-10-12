@@ -77,7 +77,7 @@ class Parameters:
     def set_local_recording_folder_path(self, path):
         Parameters.local_recording_folder_path = path
 
-    def get_file_path(self):
+    def get_filepath(self):
         return Parameters.file_path
 
     def set_file_path(self, path):
