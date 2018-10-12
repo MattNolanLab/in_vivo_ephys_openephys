@@ -18,6 +18,40 @@ def plot_avg_firing_combined(superficial, deep, path, name):
     plt.close()
 
 
+def plot_avg_firing_combined_excitatory(superficial, deep, path, name):
+    fr_fig = plt.figure()
+    ax = fr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    fr_fig, ax = plot_utility.style_plot(ax)
+    excitatory_superficial = superficial['avgFR'] <= 10
+    excitatory_deep = deep['avgFR'] <= 10
+    # ax.hist(all_cells.avgFR, bins=400, cumulative=True, histtype='step', normed=True, color='k')
+    ax.hist(superficial.avgFR[excitatory_superficial], bins=800, cumulative=True, histtype='step', normed=True, color='red')
+    ax.hist(deep.avgFR[excitatory_deep], bins=800, cumulative=True, histtype='step', normed=True, color='navy')
+    plt.xlim(0, 9.5)
+    plt.ylim(0, 1)
+    plt.xlabel('Average firing rate')
+    plt.ylabel('Number of cells')
+    plt.savefig(path + 'avg_firing_rate_histogram_combined_excitatory' + name + '.png')
+    plt.close()
+
+
+def plot_avg_firing_combined_inhibitory(superficial, deep, path, name):
+    fr_fig = plt.figure()
+    ax = fr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    fr_fig, ax = plot_utility.style_plot(ax)
+    inhibitory_superficial = superficial['avgFR'] > 10
+    inhibitory_deep = deep['avgFR'] > 10
+    # ax.hist(all_cells.avgFR, bins=400, cumulative=True, histtype='step', normed=True, color='k')
+    ax.hist(superficial.avgFR[inhibitory_superficial], bins=800, cumulative=True, histtype='step', normed=True, color='red')
+    ax.hist(deep.avgFR[inhibitory_deep], bins=800, cumulative=True, histtype='step', normed=True, color='navy')
+    plt.xlim(10, 55)
+    plt.ylim(0, 1)
+    plt.xlabel('Average firing rate')
+    plt.ylabel('Fraction')
+    plt.savefig(path + 'avg_firing_rate_histogram_combined_excitatory' + name + '.png')
+    plt.close()
+
+
 def plot_avg_firing_combined_hist(superficial, deep, path, name):
     fr_fig = plt.figure()
     ax = fr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -37,9 +71,11 @@ def plot_firing_rate_hist(spike_data_frame, save_output_path, name):
     fr_fig = plt.figure()
     ax = fr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     fr_fig, ax = plot_utility.style_plot(ax)
-    ax.hist(spike_data_frame.avgFR[~spike_data_frame.avgFR.isnull()], bins=50, cumulative=True, histtype='step', normed=True, color='navy')
+    ax.hist(spike_data_frame.avgFR[~spike_data_frame.avgFR.isnull()], bins=50, color='navy')
     plt.xlabel('Average firing rate')
     plt.ylabel('Fraction')
+    plt.xlim(0, 100)
+    plt.axvline(x=10, color='red')
     plt.savefig(save_output_path + 'avg_firing_rate_histogram' + name + '.png')
     plt.close()
 
@@ -194,6 +230,8 @@ def plot_all(spike_data_frame, save_output_path):
 
 
     plot_avg_firing_combined(spike_data_frame_superficial, spike_data_frame_l5, save_output_path, '_combined')
+    plot_avg_firing_combined_excitatory(spike_data_frame_superficial, spike_data_frame_l5, save_output_path, '_combined_excitatory')
+    plot_avg_firing_combined_inhibitory(spike_data_frame_superficial, spike_data_frame_l5, save_output_path, '_combined_inhibitory')
     plot_avg_firing_combined_hist(spike_data_frame_superficial, spike_data_frame_l5, save_output_path, '_combined_hist')
     plot_avg_firing_combined(spike_data_frame_l5_last_days, spike_data_frame_superficial_last_days, save_output_path, '_last_days_combined')
 
