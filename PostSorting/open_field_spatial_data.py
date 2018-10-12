@@ -156,6 +156,66 @@ def shift_to_start_from_zero_at_bottom_left(position_data):
     return position_data
 
 
+def get_sides(position_data):
+    left_side_edge = position_data.position_x.round().min()
+    right_side_edge = position_data.position_x.round().max()
+    top_side_edge = position_data.position_y.round().max()
+    bottom_side_edge = position_data.position_y.round().min()
+    return left_side_edge, right_side_edge, top_side_edge, bottom_side_edge
+
+
+def remove_edge_from_horizontal_side(position_data, left_side_edge, right_side_edge):
+    points_on_left_edge = np.where(position_data.position_x < (left_side_edge + 1))[0]
+    number_of_points_on_left_edge = len(points_on_left_edge)
+    points_on_right_edge = np.where(position_data.position_x > (right_side_edge - 1))[0]
+    number_of_points_on_right_edge = len(points_on_right_edge)
+
+    if number_of_points_on_left_edge > number_of_points_on_right_edge:
+        # remove left edge
+        position_data = position_data.drop(position_data.index[points_on_right_edge])
+    else:
+        # remove right edge
+        position_data = position_data.drop(position_data.index[points_on_left_edge])
+    return position_data
+
+
+def remove_edge_from_vertical_side(position_data, top_side_edge, bottom_side_edge):
+    points_on_top_edge = np.where(position_data.position_y > (top_side_edge - 1))[0]
+    number_of_points_on_top_edge = len(points_on_top_edge)
+    points_on_bottom_edge = np.where(position_data.position_y < (bottom_side_edge + 1))[0]
+    number_of_points_on_bottom_edge = len(points_on_bottom_edge)
+
+    if number_of_points_on_top_edge > number_of_points_on_bottom_edge:
+        # remove left edge
+        position_data = position_data.drop(position_data.index[points_on_bottom_edge])
+    else:
+        # remove right edge
+        position_data = position_data.drop(position_data.index[points_on_top_edge])
+    return position_data
+
+
+def get_dimensions_of_arena(position_data):
+    left_side_edge, right_side_edge, top_side_edge, bottom_side_edge = get_sides(position_data)
+    x_length = right_side_edge - left_side_edge
+    y_length = top_side_edge - bottom_side_edge
+    return x_length, y_length
+
+
+def remove_position_outlier_rows(position_data):
+    is_square = False
+    x_length, y_length = get_dimensions_of_arena(position_data)
+    while is_square is False:
+        left_side_edge, right_side_edge, top_side_edge, bottom_side_edge = get_sides(position_data)
+        if x_length == y_length:
+            is_square = True
+        elif x_length > y_length:
+            position_data = remove_edge_from_horizontal_side(position_data, left_side_edge, right_side_edge)
+        else:
+            position_data = remove_edge_from_vertical_side(position_data, top_side_edge, bottom_side_edge)
+        x_length, y_length = get_dimensions_of_arena(position_data)
+    return position_data
+
+
 def process_position_data(recording_folder, params):
     position_of_mouse = None
     path_to_bonsai_file, is_found = find_bonsai_file(recording_folder)
@@ -166,6 +226,7 @@ def process_position_data(recording_folder, params):
         position_data = calculate_position(position_data)  # get central position and interpolate missing data
         position_data = calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
         position_data = shift_to_start_from_zero_at_bottom_left(position_data)
+        position_data = remove_position_outlier_rows(position_data)
         position_data = convert_to_cm(position_data, params)
         position_data = calculate_central_speed(position_data)
         position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
