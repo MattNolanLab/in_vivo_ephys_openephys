@@ -1,4 +1,6 @@
 import matplotlib.pylab as plt
+import cmocean
+from matplotlib  import cm
 import numpy as np
 import plot_utility
 
@@ -170,6 +172,25 @@ def plot_hd_score_vs_firing_rate(spike_data_frame, save_output_path):
     plt.close()
 
 
+# this is to colour code scatter plots based on recording day
+def add_colour_values(spike_data_frame):
+    animals = spike_data_frame.animal.unique()
+    colours = np.zeros(len(spike_data_frame))
+    cell_counter = 0
+    for animal in animals:
+        rows_of_animal = spike_data_frame.animal == animal
+        rows_of_animal_df = spike_data_frame[rows_of_animal]
+        recording_days_animal = rows_of_animal_df.day.unique()
+        total_number_of_days = len(recording_days_animal)
+        for index, day in enumerate(recording_days_animal):
+            day = spike_data_frame.day == day
+            rows_of_animal_day = spike_data_frame[rows_of_animal & day]
+            colours[cell_counter+index] = round((index + 1) / total_number_of_days * 100)
+        cell_counter += index + 1
+    spike_data_frame['colours'] = colours.astype(int)
+    return spike_data_frame
+
+
 def plot_grid_score_vs_hd_score(spike_data_frame, save_output_path, name):
     grid_sc_vs_hd_fig = plt.figure()
     ax = grid_sc_vs_hd_fig.add_subplot(1, 1, 1)
@@ -177,8 +198,10 @@ def plot_grid_score_vs_hd_score(spike_data_frame, save_output_path, name):
     has_grid_score = spike_data_frame['gridscore'].notnull()
     x = spike_data_frame[has_grid_score].gridscore.values
     y = spike_data_frame[has_grid_score].r_HD.values
+    spike_data_frame = add_colour_values(spike_data_frame[has_grid_score])
+    colour = spike_data_frame.colours.values
     plt.xlim(-1.5, 1.5)
-    ax.plot(x, y, 'o', color='navy')
+    ax.scatter(x, y, s=80, c=colour, marker='o', cmap=cm.gist_heat)
     plt.xlabel('Grid score')
     plt.ylabel('Head-direction score')
     plt.savefig(save_output_path + 'grid_score_vs_hd_score' + name + '.png')
