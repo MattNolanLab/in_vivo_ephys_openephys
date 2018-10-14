@@ -138,8 +138,8 @@ def plot_grid_score_hist(spike_data_frame, save_output_path, name):
     ax.hist(spike_data_frame[has_grid_score].gridscore, color='navy', bins=50)
     plt.axvline(x=0, color='red')
     plt.xlim(-1.5, 1.5)
-    plt.xlabel('Grid score')
-    plt.ylabel('Number of cells')
+    plt.xlabel('Grid score', fontsize=22)
+    plt.ylabel('Number of cells', fontsize=22)
     plt.savefig(save_output_path + 'grid_score_histogram' + name + '.png')
     plt.close()
 
@@ -201,9 +201,10 @@ def plot_grid_score_vs_hd_score(spike_data_frame, save_output_path, name):
     spike_data_frame = add_colour_values(spike_data_frame[has_grid_score])
     colour = spike_data_frame.colours.values
     plt.xlim(-1.5, 1.5)
-    ax.scatter(x, y, s=80, c=colour, marker='o', cmap=cm.gist_heat)
-    plt.xlabel('Grid score')
-    plt.ylabel('Head-direction score')
+    plt.axvline(x=0, color='red')
+    ax.scatter(x, y, s=80, c=colour, marker='o', cmap=cm.binary)
+    plt.xlabel('Grid score', fontsize=22)
+    plt.ylabel('Head-direction score', fontsize=22)
     plt.savefig(save_output_path + 'grid_score_vs_hd_score' + name + '.png')
     plt.close()
 
