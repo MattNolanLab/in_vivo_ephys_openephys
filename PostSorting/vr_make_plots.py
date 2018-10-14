@@ -5,6 +5,26 @@ import PostSorting.parameters
 import numpy as np
 
 
+# plot the raw movement channel to check all is good
+def plot_movement_channel(location, prm):
+    plt.plot(location)
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/movement' + '.png')
+    plt.close()
+
+# plot the trials to check all is good
+def plot_trials(trials, prm):
+    plt.plot(trials)
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials' + '.png')
+    plt.close()
+
+# plot the raw trial channels to check all is good
+def plot_trial_channels(trial1, trial2, prm):
+    plt.plot(trial1)
+    plt.plot(trial2)
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_types' + '.png')
+    plt.close()
+
+
 def split_stop_data_by_trial_type(spatial_data):
     locations = np.array(spatial_data.at[0,'stop_location_cm'])
     trials = np.array(spatial_data.at[0,'stop_trial_number'])
