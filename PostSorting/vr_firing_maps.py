@@ -17,6 +17,9 @@ def gaussian_kernel(kernx):
     kerny = np.exp(np.power(kernx, 2)/2 * (-1))
     return kerny
 
+def round_down(num, divisor):
+	return num - (num%divisor)
+
 
 def get_trial_numbers(spatial_data):
     beaconed_trial_no = spatial_data.at[0,'beaconed_trial_number']
