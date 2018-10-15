@@ -136,8 +136,9 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
 
-        save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
-        analyze_hd_r(prm, cluster)
+        if prm.get_is_stable is False:
+            save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
+            analyze_hd_r(prm, cluster)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram

@@ -119,6 +119,7 @@ def post_process_recording(recording_to_process, session_type, run_type='default
     initialize_parameters(recording_to_process)
 
     if run_type == 'stable':
+        prm.set_is_stable(True)
         call_stable_functions(recording_to_process, session_type)
 
     if run_type =='default':
