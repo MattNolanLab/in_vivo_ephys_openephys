@@ -254,6 +254,6 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
     spatial_firing['field_hd_max_rate'] = max_firing_rates_all
     spatial_firing['field_preferred_hd'] = preferred_hd_all
     spatial_firing['field_hd_score'] = hd_score_all
-    spatial_firing['number_of_spikes_in_fields'] = number_of_samples_in_field_all
+    spatial_firing['number_of_spikes_in_fields'] = number_of_spikes_in_field_all
     spatial_firing['time_spent_in_fields_sampling_points'] = number_of_samples_in_field_all
     return spatial_firing
