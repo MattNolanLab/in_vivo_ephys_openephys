@@ -180,7 +180,7 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
               str(round(spatial_firing.field_preferred_hd[cluster][field_id][0], 0)) + '\nhd score: '
               + str(round(spatial_firing.field_hd_score[cluster][field_id], 2)) + ', #of spikes: '
               + str(spatial_firing.number_of_spikes_in_fields[cluster][field_id])
-                    + ' time spent in field: ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30), 2) +' s', y=1.08, fontsize=12)
+                    + ', time spent in field: ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2)) +' s', y=1.08, fontsize=12)
     # plt.title('Kuiper p: ' + str(spatial_firing.field_hd_p[cluster][field_id]), y=1.08, fontsize=12)
     plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     plt.close()
