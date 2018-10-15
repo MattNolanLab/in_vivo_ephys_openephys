@@ -2,6 +2,7 @@ class Parameters:
 
     is_ubuntu = True
     is_windows = False
+    is_stable = False
     pixel_ratio = None
     opto_channel = ''
     sync_channel = ''
@@ -22,6 +23,12 @@ class Parameters:
 
     def __init__(self):
         return
+
+    def get_is_stable(self):
+            return Parameters.is_stable
+
+    def set_is_stable(self, is_stbl):
+        Parameters.is_stable = is_stbl
 
     def get_is_ubuntu(self):
         return Parameters.is_ubuntu

@@ -188,32 +188,33 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
-        number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
-        firing_rate_map = spatial_firing.firing_maps[cluster]
-        if number_of_firing_fields > 0:
-            plt.clf()
-            of_figure = plt.figure()
-            plt.title('hd in detected firing fields')
-            of_figure.set_size_inches(5, 5, forward=True)
-            of_plot = of_figure.add_subplot(1, 1, 1)
-            of_plot.axis('off')
-            of_plot.imshow(firing_rate_map)
+        if 'firing_fields' in spatial_firing:
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+            firing_rate_map = spatial_firing.firing_maps[cluster]
+            if number_of_firing_fields > 0:
+                plt.clf()
+                of_figure = plt.figure()
+                plt.title('hd in detected firing fields')
+                of_figure.set_size_inches(5, 5, forward=True)
+                of_plot = of_figure.add_subplot(1, 1, 1)
+                of_plot.axis('off')
+                of_plot.imshow(firing_rate_map)
 
-            firing_fields_cluster = spatial_firing.firing_fields[cluster]
-            colors = generate_colors(number_of_firing_fields)
+                firing_fields_cluster = spatial_firing.firing_fields[cluster]
+                colors = generate_colors(number_of_firing_fields)
 
-            for field_id, field in enumerate(firing_fields_cluster):
-                of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id)
-                hd_hist_session = spatial_firing.firing_fields_hd_session[cluster][field_id]
-                hd_hist_session = np.array(hd_hist_session) / prm.get_sampling_rate()
-                hd_hist_cluster = np.array(spatial_firing.firing_fields_hd_cluster[cluster][field_id])
-                hd_hist_cluster_normalized = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
+                for field_id, field in enumerate(firing_fields_cluster):
+                    of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id)
+                    hd_hist_session = spatial_firing.firing_fields_hd_session[cluster][field_id]
+                    hd_hist_session = np.array(hd_hist_session) / prm.get_sampling_rate()
+                    hd_hist_cluster = np.array(spatial_firing.firing_fields_hd_cluster[cluster][field_id])
+                    hd_hist_cluster_normalized = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
-                save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster_normalized, cluster, spatial_firing, colors, field_id, '_firing_field_')
-                save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, '_firing_field_raw')
+                    save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster_normalized, cluster, spatial_firing, colors, field_id, '_firing_field_')
+                    save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, '_firing_field_raw')
 
-            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
-            plt.close()
+                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.close()
 
 
 def make_combined_figure(prm, spatial_firing):
@@ -239,7 +240,9 @@ def make_combined_figure(prm, spatial_firing):
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
         rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
 
-        number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        number_of_firing_fields = 0
+        if 'firing_fields' in spatial_firing:
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
 
         grid = plt.GridSpec(number_of_rows, 6, wspace=0.2, hspace=0.2)
