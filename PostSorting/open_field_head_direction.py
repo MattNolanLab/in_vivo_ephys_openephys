@@ -111,14 +111,17 @@ def put_stat_results_in_spatial_df(spatial_firing, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         fields_path = prm.get_filepath() + '/Firing_fields/'
-        path_to_hd_stats = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
-        hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
-        df_stats = df_stats.append(hd_stats_cluster_df)
-    spatial_firing['watson_test_hd'] = df_stats.Watson_two_sample.values
-    spatial_firing['kuiper_cluster'] = df_stats.Kuiper_Cluster.values
-    spatial_firing['kuiper_session'] = df_stats.Kuiper_Session.values
-    spatial_firing['watson_cluster'] = df_stats.Watson_Cluster.values
-    spatial_firing['watson_session'] = df_stats.Watson_Session.values
+        circular_statistics_path = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
+        if os.path.isfile(circular_statistics_path) is True:
+            path_to_hd_stats = circular_statistics_path
+            hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
+            df_stats = df_stats.append(hd_stats_cluster_df)
+    if 'Watson_two_sample' in df_stats:
+        spatial_firing['watson_test_hd'] = df_stats.Watson_two_sample.values
+        spatial_firing['kuiper_cluster'] = df_stats.Kuiper_Cluster.values
+        spatial_firing['kuiper_session'] = df_stats.Kuiper_Session.values
+        spatial_firing['watson_cluster'] = df_stats.Watson_Cluster.values
+        spatial_firing['watson_session'] = df_stats.Watson_Session.values
     return spatial_firing
 
 
