@@ -84,10 +84,11 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Firing_fields')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters):
+def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters=None):
     spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
     synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
-    bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
+    if bad_clusters is not None:
+        bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
 
 
 def call_stable_functions(recording_to_process, session_type, analysis_type):
@@ -103,7 +104,7 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
         if analysis_type is 'default':
             spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
             if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                save_data_frames(spike_data, synced_spatial_data, bad_clusters)
+                save_data_frames(spike_data, synced_spatial_data, bad_clusters=bad_clusters)
                 return
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
