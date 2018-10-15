@@ -90,7 +90,7 @@ def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters):
     bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
 
 
-def call_stable_functions(recording_to_process, session_type):
+def call_stable_functions(recording_to_process, session_type, analysis_type):
     # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
     opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
     # process spatial data
@@ -100,10 +100,11 @@ def call_stable_functions(recording_to_process, session_type):
         # analyze spike data
         spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
-        spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
-        if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-            save_data_frames(spike_data, synced_spatial_data, bad_clusters)
-            return
+        if analysis_type is 'default':
+            spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+            if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
+                save_data_frames(spike_data, synced_spatial_data, bad_clusters)
+                return
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
@@ -114,15 +115,15 @@ def call_stable_functions(recording_to_process, session_type):
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
-def post_process_recording(recording_to_process, session_type, run_type='default'):
+def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
 
     if run_type == 'stable':
         prm.set_is_stable(True)
-        call_stable_functions(recording_to_process, session_type)
+        call_stable_functions(recording_to_process, session_type, analysis_type)
 
-    if run_type =='default':
+    if analysis_type == 'default':
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
         opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
         # process spatial data
@@ -132,10 +133,11 @@ def post_process_recording(recording_to_process, session_type, run_type='default
             # analyze spike data
             spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
             spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
-            spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
-            if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                save_data_frames(spike_data, synced_spatial_data, bad_clusters)
-                return
+            if analysis_type is 'default':
+                spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+                if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
+                    save_data_frames(spike_data, synced_spatial_data, bad_clusters)
+                    return
             spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
@@ -157,7 +159,7 @@ def main():
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
-    post_process_recording(recording_folder, 'openfield', 'stable')
+    post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters')
 
 
 if __name__ == '__main__':
