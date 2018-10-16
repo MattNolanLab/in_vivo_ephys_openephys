@@ -3,6 +3,8 @@ class Parameters:
     is_ubuntu = True
     is_windows = False
     is_stable = False
+    first_half_only = False
+    second_half_only = False
     pixel_ratio = None
     opto_channel = ''
     sync_channel = ''
@@ -29,6 +31,18 @@ class Parameters:
 
     def set_is_stable(self, is_stbl):
         Parameters.is_stable = is_stbl
+
+    def get_first_half_only(self):
+        return Parameters.first_half_only
+
+    def set_first_half_only(self, is_first):
+        Parameters.first_half_only = is_first
+
+    def get_second_half_only(self):
+        return Parameters.second_half_only
+
+    def set_second_half_only(self, is_second):
+        Parameters.second_half_only = is_second
 
     def get_is_ubuntu(self):
         return Parameters.is_ubuntu
