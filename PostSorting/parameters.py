@@ -13,6 +13,7 @@ class Parameters:
     sampling_rate_rate = 0
     local_recording_folder_path = ''
     file_path = []
+    output_path = []
     total_length_sampling_points = 0
     dead_channels = []
 
@@ -102,6 +103,12 @@ class Parameters:
         return Parameters.file_path
 
     def set_file_path(self, path):
+        Parameters.file_path = path
+
+    def get_output_path(self):
+        return Parameters.output_path
+
+    def set_output_path(self, path):
         Parameters.file_path = path
 
     def get_total_length_sampling_points(self):
