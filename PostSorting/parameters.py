@@ -82,19 +82,19 @@ class Parameters:
         Parameters.sampling_rate = sr
 
     def get_opto_tagging_start_index(self):
-            return Parameters.opto_tagging_start_index
+        return Parameters.opto_tagging_start_index
 
     def set_opto_tagging_start_index(self, opto_start):
         Parameters.opto_tagging_start_index = opto_start
 
     def get_sampling_rate_rate(self):
-            return Parameters.sampling_rate_rate
+        return Parameters.sampling_rate_rate
 
     def set_sampling_rate_rate(self, sr):
         Parameters.sampling_rate_rate = sr
 
     def get_local_recording_folder_path(self):
-            return Parameters.local_recording_folder_path
+        return Parameters.local_recording_folder_path
 
     def set_local_recording_folder_path(self, path):
         Parameters.local_recording_folder_path = path
@@ -109,7 +109,7 @@ class Parameters:
         return Parameters.output_path
 
     def set_output_path(self, path):
-        Parameters.file_path = path
+        Parameters.output_path = path
 
     def get_total_length_sampling_points(self):
         return Parameters.total_length_sampling_points
