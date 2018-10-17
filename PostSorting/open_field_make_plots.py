@@ -20,7 +20,7 @@ def plot_position(position_data):
 
 def plot_spikes_on_trajectory(position_data, spike_data, prm):
     print('I will make scatter plots of spikes on the trajectory of the animal.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/firing_scatters'
+    save_path = prm.get_output_path() + '/Figures/firing_scatters'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_id in range(len(spike_data)):
@@ -52,7 +52,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
 
 def plot_coverage(position_heat_map, prm):
     print('I will plot a heat map of the position of the animal to show coverage.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/session'
+    save_path = prm.get_output_path() + '/Figures/session'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     coverage = plt.figure()
@@ -67,7 +67,7 @@ def plot_coverage(position_heat_map, prm):
 
 def plot_firing_rate_maps(spatial_firing, prm):
     print('I will make rate map plots.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/rate_maps'
+    save_path = prm.get_output_path() + '/Figures/rate_maps'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
@@ -85,7 +85,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
 
 def plot_hd(spatial_firing, position_data, prm):
     print('I will plot HD on open field maps as a scatter plot for each cluster.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots_2d'
+    save_path = prm.get_output_path() + '/Figures/head_direction_plots_2d'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
@@ -108,7 +108,7 @@ def plot_hd(spatial_firing, position_data, prm):
 
 def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
     print('I will make the polar HD plots now.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/head_direction_plots_polar'
+    save_path = prm.get_output_path() + '/Figures/head_direction_plots_polar'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
@@ -131,7 +131,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
 
 def plot_rate_map_autocorrelogram(spatial_firing, prm):
     print('I will make the rate map autocorrelogram grid plots now.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/rate_map_autocorrelogram'
+    save_path = prm.get_output_path() + '/Figures/rate_map_autocorrelogram'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
@@ -188,7 +188,7 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
 
 def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
     print('I will make the polar HD plots for individual firing fields now.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/firing_field_plots'
+    save_path = prm.get_output_path() + '/Figures/firing_field_plots'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
@@ -224,11 +224,11 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
 
 def make_combined_figure(prm, spatial_firing):
     print('I will make the combined images now.')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/combined'
+    save_path = prm.get_output_path() + '/Figures/combined'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.close('all')
-    figures_path = prm.get_local_recording_folder_path() + '/Figures/'
+    figures_path = prm.get_output_path() + '/Figures/'
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         coverage_path = figures_path + 'session/heatmap.png'

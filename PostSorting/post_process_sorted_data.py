@@ -30,6 +30,7 @@ def initialize_parameters(recording_to_process):
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_file_path(recording_to_process)  # todo clean this
+    prm.set_output_path(recording_to_process)
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -85,10 +86,12 @@ def create_folders_for_output(recording_to_process):
 
 
 def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters=None):
-    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
-    synced_spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
+    synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
     if bad_clusters is not None:
-        bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
+        bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 
 
 #  this only calls stable analysis functions
@@ -130,24 +133,28 @@ def get_half_of_the_data(spike_data, synced_spatial_data, half='first_half'):
             spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_first_half]
 
     if half == 'second_half':
-        second_half_synced_data_indices = synced_spatial_data.synced_time <= end_of_first_half_seconds
+        second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
         synced_spatial_data_half = synced_spatial_data[second_half_synced_data_indices]
         for cluster in range(len(spike_data)):
             cluster = spike_data.cluster_id.values[cluster] - 1
-            firing_times_first_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
-            spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_first_half]
+            firing_times_second_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
+            spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_second_half]
     return spike_data, synced_spatial_data_half
 
 
 def run_analyses(spike_data, synced_spatial_data, first_half_only=False, second_half_only=False):
     prm.set_output_path(prm.get_filepath())
     if first_half_only is True:
+        print('---------------------------------------------------------------------------')
+        print('I will run all analyses on the first half of the recording separately.')
         prm.set_output_path(prm.get_filepath() + '/first_half')
         spike_data, synced_spatial_data = get_half_of_the_data(spike_data, synced_spatial_data, half='first_half')
     if second_half_only is True:
+        print('---------------------------------------------------------------------------')
+        print('I will run all analyses on the second half of the recording separately.')
         spike_data, synced_spatial_data = get_half_of_the_data(spike_data, synced_spatial_data, half='second_half')
         prm.set_output_path(prm.get_filepath() + '/second_half')
-
+    # it is not looking for dead ch at the right place !!! todo
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
@@ -181,9 +188,10 @@ def post_process_recording(recording_to_process, session_type, run_type='default
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
                     save_data_frames(spike_data, synced_spatial_data, bad_clusters)
                     return
+            run_analyses(spike_data, synced_spatial_data)
             run_analyses(spike_data, synced_spatial_data, first_half_only=True)
             run_analyses(spike_data, synced_spatial_data, second_half_only=True)
-            run_analyses(spike_data, synced_spatial_data)
+
 
 
 
