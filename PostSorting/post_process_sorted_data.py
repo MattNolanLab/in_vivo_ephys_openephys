@@ -120,7 +120,9 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
-def get_half_of_the_data(spike_data, synced_spatial_data, half='first_half'):
+def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half'):
+    spike_data = spike_data_in.copy()
+    synced_spatial_data = synced_spatial_data_in.copy()
     synced_spatial_data_half = None
     end_of_first_half_seconds = (synced_spatial_data.synced_time.max() - synced_spatial_data.synced_time.min()) / 2
     end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * 30000
@@ -130,7 +132,7 @@ def get_half_of_the_data(spike_data, synced_spatial_data, half='first_half'):
         for cluster in range(len(spike_data)):
             cluster = spike_data.cluster_id.values[cluster] - 1
             firing_times_first_half = spike_data.firing_times[cluster] < end_of_first_half_ephys_sampling_points
-            spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_first_half]
+            spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_first_half].copy()
 
     if half == 'second_half':
         second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
@@ -138,24 +140,24 @@ def get_half_of_the_data(spike_data, synced_spatial_data, half='first_half'):
         for cluster in range(len(spike_data)):
             cluster = spike_data.cluster_id.values[cluster] - 1
             firing_times_second_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
-            spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_second_half]
+            spike_data.firing_times[cluster] = spike_data.firing_times[cluster][firing_times_second_half].copy()
     return spike_data, synced_spatial_data_half
 
 
-def run_analyses(spike_data, synced_spatial_data, first_half_only=False, second_half_only=False):
+def run_analyses(spike_data_in, synced_spatial_data, first_half_only=False, second_half_only=False):
     prm.set_output_path(prm.get_filepath())
     if first_half_only is True:
         print('---------------------------------------------------------------------------')
         print('I will run all analyses on the first half of the recording separately.')
         prm.set_output_path(prm.get_filepath() + '/first_half')
-        spike_data, synced_spatial_data = get_half_of_the_data(spike_data, synced_spatial_data, half='first_half')
+        spike_data, synced_spatial_data = get_half_of_the_data(spike_data_in, synced_spatial_data, half='first_half')
     if second_half_only is True:
         print('---------------------------------------------------------------------------')
         print('I will run all analyses on the second half of the recording separately.')
-        spike_data, synced_spatial_data = get_half_of_the_data(spike_data, synced_spatial_data, half='second_half')
+        spike_data, synced_spatial_data = get_half_of_the_data(spike_data_in, synced_spatial_data, half='second_half')
         prm.set_output_path(prm.get_filepath() + '/second_half')
-    # it is not looking for dead ch at the right place !!! todo
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
+
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
