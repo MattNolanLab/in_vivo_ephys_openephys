@@ -151,42 +151,30 @@ def call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_fiel
         print('Post-processing in Matlab is done.')
 
 
+def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, name):
+    if os.path.exists(server_path_first_half + location_on_server + name) is True:
+        shutil.rmtree(server_path_first_half + location_on_server + name)
+    try:
+        shutil.copytree(recording_to_sort + '/Figures', server_path_first_half + location_on_server + name)
+    except shutil.Error as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print(message)
+        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
+              'I could not resolve, but the files are actually copied successfully.')
+        pass
+
+
 def copy_output_to_server(recording_to_sort, location_on_server):
-    if os.path.exists(server_path_first_half + location_on_server + '/Figures') is True:
-        shutil.rmtree(server_path_first_half + location_on_server + '/Figures')
-    try:
-        shutil.copytree(recording_to_sort + '/Figures', server_path_first_half + location_on_server + '/Figures')
-    except shutil.Error as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print(message)
-        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
-              'I could not resolve, but the files are actually copied successfully.')
-        pass
-
-    if os.path.exists(server_path_first_half + location_on_server + '/DataFrames') is True:
-        shutil.rmtree(server_path_first_half + location_on_server + '/DataFrames')
-    try:
-        shutil.copytree(recording_to_sort + '/DataFrames', server_path_first_half + location_on_server + '/DataFrames')
-    except shutil.Error as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print(message)
-        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
-              'I could not resolve, but the files are actually copied successfully.')
-        pass
-
-    if os.path.exists(server_path_first_half + location_on_server + '/Firing_fields') is True:
-        shutil.rmtree(server_path_first_half + location_on_server + '/Firing_fields')
-    try:
-        shutil.copytree(recording_to_sort + '/Firing_fields', server_path_first_half + location_on_server + '/Firing_fields')
-    except shutil.Error as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print(message)
-        print('I am letting this exception pass, because shutil.copytree seems to have some permission issues '
-              'I could not resolve, but the files are actually copied successfully.')
-        pass
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Figures')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/DataFrames')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Firing_fields')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/first_half/Figures')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/second_half/Figures')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/first_half/DataFrames')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/second_half/DataFrames')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/first_half/Firing_fields')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/second_half/Firing_fields')
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
