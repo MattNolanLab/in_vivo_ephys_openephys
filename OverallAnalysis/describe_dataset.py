@@ -35,12 +35,12 @@ def describe_dataset(spike_data_frame):
 
 
     print('Number of grid cells:')
-    grid_cell = spike_data_frame['gridscore'] >= 0.3
+    grid_cell = spike_data_frame['gridscore'] >= 0.4
     print(spike_data_frame[grid_cell].groupby('animal').day.nunique())
     print(spike_data_frame[grid_cell].fig_name_id)
 
     print('Number of hd cells:')
-    hd_cell = spike_data_frame['r_HD'] >= 0.4
+    hd_cell = spike_data_frame['r_HD'] >= 0.5
     print(spike_data_frame[hd_cell].groupby('animal').day.nunique())
     print(spike_data_frame[hd_cell].fig_name_id)
 
@@ -67,6 +67,35 @@ def describe_dataset(spike_data_frame):
     # spike_data_frame_l3 = spike_data_frame.loc[spike_data_frame['location'] == 3]
     spike_data_frame_l5 = spike_data_frame.loc[spike_data_frame['location'] == 5]
     spike_data_frame_superficial = spike_data_frame.loc[spike_data_frame['location'].isin([2, 3])]
+
+    print('Number of grid cells in superficial layers:')
+    grid_cell = spike_data_frame_superficial['gridscore'] >= 0.4
+    print(spike_data_frame_superficial[grid_cell].groupby('animal').day.nunique())
+    print(spike_data_frame_superficial[grid_cell].fig_name_id)
+
+    print('Number of hd cells in superficial layers:')
+    hd_cell = spike_data_frame_superficial['r_HD'] >= 0.5
+    print(spike_data_frame_superficial[hd_cell].groupby('animal').day.nunique())
+    print(spike_data_frame_superficial[hd_cell].fig_name_id)
+
+    print('Number of conjunctive cells in superficial layers:')
+    print(spike_data_frame_superficial[hd_cell & grid_cell].groupby('animal').day.nunique())
+    print(spike_data_frame_superficial[hd_cell & grid_cell].fig_name_id)
+
+    print('Number of grid cells in deep layers:')
+    grid_cell = spike_data_frame_l5['gridscore'] >= 0.4
+    print(spike_data_frame_l5[grid_cell].groupby('animal').day.nunique())
+    print(spike_data_frame_l5[grid_cell].fig_name_id)
+
+    print('Number of hd cells in deep layers:')
+    hd_cell = spike_data_frame_l5['r_HD'] >= 0.5
+    print(spike_data_frame_l5[hd_cell].groupby('animal').day.nunique())
+    print(spike_data_frame_l5[hd_cell].fig_name_id)
+
+    print('Number of conjunctive cells in deep layers:')
+    print(spike_data_frame_l5[hd_cell & grid_cell].groupby('animal').day.nunique())
+    print(spike_data_frame_l5[hd_cell & grid_cell].fig_name_id)
+
     print('***************************************************************')
     print('Average grid score in the deep layers is:')
     print(spike_data_frame_l5.gridscore.mean())
@@ -74,6 +103,14 @@ def describe_dataset(spike_data_frame):
     print('Average grid score in the superficial layers is:')
     print(spike_data_frame_superficial.gridscore.mean())
     print(spike_data_frame_superficial.gridscore.std())
+
+    print('Average spatial information score in the deep layers is:')
+    print(spike_data_frame_l5.skaggs.mean())
+    print(spike_data_frame_l5.skaggs.std())
+
+    print('Spatial information score in superficial layers:')
+    print(spike_data_frame_superficial.skaggs.mean())
+    print(spike_data_frame_superficial.skaggs.std())
 
     print('Average hd score in the deep layers is:')
     print(spike_data_frame_l5.r_HD.mean())

@@ -195,7 +195,7 @@ def analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field
     max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
     hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
     preferred_direction = np.where(hd_hist_cluster == max_firing_rate_cluster)
-    return hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction
+    return hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction, hd_in_field_cluster, hd_in_field_session
 
 
 def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
@@ -205,6 +205,8 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
     max_firing_rates_all = []
     preferred_hd_all = []
     hd_score_all = []
+    number_of_spikes_in_field_all = []
+    number_of_samples_in_field_all = []
 
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
@@ -215,15 +217,19 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
         max_firing_rate = []
         preferred_hd = []
         hd_score = []
-
+        number_of_spikes_in_fields = []
+        number_of_samples_in_fields = []
         if number_of_firing_fields > 0:
+
             for field_id, field in enumerate(firing_fields_cluster):
-                hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction = analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field_id)
+                hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction, hd_in_field_cluster, hd_in_field_session = analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field_id)
                 hd_session.append(list(hd_hist_session))
                 hd_cluster.append(list(hd_hist_cluster))
                 max_firing_rate.append(max_firing_rate_cluster/1000)
                 preferred_hd.append(preferred_direction[0])
                 hd_score.append(hd_score_cluster)
+                number_of_spikes_in_fields.append(len(hd_in_field_cluster))
+                number_of_samples_in_fields.append(len(hd_in_field_session))
 
             analyze_fields_r(prm, cluster)
         else:
@@ -232,17 +238,22 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
             max_firing_rate.append(None)
             preferred_hd.append(None)
             hd_score.append(None)
+            number_of_spikes_in_fields.append([None])
+            number_of_samples_in_fields.append([None])
 
         hd_session_all.append(hd_session)
         hd_cluster_all.append(hd_cluster)
         max_firing_rates_all.append(max_firing_rate)
         preferred_hd_all.append(preferred_hd)
         hd_score_all.append(hd_score)
-
+        number_of_spikes_in_field_all.append(number_of_spikes_in_fields)
+        number_of_samples_in_field_all.append(number_of_samples_in_fields)
 
     spatial_firing['firing_fields_hd_session'] = hd_session_all
     spatial_firing['firing_fields_hd_cluster'] = hd_cluster_all
     spatial_firing['field_hd_max_rate'] = max_firing_rates_all
     spatial_firing['field_preferred_hd'] = preferred_hd_all
     spatial_firing['field_hd_score'] = hd_score_all
+    spatial_firing['number_of_spikes_in_fields'] = number_of_spikes_in_field_all
+    spatial_firing['time_spent_in_fields_sampling_points'] = number_of_samples_in_field_all
     return spatial_firing
