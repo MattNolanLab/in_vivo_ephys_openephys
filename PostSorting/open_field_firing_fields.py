@@ -135,7 +135,7 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
     if prm.get_first_half_only() or prm.get_second_half_only():
         spatial_firing_whole_session = pd.read_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
         spatial_firing['firing_fields'] = spatial_firing_whole_session.firing_fields
-        # spatial_firing['field_max_firing_rate'] = spatial_firing_whole_session.max_firing_rate
+        spatial_firing['field_max_firing_rate'] = spatial_firing_whole_session.max_firing_rate
         spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm)
         return spatial_firing
 
