@@ -155,7 +155,8 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
     if os.path.exists(server_path_first_half + location_on_server + name) is True:
         shutil.rmtree(server_path_first_half + location_on_server + name)
     try:
-        shutil.copytree(recording_to_sort + name, server_path_first_half + location_on_server + name)
+        if os.path.exists(recording_to_sort + name) is True:
+            shutil.copytree(recording_to_sort + name, server_path_first_half + location_on_server + name)
     except shutil.Error as ex:
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
