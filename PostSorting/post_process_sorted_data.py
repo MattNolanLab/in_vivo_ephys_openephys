@@ -157,7 +157,9 @@ def post_process_recording(recording_to_process, session_type, run_type='default
                     save_data_frames(spike_data, synced_spatial_data, bad_clusters)
                     return
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data)
-            PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
+            spike_data = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
+            save_data_frames(spike_data, synced_spatial_data)
+
 
 
 #  this is here for testing
