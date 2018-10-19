@@ -14,6 +14,7 @@ import PostSorting.open_field_head_direction
 import PostSorting.temporal_firing
 import PostSorting.open_field_grid_cells
 import PostSorting.make_plots
+import PostSorting.compare_first_and_second_half
 
 import matplotlib.pylab as plt
 
@@ -129,6 +130,7 @@ def run_analyses(spike_data_in, synced_spatial_data):
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
     save_data_frames(spatial_firing, synced_spatial_data)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
+    return synced_spatial_data, spatial_firing
 
 
 def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default'):
@@ -154,7 +156,8 @@ def post_process_recording(recording_to_process, session_type, run_type='default
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
                     save_data_frames(spike_data, synced_spatial_data, bad_clusters)
                     return
-            run_analyses(spike_data, synced_spatial_data)
+            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data)
+            PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
 
 
 #  this is here for testing
