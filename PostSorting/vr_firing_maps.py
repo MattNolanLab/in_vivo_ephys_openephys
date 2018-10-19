@@ -23,9 +23,9 @@ def round_down(num, divisor):
 
 
 def get_trial_numbers(spatial_data):
-    beaconed_trial_no = spatial_data.at[0,'beaconed_trial_number']
-    nonbeaconed_trial_no = spatial_data.at[0,'nonbeaconed_trial_number']
-    probe_trial_no = spatial_data.at[0,'probe_trial_number']
+    beaconed_trial_no = spatial_data.at[0,'beaconed_total_trial_number']
+    nonbeaconed_trial_no = spatial_data.at[0,'nonbeaconed_total_trial_number']
+    probe_trial_no = spatial_data.at[0,'probe_total_trial_number']
     return beaconed_trial_no, nonbeaconed_trial_no, probe_trial_no
 
 
@@ -64,7 +64,7 @@ def normalise_by_time(firing_rate_map, spatial_data):
         firing_rate_map['b_spike_number'] = np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0)
         firing_rate_map['nb_spike_number'] = np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0)
         firing_rate_map['p_spike_number'] = np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0)
-    except ZeroDivisionError:
+    except ZeroDivisionError or ValueError:
         return firing_rate_map
     return firing_rate_map
 
