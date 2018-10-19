@@ -1,6 +1,7 @@
 import numpy as np
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
+import PostSorting.open_field_firing_maps
 
 
 def get_data_from_data_frame_for_cluster(spike_data, cluster, indices):
@@ -57,7 +58,7 @@ def get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, e
         hd_in_fields_cluster.append([None])
         hd_in_field_sessions.append([None])
 
-    spike_data.number_of_spikes_in_fields[cluster] = number_of_firing_fields
+    spike_data.number_of_spikes_in_fields[cluster] = number_of_spikes_in_fields
     spike_data.time_spent_in_fields_sampling_points[cluster] = number_of_samples_in_fields
     spike_data.firing_fields_hd_cluster[cluster] = hd_in_fields_cluster
     spike_data.firing_fields_hd_session[cluster] = hd_in_field_sessions
@@ -80,7 +81,7 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
             firing_times_first_half = spike_data.firing_times[cluster] < end_of_first_half_ephys_sampling_points
             spike_data = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_first_half)
             spike_data = get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='first')
-        spike_data_half = spike_data[['cluster_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session']].copy()
+        spike_data_half = spike_data[['cluster_id', 'session_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session', 'firing_fields']].copy()
 
     if half == 'second_half':
         second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
@@ -90,7 +91,7 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
             firing_times_second_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
             spike_data = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_second_half)
             spike_data = get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='second')
-        spike_data_half = spike_data[['cluster_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session']].copy()
+        spike_data_half = spike_data[['cluster_id', 'session_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session','firing_fields']].copy()
     return spike_data_half, synced_spatial_data_half
 
 
@@ -99,9 +100,11 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     print('I will get data from the first half of the recording.')
     prm.set_output_path(prm.get_filepath() + '/first_half')
     spike_data_first, synced_spatial_data_first = get_half_of_the_data(spike_data_in, synced_spatial_data, half='first_half')
+    position_heat_map, spike_data_first = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_first, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_first, synced_spatial_data_first, prm)
     print('---------------------------------------------------------------------------')
     print('I will get data from the second half of the recording.')
     spike_data_second, synced_spatial_data_second = get_half_of_the_data(spike_data_in, synced_spatial_data, half='second_half')
+    position_heat_map, spike_data_second = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_second, prm)
     prm.set_output_path(prm.get_filepath() + '/second_half')
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_second, synced_spatial_data_second, prm)
