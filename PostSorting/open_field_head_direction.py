@@ -27,11 +27,9 @@ def get_rolling_sum(array_in, window):
 
 
 def get_hd_histogram(angles):
-    plt.figure()
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=23)
-    plt.close()
     return smooth_hd
 
 
