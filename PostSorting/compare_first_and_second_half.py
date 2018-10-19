@@ -41,10 +41,10 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
 def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     prm.set_output_path(prm.get_filepath())
     print('---------------------------------------------------------------------------')
-    print('I will run all analyses on the first half of the recording separately.')
+    print('I will get data from the first half of the recording.')
     prm.set_output_path(prm.get_filepath() + '/first_half')
     spike_data_first, synced_spatial_data_first = get_half_of_the_data(spike_data_in, synced_spatial_data, half='first_half')
     print('---------------------------------------------------------------------------')
-    print('I will run all analyses on the second half of the recording separately.')
+    print('I will get data from the second half of the recording.')
     spike_data_second, synced_spatial_data_second = get_half_of_the_data(spike_data_in, synced_spatial_data, half='second_half')
     prm.set_output_path(prm.get_filepath() + '/second_half')
