@@ -19,9 +19,11 @@ def plot_trials(trials, prm):
 
 # plot the raw trial channels to check all is good
 def plot_trial_channels(trial1, trial2, prm):
-    plt.plot(trial1)
-    plt.plot(trial2)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_types' + '.png')
+    plt.plot(trial1[0,:])
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type1' + '.png')
+    plt.close()
+    plt.plot(trial2[0,:])
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2' + '.png')
     plt.close()
 
 
