@@ -80,7 +80,7 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
             firing_times_first_half = spike_data.firing_times[cluster] < end_of_first_half_ephys_sampling_points
             spike_data = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_first_half)
             spike_data = get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='first')
-        spike_data_half = spike_data[['firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session']].copy()
+        spike_data_half = spike_data[['cluster_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session']].copy()
 
     if half == 'second_half':
         second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
@@ -89,8 +89,8 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
             cluster = spike_data.cluster_id.values[cluster] - 1
             firing_times_second_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
             spike_data = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_second_half)
-            spike_data = get_data_from_data_frames_fields(spike_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='second')
-        spike_data_half = spike_data[['firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session']].copy()
+            spike_data = get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='second')
+        spike_data_half = spike_data[['cluster_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session']].copy()
     return spike_data_half, synced_spatial_data_half
 
 
