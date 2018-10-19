@@ -2,6 +2,7 @@ import numpy as np
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_maps
+from scipy.stats import linregress
 
 
 def get_data_from_data_frame_for_cluster(spike_data, cluster, indices):
@@ -95,6 +96,57 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
     return spike_data_half, synced_spatial_data_half
 
 
+'''
+slope : slope of the regression line
+intercept : intercept of the regression line
+r-value : correlation coefficient
+p-value : two-sided p-value for a hypothesis test whose null hypothesis is that the slope is zero
+stderr : Standard error of the estimate
+'''
+
+
+def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
+    slopes = []
+    intercepts = []
+    pearson_rs = []
+    ps = []
+    stderrs = []
+    for cluster in range(len(first_half)):
+        slopes_clu = []
+        intercepts_clu = []
+        pearson_rs_clu = []
+        ps_clu = []
+        stderrs_clu = []
+        cluster = first_half.cluster_id.values[cluster] - 1
+        number_of_firing_fields = len(first_half.firing_fields[cluster])
+        hd_in_fields_first = first_half.firing_fields_hd_cluster[cluster]
+        if number_of_firing_fields > 0:
+            for field_id, field in enumerate(hd_in_fields_first):
+                hd_in_fields_second = second_half.firing_fields_hd_cluster[cluster]
+                slope, intercept, pearson_r, p, stderr = linregress(field, hd_in_fields_second[field_id])
+                slopes_clu.append(slope)
+                intercepts_clu.append(intercept)
+                pearson_rs_clu.append(pearson_r)
+                ps_clu.append(p)
+                stderrs_clu.append(stderr)
+        else:
+            slopes_clu.append([None])
+            intercepts_clu.append([None])
+            pearson_rs_clu.append([None])
+            ps_clu.append([None])
+            stderrs_clu.append([None])
+        slopes.append(slopes_clu)
+        intercepts.append(intercepts_clu)
+        pearson_rs.append(pearson_rs_clu)
+        ps.append(ps_clu)
+        stderrs.append(stderrs_clu)
+
+    spike_data['field_corr_r'] = pearson_rs
+    spike_data['field_corr_p'] = ps
+
+    return spike_data
+
+
 def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     print('---------------------------------------------------------------------------')
     print('I will get data from the first half of the recording.')
@@ -108,3 +160,6 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     position_heat_map, spike_data_second = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_second, prm)
     prm.set_output_path(prm.get_filepath() + '/second_half')
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_second, synced_spatial_data_second, prm)
+
+    spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
+    return spike_data
