@@ -17,8 +17,9 @@ def gaussian_kernel(kernx):
     kerny = np.exp(np.power(kernx, 2)/2 * (-1))
     return kerny
 
+
 def round_down(num, divisor):
-	return num - (num%divisor)
+    return num - (num%divisor)
 
 
 def get_trial_numbers(spatial_data):
@@ -59,9 +60,12 @@ def average_spikes_over_trials(firing_rate_map, spike_data, spatial_data, cluste
 
 def normalise_by_time(firing_rate_map, spatial_data):
     firing_rate_map['dwell_time'] = spatial_data['binned_time_ms']
-    firing_rate_map['b_spike_number'] = np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0)
-    firing_rate_map['nb_spike_number'] = np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0)
-    firing_rate_map['p_spike_number'] = np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0)
+    try:
+        firing_rate_map['b_spike_number'] = np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0)
+        firing_rate_map['nb_spike_number'] = np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0)
+        firing_rate_map['p_spike_number'] = np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0)
+    except ZeroDivisionError:
+        return firing_rate_map
     return firing_rate_map
 
 
@@ -91,8 +95,6 @@ def find_spikes_on_trials(firing_rate_map, spike_data, spatial_data, cluster_ind
             for loc in range(int(number_of_bins)):
                 firing_rate_map = firing_rate_map.append({"trial_number": int(t),"bin_count": int(loc),"b_spike_number":  0, "nb_spike_number":  0, "p_spike_number":  0}, ignore_index=True)
     return firing_rate_map
-
-
 
 
 def make_firing_field_maps(spike_data, spatial_data):
