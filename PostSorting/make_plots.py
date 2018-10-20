@@ -95,6 +95,7 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
 
 
 def plot_autocorrelograms(spike_data, prm):
+    plt.close()
     print('I will plot autocorrelograms for each cluster.')
     save_path = prm.get_output_path() + '/Figures/firing_properties'
     if os.path.exists(save_path) is False:
@@ -114,6 +115,7 @@ def plot_autocorrelograms(spike_data, prm):
         plt.bar(time, corr, align='center', width=1, color='black')
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
+
 
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel):
     snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
