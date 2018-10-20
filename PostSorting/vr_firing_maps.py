@@ -40,9 +40,6 @@ def average_spikes_over_trials(firing_rate_map, spike_data, spatial_data, cluste
         try:
             spikes_across_trials_b=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'b_spike_number'])/beaconed_trial_no
             avg_spikes_across_trials_b[loc] = spikes_across_trials_b
-        except ZeroDivisionError:# needs fixing, not clean
-            continue
-        try:
             spikes_across_trials_nb=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'nb_spike_number'])/nonbeaconed_trial_no
             avg_spikes_across_trials_nb[loc] = spikes_across_trials_nb
             spikes_across_trials_p=sum(firing_rate_map.loc[firing_rate_map.bin_count == loc, 'p_spike_number'])/probe_trial_no
@@ -72,25 +69,19 @@ def normalise_by_time(firing_rate_map, spatial_data):
 def find_spikes_on_trials(firing_rate_map, spike_data, spatial_data, cluster_index):
     bin_size_cm,number_of_bins = get_bin_size(spatial_data)
     number_of_trials = spatial_data.trial_number.max() # total number of trials
-
     trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
     trials_nb = np.array(spike_data.at[cluster_index,'nonbeaconed_trial_number']);locations_nb = np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm'])
     trials_p = np.array(spike_data.at[cluster_index, 'probe_trial_number']);locations_p = np.array(spike_data.at[cluster_index, 'probe_position_cm'])
-
     for t in range(1,int(number_of_trials)):
         try:
             trial_locations_b = np.take(locations_b, np.where(trials_b == t)[0])
             trial_locations_nb = np.take(locations_nb, np.where(trials_nb == t)[0])
             trial_locations_p = np.take(locations_p, np.where(trials_p == t)[0])
-            if len(trial_locations_b) > 1: # if there are trials //// # needs fixing, not clean
-                for loc in range(int(number_of_bins)):
-                    spikes_in_bin_b = trial_locations_b[np.where(np.logical_and(trial_locations_b > float(loc), trial_locations_b <= (loc+1)))]
-                    spikes_in_bin_nb = trial_locations_nb[np.where(np.logical_and(trial_locations_nb > loc, trial_locations_nb <= (loc+1)))]
-                    spikes_in_bin_p = trial_locations_p[np.where(np.logical_and(trial_locations_p > loc, trial_locations_p <= (loc+1)))]
-                    firing_rate_map = firing_rate_map.append({"trial_number": int(t), "bin_count": int(loc), "b_spike_number":  len(spikes_in_bin_b), "nb_spike_number":  len(spikes_in_bin_nb), "p_spike_number":  len(spikes_in_bin_p)}, ignore_index=True)
-            else:
-                for loc in range(int(number_of_bins)):
-                    firing_rate_map = firing_rate_map.append({"trial_number": int(t), "bin_count": int(loc), "b_spike_number": 0, "nb_spike_number": 0,"p_spike_number": 0}, ignore_index=True)
+            for loc in range(int(number_of_bins)):
+                spikes_in_bin_b = trial_locations_b[np.where(np.logical_and(trial_locations_b > loc, trial_locations_b <= (loc+1)))]
+                spikes_in_bin_nb = trial_locations_nb[np.where(np.logical_and(trial_locations_nb > loc, trial_locations_nb <= (loc+1)))]
+                spikes_in_bin_p = trial_locations_p[np.where(np.logical_and(trial_locations_p > loc, trial_locations_p <= (loc+1)))]
+                firing_rate_map = firing_rate_map.append({"trial_number": int(t), "bin_count": int(loc), "b_spike_number":  len(spikes_in_bin_b), "nb_spike_number":  len(spikes_in_bin_nb), "p_spike_number":  len(spikes_in_bin_p)}, ignore_index=True)
         except IndexError: # if there is no spikes on that trial /// # needs fixing, not clean
             for loc in range(int(number_of_bins)):
                 firing_rate_map = firing_rate_map.append({"trial_number": int(t),"bin_count": int(loc),"b_spike_number":  0, "nb_spike_number":  0, "p_spike_number":  0}, ignore_index=True)
