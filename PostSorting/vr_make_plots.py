@@ -169,7 +169,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        spikes_on_track = plt.figure(figsize=(6,9))
+        spikes_on_track = plt.figure(figsize=(6,8))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
         cluster_firing_indices = spike_data.firing_times[cluster_index]
