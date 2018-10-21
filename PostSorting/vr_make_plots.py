@@ -1,7 +1,6 @@
 import os
 import matplotlib.pylab as plt
 import plot_utility
-import PostSorting.parameters
 import numpy as np
 
 
