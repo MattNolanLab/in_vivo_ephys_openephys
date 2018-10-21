@@ -218,10 +218,56 @@ def plot_firing_rate_maps(spike_data, prm):
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        x_max = max(spike_data.avg_spike_per_bin_b[cluster_index])+0.1
+        x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
 
         plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
+
+def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
+    print('plotting combined spike rastas and spike rate...')
+    save_path = prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        spikes_on_track = plt.figure(figsize=(6,10))
+
+        ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
+        cluster_firing_indices = spike_data.firing_times[cluster_index]
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=5)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=5)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=5)
+        plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+        plt.xlim(0,200)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plot_utility.style_track_plot(ax, 200)
+        x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
+        plot_utility.style_vr_plot(ax, x_max)
+
+        ax = spikes_on_track.add_subplot(2, 1, 2)  # specify (nrows, ncols, axnum)
+        bins=range(200)
+        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
+        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
+        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
+        ax.plot(bins, unsmooth_b, '-', color='Black')
+        try:
+            ax.plot(bins, unsmooth_nb, '-', color='Red')
+            ax.plot(bins, unsmooth_p, '-', color='Blue')
+        except ValueError:
+            continue
+        ax.locator_params(axis = 'x', nbins=3)
+        ax.set_xticklabels(['0', '100', '200'])
+        plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
+        plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
+        plt.xlim(0,200)
+        x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
+        plot_utility.style_vr_plot(ax, x_max)
+        plot_utility.style_track_plot(ax, 200)
+
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.close()
