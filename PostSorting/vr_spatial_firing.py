@@ -9,6 +9,7 @@ def add_columns_to_dataframe(spike_data):
     spike_data["y_position_cm"] = ""
     spike_data["trial_number"] = ""
     spike_data["trial_type"] = ""
+    spike_data["speed_per200ms"] = ""
     spike_data["beaconed_position_cm"] = ""
     spike_data["beaconed_trial_number"] = ""
     spike_data["nonbeaconed_position_cm"] = ""
@@ -18,6 +19,14 @@ def add_columns_to_dataframe(spike_data):
     spike_data["avg_spike_per_bin_b"] = ""
     spike_data["avg_spike_per_bin_nb"] = ""
     spike_data["avg_spike_per_bin_p"] = ""
+    return spike_data
+
+
+def add_speed(spike_data, spatial_data_speed):
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_firing_indices = spike_data.firing_times[cluster_index]
+        spike_data.speed_per200ms[cluster_index] = spatial_data_speed[cluster_firing_indices]
     return spike_data
 
 
@@ -50,6 +59,7 @@ def find_firing_location_indices(spike_data, spatial_data):
     spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
     spike_data = add_trial_number(spike_data, spatial_data.trial_number)
     spike_data = add_trial_type(spike_data, spatial_data.trial_type)
+    spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
     return spike_data
 
 
