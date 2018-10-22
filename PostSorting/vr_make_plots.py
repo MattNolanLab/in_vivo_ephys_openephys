@@ -267,6 +267,7 @@ def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
         x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
+        plt.subplots_adjust(hspace = .5, wspace = .35,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
 
         plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
