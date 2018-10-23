@@ -27,11 +27,9 @@ def get_rolling_sum(array_in, window):
 
 
 def get_hd_histogram(angles):
-    plt.figure()
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=23)
-    plt.close()
     return smooth_hd
 
 
@@ -111,14 +109,17 @@ def put_stat_results_in_spatial_df(spatial_firing, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         fields_path = prm.get_filepath() + '/Firing_fields/'
-        path_to_hd_stats = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
-        hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
-        df_stats = df_stats.append(hd_stats_cluster_df)
-    spatial_firing['watson_test_hd'] = df_stats.Watson_two_sample.values
-    spatial_firing['kuiper_cluster'] = df_stats.Kuiper_Cluster.values
-    spatial_firing['kuiper_session'] = df_stats.Kuiper_Session.values
-    spatial_firing['watson_cluster'] = df_stats.Watson_Cluster.values
-    spatial_firing['watson_session'] = df_stats.Watson_Session.values
+        circular_statistics_path = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
+        if os.path.isfile(circular_statistics_path) is True:
+            path_to_hd_stats = circular_statistics_path
+            hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
+            df_stats = df_stats.append(hd_stats_cluster_df)
+    if 'Watson_two_sample' in df_stats:
+        spatial_firing['watson_test_hd'] = df_stats.Watson_two_sample.values
+        spatial_firing['kuiper_cluster'] = df_stats.Kuiper_Cluster.values
+        spatial_firing['kuiper_session'] = df_stats.Kuiper_Session.values
+        spatial_firing['watson_cluster'] = df_stats.Watson_Cluster.values
+        spatial_firing['watson_session'] = df_stats.Watson_Session.values
     return spatial_firing
 
 
@@ -133,8 +134,9 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
 
-        save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
-        analyze_hd_r(prm, cluster)
+        if prm.get_is_stable is False:
+            save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
+            analyze_hd_r(prm, cluster)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
@@ -167,14 +169,29 @@ def get_indices_for_bin(bin_in_field, spatial_data, prm):
 
 
 # get head-direction data from bins of field
-def get_hd_in_field(rate_map_indices, spatial_data, prm):
+def get_hd_in_field_spikes(rate_map_indices, spatial_data, prm):
     hd_in_field = []
+    event_times_in_field = []
     for bin_in_field in rate_map_indices:
         inside_bin = get_indices_for_bin(bin_in_field, spatial_data, prm)
         hd = inside_bin.hd.values
         hd_in_field.extend(hd)
+        event_times = inside_bin.firing_times.values
+        event_times_in_field.extend(event_times)
+    return hd_in_field, event_times_in_field
 
-    return hd_in_field
+
+# get head-direction data from bins of field
+def get_hd_in_field(rate_map_indices, spatial_data, prm):
+    hd_in_field = []
+    event_times_in_field = []
+    for bin_in_field in rate_map_indices:
+        inside_bin = get_indices_for_bin(bin_in_field, spatial_data, prm)
+        hd = inside_bin.hd.values
+        hd_in_field.extend(hd)
+        event_times = inside_bin.synced_time.values
+        event_times_in_field.extend(event_times)
+    return hd_in_field, event_times_in_field
 
 
 # return array of HD in subfield when cell fired for cluster
@@ -184,9 +201,10 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
     spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
     spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
     spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
-    hd_in_field = get_hd_in_field(rate_map_indices, spatial_firing_cluster, prm)
+    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
+    hd_in_field, spike_times = get_hd_in_field_spikes(rate_map_indices, spatial_firing_cluster, prm)
     hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
-    return hd_in_field
+    return hd_in_field, spike_times
 
 
 # return array of HD angles in subfield when from the whole session
@@ -195,9 +213,10 @@ def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
     spatial_data_field['x'] = spatial_data.position_x_pixels
     spatial_data_field['y'] = spatial_data.position_y_pixels
     spatial_data_field['hd'] = spatial_data.hd
-    hd_in_field = get_hd_in_field(rate_map_indices, spatial_data_field, prm)
+    spatial_data_field['synced_time'] = spatial_data.synced_time
+    hd_in_field, times = get_hd_in_field(rate_map_indices, spatial_data_field, prm)
     hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
-    return hd_in_field
+    return hd_in_field, times
 
 
 def main():
