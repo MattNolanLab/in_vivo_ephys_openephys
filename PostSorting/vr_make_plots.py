@@ -2,7 +2,7 @@ import os
 import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
-
+import PostSorting.vr_stop_analysis
 
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, prm):
@@ -27,9 +27,7 @@ def plot_trial_channels(trial1, trial2, prm):
 
 
 def split_stop_data_by_trial_type(spatial_data):
-    locations = spatial_data['stop_location_cm'].values
-    trials = spatial_data['stop_trial_number'].values
-    trial_type = spatial_data['stop_trial_type'].values
+    locations,trials,trial_type = PostSorting.vr_stop_analysis.load_stop_data(spatial_data)
     stop_data=np.transpose(np.vstack((locations, trials, trial_type)))
     beaconed = np.delete(stop_data, np.where(stop_data[:,2]>0),0)
     nonbeaconed = np.delete(stop_data, np.where(stop_data[:,2]!=1),0)
