@@ -27,9 +27,9 @@ def plot_trial_channels(trial1, trial2, prm):
 
 
 def split_stop_data_by_trial_type(spatial_data):
-    locations = np.array(spatial_data.at[0,'stop_location_cm'])
-    trials = np.array(spatial_data.at[0,'stop_trial_number'])
-    trial_type = np.array(spatial_data.at[0,'stop_trial_type'])
+    locations = spatial_data['stop_location_cm'].values
+    trials = spatial_data['stop_trial_number'].values
+    trial_type = spatial_data['stop_trial_type'].values
     stop_data=np.transpose(np.vstack((locations, trials, trial_type)))
     beaconed = np.delete(stop_data, np.where(stop_data[:,2]>0),0)
     nonbeaconed = np.delete(stop_data, np.where(stop_data[:,2]!=1),0)
