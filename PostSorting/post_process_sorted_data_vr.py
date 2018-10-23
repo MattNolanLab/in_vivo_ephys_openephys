@@ -23,7 +23,7 @@ def initialize_parameters(recording_to_process):
     prm.set_second_trial_channel('100_ADC5.continuous')
     prm.set_file_path(recording_to_process)
     prm.set_local_recording_folder_path(recording_to_process)
-
+    prm.set_output_path(recording_to_process)
 
 def process_position_data(recording_to_process, prm):
     spatial_data = None
@@ -36,7 +36,7 @@ def make_plots(spike_data, spatial_data):
     PostSorting.vr_make_plots.plot_stop_histogram(spatial_data, prm)
     PostSorting.vr_make_plots.plot_speed_histogram(spatial_data, prm)
     PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
-    PostSorting.make_plots.plot_waveforms(spike_data, prm)
+    #PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data, prm)
@@ -71,7 +71,7 @@ def post_process_recording(recording_to_process, session_type):
         PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
         save_data_frames(spike_data, spatial_data, bad_clusters)
         return
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
+    #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
     make_plots(spike_data, spatial_data)
