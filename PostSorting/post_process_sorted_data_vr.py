@@ -26,9 +26,9 @@ def initialize_parameters(recording_to_process):
 
 
 def process_position_data(recording_to_process, prm):
-    vr_spatial_data = None
-    vr_spatial_data = PostSorting.vr_spatial_data.process_position_data(recording_to_process, prm)
-    return vr_spatial_data
+    spatial_data = None
+    spatial_data = PostSorting.vr_spatial_data.process_position_data(recording_to_process, prm)
+    return spatial_data
 
 
 def make_plots(spike_data, spatial_data):
@@ -38,9 +38,10 @@ def make_plots(spike_data, spatial_data):
     PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
     PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+    PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data, prm)
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm)
-
+    PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm)
 
 def save_data_frames(spatial_firing, spatial_data, bad_clusters):
     spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
@@ -63,20 +64,16 @@ def post_process_recording(recording_to_process, session_type):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     spatial_data = process_position_data(recording_to_process, prm)
-    PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
-
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-        PostSorting.vr_make_plots.plot_stops_on_track(spatial_data, prm)
+        PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
         save_data_frames(spike_data, spatial_data, bad_clusters)
         return
-
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
-
     make_plots(spike_data, spatial_data)
 
 
@@ -87,7 +84,8 @@ def main():
 
     params = PostSorting.parameters.Parameters()
 
-    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/mcos/M1_D16_2018-06-21_13-38-50'
+    #recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D28_2018-09-15_11-49-09'
+    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55' # test recording
     print('Processing ' + str(recording_folder))
 
     post_process_recording(recording_folder, 'vr')
