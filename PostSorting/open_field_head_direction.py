@@ -154,10 +154,10 @@ def get_indices_for_bin(bin_in_field, spatial_data, prm):
     bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
     bin_x = bin_in_field[0]
     bin_x_left_pixels = bin_x * bin_size_pixels
-    bin_x_right_pixels = bin_x * (bin_size_pixels + 1)
+    bin_x_right_pixels = (bin_x+1) * bin_size_pixels
     bin_y = bin_in_field[1]
     bin_y_bottom_pixels = bin_y * bin_size_pixels
-    bin_y_top_pixels = bin_y * (bin_size_pixels + 1)
+    bin_y_top_pixels = (bin_y+1) * bin_size_pixels
 
     left_x_border = spatial_data.x > bin_x_left_pixels
     right_x_border = spatial_data.x < bin_x_right_pixels
