@@ -8,6 +8,7 @@ import PostSorting.vr_make_plots
 import PostSorting.vr_spatial_firing
 import PostSorting.vr_firing_maps
 import PostSorting.make_plots
+import gc
 
 prm = PostSorting.parameters.Parameters()
 
@@ -36,6 +37,7 @@ def make_plots(spike_data, spatial_data):
     PostSorting.vr_make_plots.plot_stops_on_track(spatial_data, prm)
     PostSorting.vr_make_plots.plot_stop_histogram(spatial_data, prm)
     PostSorting.vr_make_plots.plot_speed_histogram(spatial_data, prm)
+    gc.collect()
     PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
     PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
@@ -72,6 +74,7 @@ def post_process_recording(recording_to_process, session_type):
         PostSorting.vr_make_plots.plot_combined_behaviour(spatial_data, prm)
         save_data_frames(spike_data, spatial_data, bad_clusters)
         return
+
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
