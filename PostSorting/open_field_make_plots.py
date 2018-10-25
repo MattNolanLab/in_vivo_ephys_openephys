@@ -241,7 +241,7 @@ were detected.
 '''
 
 
-def plot_spikes_on_firing_fields(prm, spatial_firing):
+def plot_spikes_on_firing_fields(spatial_firing, prm):
     print('I will plot detected spikes colour coded in fields.')
     save_path = prm.get_output_path() + '/Figures/firing_fields_coloured_spikes'
     if os.path.exists(save_path) is False:
@@ -387,7 +387,7 @@ def main():
     # plot_spikes_on_trajectory(spatial_data, spatial_firing, prm)
     #spatial_firing['firing_maps'] = list(firing_rate_maps)
     # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
-    plot_spikes_on_firing_fields(prm, spatial_firing)
+    plot_spikes_on_firing_fields(spatial_firing, prm)
     #plot_hd_for_firing_fields(spatial_firing, spatial_data, prm)
 if __name__ == '__main__':
     main()
