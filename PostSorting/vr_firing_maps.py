@@ -1,6 +1,7 @@
 import PostSorting.parameters
 import numpy as np
 import pandas as pd
+import gc
 
 import PostSorting.vr_spatial_data
 
@@ -100,7 +101,7 @@ def find_spikes_on_trials(firing_rate_map, spike_data, spatial_data, cluster_ind
 
 def make_firing_field_maps(spike_data, spatial_data):
     print('I am calculating the average firing rate ...')
-
+    gc.collect()
     for cluster_index in range(len(spike_data)):
         firing_rate_map = pd.DataFrame(columns=['trial_number', 'bin_count', 'b_spike_number', 'nb_spike_number','p_spike_number','dwell_time_ms'])
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
