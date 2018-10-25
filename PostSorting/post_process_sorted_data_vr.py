@@ -46,6 +46,7 @@ def make_plots(spike_data, spatial_data):
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm)
     PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm)
 
+
 def save_data_frames(spatial_firing, spatial_data, bad_clusters):
     spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
     spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
