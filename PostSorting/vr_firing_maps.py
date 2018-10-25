@@ -22,6 +22,16 @@ def round_down(num, divisor):
     return num - (num%divisor)
 
 
+def create_2dhistogram(trials, locations, number_of_bins):
+    posrange = np.linspace(0, 200, num=number_of_bins+1) # 0 VU to 20 VU split into 20
+    trialrange = np.unique(trials)
+    trialrange = np.append(trialrange, trialrange[-1]+1)  # Add end of range
+    values = np.array([[trialrange[0], trialrange[-1]],[posrange[0], posrange[-1]]])
+
+    H, bins, ranges = np.histogram2d(trials, locations, bins=(trialrange, posrange), range=values)
+    return H
+
+
 def get_trial_numbers(spatial_data):
     beaconed_trial_no = spatial_data.at[0,'beaconed_total_trial_number']
     nonbeaconed_trial_no = spatial_data.at[0,'nonbeaconed_total_trial_number']
