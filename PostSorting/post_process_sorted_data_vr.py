@@ -23,6 +23,7 @@ def initialize_parameters(recording_to_process):
     prm.set_second_trial_channel('100_ADC5.continuous')
     prm.set_file_path(recording_to_process)
     prm.set_local_recording_folder_path(recording_to_process)
+    prm.set_output_path(recording_to_process)
 
 
 def process_position_data(recording_to_process, prm):
