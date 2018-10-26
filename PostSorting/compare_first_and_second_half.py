@@ -124,8 +124,13 @@ def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
         hd_in_fields_first = first_half.firing_fields_hd_cluster[cluster]
         if number_of_firing_fields > 0:
             for field_id, field in enumerate(hd_in_fields_first):
+                hd_in_fields_first_session = first_half.firing_fields_hd_session[cluster]
+                hd_in_fields_first_norm = np.divide(field, hd_in_fields_first_session, out=np.zeros_like(field), where=hd_in_fields_first_session != 0)
                 hd_in_fields_second = second_half.firing_fields_hd_cluster[cluster]
-                slope, intercept, pearson_r, p, stderr = linregress(field, hd_in_fields_second[field_id])
+                hd_in_fields_second_session = second_half.firing_fields_hd_session[cluster]
+                hd_in_fields_second_norm = np.divide(hd_in_fields_second, hd_in_fields_second_session, out=np.zeros_like(hd_in_fields_second), where=hd_in_fields_second_session != 0)
+
+                slope, intercept, pearson_r, p, stderr = linregress(hd_in_fields_first_norm, hd_in_fields_second_norm)
                 slopes_clu.append(slope)
                 intercepts_clu.append(intercept)
                 pearson_rs_clu.append(pearson_r)
@@ -166,5 +171,6 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_second, synced_spatial_data_second, prm)
 
     spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
+    prm.set_output_path(prm.get_filepath())
     PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
     return spike_data
