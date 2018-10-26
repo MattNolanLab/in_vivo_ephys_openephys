@@ -67,7 +67,6 @@ def get_field_data_frame(spatial_firing, position_data):
     return field_df
 
 
-
 def main():
     spatial_firing = pd.read_pickle('C:/Users/s1466507\Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/DataFrames/spatial_firing.pkl')
     position_data = pd.read_pickle('C:/Users/s1466507\Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/DataFrames/position.pkl')
