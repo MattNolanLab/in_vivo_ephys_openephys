@@ -4,6 +4,7 @@ import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_maps
 import PostSorting.post_process_sorted_data
 from scipy.stats import linregress
+from scipy.stats.stats import pearsonr
 
 
 def get_data_from_data_frame_for_cluster(spike_data, cluster, indices):
@@ -108,14 +109,10 @@ stderr : Standard error of the estimate
 
 def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
     print('I will now correlate the first and second halves of the recording.')
-    slopes = []
-    intercepts = []
     pearson_rs = []
     ps = []
     stderrs = []
     for cluster in range(len(first_half)):
-        slopes_clu = []
-        intercepts_clu = []
         pearson_rs_clu = []
         ps_clu = []
         stderrs_clu = []
@@ -129,21 +126,13 @@ def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
                 hd_in_fields_second = second_half.firing_fields_hd_cluster[cluster][field_id]
                 hd_in_fields_second_session = second_half.firing_fields_hd_session[cluster][field_id]
                 hd_in_fields_second_norm = np.divide(hd_in_fields_second, hd_in_fields_second_session, out=np.zeros_like(hd_in_fields_second), where=hd_in_fields_second_session != 0)
-
-                slope, intercept, pearson_r, p, stderr = linregress(hd_in_fields_first_norm, hd_in_fields_second_norm)
-                slopes_clu.append(slope)
-                intercepts_clu.append(intercept)
+                pearson_r, p = pearsonr(hd_in_fields_first_norm, hd_in_fields_second_norm)
                 pearson_rs_clu.append(pearson_r)
                 ps_clu.append(p)
-                stderrs_clu.append(stderr)
         else:
-            slopes_clu.append([None])
-            intercepts_clu.append([None])
             pearson_rs_clu.append([None])
             ps_clu.append([None])
             stderrs_clu.append([None])
-        slopes.append(slopes_clu)
-        intercepts.append(intercepts_clu)
         pearson_rs.append(pearson_rs_clu)
         ps.append(ps_clu)
         stderrs.append(stderrs_clu)
