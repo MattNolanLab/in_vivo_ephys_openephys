@@ -157,7 +157,7 @@ def mark_firing_field_with_scatter(field, plot, colors, field_id):
 
 # generate more random colors if necessary
 def generate_colors(number_of_firing_fields):
-    colors = [[0, 1, 0], [1, 0.6, 0.3], [0, 1, 1], [1, 0, 1], [0.7, 0.3, 1]]  # green, orange, cyan, pink, purple
+    colors = [[0, 1, 0], [1, 0.6, 0.3], [0, 1, 1], [1, 0, 1], [0.7, 0.3, 1], [0.6, 0.5, 0.4], [0.6, 0, 0]]  # green, orange, cyan, pink, purple, grey, dark red
     if number_of_firing_fields > len(colors):
         for i in range(number_of_firing_fields):
             colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
@@ -214,6 +214,60 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                     save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, '_firing_field_raw')
 
                 plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.close()
+
+
+def plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot):
+    all_spikes_in_fields = np.hstack(np.array(spatial_firing.spike_times_in_fields[cluster]))
+    mask_for_spikes_not_in_fields = ~np.in1d(spatial_firing.firing_times[cluster], all_spikes_in_fields)
+    spike_times_not_in_fields = spatial_firing.firing_times[cluster][mask_for_spikes_not_in_fields]
+    not_in_fields_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_not_in_fields)]
+    of_plot.scatter(not_in_fields_df['x'].values, not_in_fields_df['y'].values, color='black', marker='o', s=6)
+
+
+def make_df_for_cluster(spatial_firing, cluster):
+    cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
+    spatial_firing_cluster = pd.DataFrame(cluster_id)
+    spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
+    spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
+    spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
+    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
+    return spatial_firing_cluster
+
+'''
+Plot spikes on rate map colour coded to the [grid] field they belong to. This is only done for cells where fields
+were detected.
+
+'''
+
+
+def plot_spikes_on_firing_fields(spatial_firing, prm):
+    print('I will plot detected spikes colour coded in fields.')
+    save_path = prm.get_output_path() + '/Figures/firing_fields_coloured_spikes'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        if 'firing_fields' in spatial_firing:
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+            if number_of_firing_fields > 0:
+                plt.clf()
+                of_figure = plt.figure()
+                plt.title('spikes in fields')
+                of_figure.set_size_inches(5, 5, forward=True)
+                of_plot = of_figure.add_subplot(1, 1, 1)
+                of_plot.axis('off')
+                firing_fields_cluster = spatial_firing.firing_fields[cluster]
+                colors = generate_colors(number_of_firing_fields)
+                spatial_firing_cluster = make_df_for_cluster(spatial_firing, cluster)
+
+                for field_id, field in enumerate(firing_fields_cluster):
+                    spike_times_field = spatial_firing.spike_times_in_fields[cluster][field_id]
+                    field_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_field)]
+                    of_plot.scatter(field_df['x'].values, field_df['y'].values, color=colors[field_id], marker='o', s=10)
+                plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot)
+
+                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
                 plt.close()
 
 
@@ -323,7 +377,8 @@ def main():
     prm = PostSorting.parameters.Parameters()
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    prm.set_local_recording_folder_path('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of')
+    prm.set_local_recording_folder_path('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/DataFrames')
+    prm.set_output_path('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/')
     firing_rate_maps = np.load('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of/M5_2018-03-06_15-34-44_of.npy')
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
@@ -331,7 +386,8 @@ def main():
 
     # plot_spikes_on_trajectory(spatial_data, spatial_firing, prm)
     #spatial_firing['firing_maps'] = list(firing_rate_maps)
-    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
-    plot_hd_for_firing_fields(spatial_firing, spatial_data, prm)
+    # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
+    plot_spikes_on_firing_fields(spatial_firing, prm)
+    #plot_hd_for_firing_fields(spatial_firing, spatial_data, prm)
 if __name__ == '__main__':
     main()
