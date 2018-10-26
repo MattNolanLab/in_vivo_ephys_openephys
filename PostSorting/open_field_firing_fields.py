@@ -199,7 +199,6 @@ def analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field
     hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
     hd_hist_session /= prm.get_sampling_rate()
     hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
-    hd_hist_cluster = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
     max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
     hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
     preferred_direction = np.where(hd_hist_cluster == max_firing_rate_cluster)
