@@ -74,6 +74,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
@@ -141,7 +142,7 @@ def post_process_recording(recording_to_process, session_type, run_type='default
         prm.set_is_stable(True)
         call_stable_functions(recording_to_process, session_type, analysis_type)
 
-    if analysis_type == 'default':
+    if run_type == 'default':
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
         opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
         # process spatial data
@@ -174,6 +175,7 @@ def main():
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
     # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters')
+    # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='default')
     post_process_recording(recording_folder, 'openfield')
 
 

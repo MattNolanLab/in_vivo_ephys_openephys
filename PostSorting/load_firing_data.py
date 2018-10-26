@@ -18,6 +18,8 @@ def get_firing_info(file_path, prm):
     if os.path.exists(firing_times_path):
         firing_info = mdaio.readmda(firing_times_path)
         units_list = np.unique(firing_info[2])
+    else:
+        print('I could not find the MountainSort output [firing.mda] file.')
     return units_list, firing_info
 
 
