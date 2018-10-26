@@ -107,6 +107,7 @@ stderr : Standard error of the estimate
 
 
 def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
+    print('I will now correlate the first and second halves of the recording.')
     slopes = []
     intercepts = []
     pearson_rs = []
