@@ -2,6 +2,7 @@ import numpy as np
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_maps
+import PostSorting.post_process_sorted_data
 from scipy.stats import linregress
 
 
@@ -153,12 +154,14 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     prm.set_output_path(prm.get_filepath() + '/first_half')
     spike_data_first, synced_spatial_data_first = get_half_of_the_data(spike_data_in, synced_spatial_data, half='first_half')
     position_heat_map, spike_data_first = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_first, prm)
+    PostSorting.post_process_sorted_data.save_data_frames(spike_data_first, synced_spatial_data_first, bad_clusters=None)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_first, synced_spatial_data_first, prm)
     print('---------------------------------------------------------------------------')
     print('I will get data from the second half of the recording.')
     spike_data_second, synced_spatial_data_second = get_half_of_the_data(spike_data_in, synced_spatial_data, half='second_half')
     position_heat_map, spike_data_second = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_second, prm)
     prm.set_output_path(prm.get_filepath() + '/second_half')
+    PostSorting.post_process_sorted_data.save_data_frames(spike_data_second, synced_spatial_data_second, bad_clusters=None)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_second, synced_spatial_data_second, prm)
 
     spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
