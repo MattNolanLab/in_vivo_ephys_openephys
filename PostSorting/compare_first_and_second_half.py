@@ -111,11 +111,9 @@ def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
     print('I will now correlate the first and second halves of the recording.')
     pearson_rs = []
     ps = []
-    stderrs = []
     for cluster in range(len(first_half)):
         pearson_rs_clu = []
         ps_clu = []
-        stderrs_clu = []
         cluster = first_half.cluster_id.values[cluster] - 1
         number_of_firing_fields = len(first_half.firing_fields[cluster])
         hd_in_fields_first = first_half.firing_fields_hd_cluster[cluster]
@@ -132,10 +130,8 @@ def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
         else:
             pearson_rs_clu.append([None])
             ps_clu.append([None])
-            stderrs_clu.append([None])
         pearson_rs.append(pearson_rs_clu)
         ps.append(ps_clu)
-        stderrs.append(stderrs_clu)
 
     spike_data['field_corr_r'] = pearson_rs
     spike_data['field_corr_p'] = ps
