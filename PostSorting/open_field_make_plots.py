@@ -373,6 +373,95 @@ def make_combined_figure(prm, spatial_firing):
         plt.close()
 
 
+def make_combined_field_analysis_figures(prm, spatial_firing):
+    print('I will make the combined images for field analysis results now.')
+    save_path = prm.get_output_path() + '/Figures/field_analysis'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.close('all')
+    figures_path = prm.get_output_path() + '/Figures/'
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        spike_scatter_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spikes_on_trajectory.png'
+        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png'
+        head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png'
+        head_direction_map_path = figures_path + 'head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png'
+        firing_fields_rate_map_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png'
+        firing_fields_coloured_spikes_path = figures_path + 'firing_fields_coloured_spikes/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png'
+        firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
+        firing_field_path_first = prm.get_output_path() + '/first_half/Figures/firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
+        firing_field_path_second = prm.get_output_path() + '/second_half/Figures/firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
+
+        number_of_firing_fields = 0
+        if 'firing_fields' in spatial_firing:
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+            if number_of_firing_fields == 0:
+                continue
+        number_of_rows = 4
+        number_of_columns = 5
+        if number_of_firing_fields > 5:
+            number_of_columns = number_of_firing_fields
+        grid = plt.GridSpec(number_of_rows, number_of_columns, wspace=0.2, hspace=0.2)
+        rounded_r = [ '%.4f' % elem for elem in spatial_firing.field_corr_r[cluster]]
+        rounded_p = [ '%.4f' % elem for elem in spatial_firing.field_corr_p[cluster]]
+        plt.suptitle("r: " + str(rounded_r) + ' p: ' + str(rounded_p))
+        if os.path.exists(spike_scatter_path):
+            spike_scatter = mpimg.imread(spike_scatter_path)
+            spike_scatter_plot = plt.subplot(grid[0, 0])
+            spike_scatter_plot.axis('off')
+            spike_scatter_plot.imshow(spike_scatter)
+        if os.path.exists(head_direction_polar_path):
+            polar_hd = mpimg.imread(head_direction_polar_path)
+            polar_hd_plot = plt.subplot(grid[0, 1])
+            polar_hd_plot.axis('off')
+            polar_hd_plot.imshow(polar_hd)
+        if os.path.exists(head_direction_map_path):
+            hd_map = mpimg.imread(head_direction_map_path)
+            hd_map_plot = plt.subplot(grid[0, 2])
+            hd_map_plot.axis('off')
+            hd_map_plot.imshow(hd_map)
+        if os.path.exists(firing_fields_rate_map_path):
+            firing_fields = mpimg.imread(firing_fields_rate_map_path)
+            firing_fields_plot = plt.subplot(grid[0, 3])
+            firing_fields_plot.axis('off')
+            firing_fields_plot.imshow(firing_fields)
+        if os.path.exists(firing_fields_coloured_spikes_path):
+            firing_fields = mpimg.imread(firing_fields_coloured_spikes_path)
+            firing_fields_plot = plt.subplot(grid[0, 4])
+            firing_fields_plot.axis('off')
+            firing_fields_plot.imshow(firing_fields)
+
+        for field in range(number_of_firing_fields):
+            path = firing_field_path + str(field + 1) + '.png'
+            firing_field_polar = mpimg.imread(path)
+            row = 1
+            col = field
+            firing_fields_polar_plot = plt.subplot(grid[row, col])
+            firing_fields_polar_plot.axis('off')
+            firing_fields_polar_plot.imshow(firing_field_polar)
+
+        for field in range(number_of_firing_fields):
+            path = firing_field_path_first + str(field + 1) + '.png'
+            firing_field_polar = mpimg.imread(path)
+            row = 2
+            col = field
+            firing_fields_polar_plot = plt.subplot(grid[row, col])
+            firing_fields_polar_plot.axis('off')
+            firing_fields_polar_plot.imshow(firing_field_polar)
+
+        for field in range(number_of_firing_fields):
+            path = firing_field_path_second + str(field + 1) + '.png'
+            firing_field_polar = mpimg.imread(path)
+            row = 3
+            col = field
+            firing_fields_polar_plot = plt.subplot(grid[row, col])
+            firing_fields_polar_plot.axis('off')
+            firing_fields_polar_plot.imshow(firing_field_polar)
+
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.close()
+
+
 def main():
     prm = PostSorting.parameters.Parameters()
     prm.set_pixel_ratio(440)
@@ -383,11 +472,11 @@ def main():
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
     # make_combined_figure(prm, spatial_firing)
-
+    make_combined_field_analysis_figures(prm, spatial_firing)
     # plot_spikes_on_trajectory(spatial_data, spatial_firing, prm)
     #spatial_firing['firing_maps'] = list(firing_rate_maps)
     # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing)
-    plot_spikes_on_firing_fields(spatial_firing, prm)
+    #plot_spikes_on_firing_fields(spatial_firing, prm)
     #plot_hd_for_firing_fields(spatial_firing, spatial_data, prm)
 if __name__ == '__main__':
     main()
