@@ -159,6 +159,22 @@ def get_hd_hists_for_data_frame(spike_data_frame, synced_spatial_data):
     return spike_data_frame
 
 
+def correlate_hd_for_session(first_half, second_half, spike_data):
+    pearson_rs = []
+    ps = []
+    for cluster in range(len(spike_data)):
+        cluster = spike_data.cluster_id.values[cluster] - 1
+        hd_first_half = first_half.hd_spike_histogram[cluster]
+        hd_second_half = second_half.hd_spike_histogram[cluster]
+        pearson_r, p = pearsonr(hd_first_half, hd_second_half)
+        pearson_rs.append(pearson_r)
+        ps.append(p)
+    spike_data['hd_correlation_first_vs_second_half'] = pearson_rs
+    spike_data['hd_correlation_first_vs_second_half_p'] = ps
+
+    return spike_data
+
+
 def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     print('---------------------------------------------------------------------------')
     print('I will get data from the first half of the recording.')
@@ -176,8 +192,8 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_second, synced_spatial_data_second, prm)
 
     spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
-    spike_data_first = get_hd_hists_two_halves_whole_session(spike_data_first, synced_spatial_data_first)
-    spike_data_second = get_hd_hists_two_halves_whole_session(spike_data_second, synced_spatial_data_second)
+    spike_data_first = get_hd_hists_for_data_frame(spike_data_first, synced_spatial_data_first)
+    spike_data_second = get_hd_hists_for_data_frame(spike_data_second, synced_spatial_data_second)
     prm.set_output_path(prm.get_filepath())
     PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
     return spike_data
