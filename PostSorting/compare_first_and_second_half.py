@@ -162,16 +162,21 @@ def get_hd_hists_for_data_frame(spike_data_frame, synced_spatial_data):
 def correlate_hd_for_session(first_half, second_half, spike_data):
     pearson_rs = []
     ps = []
+    hd_hists_first_half = []
+    hd_hists_second_half = []
     for cluster in range(len(spike_data)):
         cluster = spike_data.cluster_id.values[cluster] - 1
         hd_first_half = first_half.hd_spike_histogram[cluster]
         hd_second_half = second_half.hd_spike_histogram[cluster]
         pearson_r, p = pearsonr(hd_first_half, hd_second_half)
         pearson_rs.append(pearson_r)
+        hd_hists_first_half.append(hd_first_half)
+        hd_hists_second_half.append(hd_second_half)
         ps.append(p)
     spike_data['hd_correlation_first_vs_second_half'] = pearson_rs
     spike_data['hd_correlation_first_vs_second_half_p'] = ps
-
+    spike_data['hd_hist_first_half'] = hd_hists_first_half
+    spike_data['hd_hist_second_half'] = hd_hists_second_half
     return spike_data
 
 
@@ -181,19 +186,19 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     prm.set_output_path(prm.get_filepath() + '/first_half')
     spike_data_first, synced_spatial_data_first = get_half_of_the_data(prm, spike_data_in, synced_spatial_data, half='first_half')
     position_heat_map, spike_data_first = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_first, prm)
+    spike_data_first = get_hd_hists_for_data_frame(spike_data_first, synced_spatial_data_first)
     PostSorting.post_process_sorted_data.save_data_frames(spike_data_first, synced_spatial_data_first, bad_clusters=None)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_first, synced_spatial_data_first, prm)
     print('---------------------------------------------------------------------------')
     print('I will get data from the second half of the recording.')
     spike_data_second, synced_spatial_data_second = get_half_of_the_data(prm, spike_data_in, synced_spatial_data, half='second_half')
     position_heat_map, spike_data_second = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_second, prm)
+    spike_data_second = get_hd_hists_for_data_frame(spike_data_second, synced_spatial_data_second)
     prm.set_output_path(prm.get_filepath() + '/second_half')
     PostSorting.post_process_sorted_data.save_data_frames(spike_data_second, synced_spatial_data_second, bad_clusters=None)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spike_data_second, synced_spatial_data_second, prm)
 
     spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
-    spike_data_first = get_hd_hists_for_data_frame(spike_data_first, synced_spatial_data_first)
-    spike_data_second = get_hd_hists_for_data_frame(spike_data_second, synced_spatial_data_second)
     spike_data = correlate_hd_for_session(spike_data_first, spike_data_second, spike_data)
     prm.set_output_path(prm.get_filepath())
     PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
