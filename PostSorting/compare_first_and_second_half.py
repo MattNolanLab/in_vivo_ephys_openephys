@@ -194,6 +194,7 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
     spike_data_first = get_hd_hists_for_data_frame(spike_data_first, synced_spatial_data_first)
     spike_data_second = get_hd_hists_for_data_frame(spike_data_second, synced_spatial_data_second)
+    spike_data = correlate_hd_for_session(spike_data_first, spike_data_second, spike_data)
     prm.set_output_path(prm.get_filepath())
     PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
     return spike_data
