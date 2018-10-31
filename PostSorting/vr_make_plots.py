@@ -170,13 +170,13 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        spikes_on_track = plt.figure(figsize=(6,8))
+        spikes_on_track = plt.figure(figsize=(6,6))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=5)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=5)
-        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=5)
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -199,7 +199,7 @@ def plot_firing_rate_maps(spike_data, prm):
         os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        avg_spikes_on_track = plt.figure()
+        avg_spikes_on_track = plt.figure(figsize=(6,4))
 
         bins=range(200)
 
@@ -239,9 +239,9 @@ def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
 
         ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=5)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=5)
-        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=5)
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
