@@ -45,6 +45,7 @@ def make_plots(spike_data, spatial_data):
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data, prm)
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm)
     PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm)
+    PostSorting.vr_make_plots.make_combined_figure(prm, spike_data)
 
 
 def save_data_frames(spatial_firing, spatial_data, bad_clusters):
@@ -80,6 +81,7 @@ def post_process_recording(recording_to_process, session_type):
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
     make_plots(spike_data, spatial_data)
+    #save_data_frames(spike_data, spatial_data, bad_clusters)
 
 
 #  this is here for testing
