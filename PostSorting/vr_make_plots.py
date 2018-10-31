@@ -3,6 +3,9 @@ import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
+import math
+import matplotlib.image as mpimg
+import pandas as pd
 
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, prm):
@@ -184,7 +187,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + 'track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -219,7 +222,7 @@ def plot_firing_rate_maps(spike_data, prm):
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + 'rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -267,5 +270,99 @@ def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace = .5, wspace = .35,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/' + spike_data.session_id[cluster_index] + 'track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
+
+
+
+
+def make_combined_figure(prm, spatial_firing):
+    print('I will make the combined images now.')
+    save_path = prm.get_output_path() + '/Figures/combined'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.close('all')
+    figures_path = prm.get_output_path() + '/Figures/'
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+
+        stop_raster_path = figures_path + 'behaviour/stop_raster.png'
+        stop_avg_path = figures_path + 'behaviour/stop_histogram.png'
+        speed_avg_path = figures_path + 'behaviour/speed_histogram.png'
+
+        spike_raster_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[spatial_firing] + 'track_firing_Cluster_' + str(cluster +1) + '.png'
+        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[spatial_firing] + 'rate_map_Cluster_' + str(cluster +1) + '.png'
+        spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
+        autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
+        autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
+        waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
+
+        number_of_firing_fields = 0
+        if 'firing_fields' in spatial_firing:
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
+
+        grid = plt.GridSpec(number_of_rows, 6, wspace=0.2, hspace=0.2)
+        if os.path.exists(waveforms_path):
+            waveforms = mpimg.imread(waveforms_path)
+            waveforms_plot = plt.subplot(grid[0, 0])
+            waveforms_plot.axis('off')
+            waveforms_plot.imshow(waveforms)
+        if os.path.exists(spike_histogram_path):
+            spike_hist = mpimg.imread(spike_histogram_path)
+            spike_hist_plot = plt.subplot(grid[0, 3])
+            spike_hist_plot.axis('off')
+            spike_hist_plot.imshow(spike_hist)
+        if os.path.exists(autocorrelogram_10_path):
+            autocorrelogram_10 = mpimg.imread(autocorrelogram_10_path)
+            autocorrelogram_10_plot = plt.subplot(grid[0, 1])
+            autocorrelogram_10_plot.axis('off')
+            autocorrelogram_10_plot.imshow(autocorrelogram_10)
+        if os.path.exists(autocorrelogram_250_path):
+            autocorrelogram_250 = mpimg.imread(autocorrelogram_250_path)
+            autocorrelogram_250_plot = plt.subplot(grid[0, 2])
+            autocorrelogram_250_plot.axis('off')
+            autocorrelogram_250_plot.imshow(autocorrelogram_250)
+        if os.path.exists(stop_raster_path):
+            stop_raster = mpimg.imread(stop_raster_path)
+            stop_raster_plot = plt.subplot(grid[1, 0])
+            stop_raster_plot.axis('off')
+            stop_raster_plot.imshow(stop_raster)
+        if os.path.exists(stop_avg_path):
+            stop_avg = mpimg.imread(stop_avg_path)
+            stop_avg_plot = plt.subplot(grid[1, 1])
+            stop_avg_plot.axis('off')
+            stop_avg_plot.imshow(stop_avg)
+        if os.path.exists(speed_avg_path):
+            speed_avg = mpimg.imread(speed_avg_path)
+            speed_avg_plot = plt.subplot(grid[1, 2])
+            speed_avg_plot.axis('off')
+            speed_avg_plot.imshow(speed_avg)
+        if os.path.exists(spike_raster_path):
+            spike_raster = mpimg.imread(spike_raster_path)
+            spike_raster_plot = plt.subplot(grid[1, 3])
+            spike_raster_plot.axis('off')
+            spike_raster_plot.imshow(spike_raster)
+        if os.path.exists(rate_map_path):
+            rate_map = mpimg.imread(rate_map_path)
+            rate_map_plot = plt.subplot(grid[1, 4])
+            rate_map_plot.axis('off')
+            rate_map_plot.imshow(rate_map)
+
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.close()
+
+
+
+def main():
+    prm = PostSorting.parameters.Parameters()
+    prm.set_sampling_rate(30000)
+    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55' # test recording
+    prm.set_local_recording_folder_path('C:/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/DataFrames')
+    prm.set_output_path('C:/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/')
+    spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
+    spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
+    make_combined_figure(prm, spatial_firing)
+
+if __name__ == '__main__':
+    main()
