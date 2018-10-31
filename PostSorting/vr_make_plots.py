@@ -7,6 +7,7 @@ import math
 import matplotlib.image as mpimg
 import pandas as pd
 
+
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, prm):
     plt.plot(location)
@@ -187,7 +188,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + 'track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -222,7 +223,7 @@ def plot_firing_rate_maps(spike_data, prm):
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + 'rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -290,19 +291,14 @@ def make_combined_figure(prm, spatial_firing):
         stop_avg_path = figures_path + 'behaviour/stop_histogram.png'
         speed_avg_path = figures_path + 'behaviour/speed_histogram.png'
 
-        spike_raster_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[spatial_firing] + 'track_firing_Cluster_' + str(cluster +1) + '.png'
-        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[spatial_firing] + 'rate_map_Cluster_' + str(cluster +1) + '.png'
+        spike_raster_path = figures_path + 'spike_trajectories/' + spatial_firing.session_id[cluster] + '_track_firing_Cluster_' + str(cluster +1) + '.png'
+        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_Cluster_' + str(cluster +1) + '.png'
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
 
-        number_of_firing_fields = 0
-        if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
-        number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
-
-        grid = plt.GridSpec(number_of_rows, 6, wspace=0.2, hspace=0.2)
+        grid = plt.GridSpec(2, 5, wspace=0.01, hspace=0.01)
         if os.path.exists(waveforms_path):
             waveforms = mpimg.imread(waveforms_path)
             waveforms_plot = plt.subplot(grid[0, 0])
@@ -355,14 +351,17 @@ def make_combined_figure(prm, spatial_firing):
 
 
 def main():
+    print('-------------------------------------------------------------')
+
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
     recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55' # test recording
-    prm.set_local_recording_folder_path('C:/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/DataFrames')
-    prm.set_output_path('C:/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/')
+    prm.set_local_recording_folder_path('/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/DataFrames')
+    prm.set_output_path('/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/')
     spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
     spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
     make_combined_figure(prm, spatial_firing)
+
 
 if __name__ == '__main__':
     main()
