@@ -293,7 +293,7 @@ def make_combined_figure(prm, spatial_firing):
         speed_avg_path = figures_path + 'behaviour/speed_histogram.png'
 
         spike_raster_path = figures_path + 'spike_trajectories/' + spatial_firing.session_id[cluster] + '_track_firing_Cluster_' + str(cluster +1) + '.png'
-        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_Cluster_' + str(cluster +1) + '.png'
+        rate_map_path = figures_path + 'spike_rate/' + spatial_firing.session_id[cluster] + '_rate_map_Cluster_' + str(cluster +1) + '.png'
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
