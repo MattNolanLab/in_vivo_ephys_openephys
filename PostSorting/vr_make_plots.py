@@ -53,7 +53,7 @@ def plot_stops_on_track(spatial_data, prm):
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='blue', markersize=2)
     ax.plot(probe[:,0], probe[:,1], 'o', color='red', markersize=2)
     #ax.plot(spatial_data.first_series_location_cm, spatial_data.first_series_trial_number, 'o', color='Black', markersize=4)
-    #ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=4)
+    ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=4)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
@@ -177,6 +177,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
+        ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
