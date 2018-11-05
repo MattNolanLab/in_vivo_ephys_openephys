@@ -164,10 +164,8 @@ def average_spikes_across_trials(spike_data,spatial_data,cluster_index):
 
     number_of_trials = spatial_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials+1,1)
-    binned_time_ms = np.array(spatial_data['binned_time_ms'])
-    reshaped_binned_time_ms = np.reshape(binned_time_ms, (len(array_of_trials),int(number_of_bins)))
-    average_reshaped_binned_time_ms = np.sum(reshaped_binned_time_ms, axis = 0)/number_of_trials
-    normalised_spikes = spike_histogram/average_reshaped_binned_time_ms
+    binned_time_ms = np.array(spatial_data['binned_time_over_trials_seconds'])
+    normalised_spikes = spike_histogram/binned_time_ms
     divide_by_trials = normalised_spikes/number_of_trials
 
     return spike_data
