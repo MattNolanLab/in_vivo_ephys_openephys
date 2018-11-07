@@ -18,7 +18,7 @@ def initialize_parameters(recording_to_process):
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_opto_channel('100_ADC3.continuous')
-    prm.set_stop_threshold(0.7)  # speed is given in cm/200ms 0.7*1/2000
+    prm.set_stop_threshold(4.7)  # speed is given in cm/200ms 0.7*1/2000
     prm.set_movement_channel('100_ADC2.continuous')
     prm.set_first_trial_channel('100_ADC4.continuous')
     prm.set_second_trial_channel('100_ADC5.continuous')
@@ -79,7 +79,7 @@ def post_process_recording(recording_to_process, session_type):
 
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, spatial_data)
-    spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data)
+    spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, spatial_data, prm)
     make_plots(spike_data, spatial_data)
     #save_data_frames(spike_data, spatial_data, bad_clusters)
 
