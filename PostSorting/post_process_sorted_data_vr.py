@@ -43,6 +43,7 @@ def make_plots(spike_data, spatial_data):
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,spatial_data, prm)
+    gc.collect()
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm)
     PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm)
     PostSorting.vr_make_plots.make_combined_figure(prm, spike_data)

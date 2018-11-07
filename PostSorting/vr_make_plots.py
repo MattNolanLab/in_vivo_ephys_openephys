@@ -6,7 +6,7 @@ import PostSorting.vr_stop_analysis
 import math
 import matplotlib.image as mpimg
 import pandas as pd
-
+import gc
 
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, prm):
@@ -192,6 +192,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
 
         plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
+        gc.collect()
 
 
 def plot_firing_rate_maps(spike_data, prm):
