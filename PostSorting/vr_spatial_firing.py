@@ -92,7 +92,6 @@ def split_spatial_firing_by_trial_type(spike_data):
     return spike_data
 
 
-
 def split_spatial_firing_by_trial_type_test(spike_data):
     print('I am splitting firing locations by trial type...')
     for cluster_index in range(len(spike_data)):
@@ -106,16 +105,16 @@ def split_spatial_firing_by_trial_type_test(spike_data):
         spike_data.at[cluster_index,'beaconed_trial_number'] = list(np.where(spatial_firing_data['trial_type'] == 0, spatial_firing_data['trial_number']))
         spike_data.at[cluster_index,'nonbeaconed_trial_number'] = list(np.where(spatial_firing_data['trial_type'] == 1, spatial_firing_data['trial_number']))
         spike_data.at[cluster_index,'probe_trial_number'] = list(np.where(spatial_firing_data['trial_type'] == 2, spatial_firing_data['trial_number']))
-        spike_data.at[cluster_index,'beaconed_position'] = list(np.where(spatial_firing_data['trial_type'] == 0, spatial_firing_data['x_position_cm']))
-        spike_data.at[cluster_index,'nonbeaconed_position'] = list(np.where(spatial_firing_data['trial_type'] == 1, spatial_firing_data['x_position_cm']))
-        spike_data.at[cluster_index,'probe_position'] = list(np.where(spatial_firing_data['trial_type'] == 2, spatial_firing_data['x_position_cm']))
+        spike_data.at[cluster_index,'beaconed_position_cm'] = list(np.where(spatial_firing_data['trial_type'] == 0, spatial_firing_data['x_position_cm']))
+        spike_data.at[cluster_index,'nonbeaconed_position_cm'] = list(np.where(spatial_firing_data['trial_type'] == 1, spatial_firing_data['x_position_cm']))
+        spike_data.at[cluster_index,'probe_position_cm'] = list(np.where(spatial_firing_data['trial_type'] == 2, spatial_firing_data['x_position_cm']))
     return spike_data
 
 
 
 def process_spatial_firing(spike_data, spatial_data):
-    spatial_firing = add_columns_to_dataframe(spike_data)
-    spike_data = find_firing_location_indices(spike_data)
-    #spike_data = split_spatial_firing_by_trial_type(spike_data)
-    spike_data = split_spatial_firing_by_trial_type_test(spike_data)
+    spike_data = add_columns_to_dataframe(spike_data)
+    spike_data = find_firing_location_indices(spike_data, spatial_data)
+    spike_data = split_spatial_firing_by_trial_type(spike_data)
+    #spike_data = split_spatial_firing_by_trial_type_test(spike_data)
     return spike_data
