@@ -185,8 +185,8 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         beaconed_trials = np.array(spatial_data.trial_number[cluster_firing_indices])
         nonbeaconed_trials = np.array(spike_data.loc[cluster_index].nonbeaconed_trial_number)
         probe_trials = np.array(spike_data.loc[cluster_index].probe_trial_number)
-        rewarded_positions = np.array(spatial_data['rewarded_stop_locations'])
-        rewarded_trials = np.array(spatial_data['rewarded_trials'])
+        rewarded_positions = np.array(spatial_data.rewarded_stop_locations)
+        rewarded_trials = np.array(spatial_data.rewarded_trials)
 
         ax.plot(beaconed_positions, beaconed_trials, '|', color='Black', markersize=3)
         ax.plot(nonbeaconed_positions, nonbeaconed_trials, '|', color='Red', markersize=3)
@@ -263,8 +263,8 @@ def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
         beaconed_trials = np.array(spatial_data.trial_number[cluster_firing_indices])
         nonbeaconed_trials = np.array(spike_data.loc[cluster_index].nonbeaconed_trial_number)
         probe_trials = np.array(spike_data.loc[cluster_index].probe_trial_number)
-        rewarded_positions = np.array(spatial_data['rewarded_stop_locations'])
-        rewarded_trials = np.array(spatial_data['rewarded_trials'])
+        rewarded_positions = np.array(spatial_data.rewarded_stop_location)
+        rewarded_trials = np.array(spatial_data.rewarded_trials)
 
         ax.plot(beaconed_positions, beaconed_trials, '|', color='Black', markersize=3)
         ax.plot(nonbeaconed_positions, nonbeaconed_trials, '|', color='Red', markersize=3)
