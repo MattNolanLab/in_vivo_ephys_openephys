@@ -173,25 +173,19 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
+    rewarded_locations = np.array(spatial_data.rewarded_stop_locations)
+    rewarded_trials = np.array(spatial_data.rewarded_stop_trials)
+
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         spikes_on_track = plt.figure(figsize=(6,6))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
 
-        beaconed_positions = np.array(spatial_data.x_position_cm[cluster_firing_indices])
-        nonbeaconed_positions = np.array(spike_data.loc[cluster_index].nonbeaconed_position_cm)
-        probe_positions = np.array(spike_data.loc[cluster_index].probe_position_cm)
-        beaconed_trials = np.array(spatial_data.trial_number[cluster_firing_indices])
-        nonbeaconed_trials = np.array(spike_data.loc[cluster_index].nonbeaconed_trial_number)
-        probe_trials = np.array(spike_data.loc[cluster_index].probe_trial_number)
-        rewarded_positions = np.array(spatial_data.rewarded_stop_locations)
-        rewarded_trials = np.array(spatial_data.rewarded_trials)
-
-        ax.plot(beaconed_positions, beaconed_trials, '|', color='Black', markersize=3)
-        ax.plot(nonbeaconed_positions, nonbeaconed_trials, '|', color='Red', markersize=3)
-        ax.plot(probe_positions, probe_trials, '|', color='Blue', markersize=3)
-        ax.plot(rewarded_positions, rewarded_trials, '>', color='Red', markersize=3)
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
+        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -206,7 +200,6 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
 
         plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
-        gc.collect()
 
 
 def plot_firing_rate_maps(spike_data, prm):
@@ -257,19 +250,10 @@ def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
 
         ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        beaconed_positions = np.array(spatial_data.x_position_cm[cluster_firing_indices])
-        nonbeaconed_positions = np.array(spike_data.loc[cluster_index].nonbeaconed_position_cm)
-        probe_positions = np.array(spike_data.loc[cluster_index].probe_position_cm)
-        beaconed_trials = np.array(spatial_data.trial_number[cluster_firing_indices])
-        nonbeaconed_trials = np.array(spike_data.loc[cluster_index].nonbeaconed_trial_number)
-        probe_trials = np.array(spike_data.loc[cluster_index].probe_trial_number)
-        rewarded_positions = np.array(spatial_data.rewarded_stop_location)
-        rewarded_trials = np.array(spatial_data.rewarded_trials)
-
-        ax.plot(beaconed_positions, beaconed_trials, '|', color='Black', markersize=3)
-        ax.plot(nonbeaconed_positions, nonbeaconed_trials, '|', color='Red', markersize=3)
-        ax.plot(probe_positions, probe_trials, '|', color='Blue', markersize=3)
-        ax.plot(rewarded_positions, rewarded_trials, '>', color='Red', markersize=3)
+        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
+        ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlim(0,200)
