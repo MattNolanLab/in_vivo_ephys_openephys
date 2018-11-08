@@ -98,8 +98,8 @@ def plot_speed_histogram(spatial_data, prm):
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"])
-    average_speed = np.array(spatial_data["binned_speed_ms"])
+    position_bins = np.array(spatial_data["position_bins"].dropna(axis=0))
+    average_speed = np.array(spatial_data["binned_speed_ms"].dropna(axis=0))
     ax.plot(position_bins,average_speed, '-', color='Black')
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -138,8 +138,8 @@ def plot_combined_behaviour(spatial_data, prm):
     plot_utility.style_vr_plot(ax, x_max)
 
     ax = combined.add_subplot(3, 1, 2)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"])
-    average_stops = np.array(spatial_data["average_stops"])
+    position_bins = np.array(spatial_data["position_bins"].dropna(axis=0))
+    average_stops = np.array(spatial_data["average_stops"].dropna(axis=0))
     ax.plot(position_bins,average_stops, '-', color='Black')
     plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -151,8 +151,8 @@ def plot_combined_behaviour(spatial_data, prm):
     plot_utility.style_vr_plot(ax, x_max)
 
     ax = combined.add_subplot(3, 1, 3)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"])
-    average_speed = np.array(spatial_data["binned_speed_ms"])
+    position_bins = np.array(spatial_data["position_bins"].dropna(axis=0))
+    average_speed = np.array(spatial_data["binned_speed_ms"].dropna(axis=0))
     ax.plot(position_bins,average_speed, '-', color='Black')
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -173,8 +173,8 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    rewarded_locations = np.array(spatial_data.rewarded_stop_locations)
-    rewarded_trials = np.array(spatial_data.rewarded_stop_trials)
+    rewarded_locations = np.array(spatial_data['rewarded_stop_locations'].dropna(axis=0))
+    rewarded_trials = np.array(spatial_data['rewarded_stop_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
