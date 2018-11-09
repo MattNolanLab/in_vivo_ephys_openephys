@@ -39,7 +39,7 @@ def split_stop_data_by_trial_type(spatial_data):
     return beaconed, nonbeaconed, probe
 
 
-def plot_stops_on_track(spatial_data, prm):
+def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     print('I am plotting stop rasta...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -47,13 +47,13 @@ def plot_stops_on_track(spatial_data, prm):
     stops_on_track = plt.figure(figsize=(6,6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(spatial_data)
+    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='blue', markersize=2)
     ax.plot(probe[:,0], probe[:,1], 'o', color='red', markersize=2)
     #ax.plot(spatial_data.first_series_location_cm, spatial_data.first_series_trial_number, 'o', color='Black', markersize=4)
-    ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=3)
+    ax.plot(processed_position_data.rewarded_stop_locations, processed_position_data.rewarded_trials, '>', color='Red', markersize=3)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
@@ -61,22 +61,22 @@ def plot_stops_on_track(spatial_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.trial_number)+0.5
+    x_max = max(raw_position_data.trial_number)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
 
 
-def plot_stop_histogram(spatial_data, prm):
+def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
     ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"])
-    average_stops = np.array(spatial_data["average_stops"])
+    position_bins = np.array(processed_position_data["position_bins"])
+    average_stops = np.array(processed_position_data["average_stops"])
     ax.plot(position_bins,average_stops, '-', color='Black')
     plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -84,22 +84,22 @@ def plot_stop_histogram(spatial_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.average_stops)+0.5
+    x_max = max(raw_position_data.average_stops)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
 
-def plot_speed_histogram(spatial_data, prm):
+def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     print('plotting speed histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"].dropna(axis=0))
-    average_speed = np.array(spatial_data["binned_speed_ms"].dropna(axis=0))
+    position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
+    average_speed = np.array(processed_position_data["binned_speed_ms"].dropna(axis=0))
     ax.plot(position_bins,average_speed, '-', color='Black')
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -107,7 +107,7 @@ def plot_speed_histogram(spatial_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.binned_speed_ms)+0.5
+    x_max = max(raw_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
 
@@ -115,7 +115,7 @@ def plot_speed_histogram(spatial_data, prm):
     plt.close()
 
 
-def plot_combined_behaviour(spatial_data, prm):
+def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
     print('making combined behaviour plot...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -123,7 +123,7 @@ def plot_combined_behaviour(spatial_data, prm):
     combined = plt.figure(figsize=(6,9))
     ax = combined.add_subplot(3, 1, 1)  # specify (nrows, ncols, axnum)
 
-    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(spatial_data)
+    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='blue', markersize=2)
@@ -134,12 +134,12 @@ def plot_combined_behaviour(spatial_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.trial_number)+0.5
+    x_max = max(raw_position_data.trial_number)+0.5
     plot_utility.style_vr_plot(ax, x_max)
 
     ax = combined.add_subplot(3, 1, 2)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"].dropna(axis=0))
-    average_stops = np.array(spatial_data["average_stops"].dropna(axis=0))
+    position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
+    average_stops = np.array(processed_position_data["average_stops"].dropna(axis=0))
     ax.plot(position_bins,average_stops, '-', color='Black')
     plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -147,12 +147,12 @@ def plot_combined_behaviour(spatial_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.average_stops)+0.5
+    x_max = max(processed_position_data.average_stops)+0.5
     plot_utility.style_vr_plot(ax, x_max)
 
     ax = combined.add_subplot(3, 1, 3)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(spatial_data["position_bins"].dropna(axis=0))
-    average_speed = np.array(spatial_data["binned_speed_ms"].dropna(axis=0))
+    position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
+    average_speed = np.array(processed_position_data["binned_speed_ms"].dropna(axis=0))
     ax.plot(position_bins,average_speed, '-', color='Black')
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -160,7 +160,7 @@ def plot_combined_behaviour(spatial_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(spatial_data.binned_speed_ms)+0.5
+    x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .5, wspace = .35,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
 
@@ -168,13 +168,13 @@ def plot_combined_behaviour(spatial_data, prm):
     plt.close()
 
 
-def plot_spikes_on_track(spike_data,spatial_data, prm):
+def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm):
     print('plotting spike rastas...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    rewarded_locations = np.array(spatial_data['rewarded_stop_locations'].dropna(axis=0))
-    rewarded_trials = np.array(spatial_data['rewarded_stop_trials'].dropna(axis=0))
+    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
+    rewarded_trials = np.array(processed_position_data['rewarded_stop_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
@@ -182,7 +182,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
 
-        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
+        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
         ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
@@ -194,7 +194,7 @@ def plot_spikes_on_track(spike_data,spatial_data, prm):
         ax.xaxis.set_ticks_position('bottom')
 
         plot_utility.style_track_plot(ax, 200)
-        x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
+        x_max = max(raw_position_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
 
@@ -238,7 +238,7 @@ def plot_firing_rate_maps(spike_data, prm):
         plt.close()
 
 
-def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
+def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_position_data, prm):
     print('plotting combined spike rastas and spike rate...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots'
     if os.path.exists(save_path) is False:
@@ -250,10 +250,10 @@ def plot_combined_spike_raster_and_rate(spike_data, spatial_data, prm):
 
         ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        ax.plot(spatial_data.x_position_cm[cluster_firing_indices], spatial_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
+        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
-        ax.plot(spatial_data.rewarded_stop_locations, spatial_data.rewarded_trials, '>', color='Red', markersize=3)
+        ax.plot(processed_position_data.rewarded_stop_locations, processed_position_data.rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlim(0,200)
