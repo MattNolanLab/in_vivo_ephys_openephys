@@ -105,7 +105,7 @@ def reshape_and_sum_binned_normalised_spikes(normalised_spikes, number_of_trials
     return average_spikes_over_trials
 
 
-def average_normalised_spikes_over_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index,number_of_bins,array_of_trials):
+def average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed_position_data, cluster_index,number_of_bins,array_of_trials):
     beaconed_normalised_spikes = np.array(firing_rate_map['normalised_b_spike_number'])
     nonbeaconed_normalised_spikes = np.array(firing_rate_map['normalised_nb_spike_number'])
     probe_normalised_spikes = np.array(firing_rate_map['normalised_p_spike_number'])
@@ -124,8 +124,8 @@ def average_normalised_spikes_over_trials(firing_rate_map, spike_data, raw_posit
     return spike_data
 
 
-def normalise_spike_number_by_time(spatial_data,firing_rate_map):
-    firing_rate_map['dwell_time'] = spatial_data['binned_time_ms']
+def normalise_spike_number_by_time(processed_position_data,firing_rate_map):
+    firing_rate_map['dwell_time'] = processed_position_data['binned_time_ms']
     firing_rate_map['normalised_b_spike_number'] = np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0)
     firing_rate_map['normalised_nb_spike_number'] = np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0)
     firing_rate_map['normalised_p_spike_number'] = np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0)
@@ -179,7 +179,7 @@ def make_firing_field_maps(spike_data, raw_position_data, processed_position_dat
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
 
         firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index)
-        firing_rate_map = normalise_spike_number_by_time(raw_position_data, processed_position_data,firing_rate_map)
-        spike_data = average_normalised_spikes_over_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index,number_of_bins,array_of_trials)
+        firing_rate_map = normalise_spike_number_by_time(processed_position_data,firing_rate_map)
+        spike_data = average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed_position_data, cluster_index,number_of_bins,array_of_trials)
     return spike_data
 
