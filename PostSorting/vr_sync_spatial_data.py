@@ -21,7 +21,7 @@ Loads raw location continuous channel from ACD1.continuous
 # output: raw location as numpy array
 """
 
-def get_raw_location(position_data,recording_folder, prm):
+def get_raw_location(recording_folder, prm):
     print('Extracting raw location...')
     file_path = recording_folder + '/' + prm.get_movement_channel()
     if os.path.exists(file_path):
@@ -54,7 +54,7 @@ distance unit calculated in the previous step to convert the rotary encoder valu
 '''
 
 def calculate_track_location(position_data, recording_folder, prm):
-    recorded_location = get_raw_location(position_data,recording_folder, prm) # get raw location from DAQ pin
+    recorded_location = get_raw_location(recording_folder, prm) # get raw location from DAQ pin
     print('Converting raw location input to cm...')
     recorded_startpoint = min(recorded_location)
     recorded_endpoint = max(recorded_location)
@@ -190,8 +190,6 @@ def calculate_trial_types(position_data, recording_folder, prm):
     return position_data
 
 
-
-
 '''
 Corrects for the very small negative values that are calculated as velocity when the mouse 'teleports' back
 to the beginning of the track - from the end of the track to 0.
@@ -316,7 +314,9 @@ def get_avg_speed_200ms(position_data, prm):
     return position_data
 
 
-def syncronise_position_data(recording_folder, raw_position_data, prm):
+def syncronise_position_data(recording_folder, prm):
+    raw_position_data = pd.DataFrame()
+
     raw_position_data = calculate_track_location(raw_position_data, recording_folder, prm)
     raw_position_data = calculate_trial_numbers(raw_position_data, prm)
     raw_position_data = calculate_trial_types(raw_position_data, recording_folder, prm)
