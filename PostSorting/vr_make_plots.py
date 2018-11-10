@@ -84,7 +84,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(raw_position_data.average_stops)+0.5
+    x_max = max(processed_position_data.average_stops)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
@@ -107,7 +107,7 @@ def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(raw_position_data.binned_speed_ms)+0.5
+    x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
 
@@ -243,6 +243,8 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
     save_path = prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
+    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
+    rewarded_trials = np.array(processed_position_data['rewarded_stop_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
@@ -253,14 +255,14 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
-        ax.plot(processed_position_data.rewarded_stop_locations, processed_position_data.rewarded_trials, '>', color='Red', markersize=3)
+        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
         plot_utility.style_track_plot(ax, 200)
-        x_max = max(spatial_data.trial_number[cluster_firing_indices])+0.5
+        x_max = max(raw_position_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
 
         ax = spikes_on_track.add_subplot(2, 1, 2)  # specify (nrows, ncols, axnum)
