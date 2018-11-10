@@ -174,7 +174,7 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
-    rewarded_trials = np.array(processed_position_data['rewarded_stop_trials'].dropna(axis=0))
+    rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
@@ -244,7 +244,7 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
-    rewarded_trials = np.array(processed_position_data['rewarded_stop_trials'].dropna(axis=0))
+    rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
