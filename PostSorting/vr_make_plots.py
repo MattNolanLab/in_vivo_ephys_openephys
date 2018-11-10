@@ -50,8 +50,8 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
-    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='blue', markersize=2)
-    ax.plot(probe[:,0], probe[:,1], 'o', color='red', markersize=2)
+    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
+    ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     #ax.plot(spatial_data.first_series_location_cm, spatial_data.first_series_trial_number, 'o', color='Black', markersize=4)
     ax.plot(processed_position_data.rewarded_stop_locations, processed_position_data.rewarded_trials, '>', color='Red', markersize=3)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
@@ -126,8 +126,8 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
     beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
-    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='blue', markersize=2)
-    ax.plot(probe[:,0], probe[:,1], 'o', color='red', markersize=2)
+    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
+    ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,200)
@@ -173,14 +173,19 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
     save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
+    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0)) #
     rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
+    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data) # get stop data
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         spikes_on_track = plt.figure(figsize=(6,6))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
+
+        ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
         ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
