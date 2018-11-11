@@ -118,13 +118,13 @@ def average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed
 
     average_spikes_over_trials = reshape_and_sum_binned_normalised_spikes(beaconed_normalised_spikes, number_of_beaconed_trials, number_of_bins,array_of_trials)
     average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
-    spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(average_spikes_over_trials/10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(average_spikes_over_trials)
     average_spikes_over_trials = reshape_and_sum_binned_normalised_spikes(nonbeaconed_normalised_spikes, number_of_nonbeaconed_trials, number_of_bins,array_of_trials)
     average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
-    spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(average_spikes_over_trials/10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(average_spikes_over_trials)
     average_spikes_over_trials = reshape_and_sum_binned_normalised_spikes(probe_normalised_spikes, number_of_probe_trials, number_of_bins,array_of_trials)
     average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
-    spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(average_spikes_over_trials/10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(average_spikes_over_trials)
     return spike_data
 
 
