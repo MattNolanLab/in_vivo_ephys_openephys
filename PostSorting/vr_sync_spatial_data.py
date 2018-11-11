@@ -274,10 +274,27 @@ output
     array, contains rolling average values (each value is the average of the previous n values)
 '''
 
+
+def moving_average(a, n):
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n:] / n
+
+'''
+Calculates moving average
+
+input
+    a : array,  to calculate averages on
+    n : integer, number of points that is used for one average calculation
+
+output
+    array, contains rolling average values (each value is the average of the previous n values)
+'''
+
 def moving_sum(array, window):
     ret = np.cumsum(array, dtype=float)
     ret[window:] = ret[window:] - ret[:-window]
-    return ret[window:]
+    return ret[window:] / window
 
 
 def get_rolling_sum(array_in, window):
@@ -316,7 +333,6 @@ def get_avg_speed_200ms(position_data, prm):
 
 def syncronise_position_data(recording_folder, prm):
     raw_position_data = pd.DataFrame()
-
     raw_position_data = calculate_track_location(raw_position_data, recording_folder, prm)
     raw_position_data = calculate_trial_numbers(raw_position_data, prm)
     raw_position_data = calculate_trial_types(raw_position_data, recording_folder, prm)
