@@ -360,17 +360,18 @@ def make_combined_figure(prm, spatial_firing):
 
 
 
-def plot_spike_rate_vs_speed(spatial_firing, firing_rate_map, processed_position_data, prm):
+def plot_spike_rate_vs_speed(spike_data, spatial_firing, processed_position_data, prm):
     print('plotting linear regression of speed vs firing rate...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/speed_regression'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+
+    average_speed = np.array(processed_position_data["binned_speed_ms_per_trial"])
+    for cluster in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster] - 1
         speed_histogram = plt.figure(figsize=(6,6))
         ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        beaconed_firing_rate = np.array(firing_rate_map["normalised_b_spike_number"].dropna(axis=0))
-        average_speed = np.array(processed_position_data["binned_speed_ms_per_trial"].dropna(axis=0))
+        beaconed_firing_rate = np.array(spike_data.at[cluster_index, "normalised_b_spike_number"])
 
         #linear_regression
         slope,intercept,r_value, p_value, std_err = stats.linregress(beaconed_firing_rate,average_speed)
@@ -378,7 +379,7 @@ def plot_spike_rate_vs_speed(spatial_firing, firing_rate_map, processed_position
         for i in beaconed_firing_rate:
             ablinevalues.append(slope*i+intercept)
 
-        ax.plot(beaconed_firing_rate,average_speed, '-', color='Black')
+        ax.plot(beaconed_firing_rate,average_speed, 'o', color='Black', markersize = 2)
         ax.plot(beaconed_firing_rate,ablinevalues, '-',color = 'Black', linewidth = 1)
         plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -387,7 +388,7 @@ def plot_spike_rate_vs_speed(spatial_firing, firing_rate_map, processed_position
         ax.xaxis.set_ticks_position('bottom')
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
 
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster_index + 1) + '.png', dpi=1000)
         plt.close()
 
 
