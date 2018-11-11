@@ -20,6 +20,9 @@ def add_columns_to_dataframe(spike_data):
     spike_data["avg_spike_per_bin_b"] = ""
     spike_data["avg_spike_per_bin_nb"] = ""
     spike_data["avg_spike_per_bin_p"] = ""
+    spike_data["normalised_b_spike_number"] = ""
+    spike_data["normalised_nb_spike_number"] = ""
+    spike_data["normalised_p_spike_number"] = ""
     return spike_data
 
 
@@ -60,7 +63,7 @@ def find_firing_location_indices(spike_data, spatial_data):
     spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
     spike_data = add_trial_number(spike_data, spatial_data.trial_number)
     spike_data = add_trial_type(spike_data, spatial_data.trial_type)
-    spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
+    #spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
     return spike_data
 
 
