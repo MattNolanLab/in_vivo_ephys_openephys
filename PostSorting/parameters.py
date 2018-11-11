@@ -21,7 +21,7 @@ class Parameters:
     first_trial_channel = ''  # vr
     second_trial_channel = ''  # vr
     movement_channel = ''  # vr
-    stop_threshold = 0.7  # vr
+    stop_threshold = 4.7  # vr
     track_length = 200  # vr
 
     def __init__(self):
