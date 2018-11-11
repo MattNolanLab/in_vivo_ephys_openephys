@@ -110,6 +110,10 @@ def average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed
     nonbeaconed_normalised_spikes = np.array(firing_rate_map['normalised_nb_spike_number'])
     probe_normalised_spikes = np.array(firing_rate_map['normalised_p_spike_number'])
 
+    spike_data.at[cluster_index, 'normalised_b_spike_number'] = list(beaconed_normalised_spikes)
+    spike_data.at[cluster_index, 'normalised_nb_spike_number'] = list(nonbeaconed_normalised_spikes)
+    spike_data.at[cluster_index, 'normalised_p_spike_number'] = list(probe_normalised_spikes)
+
     number_of_beaconed_trials,number_of_nonbeaconed_trials, number_of_probe_trials = get_trial_numbers(processed_position_data)
 
     average_spikes_over_trials = reshape_and_sum_binned_normalised_spikes(beaconed_normalised_spikes, number_of_beaconed_trials, number_of_bins,array_of_trials)
