@@ -183,13 +183,14 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
 
-        ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-        ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-        ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        #uncomment if you want to plot stops
+        #ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        #ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        #ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
-        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
-        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
+        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
         ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
@@ -215,7 +216,6 @@ def plot_firing_rate_maps(spike_data, prm):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
-
         bins=range(200)
 
         unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
@@ -257,10 +257,10 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
 
         ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=3)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=3)
-        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=3)
-        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
+        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
+        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=2)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
         plt.xlim(0,200)
@@ -286,12 +286,19 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
-        plot_utility.style_vr_plot(ax, x_max)
+        nb_x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
+        b_x_max = max(spike_data.avg_spike_per_bin_b[cluster_index])+5
+        p_x_max = max(spike_data.avg_spike_per_bin_p[cluster_index])+5
+        if b_x_max > nb_x_max and b_x_max > p_x_max:
+            plot_utility.style_vr_plot(ax, b_x_max)
+        elif b_x_max < nb_x_max and b_x_max > p_x_max:
+            plot_utility.style_vr_plot(ax, nb_x_max)
+        elif b_x_max > nb_x_max and b_x_max < p_x_max:
+            plot_utility.style_vr_plot(ax, p_x_max)
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace = .5, wspace = .35,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/' + spike_data.session_id[cluster_index] + 'track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -307,17 +314,14 @@ def make_combined_figure(prm, spatial_firing):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
 
-        stop_raster_path = figures_path + 'behaviour/stop_raster.png'
-        speed_avg_path = figures_path + 'behaviour/speed_histogram.png'
-
-        spike_raster_path = figures_path + 'spike_trajectories/' + spatial_firing.session_id[cluster] + '_track_firing_Cluster_' + str(cluster +1) + '.png'
+        spike_raster_path = figures_path + 'combined_spike_plots/' + spatial_firing.session_id[cluster] + '_track_firing_Cluster_' + str(cluster +1) + '.png'
         rate_map_path = figures_path + 'spike_rate/' + spatial_firing.session_id[cluster] + '_rate_map_Cluster_' + str(cluster +1) + '.png'
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
-
-        grid = plt.GridSpec(6, 2, wspace=0.003, hspace=0.01)
+        combined_behaviour_path = figures_path + 'behaviour/combined_behaviour.png'
+        grid = plt.GridSpec(6, 3, wspace=0.003, hspace=0.01)
         if os.path.exists(waveforms_path):
             waveforms = mpimg.imread(waveforms_path)
             waveforms_plot = plt.subplot(grid[0, 0])
@@ -338,21 +342,17 @@ def make_combined_figure(prm, spatial_firing):
             autocorrelogram_250_plot = plt.subplot(grid[3, 0])
             autocorrelogram_250_plot.axis('off')
             autocorrelogram_250_plot.imshow(autocorrelogram_250)
-        if os.path.exists(stop_raster_path):
-            stop_raster = mpimg.imread(stop_raster_path)
-            stop_raster_plot = plt.subplot(grid[4:, 0])
-            stop_raster_plot.axis('off')
-            stop_raster_plot.imshow(stop_raster)
         if os.path.exists(spike_raster_path):
             spike_raster = mpimg.imread(spike_raster_path)
-            spike_raster_plot = plt.subplot(grid[:4, 1])
+            spike_raster_plot = plt.subplot(grid[:, 1])
             spike_raster_plot.axis('off')
             spike_raster_plot.imshow(spike_raster)
-        if os.path.exists(rate_map_path):
-            rate_map = mpimg.imread(rate_map_path)
-            rate_map_plot = plt.subplot(grid[4:, 1])
-            rate_map_plot.axis('off')
-            rate_map_plot.imshow(rate_map)
+        if os.path.exists(combined_behaviour_path):
+            combined_behaviour = mpimg.imread(combined_behaviour_path)
+            combined_behaviour_plot = plt.subplot(grid[:, 2])
+            combined_behaviour_plot.axis('off')
+            combined_behaviour_plot.imshow(combined_behaviour)
+        plt.subplots_adjust(hspace = .0, wspace = .0,  bottom = 0.06, left = 0.06, right = 0.94, top = 0.94)
 
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
         plt.close()
@@ -379,16 +379,16 @@ def plot_spike_rate_vs_speed(spike_data, spatial_firing, processed_position_data
         for i in beaconed_firing_rate:
             ablinevalues.append(slope*i+intercept)
 
-        ax.plot(beaconed_firing_rate,average_speed, 'o', color='Black', markersize = 2)
+        ax.plot(beaconed_firing_rate,average_speed, 'o', color='Black', markersize = 1)
         ax.plot(beaconed_firing_rate,ablinevalues, '-',color = 'Black', linewidth = 1)
-        plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
-        plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+        plt.ylabel('Speed (cm/200ms)', fontsize=12, labelpad = 10)
+        plt.xlabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         #plt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
 
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster_index + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '.png', dpi=1000)
         plt.close()
 
 
