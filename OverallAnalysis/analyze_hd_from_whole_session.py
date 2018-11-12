@@ -45,6 +45,7 @@ def main():
     print(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster].mean())
 
     # find those where the hd polar plot significantly differs in the first vs second half
+    # run load_df again and add the result of the 2 sample watson test to the big df and then filter for that here
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster], save_output_path + 'correlation_hd_session.png')
 
 
