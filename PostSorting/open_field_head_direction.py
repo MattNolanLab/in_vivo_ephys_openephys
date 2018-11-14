@@ -93,7 +93,7 @@ def write_shell_script_to_call_r_analysis(prm, cluster):
     batch_writer.write('#!/bin/bash\n')
     batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
     batch_writer.write('echo "This is a shell script that will call R to analyze firing fields."\n')
-    batch_writer.write('Rscript ' + python_script_path + '/process_fields.r ' + firing_field_path)
+    batch_writer.write('Rscript ' + python_script_path + '/PostSorting/process_fields.r ' + firing_field_path)
     batch_writer.close()
 
 
