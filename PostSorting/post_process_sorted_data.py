@@ -133,7 +133,7 @@ def run_analyses(spike_data_in, synced_spatial_data):
     return synced_spatial_data, spatial_firing
 
 
-def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default', sorter_name='MS'):
+def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default', sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     prm.set_sorter_name('/' + sorter_name)
