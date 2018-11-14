@@ -4,6 +4,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 import subprocess
+import sys
 
 import PostSorting.open_field_firing_maps
 
@@ -86,12 +87,13 @@ def save_hd_for_r(hd_session, hd_cluster, cluster, prm):
 
 def write_shell_script_to_call_r_analysis(prm, cluster):
     firing_field_path = prm.get_filepath() + '/Firing_fields/' + str(int(cluster + 1)) + '_whole_field/'
+    python_script_path = os.path.dirname(sys.argv[0])
     script_path = prm.get_filepath() + '/Firing_fields' + '/run_r.sh'
     batch_writer = open(script_path, 'w', newline='\n')
     batch_writer.write('#!/bin/bash\n')
     batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
     batch_writer.write('echo "This is a shell script that will call R to analyze firing fields."\n')
-    batch_writer.write('Rscript /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostSorting/process_fields.r ' + firing_field_path)
+    batch_writer.write('Rscript ' + python_script_path + '/PostSorting/process_fields.r ' + firing_field_path)
     batch_writer.close()
 
 
@@ -134,7 +136,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
 
-        if prm.get_is_stable is False:
+        if prm.get_is_stable() is False:
             save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
             analyze_hd_r(prm, cluster)
 
