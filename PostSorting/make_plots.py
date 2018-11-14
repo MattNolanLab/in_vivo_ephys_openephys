@@ -28,7 +28,7 @@ def plot_spike_histogram(spatial_firing, prm):
         plt.xlabel('time (sampling points)')
         plt.ylabel('number of spikes')
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -61,7 +61,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         plt.ylabel('firing rate [Hz]')
         plt.xlim(0, 30)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.pdf', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -116,7 +116,7 @@ def plot_autocorrelograms(spike_data, prm):
         plt.xlim(-250, 250)
         plt.bar(time, corr, align='center', width=1, color='black')
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.pdf', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -145,5 +145,5 @@ def plot_waveforms(spike_data, prm):
             plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel)
 
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.pdf', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
