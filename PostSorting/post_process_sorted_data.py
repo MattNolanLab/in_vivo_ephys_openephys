@@ -31,7 +31,6 @@ def initialize_parameters(recording_to_process):
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_file_path(recording_to_process)  # todo clean this
-    prm.set_output_path(recording_to_process)
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -134,9 +133,11 @@ def run_analyses(spike_data_in, synced_spatial_data):
     return synced_spatial_data, spatial_firing
 
 
-def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default'):
+def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default', sorter_name='MS'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
+    prm.set_sorter_name('/' + sorter_name)
+    prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
     if run_type == 'stable':
         prm.set_is_stable(True)
@@ -174,9 +175,9 @@ def main():
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
-    # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters')
+    post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters', sorter_name='MS')
     # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='default')
-    post_process_recording(recording_folder, 'openfield')
+    #post_process_recording(recording_folder, 'openfield')
 
 
 
