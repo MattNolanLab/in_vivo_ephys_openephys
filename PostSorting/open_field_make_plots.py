@@ -72,7 +72,8 @@ def plot_firing_rate_maps(spatial_firing, prm):
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_rate_map = spatial_firing.firing_maps[cluster]
+        firing_rate_map_original = spatial_firing.firing_maps[cluster]
+        firing_rate_map = np.rot90(firing_rate_map_original)
         firing_rate_map_fig = plt.figure()
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
