@@ -4,7 +4,7 @@ import pandas as pd
 
 server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
 server_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/'
-local_output_path = '/Users/s1466507/Documents/Ephys/test_overall_analysis/test_df.pkl'
+local_output_path = '/Users/s1466507/Documents/Ephys/test_overall_analysis/all_mice_df.pkl'
 
 
 test_image_path = '/Users/s1466507/Desktop/mouse.jpg'
@@ -38,8 +38,8 @@ for recording_folder in glob.glob(server_path + '*'):
          'hd_hist_second_half'
 
         '''
-        if 'hd_hist_first_half' in spatial_firing:
-            spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half']].copy()
+        if ('hd_hist_first_half' in spatial_firing) and ('watson_test_hd' in spatial_firing):
+            spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half', 'watson_test_hd']].copy()
 
             # print(spatial_firing.head())
             spatial_firing_data = spatial_firing_data.append(spatial_firing)
