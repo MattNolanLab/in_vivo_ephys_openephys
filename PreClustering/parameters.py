@@ -75,7 +75,7 @@ class Parameters:
     def set_is_windows(self, is_win):
         Parameters.is_windows = is_win
 
-    def get_sorter_name(self):
+    def get_spike_sorter(self):
         return Parameters.sorter_name
 
     def set_spike_sorter(self, sorter_nme):
