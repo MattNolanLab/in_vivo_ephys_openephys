@@ -7,11 +7,7 @@ import data_frame_utility
 
 
 def get_firing_info(file_path, prm):
-    if prm.get_is_windows():
-        firing_times_path = file_path + '\\Electrophysiology\\Spike_sorting\\all_tetrodes\\data\\firings.mda'
-
-    if prm.get_is_ubuntu():
-        firing_times_path = file_path + '/Electrophysiology/Spike_sorting/all_tetrodes/data/firings.mda'
+    firing_times_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/firings.mda'
 
     units_list = None
     firing_info = None

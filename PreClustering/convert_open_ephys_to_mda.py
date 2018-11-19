@@ -55,16 +55,15 @@ def convert_continuous_to_mda(prm):
 
 # this is for putting all tetrodes in the same mda file
 def convert_all_tetrodes_to_mda(prm):
-    spike_data_path = prm.get_spike_path()
     raw_mda_path = file_utility.get_raw_mda_path_all_channels(prm)
-    if os.path.isfile(spike_data_path + raw_mda_path) is False:
+    if os.path.isfile(raw_mda_path) is False:
         file_utility.create_folder_structure(prm)
         PreClustering.make_sorting_database.create_sorting_folder_structure(prm)
         folder_path = prm.get_filepath()
         continuous_file_name = prm.get_continuous_file_name()
         continuous_file_name_end = prm.get_continuous_file_name_end()
 
-        path = spike_data_path + raw_mda_path
+        path = raw_mda_path
 
         file_path = folder_path + continuous_file_name + str(1) + continuous_file_name_end + '.continuous'
         first_ch = open_ephys_IO.get_data_continuous(prm, file_path)

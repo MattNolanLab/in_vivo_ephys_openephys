@@ -47,6 +47,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
         ax.set_aspect('equal')
         plt.title('spikes on trajectory', y=1.08)
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.pdf', bbox_inches='tight')
         plt.close()
 
 
@@ -62,6 +63,7 @@ def plot_coverage(position_heat_map, prm):
     ax.imshow(position_heat_map, cmap=cmocean.cm.thermal, interpolation='nearest')
     plt.title('coverage', y=1.08)
     plt.savefig(save_path + '/heatmap.png', dpi=300)
+    plt.savefig(save_path + '/heatmap.pdf')
     plt.close()
 
 
@@ -81,6 +83,7 @@ def plot_firing_rate_maps(spatial_firing, prm):
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz', y=1.08)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png', dpi=300)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.pdf')
         plt.close()
 
 
@@ -104,6 +107,7 @@ def plot_hd(spatial_firing, position_data, prm):
         plt.colorbar(hd_plot, fraction=0.046, pad=0.04)
         plt.title('head-direction', y=1.08)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -127,6 +131,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         #  + '\nKuiper p: ' + str(spatial_firing.hd_p[cluster])
         plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.preferred_HD[cluster][0], 0)) + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)), y=1.08, fontsize=12)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
 
 
@@ -147,6 +152,7 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
             ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
             plt.tight_layout()
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
 
 
@@ -179,6 +185,7 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
               + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2)) +' seconds', y=1.08, fontsize=12)
 
     plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
+    plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.pdf', bbox_inches="tight")
     plt.close()
 
 
@@ -215,6 +222,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                     save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, '_firing_field_raw')
 
                 plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
 
@@ -269,6 +277,7 @@ def plot_spikes_on_firing_fields(spatial_firing, prm):
                 plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot)
 
                 plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
 
@@ -371,6 +380,7 @@ def make_combined_figure(prm, spatial_firing):
             firing_fields_polar_plot.imshow(firing_field_polar)
 
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf')
         plt.close()
 
 
@@ -460,6 +470,7 @@ def make_combined_field_analysis_figures(prm, spatial_firing):
             firing_fields_polar_plot.imshow(firing_field_polar)
 
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf', dpi=1000)
         plt.close()
 
 

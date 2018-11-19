@@ -16,6 +16,7 @@ class Parameters:
     output_path = []
     total_length_sampling_points = 0
     dead_channels = []
+    sorter_name = []
 
     # vr parameters
     first_trial_channel = ''  # vr
@@ -32,6 +33,12 @@ class Parameters:
 
     def set_is_stable(self, is_stbl):
         Parameters.is_stable = is_stbl
+
+    def get_sorter_name(self):
+            return Parameters.sorter_name
+
+    def set_sorter_name(self, name):
+        Parameters.sorter_name = name
 
     def get_first_half_only(self):
         return Parameters.first_half_only

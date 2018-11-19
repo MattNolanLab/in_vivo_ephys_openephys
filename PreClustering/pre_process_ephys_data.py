@@ -30,7 +30,7 @@ def init_open_field_params():
     prm.set_movement_ch('100_ADC2.continuous')
     prm.set_opto_ch('100_ADC3.continuous')
     # file_utility.init_data_file_names(prm, '105_CH', '_0')  # old files
-    # file_utility.init_data_file_names(prm, '100_CH', '')  # currently used (2018)
+    file_utility.init_data_file_names(prm, '100_CH', '')  # currently used (2018)
     prm.set_waveform_size(40)
 
 
@@ -70,10 +70,7 @@ def init_params():
 def process_a_dir(dir_name):
     print('')
     print('All folders in {} will be processed.'.format(dir_name))
-    if prm.get_is_windows():
-        prm.set_date(dir_name.rsplit('\\', 2)[-2])
-    if prm.get_is_ubuntu():
-        prm.set_date(dir_name.rsplit('/', 2)[-2])
+    prm.set_date(dir_name.rsplit('/', 2)[-2])
 
     prm.set_filepath(dir_name)
     file_utility.set_continuous_data_path(prm)
@@ -118,11 +115,12 @@ def process_files():
             process_a_dir(name + '/')
 
 
-def pre_process_data(dir_name):
+def pre_process_data(dir_name, sorter_name='MountainSort'):
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
     init_params()
+    prm.set_spike_sorter(sorter_name)
     process_a_dir(dir_name + '/')
 
 
@@ -132,7 +130,9 @@ def main():
     print('-------------------------------------------------------------')
 
     init_params()
-    process_files()
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
+    pre_process_data(recording_folder)
+    #process_files()
 
 
 if __name__ == '__main__':
