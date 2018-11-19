@@ -118,11 +118,12 @@ def process_files():
             process_a_dir(name + '/')
 
 
-def pre_process_data(dir_name):
+def pre_process_data(dir_name, sorter_name='MountainSort'):
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
     init_params()
+    prm.set_spike_sorter(sorter_name)
     process_a_dir(dir_name + '/')
 
 
