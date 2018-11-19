@@ -53,10 +53,7 @@ def remove_dead_channels_from_geom_file_all_tetrodes(prm):
     main_path = file_utility.get_main_path(prm)
     dead_ch_path = prm.get_dead_channel_path()
 
-    if prm.is_windows:
-        geom_path = '\\sorting_files\\geom_all_tetrodes.csv'
-    if prm.is_ubuntu:
-        geom_path = '/sorting_files/geom_all_tetrodes.csv'
+    geom_path = '/sorting_files/geom_all_tetrodes.csv'
 
     coordinates_x = [0, 25, 25, 0, 200, 225, 225, 200, 400, 425, 425, 400, 600, 625, 625, 600]
     coordinates_y = [0, 0, 25, 25, 200, 200, 225, 225, 400, 400, 425, 425, 600, 600, 625, 625]

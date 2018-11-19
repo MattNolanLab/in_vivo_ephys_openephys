@@ -5,6 +5,7 @@ import file_utility
 import PreClustering.dead_channels
 
 
+# this is for separate tetrodes. the folder structure need to be updated to run this
 def write_bash_script_for_sorting(prm):
     # /run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/open_field_setup/test_recordings/sorting_test
     name_of_dataset = prm.get_date()
@@ -60,10 +61,8 @@ def write_bash_script_for_sorting_all_tetrodes(prm):
     # /run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/open_field_setup/test_recordings/sorting_test
     name_of_dataset = prm.get_date()
     file_path_win = prm.get_filepath()
-    if prm.get_is_windows():
-        main_path_win = file_path_win.rsplit('\\', 3)[-4] + '\\'
-    if prm.get_is_ubuntu():
-        main_path_win = file_path_win.rsplit('/', 3)[-4] + '/'
+
+    main_path_win = file_path_win.rsplit('/', 3)[-4] + '/'
 
     if os.path.isfile(main_path_win + "run_sorting.sh") is False:
         batch_writer = open(main_path_win + 'run_sorting.sh', 'w', newline='\n')
@@ -74,20 +73,16 @@ def write_bash_script_for_sorting_all_tetrodes(prm):
     else:
         batch_writer = open(main_path_win + 'run_sorting.sh', 'a', newline='\n')
 
+    mountain_main_path = main_path_win + 'recordings/' + name_of_dataset + '/Electrophysiology/' + prm.get_spike_sorter()
 
-    data_folder_name_all_ch = 'all_tetrodes'
-
-    mountain_main_path = main_path_win + 'recordings/' + name_of_dataset + '/Electrophysiology/Spike_sorting/' + data_folder_name_all_ch
-    mountain_main_data_path = main_path_win + 'recordings/' + name_of_dataset + '/Electrophysiology/Spike_sorting/' + data_folder_name_all_ch + '/data'
-
-    mda_path = mountain_main_data_path + '/raw.mda'
+    mda_path = mountain_main_path + '/raw.mda'
 
     pipeline_path = mountain_main_path + '/mountainsort3.mlp'
-    geom_path = mountain_main_data_path + '/geom.csv'
-    firings_out_path = mountain_main_data_path + '/firings.mda'
-    firings_out_curated_path = mountain_main_data_path + '/firings_curated.mda'
-    pre_out_path = mountain_main_data_path + '/pre.mda'
-    filt_out_path = mountain_main_data_path + '/filt.mda'
+    geom_path = mountain_main_path + '/geom.csv'
+    firings_out_path = mountain_main_path + '/firings.mda'
+    firings_out_curated_path = mountain_main_path + '/firings_curated.mda'
+    pre_out_path = mountain_main_path + '/pre.mda'
+    filt_out_path = mountain_main_path + '/filt.mda'
     metrics_path = mountain_main_path + '/cluster_metrics.json'
 
     params_path = mountain_main_path + '/params.json'
@@ -144,19 +139,8 @@ def create_sorting_folder_structure(prm):
     PreClustering.dead_channels.remove_dead_channels_from_geom_file_all_tetrodes(prm)
     main_path = file_utility.get_main_path(prm)
 
-    spike_path = prm.get_spike_path()
-    current_folder = ''
-    data_path = ''
-    sorting_folder = ''
-
-    if prm.get_is_windows():
-        current_folder = spike_path + '\\all_tetrodes\\'
-        sorting_folder = '\\sorting_files\\'
-        data_path = 'data\\'
-    if prm.get_is_ubuntu():
-        current_folder = spike_path + '/all_tetrodes/'
-        sorting_folder = '/sorting_files/'
-        data_path = 'data/'
+    current_folder = prm.get_filepath() + prm.get_spike_sorter() + '/'
+    sorting_folder = '/sorting_files/'
 
     if os.path.exists(current_folder) is False:
         os.makedirs(current_folder)
@@ -164,8 +148,8 @@ def create_sorting_folder_structure(prm):
         copyfile(main_path + sorting_folder + 'params.json', current_folder + 'params.json')
         copyfile(main_path + sorting_folder + 'mountainsort3.mlp', current_folder + 'mountainsort3.mlp')
 
-        copyfile(main_path + sorting_folder + 'params.json', current_folder + data_path + 'params.json')
-        copyfile(main_path + sorting_folder + 'geom_all_tetrodes.csv', current_folder + data_path + 'geom.csv')
+        copyfile(main_path + sorting_folder + 'params.json', current_folder + 'params.json')
+        copyfile(main_path + sorting_folder + 'geom_all_tetrodes.csv', current_folder + 'geom.csv')
     except FileNotFoundError:
         print('Something is wrong with the sorting_files folder. '
               'It should be in the same folder as the dataset, '

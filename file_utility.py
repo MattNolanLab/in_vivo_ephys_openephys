@@ -80,7 +80,7 @@ def get_main_path(prm):
 
 
 def get_raw_mda_path_all_channels(prm):
-    raw_mda_path = prm.get_filepath() + 'Electrophysiology/' + prm.get_spike_sorter() + 'raw.mda'
+    raw_mda_path = prm.get_filepath() + 'Electrophysiology/' + prm.get_spike_sorter() + '/raw.mda'
     return raw_mda_path
 
 
