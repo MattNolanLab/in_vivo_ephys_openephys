@@ -168,14 +168,8 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
 
 def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Figures')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/DataFrames')
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Firing_fields')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/first_half/Figures')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/second_half/Figures')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/first_half/DataFrames')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/second_half/DataFrames')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/first_half/Firing_fields')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/second_half/Firing_fields')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
