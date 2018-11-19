@@ -28,11 +28,8 @@ def get_snippets(firing_data, prm):
     print('I will get some random snippets now for each cluster.')
     file_path = prm.get_local_recording_folder_path()
     filtered_data_path = []
-    if prm.get_is_windows():
-        filtered_data_path = file_path + '\\Electrophysiology\\Spike_sorting\\all_tetrodes\\data\\filt.mda'
 
-    if prm.get_is_ubuntu():
-        filtered_data_path = file_path + '/Electrophysiology/Spike_sorting/all_tetrodes/data/filt.mda'
+    filtered_data_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/filt.mda'
 
     snippets_all_clusters = []
     if os.path.exists(filtered_data_path):
