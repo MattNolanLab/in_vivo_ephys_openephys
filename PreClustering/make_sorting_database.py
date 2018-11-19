@@ -139,7 +139,7 @@ def create_sorting_folder_structure(prm):
     PreClustering.dead_channels.remove_dead_channels_from_geom_file_all_tetrodes(prm)
     main_path = file_utility.get_main_path(prm)
 
-    current_folder = prm.get_filepath() + prm.get_spike_sorter() + '/'
+    current_folder = prm.get_filepath() + 'Electrophysiology/' + prm.get_spike_sorter() + '/'
     sorting_folder = '/sorting_files/'
 
     if os.path.exists(current_folder) is False:
