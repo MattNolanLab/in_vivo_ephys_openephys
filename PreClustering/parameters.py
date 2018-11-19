@@ -203,20 +203,6 @@ class Parameters:
     def set_mountain_sort_path(self, ms):
         Parameters.mountain_sort_path = ms
 
-
-
-    def get_klustakwik_path(self):
-        return self.klustakwik_path
-
-    def set_klustakwik_path(self, kk):
-        Parameters.klustakwik_path = kk
-
-    def get_klustakwik_analysis_path(self):
-        return self.klustakwik_analysis_path
-
-    def set_klustakwik_analysis_path(self, kka):
-        Parameters.klustakwik_analysis_path = kka
-
     def get_file(self):
         return self.file
 
@@ -240,30 +226,6 @@ class Parameters:
 
     def set_good_channels(self, channels):
         Parameters.good_channels = channels
-
-    def get_track_length(self):
-        return self.TRACK_LENGTH
-
-    def set_track_length(self, tr_length):
-        Parameters.TRACK_LENGTH = tr_length
-
-    def get_beginning_of_outbound(self):
-        return self.outbound
-
-    def set_beginning_of_outbound(self, outbound):
-        Parameters.outbound = outbound
-
-    def get_reward_zone(self):
-        return self.reward_zone
-
-    def set_reward_zone(self, reward_zone):
-        Parameters.reward_zone = reward_zone
-
-    def get_stop_threshold(self):
-        return self.STOP_THRESHOLD
-
-    def set_stop_threshold(self, stop_thr):
-        Parameters.STOP_THRESHOLD = stop_thr
 
     def get_movement_ch(self):
         return self.movement_ch
