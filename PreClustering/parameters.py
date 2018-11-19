@@ -17,6 +17,8 @@ class Parameters:
     analyze_tetrode_by_tetrode = True
     analyze_all_tetrodes_together = False
 
+    sorter_name = 'MountainSort'
+
     dead_channels = []
 
     filepath = ''
@@ -72,6 +74,12 @@ class Parameters:
 
     def set_is_windows(self, is_win):
         Parameters.is_windows = is_win
+
+    def get_sorter_name(self):
+        return Parameters.sorter_name
+
+    def set_spike_sorter(self, sorter_nme):
+        Parameters.sorter_name = sorter_nme
 
     def get_is_vr(self):
         return Parameters.is_vr
