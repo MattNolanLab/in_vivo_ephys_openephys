@@ -22,6 +22,7 @@ class Parameters:
     date = ''
     behaviour_analysis_path = ''
     behaviour_data_path = ''
+    behaviour_path = ''
 
     spike_path = ''
     ephys_path = ''
@@ -96,6 +97,11 @@ class Parameters:
     def set_continuous_file_name_end(self, cont_name):
         Parameters.continuous_file_name_end = cont_name
 
+    def get_behaviour_path(self):
+            return self.behaviour_path
+
+    def set_behaviour_path(self, fn):
+        Parameters.behaviour_path = fn
 
     def get_behaviour_data_path(self):
         return self.behaviour_data_path
