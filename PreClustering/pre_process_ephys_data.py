@@ -25,7 +25,7 @@ def init_params():
 # Prepares input for running spike sorting for the recording.
 def process_a_dir(dir_name):
     print('')
-    print('All folders in {} will be processed.'.format(dir_name))
+    print('I am pre-processing data in {} before spike sorting.'.format(dir_name))
     prm.set_date(dir_name.rsplit('/', 2)[-2])
 
     prm.set_filepath(dir_name)
