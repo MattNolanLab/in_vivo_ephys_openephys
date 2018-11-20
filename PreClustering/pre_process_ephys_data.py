@@ -49,7 +49,7 @@ def process_a_dir(dir_name):
         print('-------------------------------------------------------------------------')
         PreClustering.make_sorting_database.create_sorting_folder_structure(prm)
         convert_open_ephys_to_mda.convert_all_tetrodes_to_mda(prm)
-        print('The big mda file is created, it is in Electrophysiology/Spike_sorting/all_tetrodes/data')
+        print('The big mda file is created, it is in Electrophysiology' + prm.get_spike_sorter())
         print('***************************************************************************************')
 
 
