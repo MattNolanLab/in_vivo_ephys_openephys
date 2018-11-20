@@ -12,10 +12,7 @@ def write_bash_script_for_sorting(prm):
     file_path_win = prm.get_filepath()
     main_path_win = ''
 
-    if prm.get_is_windows():
-        main_path_win = file_path_win.rsplit('\\', 3)[-4] + '\\'
-    if prm.get_is_ubuntu():
-        main_path_win = file_path_win.rsplit('/', 3)[-4] + '/'
+    main_path_win = file_path_win.rsplit('/', 3)[-4] + '/'
 
     if os.path.isfile(main_path_win + "run_sorting.sh") is False:
         batch_writer = open(main_path_win + 'run_sorting.sh', 'w', newline='\n')
@@ -109,14 +106,9 @@ def create_sorting_folder_structure_separate_tetrodes(prm):
         PreClustering.dead_channels.remove_dead_channels_from_geom_file_tetrode_by_tetrode(prm, tetrode)
         data_folder_name = 't' + str(tetrode + 1)
 
-        if prm.get_is_windows():
-            current_folder_continuous = spike_path + '\\' + data_folder_name + '\\'
-            sorting_folder = '\\sorting_files\\'
-            data_path = 'data\\'
-        if prm.get_is_ubuntu():
-            current_folder_continuous = spike_path + '/' + data_folder_name + '/'
-            sorting_folder = '/sorting_files/'
-            data_path = 'data/'
+        current_folder_continuous = spike_path + '/' + data_folder_name + '/'
+        sorting_folder = '/sorting_files/'
+        data_path = 'data/'
 
         if os.path.exists(current_folder_continuous) is False:
             os.makedirs(current_folder_continuous)

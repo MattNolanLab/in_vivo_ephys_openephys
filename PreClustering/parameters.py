@@ -9,9 +9,6 @@ prm.get_filepath()
 
 class Parameters:
 
-    is_windows = False
-    is_ubuntu = True
-
     is_vr = False
     is_open_field = False
     analyze_tetrode_by_tetrode = True
@@ -62,18 +59,6 @@ class Parameters:
 
     def __init__(self):
         return
-
-    def get_is_ubuntu(self):
-        return Parameters.is_ubuntu
-
-    def set_is_ubuntu(self, is_ub):
-        Parameters.is_ubuntu = is_ub
-
-    def get_is_windows(self):
-        return Parameters.is_windows
-
-    def set_is_windows(self, is_win):
-        Parameters.is_windows = is_win
 
     def get_spike_sorter(self):
         return Parameters.sorter_name

@@ -72,10 +72,7 @@ def create_behaviour_folder_structure(prm):
 # main path is the folder that contains 'recordings' and 'sorting_files'
 def get_main_path(prm):
     file_path = prm.get_filepath()
-    if prm.get_is_windows():
-        main_path = file_path.rsplit('\\', 3)[-4]
-    if prm.get_is_ubuntu():
-        main_path = file_path.rsplit('/', 3)[-4]
+    main_path = file_path.rsplit('/', 3)[-4]
     return main_path
 
 
@@ -85,10 +82,7 @@ def get_raw_mda_path_all_channels(prm):
 
 
 def get_raw_mda_path_separate_tetrodes(prm):
-    if prm.get_is_windows():
-        raw_mda_path = '\\data\\raw.mda'
-    if prm.get_is_ubuntu():
-        raw_mda_path = '/data/raw.mda'
+    raw_mda_path = '/data/raw.mda'
     return raw_mda_path
 
 
