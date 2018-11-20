@@ -68,7 +68,7 @@ def main():
     print('-------------------------------------------------------------')
 
     init_params()
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of'
     pre_process_data(recording_folder)
 
 
