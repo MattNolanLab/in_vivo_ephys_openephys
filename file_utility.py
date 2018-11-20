@@ -101,8 +101,6 @@ def folders_for_separate_tetrodes(prm):
     mountain_data_folder_t3 = spike_path + '/t3/data'
     mountain_data_folder_t4 = spike_path + '/t4/data'
 
-    prm.set_ephys_data_path(data_path)
-
     if os.path.exists(ephys_path) is False:
         os.makedirs(ephys_path)
         os.makedirs(spike_path)
@@ -124,7 +122,6 @@ def create_ephys_folder_structure(prm):
     ephys_path = prm.get_filepath() + 'Electrophysiology'
     prm.set_ephys_path(ephys_path)
     data_path = ephys_path + '/' + prm.get_spike_sorter()
-    prm.set_ephys_data_path(data_path)
 
     if os.path.exists(ephys_path) is False:
         os.makedirs(ephys_path)
