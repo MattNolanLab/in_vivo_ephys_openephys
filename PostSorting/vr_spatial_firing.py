@@ -67,6 +67,10 @@ def find_firing_location_indices(spike_data, spatial_data):
     return spike_data
 
 
+def split_spatial_firing_by_speed(spike_data):
+    return spike_data
+
+
 def split_spatial_firing_by_trial_type(spike_data):
     print('I am splitting firing locations by trial type...')
     for cluster_index in range(len(spike_data)):
@@ -118,6 +122,7 @@ def split_spatial_firing_by_trial_type_test(spike_data):
 def process_spatial_firing(spike_data, spatial_data):
     spike_data = add_columns_to_dataframe(spike_data)
     spike_data = find_firing_location_indices(spike_data, spatial_data)
+    spike_data = split_spatial_firing_by_speed(spike_data)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
     #spike_data = split_spatial_firing_by_trial_type_test(spike_data)
     return spike_data
