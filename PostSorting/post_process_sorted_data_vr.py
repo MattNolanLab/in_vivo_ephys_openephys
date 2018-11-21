@@ -34,17 +34,19 @@ def process_position_data(recording_to_process, prm):
     return spatial_data
 
 
-def make_plots(spike_data, raw_position_data, processed_position_data, firing_rate_map):
+def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data, firing_rate_map):
     PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, prm)
     PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
     PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
     gc.collect()
     PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
-    PostSorting.make_plots.plot_waveforms(spike_data, prm)
+    #PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     gc.collect()
-    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm)
+    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_all')
+    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data_movement,raw_position_data, processed_position_data, prm, prefix='_movement')
+    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data_stationary,raw_position_data, processed_position_data, prm, prefix='_stationary')
     gc.collect()
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm)
     PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm)
@@ -84,10 +86,12 @@ def post_process_recording(recording_to_process, session_type):
         #save_data_frames(spike_data, spatial_data, bad_clusters)
         return
 
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
+    #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data, spike_data_movement, spike_data_stationary = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
-    spike_data, firing_rate_map = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, prm)
-    make_plots(spike_data, raw_position_data, processed_position_data, firing_rate_map)
+    spike_data, firing_rate_map = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, prm, processed_position_data.binned_time_ms)
+    spike_data, firing_rate_map = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, prm, processed_position_data.binned_time_movement_ms)
+    spike_data, firing_rate_map = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_stationary, raw_position_data, processed_position_data, prm, processed_position_data.binned_time_stationary_ms)
+    make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data, firing_rate_map)
     gc.collect()
     #save_data_frames(spike_data, spatial_data, bad_clusters)
 
