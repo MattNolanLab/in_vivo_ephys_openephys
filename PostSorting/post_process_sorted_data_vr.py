@@ -85,7 +85,7 @@ def post_process_recording(recording_to_process, session_type):
         return
 
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
-    spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
+    spike_data, spike_data_movement, spike_data_stationary = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     spike_data, firing_rate_map = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, prm)
     make_plots(spike_data, raw_position_data, processed_position_data, firing_rate_map)
     gc.collect()
