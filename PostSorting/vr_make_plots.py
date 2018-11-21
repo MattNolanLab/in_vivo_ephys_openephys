@@ -3,7 +3,6 @@ import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
-import math
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
@@ -90,7 +89,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     plt.close()
 
 
-def plot_speed_histogram(raw_position_data, processed_position_data, prm):
+def plot_speed_histogram(processed_position_data, prm):
     print('plotting speed histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -109,7 +108,6 @@ def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
 
@@ -162,7 +160,6 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
     x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .3, wspace = .3,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
-
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/combined_behaviour' + '.png', dpi=200)
     plt.close()
 
@@ -186,7 +183,7 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
         #ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
         #ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
-        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
         ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
@@ -201,7 +198,6 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
         x_max = max(raw_position_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
-
         plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
@@ -222,11 +218,8 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(bins, unsmooth_b, '-', color='Black')
-        try:
-            ax.plot(bins, unsmooth_nb, '-', color='Red')
-            ax.plot(bins, unsmooth_p, '-', color='Blue')
-        except ValueError:
-            continue
+        ax.plot(bins, unsmooth_nb, '-', color='Red')
+        ax.plot(bins, unsmooth_p, '-', color='Blue')
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
@@ -255,7 +248,7 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
 
         ax = spikes_on_track.add_subplot(2, 1, 1)  # specify (nrows, ncols, axnum)
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        ax.plot(raw_position_data.x_position_cm[cluster_firing_indices], raw_position_data.trial_number[cluster_firing_indices], '|', color='Black', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
         ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=2)
@@ -274,11 +267,8 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
         unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
         ax.plot(bins, unsmooth_b, '-', color='Black')
-        try:
-            ax.plot(bins, unsmooth_nb, '-', color='Red')
-            ax.plot(bins, unsmooth_p, '-', color='Blue')
-        except ValueError:
-            continue
+        ax.plot(bins, unsmooth_nb, '-', color='Red')
+        ax.plot(bins, unsmooth_p, '-', color='Blue')
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
@@ -295,7 +285,6 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
             plot_utility.style_vr_plot(ax, p_x_max)
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace = .2, wspace = .2,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
-
         plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
@@ -348,11 +337,8 @@ def make_combined_figure(prm, spatial_firing, prefix):
             combined_behaviour_plot.axis('off')
             combined_behaviour_plot.imshow(combined_behaviour)
         plt.subplots_adjust(hspace = .0, wspace = .0,  bottom = 0.06, left = 0.06, right = 0.94, top = 0.94)
-
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + str(prefix) + '.png', dpi=1000)
         plt.close()
-
-
 
 
 def plot_spike_rate_vs_speed(spike_data, processed_position_data, prm):
@@ -368,8 +354,7 @@ def plot_spike_rate_vs_speed(spike_data, processed_position_data, prm):
         ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         beaconed_firing_rate = np.array(spike_data.at[cluster_index, "normalised_b_spike_number"])
 
-        #linear_regression
-        slope,intercept,r_value, p_value, std_err = stats.linregress(beaconed_firing_rate,average_speed)
+        slope,intercept,r_value, p_value, std_err = stats.linregress(beaconed_firing_rate,average_speed) #linear_regression
         ablinevalues = []
         for i in beaconed_firing_rate:
             ablinevalues.append(slope*i+intercept)
