@@ -54,9 +54,9 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
             width = bins[1] - bins[0]
             center_bin = (bins[:-1] + bins[1:]) / 2
             center = center_bin[tuple([np.where(session_hist > sum(session_hist)*0.005)])]
-            hist2 = np.array(hist, dtype=float)
-            session_hist2 = np.array(session_hist, dtype=float)
-            rate = np.divide(hist2, session_hist2, out=np.zeros_like(hist2), where=session_hist2 != 0)
+            hist = np.array(hist, dtype=float)
+            session_hist = np.array(session_hist, dtype=float)
+            rate = np.divide(hist, session_hist, out=np.zeros_like(hist), where=session_hist != 0)
             rate = rate[tuple([np.where(session_hist > sum(session_hist)*0.005)])]
             plt.bar(center[0], rate[0]*sampling_rate, align='center', width=width, color='black')
         plt.xlabel('speed [cm/s]')
