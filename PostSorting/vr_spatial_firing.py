@@ -69,25 +69,23 @@ def find_firing_location_indices(spike_data, spatial_data):
 
 
 def split_dataframe_columns_by_speed(cluster_index,spike_data,spike_data_movement,spike_data_stationary,above_threshold_indices,below_threshold_indices):
-    spike_data_movement.trial_number[cluster_index] = spike_data.trial_number[above_threshold_indices].values.astype(np.uint16)
-    spike_data_movement.x_position_cm[cluster_index] = spike_data.x_position_cm[above_threshold_indices].values.astype(np.float16)
-    spike_data_movement.trial_type[cluster_index] = spike_data.trial_type[above_threshold_indices].values.astype(np.uint16)
+    spike_data_movement.trial_number[cluster_index] = spike_data.trial_number[above_threshold_indices].values
+    spike_data_movement.x_position_cm[cluster_index] = spike_data.x_position_cm[above_threshold_indices].values
+    spike_data_movement.trial_type[cluster_index] = spike_data.trial_type[above_threshold_indices].values
 
-    spike_data_stationary.trial_number[cluster_index] = spike_data.trial_number[below_threshold_indices].values.astype(np.uint16)
-    spike_data_stationary.x_position_cm[cluster_index] = spike_data.x_position_cm[below_threshold_indices].values.astype(np.float16)
-    spike_data_stationary.trial_type[cluster_index] = spike_data.trial_type[below_threshold_indices].values.astype(np.uint16)
+    spike_data_stationary.trial_number[cluster_index] = spike_data.trial_number[below_threshold_indices].values
+    spike_data_stationary.x_position_cm[cluster_index] = spike_data.x_position_cm[below_threshold_indices].values
+    spike_data_stationary.trial_type[cluster_index] = spike_data.trial_type[below_threshold_indices].values
     return spike_data_movement,spike_data_stationary
 
 
-def split_spatial_firing_by_speed(spike_data):
-    spike_data_movement = spike_data.copy()
-    spike_data_stationary = spike_data.copy()
-    movement_threshold=2.5
+def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_stationary):
+    movement_threshold=5 # 5 cm / second
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         above_threshold_indices = np.where(spike_data.speed_per200ms[cluster_index] > movement_threshold)[0]
         below_threshold_indices = np.where(spike_data.speed_per200ms[cluster_index] < movement_threshold)[0]
-        spike_data_movement, spike_data_stationary = split_dataframe_columns_by_speed(spike_data,spike_data_movement,spike_data_stationary,above_threshold_indices,below_threshold_indices)
+        spike_data_movement, spike_data_stationary = split_dataframe_columns_by_speed(cluster_index,spike_data,spike_data_movement,spike_data_stationary,above_threshold_indices,below_threshold_indices)
     return spike_data, spike_data_movement, spike_data_stationary
 
 
@@ -141,8 +139,11 @@ def split_spatial_firing_by_trial_type_test(spike_data):
 
 def process_spatial_firing(spike_data, spatial_data):
     spike_data = add_columns_to_dataframe(spike_data)
+    spike_data_movement = spike_data.copy()
+    spike_data_stationary = spike_data.copy()
+
     spike_data = find_firing_location_indices(spike_data, spatial_data)
-    spike_data, spike_data_movement, spike_data_stationary = split_spatial_firing_by_speed(spike_data)
+    spike_data, spike_data_movement, spike_data_stationary = split_spatial_firing_by_speed(spike_data, spike_data_movement,spike_data_stationary)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
     spike_data_movement = split_spatial_firing_by_trial_type(spike_data_movement)
     spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
