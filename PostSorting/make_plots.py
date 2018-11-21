@@ -57,7 +57,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
             hist = np.array(hist, dtype=float)
             session_hist = np.array(session_hist, dtype=float)
             rate = np.divide(hist, session_hist, out=np.zeros_like(hist), where=session_hist != 0)
-            rate = rate[tuple([np.where(session_hist[~np.isnan(session_hist)] > sum(session_hist)*0.005)])]  # https://stackoverflow.com/questions/37651803/runtimewarning-invalid-value-encountered-in-greater
+            rate = rate[tuple([np.where(session_hist[~np.isnan(session_hist)] > sum(session_hist)*0.005)])]
             plt.bar(center[0], rate[0]*sampling_rate, align='center', width=width, color='black')
         plt.xlabel('speed [cm/s]')
         plt.ylabel('firing rate [Hz]')
