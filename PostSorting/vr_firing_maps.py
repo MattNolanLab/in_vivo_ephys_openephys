@@ -109,5 +109,5 @@ def make_firing_field_maps(spike_data, raw_position_data, processed_position_dat
         firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index)
         firing_rate_map = normalise_spike_number_by_time(processed_position_data,firing_rate_map, processed_position_data_dwell_time)
         spike_data = average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed_position_data, cluster_index,number_of_bins,array_of_trials)
-    return spike_data,firing_rate_map
+    return spike_data
 
