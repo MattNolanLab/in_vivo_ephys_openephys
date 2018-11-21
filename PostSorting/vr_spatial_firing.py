@@ -23,6 +23,7 @@ def add_columns_to_dataframe(spike_data):
     spike_data["normalised_b_spike_number"] = ""
     spike_data["normalised_nb_spike_number"] = ""
     spike_data["normalised_p_spike_number"] = ""
+
     return spike_data
 
 
@@ -68,7 +69,9 @@ def find_firing_location_indices(spike_data, spatial_data):
 
 
 def split_spatial_firing_by_speed(spike_data):
-    return spike_data
+    spike_data_movement = spike_data.copy()
+    spike_data_stationary = spike_data.copy()
+    return spike_data, spike_data_movement, spike_data_stationary
 
 
 def split_spatial_firing_by_trial_type(spike_data):
