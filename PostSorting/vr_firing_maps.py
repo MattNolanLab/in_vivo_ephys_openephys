@@ -99,23 +99,6 @@ def find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, proces
     return firing_rate_map,number_of_bins,array_of_trials
 
 
-def average_spikes_across_trials(spike_data,spatial_data,cluster_index):
-    bin_size_cm,number_of_bins = get_bin_size(spatial_data)
-    number_of_beaconed_trials,number_of_nonbeaconed_trials, number_of_probe_trials = get_trial_numbers(spatial_data)
-    trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
-
-    posrange = np.linspace(spatial_data.x_position_cm.min(), spatial_data.x_position_cm.max(), num=number_of_bins+1)
-    spike_histogram, bins = np.histogram(trials_b, locations_b, bins=(posrange), range=None)
-
-    number_of_trials = spatial_data.trial_number.max() # total number of trials
-    array_of_trials = np.arange(1,number_of_trials+1,1)
-    binned_time_ms = np.array(spatial_data['binned_time_over_trials_seconds'])
-    normalised_spikes = spike_histogram/binned_time_ms
-    divide_by_trials = normalised_spikes/number_of_trials
-
-    return spike_data
-
-
 def make_firing_field_maps(spike_data, raw_position_data, processed_position_data, prm):
     print('I am calculating the average firing rate ...')
     gc.collect()
