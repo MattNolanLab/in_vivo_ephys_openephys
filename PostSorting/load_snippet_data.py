@@ -6,7 +6,6 @@ import matplotlib.pylab as plt
 
 
 def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, prm):
-    PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
     if len(dead_channels) != 0:
         for dead_ch in range(len(dead_channels[0])):
