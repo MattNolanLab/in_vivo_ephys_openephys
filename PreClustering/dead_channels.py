@@ -14,6 +14,7 @@ def get_dead_channel_ids(prm):
             dead_channels = dead_channel_reader.readlines()
             dead_channels = list([x.strip() for x in dead_channels])
             prm.set_dead_channels(dead_channels)
+            print('These channels are dead and will be removed: ' + str(dead_channels))
 
     else:
         print('There are no dead channels in this recording, or dead_channels.txt is missing.')

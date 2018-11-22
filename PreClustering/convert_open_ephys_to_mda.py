@@ -19,10 +19,7 @@ def convert_continuous_to_mda(prm):
     file_utility.folders_for_separate_tetrodes(prm)
     number_of_tetrodes = prm.get_num_tetrodes()
     folder_path = prm.get_filepath()
-    if prm.get_is_windows():
-        spike_data_path = prm.get_spike_path() + '\\'
-    if prm.get_is_ubuntu():
-        spike_data_path = prm.get_spike_path() + '/'
+    spike_data_path = prm.get_spike_path() + '/'
     continuous_file_name = prm.get_continuous_file_name()
     continuous_file_name_end = prm.get_continuous_file_name_end()
 

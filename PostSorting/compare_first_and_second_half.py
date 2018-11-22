@@ -4,19 +4,21 @@ import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_maps
 import PostSorting.post_process_sorted_data
 from scipy.stats.stats import pearsonr
+import pandas as pd
 
 
 def get_data_from_data_frame_for_cluster(spike_data, cluster, indices):
-    spike_data.firing_times[cluster] = spike_data.firing_times[cluster][indices].copy()
-    spike_data.position_x[cluster] = np.array(spike_data.position_x[cluster])[indices].copy()
-    spike_data.position_y[cluster] = np.array(spike_data.position_y[cluster])[indices].copy()
-    spike_data.position_x_pixels[cluster] = np.array(spike_data.position_x_pixels[cluster])[indices].copy()
-    spike_data.position_y_pixels[cluster] = np.array(spike_data.position_y_pixels[cluster])[indices].copy()
-    spike_data.hd[cluster] = np.array(spike_data.hd[cluster])[indices].copy()
-    return spike_data
+    spike_data_cluster = pd.DataFrame()
+    spike_data_cluster['firing_times'] = spike_data.firing_times[cluster][indices].copy()
+    spike_data_cluster['position_x'] = np.array(spike_data.position_x[cluster])[indices].copy()
+    spike_data_cluster['position_y'] = np.array(spike_data.position_y[cluster])[indices].copy()
+    spike_data_cluster['position_x_pixels'] = np.array(spike_data.position_x_pixels[cluster])[indices].copy()
+    spike_data_cluster['position_y_pixels'] = np.array(spike_data.position_y_pixels[cluster])[indices].copy()
+    spike_data_cluster['hd'] = np.array(spike_data.hd[cluster])[indices].copy()
+    return spike_data_cluster
 
 
-def get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='first'):
+def get_data_from_data_frames_fields(spike_data, spike_data_cluster, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='first'):
     number_of_firing_fields = len(spike_data.firing_fields[cluster])
     number_of_spikes_in_fields = []
     number_of_samples_in_fields = []
@@ -28,13 +30,13 @@ def get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, e
         for field_id, field in enumerate(firing_field_spike_times):
             if half == 'first':
                 firing_times_field = np.take(field, np.where(field < end_of_first_half_ephys_sampling_points))
-                mask_firing_times_in_field = np.in1d(spike_data.firing_times[cluster], firing_times_field)
+                mask_firing_times_in_field = np.in1d(spike_data_cluster.firing_times, firing_times_field)
 
             else:
                 firing_times_field = np.take(field, np.where(field >= end_of_first_half_ephys_sampling_points))
-                mask_firing_times_in_field = np.in1d(spike_data.firing_times[cluster], firing_times_field)
+                mask_firing_times_in_field = np.in1d(spike_data_cluster.firing_times, firing_times_field)
             number_of_spikes_field = mask_firing_times_in_field.sum()
-            hd_field_cluster = spike_data.hd[cluster][mask_firing_times_in_field]
+            hd_field_cluster = spike_data_cluster.hd[mask_firing_times_in_field]
             hd_field_cluster = (np.array(hd_field_cluster) + 180) * np.pi / 180
             hd_fields_cluster_hist = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_cluster)
             number_of_spikes_in_fields.append(number_of_spikes_field)
@@ -60,10 +62,10 @@ def get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, e
         hd_in_fields_cluster.append([None])
         hd_in_field_sessions.append([None])
 
-    spike_data.number_of_spikes_in_fields[cluster] = number_of_spikes_in_fields
-    spike_data.time_spent_in_fields_sampling_points[cluster] = number_of_samples_in_fields
-    spike_data.firing_fields_hd_cluster[cluster] = hd_in_fields_cluster
-    spike_data.firing_fields_hd_session[cluster] = hd_in_field_sessions
+    spike_data.at[cluster, 'number_of_spikes_in_fields'] = number_of_spikes_in_fields
+    spike_data.at[cluster, 'time_spent_in_fields_sampling_points'] = number_of_samples_in_fields
+    spike_data.at[cluster, 'firing_fields_hd_cluster'] = hd_in_fields_cluster
+    spike_data.at[cluster, 'firing_fields_hd_session'] = hd_in_field_sessions
 
     return spike_data
 
@@ -75,26 +77,25 @@ def get_half_of_the_data(prm, spike_data_in, synced_spatial_data_in, half='first
     spike_data_half = None
     end_of_first_half_seconds = (synced_spatial_data.synced_time.max() - synced_spatial_data.synced_time.min()) / 2
     end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * 30000
+
     if half == 'first_half':
         first_half_synced_data_indices = synced_spatial_data.synced_time < end_of_first_half_seconds
         synced_spatial_data_half = synced_spatial_data[first_half_synced_data_indices].copy()
         for cluster in range(len(spike_data)):
             cluster = spike_data.cluster_id.values[cluster] - 1
             firing_times_first_half = spike_data.firing_times[cluster] < end_of_first_half_ephys_sampling_points
-            spike_data = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_first_half)
-            #spike_data = PostSorting.open_field_head_direction.process_hd_data(spike_data, synced_spatial_data, prm)
-            spike_data = get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='first')
-        spike_data_half = spike_data[['cluster_id', 'session_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session', 'firing_fields']].copy()
+            spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_first_half)
+            spike_data = get_data_from_data_frames_fields(spike_data, spike_data_cluster, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='first')
 
+        spike_data_half = spike_data[['cluster_id', 'session_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session', 'firing_fields']].copy()
     if half == 'second_half':
         second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
         synced_spatial_data_half = synced_spatial_data[second_half_synced_data_indices]
         for cluster in range(len(spike_data)):
             cluster = spike_data.cluster_id.values[cluster] - 1
             firing_times_second_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
-            spike_data = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_second_half)
-            #spike_data = PostSorting.open_field_head_direction.process_hd_data(spike_data, synced_spatial_data, prm)
-            spike_data = get_data_from_data_frames_fields(spike_data, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='second')
+            spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_second_half)
+            spike_data = get_data_from_data_frames_fields(spike_data, spike_data_cluster, synced_spatial_data, cluster, end_of_first_half_seconds, end_of_first_half_ephys_sampling_points, half='second')
         spike_data_half = spike_data[['cluster_id', 'session_id', 'firing_times', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'number_of_spikes_in_fields', 'time_spent_in_fields_sampling_points', 'firing_fields_hd_cluster', 'firing_fields_hd_session','firing_fields']].copy()
     return spike_data_half, synced_spatial_data_half
 
