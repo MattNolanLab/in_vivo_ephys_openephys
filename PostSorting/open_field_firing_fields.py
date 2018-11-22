@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import subprocess
 import PostSorting.open_field_head_direction
+import PostSorting.open_field_firing_field_detection
 
 # import matplotlib.pylab as plt
 
@@ -39,7 +40,8 @@ def find_neighbors(bin_to_test, max_x, max_y):
 # return the masked rate map and change the neighbor's indices to 1 if they are above threshold
 def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
     changed = False
-    threshold = firing_rate_of_max * 20 / 100
+    #threshold = firing_rate_of_max * 20 / 100
+    threshold = firing_rate_of_max * 35 / 100
 
     firing_field_bins = np.array(np.where(masked_rate_map > 0))
     firing_field_bins = firing_field_bins.T
@@ -85,6 +87,8 @@ def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
     std_rate = np.std(rate_map)
 
     firing_rate_of_highest_bin = rate_map[highest_rate_bin[0], highest_rate_bin[1]]
+    if firing_rate_of_highest_bin < 0.1:
+        return False
 
     if firing_rate_of_highest_bin > average_rate + std_rate:
         return True
