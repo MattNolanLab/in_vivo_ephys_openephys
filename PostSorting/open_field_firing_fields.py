@@ -126,6 +126,21 @@ def remove_indices_from_rate_map(rate_map, indices):
     return rate_map
 
 
+# find firing fields and maximum firing rates for each field for a cluster
+def get_firing_field_data(spatial_firing, cluster):
+    firing_fields_cluster = []
+    max_firing_rates_cluster = []
+    rate_map = spatial_firing.firing_maps[cluster].copy()
+    found_new = True
+    while found_new:
+        field_indices, found_new, max_firing_rate = find_current_maxima_indices(rate_map)
+        if found_new:
+            firing_fields_cluster.append(field_indices)
+            max_firing_rates_cluster.append(max_firing_rate)
+            rate_map = remove_indices_from_rate_map(rate_map, field_indices)
+    return firing_fields_cluster, max_firing_rates_cluster
+
+
 # find firing fields and add them to spatial firing data frame
 def analyze_firing_fields(spatial_firing, spatial_data, prm):
     print('I will identify individual firing fields if possible.')
@@ -141,18 +156,7 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
 
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_fields_cluster = []
-        max_firing_rates_cluster = []
-        rate_map = spatial_firing.firing_maps[cluster].copy()
-        found_new = True
-        while found_new:
-            # plt.show()
-            field_indices, found_new, max_firing_rate = find_current_maxima_indices(rate_map)
-            if found_new:
-                firing_fields_cluster.append(field_indices)
-                max_firing_rates_cluster.append(max_firing_rate)
-                rate_map = remove_indices_from_rate_map(rate_map, field_indices)
-        # plt.clf()
+        firing_fields_cluster, max_firing_rates_cluster = get_firing_field_data(spatial_firing, cluster)
         firing_fields.append(firing_fields_cluster)
         max_firing_rates.append(max_firing_rates_cluster)
 
