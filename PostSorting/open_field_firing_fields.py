@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import subprocess
 import PostSorting.open_field_head_direction
-import PostSorting.open_field_firing_field_detection
 
 # import matplotlib.pylab as plt
 
