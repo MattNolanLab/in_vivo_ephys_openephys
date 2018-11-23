@@ -225,7 +225,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
+        x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
         plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
@@ -274,9 +274,9 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = max(spike_data.avg_spike_per_bin_nb[cluster_index])+5
-        b_x_max = max(spike_data.avg_spike_per_bin_b[cluster_index])+5
-        p_x_max = max(spike_data.avg_spike_per_bin_p[cluster_index])+5
+        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
+        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb']))
+        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p']))
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
