@@ -41,7 +41,7 @@ def detect_firing_fields(spike_data, cluster, save_path):
     plt.tight_layout()
     # plt.show()
     plt.savefig(save_path + '/detection_result_gauss.png')
-    pass
+    plt.close()
 
 
 
