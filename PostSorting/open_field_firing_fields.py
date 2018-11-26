@@ -144,6 +144,14 @@ def get_firing_field_data(spatial_firing, cluster):
     return firing_fields_cluster, max_firing_rates_cluster
 
 
+def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields, max_firing_rates):
+    cluster = spatial_firing.cluster_id.values[cluster] - 1
+    firing_fields_cluster, max_firing_rates_cluster = get_firing_field_data(spatial_firing, cluster)
+    firing_fields.append(firing_fields_cluster)
+    max_firing_rates.append(max_firing_rates_cluster)
+    return firing_fields, max_firing_rates
+
+
 # find firing fields and add them to spatial firing data frame
 def analyze_firing_fields(spatial_firing, spatial_data, prm):
     print('I will identify individual firing fields if possible.')
@@ -158,10 +166,7 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
         return spatial_firing
 
     for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_fields_cluster, max_firing_rates_cluster = get_firing_field_data(spatial_firing, cluster)
-        firing_fields.append(firing_fields_cluster)
-        max_firing_rates.append(max_firing_rates_cluster)
+        firing_fields, max_firing_rates = analyze_fields_in_cluster(spatial_firing, cluster, firing_fields, max_firing_rates)
 
     spatial_firing['firing_fields'] = firing_fields
     spatial_firing['field_max_firing_rate'] = max_firing_rates
