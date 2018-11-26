@@ -37,10 +37,9 @@ def find_neighbors(bin_to_test, max_x, max_y):
 
 
 # return the masked rate map and change the neighbor's indices to 1 if they are above threshold
-def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max):
+def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max, threshold=20):
     changed = False
-    #threshold = firing_rate_of_max * 20 / 100
-    threshold = firing_rate_of_max * 35 / 100
+    threshold = firing_rate_of_max * threshold / 100
 
     firing_field_bins = np.array(np.where(masked_rate_map > 0))
     firing_field_bins = firing_field_bins.T
@@ -96,7 +95,7 @@ def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
 
 
 # find indices for an individual firing field
-def find_current_maxima_indices(rate_map):
+def find_current_maxima_indices(rate_map, threshold=20):
     highest_rate_bin = np.unravel_index(rate_map.argmax(), rate_map.shape)
     found_new = test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin)
     max_fr = rate_map[highest_rate_bin]
@@ -109,7 +108,7 @@ def find_current_maxima_indices(rate_map):
     masked_rate_map[highest_rate_bin] = 1
     changed = True
     while changed:
-        masked_rate_map, changed = find_neighborhood(masked_rate_map, rate_map, rate_map[highest_rate_bin])
+        masked_rate_map, changed = find_neighborhood(masked_rate_map, rate_map, rate_map[highest_rate_bin], threshold=threshold)
 
     field_indices = np.array(np.where(masked_rate_map > 0)).T
     found_new = test_if_field_is_big_enough(field_indices)
@@ -130,13 +129,13 @@ def remove_indices_from_rate_map(rate_map, indices):
 
 
 # find firing fields and maximum firing rates for each field for a cluster
-def get_firing_field_data(spatial_firing, cluster):
+def get_firing_field_data(spatial_firing, cluster, threshold=20):
     firing_fields_cluster = []
     max_firing_rates_cluster = []
     rate_map = spatial_firing.firing_maps[cluster].copy()
     found_new = True
     while found_new:
-        field_indices, found_new, max_firing_rate = find_current_maxima_indices(rate_map)
+        field_indices, found_new, max_firing_rate = find_current_maxima_indices(rate_map, threshold=threshold)
         if found_new:
             firing_fields_cluster.append(field_indices)
             max_firing_rates_cluster.append(max_firing_rate)
@@ -144,13 +143,13 @@ def get_firing_field_data(spatial_firing, cluster):
     return firing_fields_cluster, max_firing_rates_cluster
 
 
-def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields=None, max_firing_rates=None):
+def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields=None, max_firing_rates=None, threshold=20):
     if firing_fields is None:
         firing_fields = []
     if max_firing_rates is None:
         max_firing_rates = []
     cluster = spatial_firing.cluster_id.values[cluster] - 1
-    firing_fields_cluster, max_firing_rates_cluster = get_firing_field_data(spatial_firing, cluster)
+    firing_fields_cluster, max_firing_rates_cluster = get_firing_field_data(spatial_firing, cluster, threshold=threshold)
     firing_fields.append(firing_fields_cluster)
     max_firing_rates.append(max_firing_rates_cluster)
     return firing_fields, max_firing_rates
