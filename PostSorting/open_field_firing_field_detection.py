@@ -6,7 +6,7 @@ from skimage.color import rgb2gray
 import matplotlib.pyplot as plt
 
 
-def detect_firing_fields(spike_data, cluster):
+def detect_firing_fields(spike_data, cluster, save_path):
     image_gray = spike_data.firing_maps[cluster]
     image = spike_data.firing_maps[cluster]
     plt.imshow(image_gray)
@@ -39,7 +39,8 @@ def detect_firing_fields(spike_data, cluster):
         ax[idx].set_axis_off()
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig(save_path + '/detection_result_gauss.png')
     pass
 
 
@@ -51,7 +52,7 @@ def main():
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of'
     spike_data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
     spike_data = pd.read_pickle(spike_data_frame_path)
-    detect_firing_fields(spike_data, 5)
+    detect_firing_fields(spike_data, 5, recording_folder)
 
 if __name__ == '__main__':
     main()
