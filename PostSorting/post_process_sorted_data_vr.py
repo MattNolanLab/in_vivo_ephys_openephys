@@ -93,9 +93,9 @@ def post_process_recording(recording_to_process, session_type):
 
     #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data, spike_data_movement, spike_data_stationary = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
-    spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, prm, processed_position_data.binned_time_ms)
-    spike_data_movement = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, prm, processed_position_data.binned_time_moving_ms)
-    spike_data_stationary = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_stationary, raw_position_data, processed_position_data, prm, processed_position_data.binned_time_stationary_ms)
+    spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data.binned_time_ms)
+    spike_data_movement = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, processed_position_data.binned_time_moving_ms)
+    spike_data_stationary = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_stationary, raw_position_data, processed_position_data, processed_position_data.binned_time_stationary_ms)
     make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data)
     gc.collect()
     #save_data_frames(spike_data, spatial_data, bad_clusters)

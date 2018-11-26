@@ -91,7 +91,7 @@ def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_st
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         above_threshold_indices = np.where(np.array(spike_data.speed_per200ms[cluster_index]) >= movement_threshold)[0]
-        below_threshold_indices = np.where(np.array(spike_data.speed_per200ms[cluster_index]) <= movement_threshold)[0]
+        below_threshold_indices = np.where(np.array(spike_data.speed_per200ms[cluster_index]) < movement_threshold)[0]
 
         spike_data_movement, spike_data_stationary = split_and_add_trial_number(cluster_index,spike_data_movement, spike_data_stationary, np.array(spike_data.trial_number[cluster_index]),above_threshold_indices,below_threshold_indices)
         spike_data_movement, spike_data_stationary = split_and_add_x_location_cm(cluster_index,spike_data_movement, spike_data_stationary, np.array(spike_data.x_position_cm[cluster_index]),above_threshold_indices,below_threshold_indices)
