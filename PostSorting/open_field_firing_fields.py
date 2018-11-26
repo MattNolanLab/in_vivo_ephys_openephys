@@ -148,7 +148,6 @@ def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields=None, max_f
         firing_fields = []
     if max_firing_rates is None:
         max_firing_rates = []
-    cluster = spatial_firing.cluster_id.values[cluster] - 1
     firing_fields_cluster, max_firing_rates_cluster = get_firing_field_data(spatial_firing, cluster, threshold=threshold)
     firing_fields.append(firing_fields_cluster)
     max_firing_rates.append(max_firing_rates_cluster)
@@ -169,7 +168,7 @@ def analyze_firing_fields(spatial_firing, spatial_data, prm):
         return spatial_firing
 
     for cluster in range(len(spatial_firing)):
-        firing_fields, max_firing_rates = analyze_fields_in_cluster(spatial_firing, cluster, firing_fields, max_firing_rates)
+        firing_fields, max_firing_rates = analyze_fields_in_cluster(spatial_firing, spatial_firing.cluster_id[cluster], firing_fields, max_firing_rates)
 
     spatial_firing['firing_fields'] = firing_fields
     spatial_firing['field_max_firing_rate'] = max_firing_rates
