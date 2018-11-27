@@ -85,7 +85,7 @@ def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
     std_rate = np.std(rate_map)
 
     firing_rate_of_highest_bin = rate_map[highest_rate_bin[0], highest_rate_bin[1]]
-    if firing_rate_of_highest_bin < 0.1:
+    if firing_rate_of_highest_bin < 1.5:
         return False
 
     if firing_rate_of_highest_bin > average_rate + std_rate:
