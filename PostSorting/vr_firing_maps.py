@@ -40,6 +40,60 @@ def get_trial_numbers(spatial_data):
     return beaconed_trial_no, nonbeaconed_trial_no, probe_trial_no
 
 
+def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data_dwell_time, processed_position_data):
+    firing_rate_map['dwell_time'] = processed_position_data_dwell_time
+    firing_rate_map['normalised_b_spike_number'] = np.nan_to_num(np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0))
+    firing_rate_map['normalised_nb_spike_number'] = np.nan_to_num(np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0))
+    firing_rate_map['normalised_p_spike_number'] = np.nan_to_num(np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0))
+
+    average_spikes_over_trials = np.array(firing_rate_map['normalised_b_spike_number'])
+    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(average_spikes_over_trials)
+    average_spikes_over_trials = np.array(firing_rate_map['normalised_nb_spike_number'])
+    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(average_spikes_over_trials)
+    average_spikes_over_trials = np.array(firing_rate_map['normalised_p_spike_number'])
+    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(average_spikes_over_trials)
+    return spike_data
+
+
+def bin_spikes_over_location(spatial_data,trials,locations,number_of_trials, number_of_bins,array_of_trials):
+    spike_histogram = create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials)
+    avg_spike_histogram = np.sum(spike_histogram, axis=0)/number_of_trials
+    return avg_spike_histogram
+
+
+def find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index):
+    bin_size_cm,number_of_bins = get_bin_size(raw_position_data)
+    trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
+    trials_nb = np.array(spike_data.at[cluster_index,'nonbeaconed_trial_number']);locations_nb = np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm'])
+    trials_p = np.array(spike_data.at[cluster_index, 'probe_trial_number']);locations_p = np.array(spike_data.at[cluster_index, 'probe_position_cm'])
+    number_of_trials = raw_position_data.trial_number.max() # total number of trials
+    array_of_trials = np.arange(1,number_of_trials+1,1)
+    number_of_beaconed_trials,number_of_nonbeaconed_trials, number_of_probe_trials = get_trial_numbers(processed_position_data)
+
+    firing_rate_map['b_spike_number'] = bin_spikes_over_location(raw_position_data,trials_b,locations_b,number_of_beaconed_trials, number_of_bins,array_of_trials)
+    firing_rate_map['nb_spike_number'] = bin_spikes_over_location(raw_position_data,trials_nb,locations_nb,number_of_nonbeaconed_trials, number_of_bins,array_of_trials)
+    firing_rate_map['p_spike_number'] = bin_spikes_over_location(raw_position_data,trials_p,locations_p,number_of_probe_trials, number_of_bins,array_of_trials)
+    return firing_rate_map,number_of_bins,array_of_trials
+
+
+def make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data_dwell_time):
+    print('I am calculating the average firing rate ...')
+    gc.collect()
+    for cluster_index in range(len(spike_data)):
+        firing_rate_map = pd.DataFrame()
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index)
+        spike_data = normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data_dwell_time, processed_position_data)
+        #spike_data = average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed_position_data, cluster_index,number_of_bins,array_of_trials)
+    return spike_data
+
+
+
+
+"""
 def reshape_and_sum_binned_normalised_spikes(normalised_spikes, number_of_trials, number_of_bins, array_of_trials):
     reshaped_normalised_spikes = np.reshape(normalised_spikes, (len(array_of_trials),int(number_of_bins)))
     average_spikes_over_trials = np.sum(reshaped_normalised_spikes, axis=0)/number_of_trials
@@ -69,20 +123,6 @@ def average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed
     return spike_data
 
 
-def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data_dwell_time):
-    firing_rate_map['dwell_time'] = processed_position_data_dwell_time
-    firing_rate_map['normalised_b_spike_number'] = np.nan_to_num(np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0))
-    firing_rate_map['normalised_nb_spike_number'] = np.nan_to_num(np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0))
-    firing_rate_map['normalised_p_spike_number'] = np.nan_to_num(np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0))
-    beaconed_normalised_spikes = np.array(firing_rate_map['normalised_b_spike_number'])
-    nonbeaconed_normalised_spikes = np.array(firing_rate_map['normalised_nb_spike_number'])
-    probe_normalised_spikes = np.array(firing_rate_map['normalised_p_spike_number'])
-    spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(beaconed_normalised_spikes)
-    spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(nonbeaconed_normalised_spikes)
-    spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(probe_normalised_spikes)
-    return spike_data
-
-
 def normalise_spike_number_by_time_trial_by_trial(firing_rate_map, processed_position_data_dwell_time):
     firing_rate_map['dwell_time'] = processed_position_data_dwell_time
     normalised_b_spike_number = np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0)
@@ -105,35 +145,4 @@ def bin_spikes_trial_by_trial(spatial_data,trials,locations,number_of_trials, nu
     reshaped_spike_histogram = np.ravel(np.reshape(spike_histogram, (int(shape_of_array),1), order='C'))
     return reshaped_spike_histogram
 
-
-def bin_spikes_over_location(spatial_data,trials,locations,number_of_trials, number_of_bins,array_of_trials):
-    spike_histogram = create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials)
-    avg_spike_histogram = np.sum(spike_histogram, axis=0)/number_of_trials
-    return avg_spike_histogram
-
-
-def find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index):
-    bin_size_cm,number_of_bins = get_bin_size(raw_position_data)
-    trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
-    trials_nb = np.array(spike_data.at[cluster_index,'nonbeaconed_trial_number']);locations_nb = np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm'])
-    trials_p = np.array(spike_data.at[cluster_index, 'probe_trial_number']);locations_p = np.array(spike_data.at[cluster_index, 'probe_position_cm'])
-    number_of_trials = raw_position_data.trial_number.max() # total number of trials
-    array_of_trials = np.arange(1,number_of_trials+1,1)
-
-    firing_rate_map['b_spike_number'] = bin_spikes_over_location(raw_position_data,trials_b,locations_b,number_of_trials, number_of_bins,array_of_trials)
-    firing_rate_map['nb_spike_number'] = bin_spikes_over_location(raw_position_data,trials_nb,locations_nb,number_of_trials, number_of_bins,array_of_trials)
-    firing_rate_map['p_spike_number'] = bin_spikes_over_location(raw_position_data,trials_p,locations_p,number_of_trials, number_of_bins,array_of_trials)
-    return firing_rate_map,number_of_bins,array_of_trials
-
-
-def make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data_dwell_time):
-    print('I am calculating the average firing rate ...')
-    gc.collect()
-    for cluster_index in range(len(spike_data)):
-        firing_rate_map = pd.DataFrame()
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index)
-        spike_data = normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data_dwell_time)
-        #spike_data = average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed_position_data, cluster_index,number_of_bins,array_of_trials)
-    return spike_data
-
+"""
