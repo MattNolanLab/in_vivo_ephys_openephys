@@ -43,6 +43,9 @@ def call_detector_modified_params(spike_data, cluster, save_path):
     firing_fields, max_firing_rates = PostSorting.open_field_firing_fields.analyze_fields_in_cluster(spike_data, cluster, threshold=40)
     plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '01Hz_40')
 
+    firing_fields, max_firing_rates = PostSorting.open_field_firing_fields.analyze_fields_in_cluster(spike_data, cluster, threshold=50)
+    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '01Hz_50')
+
 
 def call_detector_gauss(spike_data, cluster, save_path):
     PostSorting.open_field_firing_field_detection.detect_firing_fields(spike_data, cluster, save_path)
