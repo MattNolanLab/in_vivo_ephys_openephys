@@ -37,7 +37,7 @@ def find_neighbors(bin_to_test, max_x, max_y):
 
 
 # return the masked rate map and change the neighbor's indices to 1 if they are above threshold
-def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max, threshold=20):
+def find_neighborhood(masked_rate_map, rate_map, firing_rate_of_max, threshold=35):
     changed = False
     threshold = firing_rate_of_max * threshold / 100
 
@@ -77,6 +77,19 @@ def test_if_field_is_small_enough(field_indices, rate_map):
         return True
 
 
+def test_if_field_is_not_too_spread_out(field_indices, rate_map):
+    x_min = np.array(field_indices)[:, 0].min()
+    x_max = np.array(field_indices)[:, 0].max()
+    y_min = np.array(field_indices)[:, 1].min()
+    y_max = np.array(field_indices)[:, 1].max()
+
+    if (x_max - x_min) >= len(rate_map) / 2:
+        return False
+    if (y_max - y_min) >= len(rate_map) / 2:
+        return False
+    return True
+
+
 # test if the firing rate of the detected local maximum is higher than average + std firing
 def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
     flat_rate_map = rate_map.flatten()
@@ -85,7 +98,7 @@ def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
     std_rate = np.std(rate_map)
 
     firing_rate_of_highest_bin = rate_map[highest_rate_bin[0], highest_rate_bin[1]]
-    if firing_rate_of_highest_bin < 1.5:
+    if firing_rate_of_highest_bin < 0.1:
         return False
 
     if firing_rate_of_highest_bin > average_rate + std_rate:
@@ -95,7 +108,7 @@ def test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin):
 
 
 # find indices for an individual firing field
-def find_current_maxima_indices(rate_map, threshold=20):
+def find_current_maxima_indices(rate_map, threshold=35):
     highest_rate_bin = np.unravel_index(rate_map.argmax(), rate_map.shape)
     found_new = test_if_highest_bin_is_high_enough(rate_map, highest_rate_bin)
     max_fr = rate_map[highest_rate_bin]
@@ -116,7 +129,10 @@ def find_current_maxima_indices(rate_map, threshold=20):
         return None, found_new, None
     found_new = test_if_field_is_small_enough(field_indices, rate_map)
     if found_new is False:
-        field_indices = None
+        return None, found_new, None
+    found_new = test_if_field_is_not_too_spread_out(field_indices, rate_map)
+    if found_new is False:
+        return None, found_new, None
 
     return field_indices, found_new, max_fr
 
@@ -143,7 +159,7 @@ def get_firing_field_data(spatial_firing, cluster, threshold=20):
     return firing_fields_cluster, max_firing_rates_cluster
 
 
-def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields=None, max_firing_rates=None, threshold=20):
+def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields=None, max_firing_rates=None, threshold=35):
     if firing_fields is None:
         firing_fields = []
     if max_firing_rates is None:

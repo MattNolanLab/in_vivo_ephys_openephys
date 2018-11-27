@@ -23,19 +23,25 @@ def plot_fields_on_rate_map(save_path, rate_map, fields, name):
     of_plot.axis('off')
     of_plot.imshow(rate_map)
     for field_id, field in enumerate(fields[0]):
-        of_plot = PostSorting.open_field_make_plots.mark_firing_field_with_scatter(field, of_plot, colors, field_id)  # todo fix iterator here
+        of_plot = PostSorting.open_field_make_plots.mark_firing_field_with_scatter(field, of_plot, colors, field_id)
     plt.savefig(save_path + '/detection_results_' + name + '.png')
     plt.close()
 
 
 def call_detector_original(spike_data, cluster, save_path):
     firing_fields, max_firing_rates = PostSorting.open_field_firing_fields.analyze_fields_in_cluster(spike_data, cluster, threshold=20)
-    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '2Hz_20')
+    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '01Hz_20')
 
 
 def call_detector_modified_params(spike_data, cluster, save_path):
+    firing_fields, max_firing_rates = PostSorting.open_field_firing_fields.analyze_fields_in_cluster(spike_data, cluster, threshold=30)
+    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '01Hz_30')
+
     firing_fields, max_firing_rates = PostSorting.open_field_firing_fields.analyze_fields_in_cluster(spike_data, cluster, threshold=35)
-    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '2Hz_30')
+    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '01Hz_35')
+
+    firing_fields, max_firing_rates = PostSorting.open_field_firing_fields.analyze_fields_in_cluster(spike_data, cluster, threshold=40)
+    plot_fields_on_rate_map(save_path, spike_data.firing_maps[cluster], firing_fields, '01Hz_40')
 
 
 def call_detector_gauss(spike_data, cluster, save_path):
