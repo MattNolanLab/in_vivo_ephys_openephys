@@ -83,7 +83,7 @@ def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, pro
     return spike_data
 
 
-def normalise_spike_number_by_time_test(firing_rate_map, processed_position_data_dwell_time):
+def normalise_spike_number_by_time_trial_by_trial(firing_rate_map, processed_position_data_dwell_time):
     firing_rate_map['dwell_time'] = processed_position_data_dwell_time
     normalised_b_spike_number = np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0)
     normalised_nb_spike_number = np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0)
@@ -117,7 +117,6 @@ def find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, proces
     trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
     trials_nb = np.array(spike_data.at[cluster_index,'nonbeaconed_trial_number']);locations_nb = np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm'])
     trials_p = np.array(spike_data.at[cluster_index, 'probe_trial_number']);locations_p = np.array(spike_data.at[cluster_index, 'probe_position_cm'])
-
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials+1,1)
 
