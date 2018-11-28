@@ -159,7 +159,7 @@ def remove_indices_from_rate_map(rate_map, indices):
 
 
 # find firing fields and maximum firing rates for each field for a cluster
-def get_firing_field_data(spatial_firing, cluster, threshold=20):
+def get_firing_field_data(spatial_firing, cluster, threshold=35):
     firing_fields_cluster = []
     max_firing_rates_cluster = []
     rate_map = spatial_firing.firing_maps[cluster].copy()
