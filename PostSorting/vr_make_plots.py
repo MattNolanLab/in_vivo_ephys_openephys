@@ -224,8 +224,15 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
-        plot_utility.style_vr_plot(ax, x_max)
+        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
+        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb']))
+        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p']))
+        if b_x_max > nb_x_max and b_x_max > p_x_max:
+            plot_utility.style_vr_plot(ax, b_x_max)
+        elif b_x_max < nb_x_max and b_x_max > p_x_max:
+            plot_utility.style_vr_plot(ax, nb_x_max)
+        elif b_x_max > nb_x_max and b_x_max < p_x_max:
+            plot_utility.style_vr_plot(ax, p_x_max)
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
@@ -366,6 +373,40 @@ def plot_spike_rate_vs_speed(spike_data, processed_position_data, prm):
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '.png', dpi=1000)
         plt.close()
+
+
+
+
+def plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins, firing_data, slope,intercept,r_value, p_value, prefix):
+    save_path = prm.get_local_recording_folder_path() + '/Figures/ramp_linear_regression'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+    avg_spikes_on_track = plt.figure(figsize=(6,4))
+
+    ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    ax.plot(bins,firing_data, '-', color='blue')
+
+
+    ablinevalues = []
+    for i in bins:
+        ablinevalues.append(slope*i+intercept)
+
+    ax.plot(bins,ablinevalues, '-',color = 'Black', linewidth = 2)
+
+    ax.locator_params(axis = 'x', nbins=3)
+    plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
+    #plt.xlim(0,200)
+    #max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
+    #plot_utility.style_vr_plot(ax, x_max)
+    #plot_utility.style_track_plot(ax, 200)
+    plt.title('slope:'+ str(round(slope, 4)) + ', intercept:'+ str(round(intercept, 2)) + ', r_value:'+ str(round(r_value, 2)) + ', p_value:'+ str(round(p_value, 4)), fontsize=8)
+    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
+
+    plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '_' + str(prefix) + '.png', dpi=1000)
+    plt.close()
 
 
 
