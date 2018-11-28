@@ -327,6 +327,10 @@ def get_avg_speed_200ms(position_data, prm):
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
     sampling_points_per200ms = int(prm.get_sampling_rate()/5)
     position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
+    return position_data
+
+
+def drop_columns_from_dataframe(position_data):
     position_data = position_data.drop(['velocity'], axis=1)
     return position_data
 
@@ -340,5 +344,6 @@ def syncronise_position_data(recording_folder, prm):
     raw_position_data = calculate_instant_dwell_time(raw_position_data)
     raw_position_data = calculate_instant_velocity(raw_position_data, prm)
     raw_position_data = get_avg_speed_200ms(raw_position_data, prm)
+    raw_position_data = drop_columns_from_dataframe(raw_position_data)
     gc.collect()
     return raw_position_data
