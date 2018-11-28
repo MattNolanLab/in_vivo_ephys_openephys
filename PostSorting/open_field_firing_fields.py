@@ -94,11 +94,11 @@ def test_if_field_is_not_too_spread_out(field_indices, rate_map):
     return True
 
 
-def ensure_the_field_does_not_have_a_hole_in_the_middle(field_indices, rate_map):  #todo fix this function
+def ensure_the_field_does_not_have_a_hole_in_the_middle(field_indices):
     x_min, x_max, y_min, y_max = get_field_edge_values(field_indices)
     middle_x = x_max - int((x_max - x_min) / 2)
     middle_y = y_max - int((y_max - y_min) / 2)
-    if [middle_x, middle_y] not in field_indices:
+    if [middle_x, middle_y] not in field_indices.tolist():
         return False
     return True
 
@@ -145,7 +145,7 @@ def find_current_maxima_indices(rate_map, threshold=35):
     found_new = test_if_field_is_not_too_spread_out(field_indices, rate_map)
     if found_new is False:
         return None, found_new, None
-    found_new = ensure_the_field_does_not_have_a_hole_in_the_middle(field_indices, rate_map)
+    found_new = ensure_the_field_does_not_have_a_hole_in_the_middle(field_indices)
     if found_new is False:
         return None, found_new, None
     return field_indices, found_new, max_fr
