@@ -371,7 +371,7 @@ def plot_spike_rate_vs_speed(spike_data, processed_position_data, prm):
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
 
 
@@ -382,30 +382,41 @@ def plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
-    cluster_index = spike_data.cluster_id.values[cluster_index] - 1
     avg_spikes_on_track = plt.figure(figsize=(6,4))
-
     ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax.plot(bins,firing_data, '-', color='blue')
-
 
     ablinevalues = []
     for i in bins:
         ablinevalues.append(slope*i+intercept)
 
     ax.plot(bins,ablinevalues, '-',color = 'Black', linewidth = 2)
-
-    ax.locator_params(axis = 'x', nbins=3)
     plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
-    #plt.xlim(0,200)
-    #max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
-    #plot_utility.style_vr_plot(ax, x_max)
-    #plot_utility.style_track_plot(ax, 200)
-    plt.title('slope:'+ str(round(slope, 4)) + ', intercept:'+ str(round(intercept, 2)) + ', r_value:'+ str(round(r_value, 2)) + ', p_value:'+ str(round(p_value, 4)), fontsize=8)
+    plt.title('slope:'+ str(round(slope, 4)) + ', intercept:'+ str(round(intercept, 2)) + ', r_value:'+ str(round(r_value, 3)) + ', r_squared:'+ str(round((r_value**2), 3)) + ', p_value:'+ str(np.float16(p_value)), fontsize=7)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(True)
+    ax.spines['bottom'].set_visible(True)
+    plt.tick_params(
+        axis='both',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom=True,  # ticks along the bottom edge are off
+        top=False,  # ticks along the top edge are off
+        right=False,
+        left=True,
+        labelleft=True,
+        labelbottom=True)  # labels along the bottom edge are off
+
+    #ax.set_aspect('equal')
+    plt.xlim(0)
+    plt.xlim(0)
+
+    ax.axvline(0, linewidth = 2, color = 'black') # bold line on the y axis
+    ax.axhline(0, linewidth = 2, color = 'black') # bold line on the x axis
     plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-    plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '_' + str(prefix) + '.png', dpi=1000)
+    plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '_' + str(prefix) + '.png', dpi=200)
     plt.close()
 
 

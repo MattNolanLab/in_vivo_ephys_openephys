@@ -3,6 +3,7 @@ import numpy as np
 from scipy import stats
 import PostSorting.vr_make_plots
 
+
 def calculate_regression_line(x,y):
     slope,intercept,r_value, p_value, std_err = stats.linregress(x,y) #linear_regression
     return slope, intercept,r_value, p_value, std_err
@@ -21,37 +22,36 @@ def test_if_reward_zone_ramp(prm,cluster_index,spike_data):
     probe_start = firing_rate_probe[:100]
     probe_end = firing_rate_probe[100:]
 
-    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins,beaconed_start)
+    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins[30:90],beaconed_start[30:90])
     print('--------------------------------------------------------------------------------------------------')
     print('Analysing ', str(cluster_index), ' now....... : region specific analysis')
     print('beaconed firing rate in outbound, lingress: slope:', str(slope), ', intercept:', str(intercept), ', r_value:', str(r_value), ', p_value', str(p_value))
-    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,beaconed_start, slope,intercept,r_value, p_value, prefix='RZ_beaconed')
+    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins[30:90],beaconed_start[30:90], slope,intercept,r_value, p_value, prefix='RZ_beaconed')
 
-    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins,nonbeaconed_start)
+    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins[30:90],nonbeaconed_start[30:90])
     print('--------------------------------------------------------------------------------------------------')
     print('nonbeaconed firing rate in outbound, lingress: slope:', str(slope), ', intercept:', str(intercept), ', r_value:', str(r_value), ', p_value', str(p_value))
-    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,nonbeaconed_start, slope,intercept, r_value, p_value,prefix='RZ_nonbeaconed')
+    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins[30:90],nonbeaconed_start[30:90], slope,intercept, r_value, p_value,prefix='RZ_nonbeaconed')
 
-    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins,probe_start)
+    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins[30:90],probe_start[30:90])
     print('--------------------------------------------------------------------------------------------------')
     print('probe firing rate in outbound, lingress: slope:', str(slope), ', intercept:', str(intercept), ', r_value:', str(r_value), ', p_value', str(p_value))
-    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,probe_start, slope,intercept, r_value, p_value,prefix='RZ_probe')
+    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins[30:90],probe_start[30:90], slope,intercept, r_value, p_value,prefix='RZ_probe')
 
-    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins,beaconed_end)
+    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins[10:70],beaconed_end[10:70])
     print('--------------------------------------------------------------------------------------------------')
     print('beaconed firing rate in homebound, lingress:' + 'slope:', str(slope), ', intercept:', str(intercept), ', r_value:', str(r_value), ', p_value', str(p_value))
-    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,beaconed_end, slope,intercept,r_value, p_value, prefix='RZ_beaconed')
+    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins[10:70],beaconed_end[10:70], slope,intercept,r_value, p_value, prefix='RZ_beaconed')
 
-    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins,nonbeaconed_end)
+    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins[10:70],nonbeaconed_end[10:70])
     print('--------------------------------------------------------------------------------------------------')
     print('nonbeaconed firing rate in homebound, lingress:' + 'slope:', str(slope), ', intercept:', str(intercept), ', r_value:', str(r_value), ', p_value', str(p_value))
-    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,nonbeaconed_end, slope,intercept, r_value, p_value,prefix='RZ_nonbeaconed')
+    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins[10:70],nonbeaconed_end[10:70], slope,intercept, r_value, p_value,prefix='RZ_nonbeaconed')
 
-    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins,probe_end)
+    slope,intercept,r_value, p_value, std_err = calculate_regression_line(bins[10:70],probe_end[10:70])
     print('--------------------------------------------------------------------------------------------------')
     print('probe firing rate in homebound, lingress: ' + 'slope:', str(slope), ', intercept:', str(intercept), ', r_value:', str(r_value), ', p_value', str(p_value))
-    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins,probe_end, slope,intercept, r_value, p_value,prefix='RZ_probe')
-
+    PostSorting.vr_make_plots.plot_firing_rate_vs_distance_regression(prm, cluster_index,spike_data, bins[10:70],probe_end[10:70], slope,intercept, r_value, p_value,prefix='RZ_probe')
     return spike_data
 
 
