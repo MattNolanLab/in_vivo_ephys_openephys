@@ -4,7 +4,7 @@ import power_spectra
 
 
 def plot_power_spectrum_for_hd(freqs, idx, ps, prm):
-    save_path = prm.get_local_recording_folder_path() + '/Figures/hd_power_spectrum'
+    save_path = prm.get_local_recording_folder_path() + prm.get_sorter_name() + '/Figures/hd_power_spectrum'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.xlim(0, 15)
