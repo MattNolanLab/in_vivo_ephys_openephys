@@ -19,10 +19,6 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-def round_down(num, divisor):
-    return num - (num%divisor)
-
-
 def create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials):
     posrange = np.linspace(spatial_data.x_position_cm.min(), spatial_data.x_position_cm.max(), num=number_of_bins+1)
     trialrange = np.unique(array_of_trials)
@@ -88,6 +84,9 @@ def make_firing_field_maps(spike_data, raw_position_data, processed_position_dat
         firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index)
         spike_data = normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data_dwell_time, processed_position_data)
         #spike_data = average_normalised_spikes_over_trials(firing_rate_map, spike_data, processed_position_data, cluster_index,number_of_bins,array_of_trials)
+    print('-------------------------------------------------------------')
+    print('firing field maps processed')
+    print('-------------------------------------------------------------')
     return spike_data
 
 
