@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import OverallAnalysis.false_positives
@@ -36,14 +37,20 @@ def get_field_data():
     # use tmp data for now from a selected cell / field
 
 
-def shuffle_field_data(field_data):
+def shuffle_field_data(field_data, number_of_times_to_shuffle, local_path):
+    if os.path.exists(local_path + 'shuffle_analysis') is False:
+        os.makedirs(local_path + 'shuffle_analysis')
+
     for index, field in field_data.iterrows():
         print(field)
         number_of_spikes_in_field = field['number_of_spikes_in_field']
         time_spent_in_field = field['time_spent_in_field']
-        shuffle_indices = np.random.randint(0, time_spent_in_field, size=(1000, number_of_spikes_in_field))
-        print(shuffle_indices)
-        shuffled_hd = field['hd_in_field_session'][shuffle_indices[0]]
+        shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+        for shuffle in range(number_of_times_to_shuffle):
+            shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            plt.hist(shuffled_hd)
+            plt.savefig(local_path + 'shuffle_analysis/shuffled_hd_cluster' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
+            plt.close()
 
     return field_data
 
@@ -52,12 +59,12 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
     # get_field_data()
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/'
-    spatial_firing = pd.read_pickle(local_path + 'spatial_firing.pkl')
-    position_data = pd.read_pickle(local_path + 'position.pkl')
+    local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
+    spatial_firing = pd.read_pickle(local_path + '/DataFrames/spatial_firing.pkl')
+    position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-    shuffled_data = shuffle_field_data(field_df)
+    shuffled_data = shuffle_field_data(field_df, 20, local_path)
 
     #field_spike_times = spike_data.spike_times_in_fields[5][0]
     #times_in_session_fields = spike_data.times_in_session_fields[5][0]
