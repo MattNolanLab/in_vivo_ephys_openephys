@@ -46,9 +46,14 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, local_path):
         number_of_spikes_in_field = field['number_of_spikes_in_field']
         time_spent_in_field = field['time_spent_in_field']
         shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+        plt.cla()
+        plt.hist(field['hd_in_field_spikes'], color='red')
+        plt.savefig(local_path + 'shuffle_analysis/hd_cluster' + str(field['cluster_id']) + '_field_' + str(index))
+        plt.close()
+
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
-            plt.hist(shuffled_hd)
+            plt.hist(shuffled_hd, color='navy')
             plt.savefig(local_path + 'shuffle_analysis/shuffled_hd_cluster' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
             plt.close()
 
