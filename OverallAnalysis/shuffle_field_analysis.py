@@ -54,7 +54,7 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, local_path):
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
             plt.hist(shuffled_hd, color='navy')
-            plt.savefig(local_path + 'shuffle_analysis/shuffled_hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
+            plt.savefig(local_path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
             plt.close()
 
     return field_data
