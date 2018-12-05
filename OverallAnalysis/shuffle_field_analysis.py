@@ -57,19 +57,21 @@ def plot_shuffled_histogram(shuffled_hd, field, index, shuffle, path):
 
 def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd, number_of_bins, path):
     time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
-    field_histograms_normalized = field_histograms / time_spent_in_bins
-    mean = np.mean(field_histograms_normalized, axis=0)
+    number_of_spikes_in_field = field_histograms[0].sum()
+    overall_time_spent_in_field = time_spent_in_bins.sum()
+    field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+    mean = np.mean(field_histograms_hz, axis=0)
     # mean_normalized = mean / time_spent_in_bins
-    std = np.std(field_histograms_normalized, axis=0)
-    number_of_events_in_bins = np.sum(field_histograms_normalized, axis=0)
+    std = np.std(field_histograms_hz, axis=0)
+    number_of_events_in_bins = np.sum(field_histograms_hz, axis=0)
     sem = std / np.sqrt(number_of_events_in_bins)
-    x_pos = np.arange(field_histograms_normalized.shape[1])
+    x_pos = np.arange(field_histograms_hz.shape[1])
     fig, ax = plt.subplots()
-    plt.ylim(0, 1)
+    #plt.ylim(0, 1)
     ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', capsize=10)
     # ax.bar(x_pos, mean, yerr=sem, align='center', alpha=0.5, color='black', capsize=10)
-    real_data = np.histogram(field_spikes_hd, bins=20)[0] / time_spent_in_bins
-    plt.scatter(x_pos, real_data, marker='o', color='red', s=400)
+    real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+    plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=400)
     #ax.bar(x_pos, real_data, align='center', alpha=0.5, color='lime')
 
     ax.set_ylabel('Head-direction preference')
