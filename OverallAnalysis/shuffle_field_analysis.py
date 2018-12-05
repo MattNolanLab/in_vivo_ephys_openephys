@@ -42,25 +42,61 @@ def get_field_data():
     # use tmp data for now from a selected cell / field
 
 
+def plot_histogram_of_hd_in_field(field, index, path):
+    plt.cla()
+    plt.hist(field['hd_in_field_spikes'], color='red')
+    plt.savefig(path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index))
+    plt.close()
+
+
+def plot_shuffled_histogram(shuffled_hd, field, index, shuffle, path):
+    plt.hist(shuffled_hd, color='navy')
+    plt.savefig(path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
+    plt.close()
+
+
+def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd, number_of_bins, path):
+    time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
+    field_histograms_normalized = field_histograms / time_spent_in_bins
+    mean = np.mean(field_histograms_normalized, axis=0)
+    # mean_normalized = mean / time_spent_in_bins
+    std = np.std(field_histograms_normalized, axis=0)
+    number_of_events_in_bins = np.sum(field_histograms_normalized, axis=0)
+    sem = std / np.sqrt(number_of_events_in_bins)
+    x_pos = np.arange(field_histograms_normalized.shape[1])
+    fig, ax = plt.subplots()
+    plt.ylim(0, 1)
+    ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', capsize=10)
+    # ax.bar(x_pos, mean, yerr=sem, align='center', alpha=0.5, color='black', capsize=10)
+    real_data = np.histogram(field_spikes_hd, bins=20)[0] / time_spent_in_bins
+    plt.scatter(x_pos, real_data, marker='o', color='red', s=400)
+    #ax.bar(x_pos, real_data, align='center', alpha=0.5, color='lime')
+
+    ax.set_ylabel('Head-direction preference')
+    plt.show()
+
+
 def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
     if os.path.exists(path + 'shuffle_analysis') is False:
         os.makedirs(path + 'shuffle_analysis')
+    number_of_bins = 20
 
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
+        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+
+        #plot_histogram_of_hd_in_field(field, index, path)
         number_of_spikes_in_field = field['number_of_spikes_in_field']
         time_spent_in_field = field['time_spent_in_field']
         shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
-        plt.cla()
-        plt.hist(field['hd_in_field_spikes'], color='red')
-        plt.savefig(path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index))
-        plt.close()
 
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
-            plt.hist(shuffled_hd, color='navy')
-            plt.savefig(path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
-            plt.close()
+            #plot_shuffled_histogram(shuffled_hd, field, index, shuffle, path)
+            hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
+            field_histograms[shuffle, :] = hist
+        plot_bar_chart_for_field(field_histograms, field['hd_in_field_spikes'], field['hd_in_field_session'], number_of_bins, path)
+        print(field_histograms)
     print(path)
     return
 
@@ -87,14 +123,14 @@ def local_data_test():
     position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-    shuffle_field_data(field_df, 20, local_path)
+    shuffle_field_data(field_df, 1000, local_path)
 
 
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    process_recordings()
-
+    #process_recordings()
+    local_data_test()
 
 
 
