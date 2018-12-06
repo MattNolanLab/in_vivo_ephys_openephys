@@ -1,4 +1,7 @@
 import glob
+import sys
+import shutil
+import threading
 import os
 import numpy as np
 import pandas as pd
@@ -71,8 +74,9 @@ def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd
 
 
 def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
-    if os.path.exists(path + 'shuffle_analysis') is False:
-        os.makedirs(path + 'shuffle_analysis')
+    if os.path.exists(path + 'shuffle_analysis') is True:
+        shutil.rmtree(path + 'shuffle_analysis')
+    os.makedirs(path + 'shuffle_analysis')
     number_of_bins = 20
 
     for index, field in field_data.iterrows():
@@ -121,13 +125,12 @@ def local_data_test():
 
 
 def main():
+    sys.setrecursionlimit(100000)
+    threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
     process_recordings()
     # local_data_test()
-
-
-
 
 
 if __name__ == '__main__':
