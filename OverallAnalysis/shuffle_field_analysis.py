@@ -39,47 +39,37 @@ def get_field_data():
 
     good_cluster = df_all_mice.false_positive == False
 
-    # read data in in a way that it is converter to field df
-    # use tmp data for now from a selected cell / field
 
-
-def plot_histogram_of_hd_in_field(field, index, path):
-    plt.cla()
-    plt.hist(field['hd_in_field_spikes'], color='red')
-    plt.savefig(path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index))
-    plt.close()
-
-
-def plot_shuffled_histogram(shuffled_hd, field, index, shuffle, path):
-    plt.hist(shuffled_hd, color='navy')
-    plt.savefig(path + 'shuffle_analysis/hd_cluster_' + str(field['cluster_id']) + '_field_' + str(index) + '_shuffle' + str(shuffle))
-    plt.close()
-
-
-def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd, number_of_bins, path, field, index):
-    time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
-    number_of_spikes_in_field = field_histograms[0].sum()
-    overall_time_spent_in_field = time_spent_in_bins.sum()
-    field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
-    mean = np.mean(field_histograms_hz, axis=0)
-    std = np.std(field_histograms_hz, axis=0)
-    number_of_events_in_bins = np.sum(field_histograms_hz, axis=0)
-    sem = std / np.sqrt(number_of_events_in_bins)
-    x_pos = np.arange(field_histograms_hz.shape[1])
-    fig, ax = plt.subplots()
+def format_bar_chart(ax):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Head direction [degrees]')
+    ax.set_ylabel('Head-direction preference')
+    return ax
+
+
+
+def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd, number_of_bins, path, field, index):
+    time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
+    field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+    mean = np.mean(field_histograms_hz, axis=0)
+    std = np.std(field_histograms_hz, axis=0)
+    number_of_events_in_bins = np.sum(field_histograms_hz, axis=0)
+    sem = std / np.sqrt(number_of_events_in_bins) # standard error mean
+    x_pos = np.arange(field_histograms_hz.shape[1])
+
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax)
     ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
     x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
     plt.xticks(x_pos, x_labels)
-    plt.xlabel('Head direction [degrees]')
     #ax.bar(x_pos, mean, yerr=sem, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
     real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
     plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
 
-    ax.set_ylabel('Head-direction preference')
+
     plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
 
 
@@ -91,15 +81,12 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
         field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
-
-        #plot_histogram_of_hd_in_field(field, index, path)
         number_of_spikes_in_field = field['number_of_spikes_in_field']
         time_spent_in_field = field['time_spent_in_field']
         shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
 
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
-            #plot_shuffled_histogram(shuffled_hd, field, index, shuffle, path)
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
         plot_bar_chart_for_field(field_histograms, field['hd_in_field_spikes'], field['hd_in_field_session'], number_of_bins, path, field, index)
