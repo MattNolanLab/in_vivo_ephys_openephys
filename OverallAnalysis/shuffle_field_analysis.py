@@ -104,11 +104,14 @@ def process_recordings():
             spatial_firing = pd.read_pickle(spike_data_frame_path)
             position_data = pd.read_pickle(position_data_frame_path)
             field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-            shuffle_field_data(field_df, 20, recording_folder + '/MountainSort/')
+            shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/')
 
 
 def local_data_test():
     local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
+    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
+    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M13_2018-05-01_11-23-01_of/MountainSort/'
+    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M14_2018-05-16_11-29-05_of/MountainSort/'
 
     spatial_firing = pd.read_pickle(local_path + '/DataFrames/spatial_firing.pkl')
     position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
@@ -120,8 +123,8 @@ def local_data_test():
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    #process_recordings()
-    local_data_test()
+    process_recordings()
+    # local_data_test()
 
 
 
