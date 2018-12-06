@@ -50,7 +50,6 @@ def format_bar_chart(ax):
     return ax
 
 
-
 def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd, number_of_bins, path, field, index):
     time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
     field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
@@ -68,8 +67,6 @@ def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd
     #ax.bar(x_pos, mean, yerr=sem, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
     real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
     plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-
-
     plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
 
 
