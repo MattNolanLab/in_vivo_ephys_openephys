@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import OverallAnalysis.false_positives
 import data_frame_utility
+import plot_utility
 
 import matplotlib.pylab as plt
 
@@ -61,21 +62,25 @@ def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd
     overall_time_spent_in_field = time_spent_in_bins.sum()
     field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
     mean = np.mean(field_histograms_hz, axis=0)
-    # mean_normalized = mean / time_spent_in_bins
     std = np.std(field_histograms_hz, axis=0)
     number_of_events_in_bins = np.sum(field_histograms_hz, axis=0)
     sem = std / np.sqrt(number_of_events_in_bins)
     x_pos = np.arange(field_histograms_hz.shape[1])
     fig, ax = plt.subplots()
-    fig.tight_layout()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
     ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
-    # ax.bar(x_pos, mean, yerr=sem, align='center', alpha=0.5, color='black', capsize=10)
+    x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+    plt.xticks(x_pos, x_labels)
+    plt.xlabel('Head direction [degrees]')
+    #ax.bar(x_pos, mean, yerr=sem, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
     real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
     plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-    #ax.bar(x_pos, real_data, align='center', alpha=0.5, color='lime')
 
     ax.set_ylabel('Head-direction preference')
-    plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index))
+    plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
 
 
 def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
