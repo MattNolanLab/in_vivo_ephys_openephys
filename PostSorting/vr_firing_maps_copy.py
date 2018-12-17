@@ -7,7 +7,6 @@ import time
 
 def get_dwell(spatial_data, prm):
     min_dwell_distance_cm = 5  # from point to determine min dwell time
-    #min_dwell_distance_pixels = min_dwell_distance_cm / 100 * prm.get_pixel_ratio()
 
     dt_position_ms = spatial_data.time_seconds.diff().mean()*1000  # average sampling interval in position data (ms)
     min_dwell_time_ms = 3 * dt_position_ms  # this is about 100 ms
@@ -17,7 +16,6 @@ def get_dwell(spatial_data, prm):
 
 def get_bin_size(prm):
     bin_size_cm = 2.5
-    #bin_size_pixels = bin_size_cm / 100 * prm.get_pixel_ratio()
     return bin_size_cm
 
 
