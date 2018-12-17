@@ -1,6 +1,3 @@
-from joblib import Parallel, delayed
-import multiprocessing
-import matplotlib.pylab as plt
 import pandas as pd
 from numba import jit
 import numpy as np
@@ -10,7 +7,6 @@ import time
 
 def get_dwell(spatial_data, prm):
     min_dwell_distance_cm = 5  # from point to determine min dwell time
-    #min_dwell_distance_pixels = min_dwell_distance_cm / 100 * prm.get_pixel_ratio()
 
     dt_position_ms = spatial_data.time_seconds.diff().mean()*1000  # average sampling interval in position data (ms)
     min_dwell_time_ms = 3 * dt_position_ms  # this is about 100 ms
@@ -20,7 +16,6 @@ def get_dwell(spatial_data, prm):
 
 def get_bin_size(prm):
     bin_size_cm = 2.5
-    #bin_size_pixels = bin_size_cm / 100 * prm.get_pixel_ratio()
     return bin_size_cm
 
 
@@ -39,7 +34,7 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     print(cluster)
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
@@ -69,10 +64,10 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     smooth = 5 
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
-    num_cores = multiprocessing.cpu_count()
     clusters = range(len(firing_data_spatial))
     time_start = time.time()
-    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    for cluster in clusters:
+        firing_rate_maps = calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
     time_end = time.time()
     print('Making the rate maps took:')
     time_diff = time_end - time_start
