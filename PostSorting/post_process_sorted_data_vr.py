@@ -79,9 +79,11 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Data_test')
 
 
-def post_process_recording(recording_to_process, session_type):
+def post_process_recording(recording_to_process, session_type, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
+    prm.set_sorter_name('/' + sorter_name)
+    prm.set_output_path(recording_to_process + prm.get_sorter_name())
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
     raw_position_data, processed_position_data = process_position_data(raw_position_data, prm)
 
