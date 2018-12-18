@@ -115,9 +115,7 @@ def main():
 
     params = PostSorting.parameters.Parameters()
 
-    #recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D28_2018-09-15_11-49-09'
     recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55' # test recording
-    #recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D16_2018-10-11_13-55-54'
     print('Processing ' + str(recording_folder))
 
     post_process_recording(recording_folder, 'vr')
