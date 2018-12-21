@@ -78,7 +78,7 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
         shutil.rmtree(path + 'shuffle_analysis')
     os.makedirs(path + 'shuffle_analysis')
     number_of_bins = 20
-
+    field_histograms_all = []
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
         field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
@@ -90,10 +90,11 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
+        field_histograms_all.append(field_histograms)
         plot_bar_chart_for_field(field_histograms, field['hd_in_field_spikes'], field['hd_in_field_session'], number_of_bins, path, field, index)
         print(field_histograms)
     print(path)
-    return field_histograms
+    return field_histograms_all
 
 
 def process_recordings():
