@@ -90,9 +90,9 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
-        field_histograms_all.append(field_histograms)
         plot_bar_chart_for_field(field_histograms, field['hd_in_field_spikes'], field['hd_in_field_session'], number_of_bins, path, field, index)
         print(field_histograms)
+        field_histograms_all.append(field_histograms)
     print(path)
     return field_histograms_all
 
