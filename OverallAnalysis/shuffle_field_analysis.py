@@ -93,7 +93,7 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
         plot_bar_chart_for_field(field_histograms, field['hd_in_field_spikes'], field['hd_in_field_session'], number_of_bins, path, field, index)
         print(field_histograms)
     print(path)
-    return
+    return field_histograms
 
 
 def process_recordings():
@@ -108,7 +108,7 @@ def process_recordings():
             spatial_firing = pd.read_pickle(spike_data_frame_path)
             position_data = pd.read_pickle(position_data_frame_path)
             field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-            shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/')
+            shuffled_bar_charts = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/')
 
 
 def local_data_test():
@@ -121,7 +121,7 @@ def local_data_test():
     position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-    shuffle_field_data(field_df, 1000, local_path)
+    shuffled_bar_charts = shuffle_field_data(field_df, 1000, local_path)
 
 
 def main():
@@ -129,8 +129,8 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    process_recordings()
-    # local_data_test()
+    #process_recordings()
+    local_data_test()
 
 
 if __name__ == '__main__':
