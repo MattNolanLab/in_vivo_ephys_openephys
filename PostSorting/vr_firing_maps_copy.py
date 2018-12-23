@@ -40,7 +40,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
     cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.x_position_cm[cluster_index]})
     spike_positions_x = cluster_firings.x_position_cm.values
-    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    firing_rate_map = np.zeros((number_of_bins_x))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
             px = x * bin_size_pixels + (bin_size_pixels / 2)
@@ -51,9 +51,12 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
-                firing_rate_map[x, y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+                firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
             else:
-                firing_rate_map[x, y] = 0
+                firing_rate_map[x] = 0
+
+    firing_data_spatial.at[cluster_index, 'firing_maps'] = firing_rate_map
+
     return firing_rate_map
 
 
@@ -72,7 +75,6 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     print('Making the rate maps took:')
     time_diff = time_end - time_start
     print(time_diff)
-    firing_data_spatial['firing_maps'] = firing_rate_maps
     return firing_data_spatial
 
 
