@@ -42,7 +42,7 @@ def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_posit
     PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, prm)
     gc.collect()
     PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
-    PostSorting.make_plots.plot_waveforms(spike_data, prm)
+    #PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     gc.collect()
@@ -62,9 +62,10 @@ def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_posit
     #PostSorting.vr_make_plots.plot_spike_rate_vs_speed(spike_data, processed_position_data, prm)
 
 
-def save_data_frames(spatial_firing, spatial_data, bad_clusters):
+def save_data_frames(spatial_firing, raw_position_data, processed_position_data, bad_clusters):
     spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
-    spatial_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/position.pkl')
+    raw_position_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/raw_position_data.pkl')
+    processed_position_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/processed_position_data.pkl')
     bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
 
 
@@ -92,13 +93,14 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
-        save_data_frames(spike_data, processed_position_data, bad_clusters)
+        save_data_frames(spike_data, raw_position_data,processed_position_data, bad_clusters)
         return
 
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
+    #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data, spike_data_movement, spike_data_stationary = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     #new way of making firing rate maps
-    #spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
+    spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
+
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data.binned_time_ms)
     spike_data_movement = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, processed_position_data.binned_time_moving_ms)
     spike_data_stationary = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_stationary, raw_position_data, processed_position_data, processed_position_data.binned_time_stationary_ms)
