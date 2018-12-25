@@ -22,7 +22,6 @@ def get_bin_size(prm):
 def get_number_of_bins(spatial_data, prm):
     bin_size_cm = get_bin_size(prm)
     length_of_arena_x = spatial_data.x_position_cm[~np.isnan(spatial_data.x_position_cm)].max()
-    length_of_arena_y = 1
     number_of_bins_x = math.ceil(length_of_arena_x / bin_size_cm)
     number_of_bins_y = 1
     return number_of_bins_x, number_of_bins_y
@@ -57,7 +56,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
 
     firing_data_spatial.at[cluster_index, 'firing_maps'] = firing_rate_map
 
-    return firing_rate_map
+    return firing_data_spatial
 
 
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
