@@ -53,6 +53,11 @@ def format_bar_chart(ax):
     return ax
 
 
+def analyze_shuffled_data(field_data, field_histograms):
+    pass
+
+
+
 def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd, number_of_bins, path, field, index):
     time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
     field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
@@ -73,6 +78,13 @@ def plot_bar_chart_for_field(field_histograms, field_spikes_hd, field_session_hd
     plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
 
 
+def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
+    number_of_spikes_in_field = field['number_of_spikes_in_field']
+    time_spent_in_field = field['time_spent_in_field']
+    shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    return shuffle_indices
+
+
 def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
     if os.path.exists(path + 'shuffle_analysis') is True:
         shutil.rmtree(path + 'shuffle_analysis')
@@ -82,18 +94,15 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
         field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
-        number_of_spikes_in_field = field['number_of_spikes_in_field']
-        time_spent_in_field = field['time_spent_in_field']
-        shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
-
+        shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle)
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
         plot_bar_chart_for_field(field_histograms, field['hd_in_field_spikes'], field['hd_in_field_session'], number_of_bins, path, field, index)
-        print(field_histograms)
         field_histograms_all.append(field_histograms)
     print(path)
+    field_data['shuffled_data'] = field_histograms_all
     return field_histograms_all
 
 
@@ -113,8 +122,8 @@ def process_recordings():
 
 
 def local_data_test():
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
-    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
+    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
+    local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M13_2018-05-01_11-23-01_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M14_2018-05-16_11-29-05_of/MountainSort/'
 
@@ -123,6 +132,8 @@ def local_data_test():
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
     shuffled_bar_charts = shuffle_field_data(field_df, 1000, local_path)
+    print('add to df here')
+
 
 
 def main():
