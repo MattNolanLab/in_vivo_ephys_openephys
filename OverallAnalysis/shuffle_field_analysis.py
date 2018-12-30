@@ -53,8 +53,50 @@ def format_bar_chart(ax):
     return ax
 
 
-def analyze_shuffled_data(field_data, field_histograms):
+def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
+    fields_means = []
+    fields_stdevs = []
+    real_data_hz_all_fields = []
+    for index, field in field_data.iterrows():
+        field_histograms = field['shuffled_data']
+        field_spikes_hd = field['hd_in_field_spikes']  # real hd when the cell fired
+        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
+        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
+        field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        mean_shuffled = np.mean(field_histograms_hz, axis=0)
+        fields_means.append(mean_shuffled)
+        std_shuffled = np.std(field_histograms_hz, axis=0)
+        fields_stdevs.append(std_shuffled)
+
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        real_data_hz_all_fields.append(real_data_hz)
+    field_data['shuffled_means'] = fields_means
+    field_data['shuffled_std'] = fields_stdevs
+    field_data['hd_histogram_real_data'] = real_data_hz_all_fields
+    return field_data
+
+
+def test_if_real_hd_differs_from_shuffled(field_data):
+    real_and_shuffled_data_differ_bin = []
+    number_of_diff_bins = []
+    for index, field in field_data.iterrows():
+        diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
+        number_of_diffs = diff_field.sum()
+        real_and_shuffled_data_differ_bin.append(diff_field)
+        number_of_diff_bins.append(number_of_diffs)
+    field_data['real_and_shuffled_data_differ_bin'] = real_and_shuffled_data_differ_bin
+    field_data['number_of_different_bins'] = number_of_diff_bins
+    return field_data
+
+
+def analyze_shuffled_data(field_data, number_of_bins=20):
+    field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
+    field_data = test_if_real_hd_differs_from_shuffled(field_data)
+
     pass
+
+
+    # calculate mean, sd and whether the bin is rejected and put this in field_data df
 
 
 
@@ -85,11 +127,10 @@ def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
     return shuffle_indices
 
 
-def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
+def shuffle_field_data(field_data, number_of_times_to_shuffle, path, number_of_bins):
     if os.path.exists(path + 'shuffle_analysis') is True:
         shutil.rmtree(path + 'shuffle_analysis')
     os.makedirs(path + 'shuffle_analysis')
-    number_of_bins = 20
     field_histograms_all = []
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
@@ -103,7 +144,7 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path):
         field_histograms_all.append(field_histograms)
     print(path)
     field_data['shuffled_data'] = field_histograms_all
-    return field_histograms_all
+    return field_data
 
 
 def process_recordings():
@@ -118,7 +159,7 @@ def process_recordings():
             spatial_firing = pd.read_pickle(spike_data_frame_path)
             position_data = pd.read_pickle(position_data_frame_path)
             field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-            shuffled_bar_charts = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/')
+            field_df = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/', number_of_bins=20)
 
 
 def local_data_test():
@@ -131,8 +172,9 @@ def local_data_test():
     position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-    shuffled_bar_charts = shuffle_field_data(field_df, 1000, local_path)
-    print('add to df here')
+    field_df = shuffle_field_data(field_df, 1000, local_path, number_of_bins=20)
+    analyze_shuffled_data(field_df, number_of_bins=20)
+
 
 
 
