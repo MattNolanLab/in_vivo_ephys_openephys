@@ -173,7 +173,7 @@ def local_data_test():
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
     field_df = shuffle_field_data(field_df, 1000, local_path, number_of_bins=20)
     field_df = analyze_shuffled_data(field_df, local_path, number_of_bins=20)
-
+    # save new field df so that another script can read them all and combine to look at the distribution of rejects
 
 def main():
     sys.setrecursionlimit(100000)
