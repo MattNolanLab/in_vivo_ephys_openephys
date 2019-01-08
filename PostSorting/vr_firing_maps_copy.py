@@ -1,3 +1,5 @@
+from joblib import Parallel, delayed
+import multiprocessing
 import pandas as pd
 from numba import jit
 import numpy as np
@@ -67,9 +69,9 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
     clusters = range(len(firing_data_spatial))
+    num_cores = multiprocessing.cpu_count()
     time_start = time.time()
-    for cluster in clusters:
-        firing_rate_maps = calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
+    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
     time_end = time.time()
     print('Making the rate maps took:')
     time_diff = time_end - time_start
@@ -114,4 +116,4 @@ def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
     position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
     #firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
-    return position_heat_map, firing_data_spatial
+    return firing_data_spatial
