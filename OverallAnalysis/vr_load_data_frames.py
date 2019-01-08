@@ -15,8 +15,8 @@ def make_plots(recording_folder,spike_data, processed_position_data):
     #PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     #PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     #PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_all')
-    #PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
-    #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+    OverallAnalysis.vr_make_individual_plots.plot_firing_rate_maps(recording_folder, spike_data, prefix='_movement')
+    OverallAnalysis.vr_make_individual_plots.plot_combined_spike_raster_and_rate(recording_folder, spike_data, processed_position_data, prefix='_movement')
     #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
     #PostSorting.vr_make_plots.plot_spike_rate_vs_speed(spike_data, processed_position_data, prm)
     return
