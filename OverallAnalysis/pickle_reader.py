@@ -1,7 +1,6 @@
-
+#!/usr/bin/env python3.6
 
 import pandas as pd
-
 
 def read_pickle_file(file):
     pickle_data = pd.read_pickle(file)
