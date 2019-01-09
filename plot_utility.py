@@ -104,8 +104,8 @@ def style_vr_plot(ax, x_max):
 
     #ax.set_aspect('equal')
 
-    ax.axvline(0, linewidth = 2, color = 'black') # bold line on the y axis
-    ax.axhline(0, linewidth = 2, color = 'black') # bold line on the x axis
+    ax.axvline(0, linewidth = 2.5, color = 'black') # bold line on the y axis
+    ax.axhline(0, linewidth = 2.5, color = 'black') # bold line on the x axis
     plt.ylim(0, x_max)
 
     return ax

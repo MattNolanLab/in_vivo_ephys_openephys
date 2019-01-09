@@ -30,5 +30,6 @@ lmmodel = lm(location_bins ~ cluster_firing_rate_beaconed, data = pickle_data)
 summary(lmmodel)
 
 #plot some basic stuff
-qplot(location_bins, cluster_firing_rate_beaconed)
+#qplot(location_bins, cluster_firing_rate_beaconed)
+qplot(location_bins, cluster_firing_rate_beaconed) + geom_smooth(method='lm')
 

@@ -107,7 +107,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data)
     spike_data = PostSorting.vr_ramp_cell_test.analyse_ramp_firing(prm,spike_data)
     gc.collect()
-    save_data_frames(spike_data, processed_position_data, bad_clusters)
+    save_data_frames(spike_data, raw_position_data, processed_position_data, bad_clusters)
 
 
 #  this is here for testing
