@@ -3,6 +3,8 @@ import glob
 import pandas as pd
 import PostSorting.vr_ramp_cell_test
 import OverallAnalysis.vr_make_individual_plots
+import feather
+
 
 prm = PostSorting.parameters.Parameters()
 
@@ -58,6 +60,17 @@ def process_a_dir(recording_folder):
     return spike_data, processed_position_data
 
 
+def save_feathered_dataframe(spike_data, processed_position_data):
+    path = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D31_2018-11-01_12-28-25/Dataframes/spike_data.feather'
+    spike_data['random_snippets'] = spike_data['random_snippets'].astype(str)
+    spike_data['x_position_cm'] = spike_data['x_position_cm'].astype(str)
+    spike_data.drop(['speed_per200ms'], axis='columns', inplace=True, errors='ignore')
+    df = pd.concat([spike_data['session_id'], spike_data['cluster_id'], spike_data['tetrode'], spike_data['primary_channel'], spike_data['firing_times'], spike_data['avg_spike_per_bin_b']], axis=1, keys=['df1', 'df2'])
+
+    feather.write_dataframe(df, path)
+    #spike_data = feather.read_dataframe(path)
+    return
+
 
 #  this is here for testing
 def main():
@@ -68,6 +81,7 @@ def main():
     print('Processing ' + str(recording_folder))
 
     spike_data, processed_position_data = process_a_dir(recording_folder)
+    save_feathered_dataframe(spike_data, processed_position_data)
     #spike_data = PostSorting.vr_ramp_cell_test.analyse_ramp_firing(prm,spike_data)
     make_plots(recording_folder,spike_data, processed_position_data)
 
