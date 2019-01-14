@@ -9,7 +9,7 @@ import pandas as pd
 import OverallAnalysis.overall_params
 import OverallAnalysis.population_plots
 
-path_to_data = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/'
+path_to_data = 'C:/Users/s1466507/Documents/Ephys/recordings/'
 save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
 false_positives_path = path_to_data + 'false_positives_all.txt'
 
@@ -21,7 +21,7 @@ def initialize_parameters():
     params.set_noise_overlap(0.05)
     params.set_snr(1)
 
-    params.set_path_to_data('C:/Users/s1466507/Documents/Ephys/test_overall_analysis/')
+    params.set_path_to_data('C:/Users/s1466507/Documents/Ephys/recordings/')
     params.set_save_output_path('C:/Users/s1466507/Documents/Ephys/overall_figures/')
     params.set_false_positives_path_all(path_to_data + 'false_positives_all.txt')
     params.set_false_positives_path_separate(path_to_data + 'false_positives_separate.txt')
