@@ -27,7 +27,7 @@ def add_combined_id_to_df(df_all_mice):
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df.pkl'
+    local_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pkl'
     path_to_data = 'C:/Users/s1466507/Documents/Ephys/recordings/'
     save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
     false_positives_path = path_to_data + 'false_positives_all.txt'
@@ -45,6 +45,7 @@ def main():
     print(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster].mean())
 
     watson_result_exists = df_all_mice.watson_test_hd.notnull()
+    is_hd_cell = df_all_mice.hd_score >= 0.5
     print('Number of cells included in two sample watson test for head-direction from the whole session: ' + str(watson_result_exists.sum()))
     print('excitatory: ' + str(len(df_all_mice[excitatory_neurons & watson_result_exists])))
     print('inhibitory: ' + str(len(df_all_mice[inhibitory_neurons & watson_result_exists])))
@@ -52,6 +53,9 @@ def main():
     print('Number of cells with significantly differen HD distributions: ' + str(watson_significant.sum()))
     print('Number of excitatory neurons with significantly different HD: ' + str(len(df_all_mice[watson_significant & excitatory_neurons])))
     print('Number of inhibitory neurons with significantly different HD: ' + str(len(df_all_mice[watson_significant & inhibitory_neurons])))
+
+    print('Number of excitatory neurons with significantly different HD that are hd cells: ' + str(len(df_all_mice[watson_significant & excitatory_neurons & is_hd_cell])))
+    print('Number of inhibitory neurons with significantly different HD that are hd cells: ' + str(len(df_all_mice[watson_significant & inhibitory_neurons & is_hd_cell])))
 
     # find those where the hd polar plot significantly differs in the first vs second half
     # run load_df again and add the result of the 2 sample watson test to the big df and then filter for that here
