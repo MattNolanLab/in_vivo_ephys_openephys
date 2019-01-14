@@ -28,7 +28,7 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
     local_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df.pkl'
-    path_to_data = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/'
+    path_to_data = 'C:/Users/s1466507/Documents/Ephys/recordings/'
     save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
     false_positives_path = path_to_data + 'false_positives_all.txt'
     df_all_mice = load_data_frame(local_path)
