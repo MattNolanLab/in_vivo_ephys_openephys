@@ -42,7 +42,7 @@ def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_posit
     PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, prm)
     gc.collect()
     PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
-    #PostSorting.make_plots.plot_waveforms(spike_data, prm)
+    PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     gc.collect()
@@ -96,7 +96,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
         save_data_frames(spike_data, raw_position_data,processed_position_data, bad_clusters)
         return
 
-    #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data, spike_data_movement, spike_data_stationary = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     #new way of making firing rate maps
     spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
@@ -105,7 +105,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data_movement = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, processed_position_data.binned_time_moving_ms)
     spike_data_stationary = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_stationary, raw_position_data, processed_position_data, processed_position_data.binned_time_stationary_ms)
     make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data)
-    spike_data = PostSorting.vr_ramp_cell_test.analyse_ramp_firing(prm,spike_data)
+    #spike_data = PostSorting.vr_ramp_cell_test.analyse_ramp_firing(prm,spike_data)
     gc.collect()
     save_data_frames(spike_data, raw_position_data, processed_position_data, bad_clusters)
 
