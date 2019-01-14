@@ -60,12 +60,5 @@ def main():
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory.png')
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
     main()
