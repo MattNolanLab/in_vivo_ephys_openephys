@@ -147,8 +147,8 @@ def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path):
     ax.plot(theta[:-1], hist_2, color='navy', linewidth=2)
     # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
     plt.tight_layout()
-    plt.savefig(save_path + '/' + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
-    plt.savefig(save_path + '/' + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
+    plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+    plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
     plt.close()
 
 
