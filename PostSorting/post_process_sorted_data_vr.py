@@ -62,11 +62,11 @@ def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_posit
     #PostSorting.vr_make_plots.plot_spike_rate_vs_speed(spike_data, processed_position_data, prm)
 
 
-def save_data_frames(spatial_firing, raw_position_data, processed_position_data, bad_clusters):
-    spatial_firing.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
-    raw_position_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/raw_position_data.pkl')
-    processed_position_data.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/processed_position_data.pkl')
-    bad_clusters.to_pickle(prm.get_local_recording_folder_path() + '/DataFrames/noisy_clusters.pkl')
+def save_data_frames(prm, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
+    raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+    processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
+    bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 
 
 def create_folders_for_output(recording_to_process):
@@ -93,7 +93,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
-        save_data_frames(spike_data, raw_position_data,processed_position_data, bad_clusters)
+        save_data_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
         return
 
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
@@ -107,7 +107,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data)
     #spike_data = PostSorting.vr_ramp_cell_test.analyse_ramp_firing(prm,spike_data)
     gc.collect()
-    save_data_frames(spike_data, raw_position_data, processed_position_data, bad_clusters)
+    save_data_frames(prm, spike_data, raw_position_data, processed_position_data, bad_clusters)
 
 
 #  this is here for testing
