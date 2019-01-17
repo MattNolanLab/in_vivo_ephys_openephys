@@ -149,6 +149,7 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path, number_of_b
     return field_data
 
 
+# perform shuffle analysis for all mice and save data frames on server. this will later be loaded and combined
 def process_recordings():
     if os.path.exists(server_path):
         print('I see the server.')
