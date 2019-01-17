@@ -112,6 +112,7 @@ def plot_bar_chart_for_fields(field_data, path):
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
         plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
+        plt.close()
 
 
 def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
