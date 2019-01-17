@@ -64,18 +64,17 @@ def load_data_frame_field_data_frame():
             'real_and_shuffled_data_differ_bin', 'number_of_different_bins'
             '''
             if 'shuffled_data' in field_data:
-                field_data = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
                                          'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
                                          'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
                                          'times_session', 'time_spent_in_field', 'position_x_session',
                                          'position_y_session', 'hd_in_field_session', 'hd_hist_session',
-                                         'shuffled_data', 'shuffled_means', 'shuffled_std',
+                                         'shuffled_means', 'shuffled_std',
                                          'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz',
                                          'real_and_shuffled_data_differ_bin', 'number_of_different_bins']].copy()
 
-                spatial_firing_data = field_data_combined.append(field_data)
-
-                print(spatial_firing_data.head())
+                field_data_combined = field_data_combined.append(field_data_to_combine)
+                print(field_data_combined.head())
     field_data_combined.to_pickle(local_output_path)
 
 
