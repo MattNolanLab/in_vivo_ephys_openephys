@@ -27,7 +27,6 @@ def initialize_parameters(recording_to_process):
     prm.set_second_trial_channel('100_ADC5.continuous')
     prm.set_file_path(recording_to_process)
     prm.set_local_recording_folder_path(recording_to_process)
-    prm.set_output_path(recording_to_process)
 
 
 def process_position_data(recording_to_process, prm):
@@ -63,6 +62,8 @@ def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_posit
 
 
 def save_data_frames(prm, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
     raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
     processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
