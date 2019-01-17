@@ -127,6 +127,7 @@ def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
     return shuffle_indices
 
 
+# add shuffled data to data frame as a new column for each field
 def shuffle_field_data(field_data, number_of_times_to_shuffle, path, number_of_bins):
     if os.path.exists(path + 'shuffle_analysis') is True:
         shutil.rmtree(path + 'shuffle_analysis')
