@@ -10,7 +10,7 @@ local_output_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pk
 test_image_path = '/Users/s1466507/Desktop/mouse.jpg'
 
 
-def load_data_frame_spatial_firing():
+def load_data_frame_spatial_firing(output_path):
     spatial_firing_data = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
@@ -85,8 +85,8 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    # load_data_frame_spatial_firing()   # for two-sample watson analysis
-    load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')
+    # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pkl')   # for two-sample watson analysis
+    load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
 
 if __name__ == '__main__':
