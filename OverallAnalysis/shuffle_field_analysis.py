@@ -160,9 +160,11 @@ def process_recordings():
                 spatial_firing = pd.read_pickle(spike_data_frame_path)
                 position_data = pd.read_pickle(position_data_frame_path)
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-                field_df = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/', number_of_bins=20)
-                field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
-                field_df.to_pickle(recording_folder + '/MountainSort/shuffle_analysis/shuffled_fields_' + str(recording_folder) + '.pkl')
+                if not field_df.empty:
+                    field_df = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/', number_of_bins=20)
+                    field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
+                    field_df.to_pickle(recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl')
+                    print('I finished analyzing ' + recording_folder)
 
 
 def local_data_test():
