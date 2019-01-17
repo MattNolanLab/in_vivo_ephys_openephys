@@ -82,6 +82,7 @@ def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
     return field_data
 
 
+# test whether real and shuffled data differ and add results (true/false for each bin) and number of diffs to data frame
 def test_if_real_hd_differs_from_shuffled(field_data):
     real_and_shuffled_data_differ_bin = []
     number_of_diff_bins = []
@@ -148,18 +149,20 @@ def shuffle_field_data(field_data, number_of_times_to_shuffle, path, number_of_b
 
 
 def process_recordings():
-    if os.path.exists(server_test_file):
+    if os.path.exists(server_path):
         print('I see the server.')
     for recording_folder in glob.glob(server_path + '*'):
-        os.path.isdir(recording_folder)
-        spike_data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
-        position_data_frame_path = recording_folder + '/MountainSort/DataFrames/position.pkl'
-        if os.path.exists(spike_data_frame_path):
-            print('I found a firing data frame.')
-            spatial_firing = pd.read_pickle(spike_data_frame_path)
-            position_data = pd.read_pickle(position_data_frame_path)
-            field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-            field_df = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/', number_of_bins=20)
+        if os.path.isdir(recording_folder):
+            spike_data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
+            position_data_frame_path = recording_folder + '/MountainSort/DataFrames/position.pkl'
+            if os.path.exists(spike_data_frame_path):
+                print('I found a firing data frame.')
+                spatial_firing = pd.read_pickle(spike_data_frame_path)
+                position_data = pd.read_pickle(position_data_frame_path)
+                field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
+                field_df = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/', number_of_bins=20)
+                field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
+                field_df.to_pickle(recording_folder + '/MountainSort/shuffle_analysis/shuffled_fields_' + str(recording_folder) + '.pkl')
 
 
 def local_data_test():
@@ -174,6 +177,7 @@ def local_data_test():
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
     field_df = shuffle_field_data(field_df, 1000, local_path, number_of_bins=20)
     field_df = analyze_shuffled_data(field_df, local_path, number_of_bins=20)
+    field_df.to_pickle(local_path + 'shuffle_analysis/shuffled_fields.pkl')
     # save new field df so that another script can read them all and combine to look at the distribution of rejects
 
 
@@ -182,8 +186,8 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    #process_recordings()
-    local_data_test()
+    process_recordings()
+    # local_data_test()
 
 
 if __name__ == '__main__':
