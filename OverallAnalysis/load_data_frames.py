@@ -45,7 +45,7 @@ def load_data_frame_spatial_firing():
 
 
 # for shuffle analysis
-def load_data_frame_field_data_frame():
+def load_data_frame_field_data_frame(output_path):
     field_data_combined = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
@@ -75,7 +75,7 @@ def load_data_frame_field_data_frame():
 
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
-    field_data_combined.to_pickle(local_output_path)
+    field_data_combined.to_pickle(output_path)
 
 
 def main():
@@ -86,7 +86,7 @@ def main():
         print('I see the server.')
 
     # load_data_frame_spatial_firing()   # for two-sample watson analysis
-    load_data_frame_field_data_frame()
+    load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')
 
 
 if __name__ == '__main__':
