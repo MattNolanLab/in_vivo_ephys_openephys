@@ -4,6 +4,8 @@ import matplotlib.pylab as plt
 
 # this data frame contains results calculated by shuffle_field_analysis.py combined by load_data_frames.py
 local_path_to_shuffled_field_data = '/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl'
+
+# this is a list of fields included in the analysis with session_ids cluster ids and field ids
 list_of_accepted_fields_path = '/Users/s1466507/Documents/Ephys/recordings/included_fields_detector2.csv'
 
 
