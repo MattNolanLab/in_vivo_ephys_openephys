@@ -190,8 +190,8 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    process_recordings()
-    # local_data_test()
+    # process_recordings()
+    local_data_test()
 
 
 if __name__ == '__main__':
