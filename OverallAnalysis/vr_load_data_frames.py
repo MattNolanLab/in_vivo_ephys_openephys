@@ -18,7 +18,7 @@ def make_plots(recording_folder,spike_data, processed_position_data):
     #PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     #PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_all')
     OverallAnalysis.vr_make_individual_plots.plot_firing_rate_maps(recording_folder, spike_data, prefix='_movement')
-    OverallAnalysis.vr_make_individual_plots.plot_firing_rate_gc_maps(recording_folder, spike_data, prefix='_movement')
+    #OverallAnalysis.vr_make_individual_plots.plot_firing_rate_gc_maps(recording_folder, spike_data, prefix='_movement')
     OverallAnalysis.vr_make_individual_plots.plot_combined_spike_raster_and_rate(recording_folder, spike_data, processed_position_data, prefix='_movement')
     #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
     #PostSorting.vr_make_plots.plot_spike_rate_vs_speed(spike_data, processed_position_data, prm)
@@ -60,15 +60,7 @@ def process_a_dir(recording_folder):
     
         '''
 
-    if os.path.exists(raw_spatial_data_frame_path):
-        print('I found a raw spatial data frame.')
-        raw_position_data = pd.read_pickle(raw_spatial_data_frame_path)
-        '''
-        'x_position_cm' 'new_trial_indices' 'trial_number' 'time_seconds'
-    
-        '''
-
-    return spike_data, processed_position_data, raw_position_data
+    return spike_data, processed_position_data
 
 
 def save_feathered_dataframe(spike_data, processed_position_data):
@@ -91,7 +83,7 @@ def main():
     recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D17_2018-10-12_11-17-55' # test recording
     print('Processing ' + str(recording_folder))
 
-    spike_data, processed_position_data, raw_position_data = process_a_dir(recording_folder)
+    spike_data, processed_position_data = process_a_dir(recording_folder)
     #save_feathered_dataframe(spike_data, processed_position_data)
     make_plots(recording_folder,spike_data, processed_position_data)
 

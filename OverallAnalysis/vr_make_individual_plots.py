@@ -15,6 +15,9 @@ def plot_spikes_on_track(recording_folder,spike_data,processed_position_data, pr
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
+    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
+    rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
+
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number']))+1
@@ -24,6 +27,7 @@ def plot_spikes_on_track(recording_folder,spike_data,processed_position_data, pr
         ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=1.5)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=1.5)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=1.5)
+        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=1)
 
         plt.ylabel('Spikes on trials', fontsize=10, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=10, labelpad = 10)
@@ -94,6 +98,9 @@ def plot_combined_spike_raster_and_rate(recording_folder,spike_data,processed_po
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
+    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
+    rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
+
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         spikes_on_track = plt.figure(figsize=(6,10))
@@ -104,6 +111,7 @@ def plot_combined_spike_raster_and_rate(recording_folder,spike_data,processed_po
         ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=2)
         ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=2)
         ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=2)
+        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=1)
 
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number']))+1
         plt.ylabel('Spikes on trials', fontsize=10, labelpad = 10)
