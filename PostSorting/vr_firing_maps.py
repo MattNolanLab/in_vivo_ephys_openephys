@@ -42,15 +42,29 @@ def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, pro
     firing_rate_map['normalised_nb_spike_number'] = np.nan_to_num(np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0))
     firing_rate_map['normalised_p_spike_number'] = np.nan_to_num(np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0))
 
+    # not normalised by time
+    spike_data['b_spike_number'] = firing_rate_map['b_spike_number']
+    spike_data['nb_spike_number'] = firing_rate_map['nb_spike_number']
+    spike_data['p_spike_number'] = firing_rate_map['p_spike_number']
+
+    # un-smoothed
     average_spikes_over_trials = np.array(firing_rate_map['normalised_b_spike_number'])
-    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
     spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(average_spikes_over_trials)
     average_spikes_over_trials = np.array(firing_rate_map['normalised_nb_spike_number'])
-    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
     spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(average_spikes_over_trials)
     average_spikes_over_trials = np.array(firing_rate_map['normalised_p_spike_number'])
-    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
     spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(average_spikes_over_trials)
+
+    # smoothed
+    average_spikes_over_trials = np.array(firing_rate_map['normalised_b_spike_number'])
+    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_b_smooth'] = list(average_spikes_over_trials)
+    average_spikes_over_trials = np.array(firing_rate_map['normalised_nb_spike_number'])
+    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_nb_smooth'] = list(average_spikes_over_trials)
+    average_spikes_over_trials = np.array(firing_rate_map['normalised_p_spike_number'])
+    average_spikes_over_trials = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(average_spikes_over_trials), 10)
+    spike_data.at[cluster_index, 'avg_spike_per_bin_p_smooth'] = list(average_spikes_over_trials)
     return spike_data
 
 
