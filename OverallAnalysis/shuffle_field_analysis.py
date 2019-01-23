@@ -83,25 +83,27 @@ def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
 
 
 def add_percentile_values_to_df(field_data, number_of_bins=20):
-    field_percentile_values_95 = []
-    field_percentile_values_5 = []
-    error_bar_up = []
-    error_bar_down = []
+    field_percentile_values_95_all = []
+    field_percentile_values_5_all = []
+    error_bar_up_all = []
+    error_bar_down_all = []
     for index, field in field_data.iterrows():
         field_histograms = field['shuffled_data']
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
         field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentile_value_shuffled_95 = np.percentile(field_histograms_hz, 95, axis=0)
-        field_percentile_values_95.append(percentile_value_shuffled_95)
+        field_percentile_values_95_all.append(percentile_value_shuffled_95)
         percentile_value_shuffled_5 = np.percentile(field_histograms_hz, 5, axis=0)
-        field_percentile_values_5.append(percentile_value_shuffled_5)
-        error_bar_up = error_bar_up.append(percentile_value_shuffled_95 - field.shuffled_means)
-        error_bar_down = error_bar_down.append(field.shuffled_means - percentile_value_shuffled_5)
-    field_data['shuffled_percentile_threshold_95'] = field_percentile_values_95
-    field_data['shuffled_percentile_threshold_5'] = field_percentile_values_5
-    field_data['error_bar_95'] = error_bar_up
-    field_data['error_bar_5'] = error_bar_down
+        field_percentile_values_5_all.append(percentile_value_shuffled_5)
+        error_bar_up = percentile_value_shuffled_95 - field.shuffled_means
+        error_bar_down = field.shuffled_means - percentile_value_shuffled_5
+        error_bar_up_all.append(error_bar_up)
+        error_bar_down_all.append(error_bar_down)
+    field_data['shuffled_percentile_threshold_95'] = field_percentile_values_95_all
+    field_data['shuffled_percentile_threshold_5'] = field_percentile_values_5_all
+    field_data['error_bar_95'] = error_bar_up_all
+    field_data['error_bar_5'] = error_bar_down_all
     return field_data
 
 
@@ -150,12 +152,12 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
         x_pos = np.arange(field_histograms_hz.shape[1])
         fig, ax = plt.subplots()
         ax = format_bar_chart(ax)
-        ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
+        ax.bar(x_pos, mean, yerr=[percentile_5, percentile_95], align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
+        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile')
         plt.close()
 
 
@@ -164,6 +166,7 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)
     plot_bar_chart_for_fields(field_data, save_path)
+    plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
     return field_data
 
 
