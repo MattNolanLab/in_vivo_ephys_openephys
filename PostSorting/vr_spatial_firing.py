@@ -35,7 +35,9 @@ def add_columns_to_dataframe(spike_data):
     spike_data["firing_intervals"] = ""
     spike_data["linear_regression_whole_track"] = ""
     spike_data["linear_regression_reward_zone"] = ""
-    spike_data["firing_maps"] = ""
+    spike_data["firing_maps_b"] = ""
+    spike_data["firing_maps_nb"] = ""
+    spike_data["firing_maps_p"] = ""
     return spike_data
 
 
