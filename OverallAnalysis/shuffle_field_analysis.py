@@ -82,22 +82,27 @@ def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
     return field_data
 
 
-def add_percentile_value_to_df(field_data, number_of_bins=20):
-    field_percentile_values = []
+def add_percentile_values_to_df(field_data, number_of_bins=20):
+    field_percentile_values_95 = []
+    field_percentile_values_5 = []
+    error_bar_up = []
+    error_bar_down = []
     for index, field in field_data.iterrows():
         field_histograms = field['shuffled_data']
-        field_spikes_hd = field['hd_in_field_spikes']  # real hd when the cell fired
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
         field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
-        mean_shuffled = field['shuffled_means']
-        std_shuffled = np.std(field_histograms_hz, axis=0)
-        percentile_value_shuffled = np.percentile(field_histograms_hz, 95, axis=0)
-        field_percentile_values.append(percentile_value_shuffled)
-    field_data['shuffled_percentile_thresholds'] = field_percentile_values
+        percentile_value_shuffled_95 = np.percentile(field_histograms_hz, 95, axis=0)
+        field_percentile_values_95.append(percentile_value_shuffled_95)
+        percentile_value_shuffled_5 = np.percentile(field_histograms_hz, 5, axis=0)
+        field_percentile_values_5.append(percentile_value_shuffled_5)
+        error_bar_up = error_bar_up.append(percentile_value_shuffled_95 - field.shuffled_means)
+        error_bar_down = error_bar_down.append(field.shuffled_means - percentile_value_shuffled_5)
+    field_data['shuffled_percentile_threshold_95'] = field_percentile_values_95
+    field_data['shuffled_percentile_threshold_5'] = field_percentile_values_5
+    field_data['error_bar_95'] = error_bar_up
+    field_data['error_bar_5'] = error_bar_down
     return field_data
-
-
 
 
 # test whether real and shuffled data differ and add results (true/false for each bin) and number of diffs to data frame
@@ -105,7 +110,8 @@ def test_if_real_hd_differs_from_shuffled(field_data):
     real_and_shuffled_data_differ_bin = []
     number_of_diff_bins = []
     for index, field in field_data.iterrows():
-        diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
+        # diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
+        diff_field = (field.shuffled_percentile_threshold_95 < field.hd_histogram_real_data) + (field.shuffled_percentile_threshold_5 > field.hd_histogram_real_data)  # this is a pairwise OR on the binary arrays
         number_of_diffs = diff_field.sum()
         real_and_shuffled_data_differ_bin.append(diff_field)
         number_of_diff_bins.append(number_of_diffs)
@@ -133,9 +139,29 @@ def plot_bar_chart_for_fields(field_data, path):
         plt.close()
 
 
+def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
+    for index, field in field_data.iterrows():
+        mean = field['shuffled_means']
+        percentile_95 = field['error_bar_95']
+        percentile_5 = field['error_bar_5']
+        field_spikes_hd = field['hd_in_field_spikes']
+        time_spent_in_bins = field['time_spent_in_bins']
+        field_histograms_hz = field['field_histograms_hz']
+        x_pos = np.arange(field_histograms_hz.shape[1])
+        fig, ax = plt.subplots()
+        ax = format_bar_chart(ax)
+        ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
+        x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+        plt.xticks(x_pos, x_labels)
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
+        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
+        plt.close()
+
+
 def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
-    field_data = add_percentile_value_to_df(field_data, number_of_bins=20)
+    field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)
     plot_bar_chart_for_fields(field_data, save_path)
     return field_data
