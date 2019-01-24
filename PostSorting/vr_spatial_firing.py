@@ -36,7 +36,7 @@ def add_speed(spike_data, spatial_data_speed):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.speed_per200ms[cluster_index] = spatial_data_speed[cluster_firing_indices]
+        spike_data.speed_per200ms[cluster_index] = list(spatial_data_speed[cluster_firing_indices])
     return spike_data
 
 
@@ -44,7 +44,7 @@ def add_position_x(spike_data, spatial_data_x):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.x_position_cm[cluster_index] = spatial_data_x[cluster_firing_indices]
+        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices])
     return spike_data
 
 
@@ -52,7 +52,7 @@ def add_trial_number(spike_data, spatial_data_trial_number):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_number[cluster_index] = spatial_data_trial_number[cluster_firing_indices].values.astype(np.uint16)
+        spike_data.trial_number[cluster_index] = list(spatial_data_trial_number[cluster_firing_indices].values.astype(np.uint16))
     return spike_data
 
 
@@ -60,7 +60,7 @@ def add_trial_type(spike_data, spatial_data_trial_type):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_type[cluster_index] = spatial_data_trial_type[cluster_firing_indices].values.astype(np.uint8)
+        spike_data.trial_type[cluster_index] = list(spatial_data_trial_type[cluster_firing_indices].values.astype(np.uint8))
     return spike_data
 
 
