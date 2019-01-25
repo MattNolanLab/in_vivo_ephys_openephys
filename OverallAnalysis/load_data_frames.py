@@ -72,7 +72,7 @@ def load_data_frame_field_data_frame(output_path):
                                          'position_y_session', 'hd_in_field_session', 'hd_hist_session',
                                          'shuffled_means', 'shuffled_std',
                                          'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz',
-                                         'real_and_shuffled_data_differ_bin', 'number_of_different_bins']].copy()
+                                         'real_and_shuffled_data_differ_bin', 'number_of_different_bins', 'number_of_different_bins_shuffled']].copy()
 
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
