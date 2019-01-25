@@ -134,18 +134,25 @@ def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
         shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
-
         percentiles_of_observed_bars = np.empty(number_of_bars)
         percentiles_of_observed_bars[:] = np.nan
         for bar in range(number_of_bars):
             observed_data = field.hd_histogram_real_data[bar]
             shuffled_data = shuffled_data_normalized[:, bar]
-
             percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
             percentiles_of_observed_bars[bar] = percentile_of_observed_data
         percentile_observed_data_bars.append(percentiles_of_observed_bars)
-
     field_data['percentile_of_observed_data'] = percentile_observed_data_bars
+    return field_data
+
+
+def convert_percentile_to_p_value(field_data):
+    p_values = []
+    for index, field in field_data.iterrows():
+        percentile_values = field.percentile_of_observed_data
+        percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
+        p_values.append(percentile_values)
+    field_data['shuffle_p_values'] = p_values
 
     return field_data
 
@@ -154,7 +161,7 @@ def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
 def calculate_corrected_p_values(field_data):
     corrected_p_values = []
     for index, field in field_data.iterrows():
-        p_values = field.percentile_of_observed_data
+        p_values = field.shuffle_p_values
         reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
         corrected_p_values.append(pvals_corrected)
     field_data['p_values_corrected_bars'] = corrected_p_values
@@ -205,6 +212,7 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
     field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
+    field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data)  # BH correction on p values from previous function
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
