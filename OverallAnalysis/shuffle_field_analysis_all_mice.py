@@ -43,7 +43,21 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number shuffles')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled.png')
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled1.png')
+
+    flat_shuffled = []
+    for field in number_of_rejects:
+        flat_shuffled.extend(field)
+
+    plt.hist(flat_shuffled, color='black')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Number of rejected bars')
+    ax.set_ylabel('Number shuffles')
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled2.png')
+
 
 def main():
     shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
