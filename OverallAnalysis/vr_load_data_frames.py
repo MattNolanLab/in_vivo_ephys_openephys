@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 import PostSorting.vr_ramp_cell_test
 import OverallAnalysis.vr_make_individual_plots
+import PostSorting.vr_reward_firing
 import feather
 
 
@@ -10,6 +11,7 @@ prm = PostSorting.parameters.Parameters()
 
 def make_plots(recording_folder,spike_data, processed_position_data):
     OverallAnalysis.vr_make_individual_plots.plot_spikes_on_track(recording_folder,spike_data, processed_position_data, prm, prefix='_movement')
+    OverallAnalysis.vr_make_individual_plots.plot_rewarded_spikes_on_track(recording_folder,spike_data,processed_position_data, prm, prefix='_movement')
     #PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
     #PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, prm)
     #PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
@@ -18,7 +20,8 @@ def make_plots(recording_folder,spike_data, processed_position_data):
     #PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     #PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_all')
     OverallAnalysis.vr_make_individual_plots.plot_firing_rate_maps(recording_folder, spike_data, prefix='_movement')
-    #OverallAnalysis.vr_make_individual_plots.plot_firing_rate_gc_maps(recording_folder, spike_data, prefix='_movement')
+    OverallAnalysis.vr_make_individual_plots.plot_firing_rate_gc_maps(recording_folder, spike_data, prefix='_movement')
+    OverallAnalysis.vr_make_individual_plots.plot_spike_number(recording_folder, spike_data, prefix='_movement')
     OverallAnalysis.vr_make_individual_plots.plot_combined_spike_raster_and_rate(recording_folder, spike_data, processed_position_data, prefix='_movement')
     #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
     #PostSorting.vr_make_plots.plot_spike_rate_vs_speed(spike_data, processed_position_data, prm)
@@ -26,8 +29,8 @@ def make_plots(recording_folder,spike_data, processed_position_data):
 
 
 def process_a_dir(recording_folder):
-    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D17_2018-10-12_11-17-55' # test recording
-    local_output_path = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D17_2018-10-12_11-17-55/Dataframes/spatial_firing.pkl'
+    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D31_2018-11-01_12-28-25' # test recording
+    local_output_path = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D31_2018-11-01_12-28-25/Dataframes/spatial_firing.pkl'
     spike_data_frame_path = recording_folder + '/DataFrames/spatial_firing.pkl'
     raw_spatial_data_frame_path = recording_folder + '/DataFrames/raw_position_data.pkl'
     processed_spatial_data_frame_path = recording_folder + '/DataFrames/processed_position_data.pkl'
@@ -80,11 +83,12 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D17_2018-10-12_11-17-55' # test recording
+    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D31_2018-11-01_12-28-25' # test recording
     print('Processing ' + str(recording_folder))
 
     spike_data, processed_position_data = process_a_dir(recording_folder)
     #save_feathered_dataframe(spike_data, processed_position_data)
+    PostSorting.vr_reward_firing.split_trials_by_reward(processed_position_data,spike_data)
     make_plots(recording_folder,spike_data, processed_position_data)
 
 
