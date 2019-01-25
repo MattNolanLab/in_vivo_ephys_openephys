@@ -126,13 +126,23 @@ def test_if_real_hd_differs_from_shuffled(field_data):
 
 
 # calculate percentile of real data relative to shuffled for each bar
-def calculate_percentile_of_observed_data(field_data):
+def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
     percentile_observed_data_bars = []
     for index, field in field_data.iterrows():
-        observed_data = field.hd_histogram_real_data
-        shuffled_data = field.shuffled_data
-        percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
-        percentile_observed_data_bars.append(percentile_of_observed_data)
+        field_histograms = field['shuffled_data']
+        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
+        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
+        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+
+        percentiles_of_observed_bars = np.empty(number_of_bars)
+        percentiles_of_observed_bars[:] = np.nan
+        for bar in range(number_of_bars):
+            observed_data = field.hd_histogram_real_data[bar]
+            shuffled_data = shuffled_data_normalized[:, bar]
+
+            percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
+            percentiles_of_observed_bars[bar] = percentile_of_observed_data
+        percentile_observed_data_bars.append(percentiles_of_observed_bars)
 
     field_data['percentile_of_observed_data'] = percentile_observed_data_bars
 
@@ -182,7 +192,7 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)
-    field_data = calculate_percentile_of_observed_data(field_data)
+    field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
     return field_data
@@ -256,8 +266,8 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    process_recordings()
-    #local_data_test()
+    # process_recordings()
+    local_data_test()
 
 
 if __name__ == '__main__':
