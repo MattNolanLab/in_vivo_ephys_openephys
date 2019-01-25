@@ -1,10 +1,12 @@
 import glob
-import sys
-import shutil
-import threading
-import os
 import numpy as np
+import os
 import pandas as pd
+from scipy import stats
+import shutil
+import sys
+import threading
+
 import OverallAnalysis.false_positives
 import data_frame_utility
 import plot_utility
@@ -123,6 +125,20 @@ def test_if_real_hd_differs_from_shuffled(field_data):
     return field_data
 
 
+# calculate percentile of real data relative to shuffled for each bar
+def calculate_percentile_of_observed_data(field_data):
+    percentile_observed_data_bars = []
+    for index, field in field_data.iterrows():
+        observed_data = field.hd_histogram_real_data
+        shuffled_data = field.shuffled_data
+        percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
+        percentile_observed_data_bars.append(percentile_of_observed_data)
+
+    field_data['percentile_of_observed_data'] = percentile_observed_data_bars
+
+    return field_data
+
+
 def plot_bar_chart_for_fields(field_data, path):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
@@ -166,6 +182,7 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)
+    field_data = calculate_percentile_of_observed_data(field_data)
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
     return field_data
