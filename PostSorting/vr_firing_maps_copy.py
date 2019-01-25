@@ -35,11 +35,11 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+def calculate_beaconed_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     print(cluster)
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
-    cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.x_position_cm[cluster_index]})
+    cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.beaconed_position_cm[cluster_index]})
     spike_positions_x = cluster_firings.x_position_cm.values
     firing_rate_map = np.zeros((number_of_bins_x))
     for x in range(number_of_bins_x):
@@ -59,6 +59,58 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     return firing_rate_map
 
 
+
+def calculate_nonbeaconed_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+    print('Started another cluster')
+    print(cluster)
+    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
+    cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.nonbeaconed_position_cm[cluster_index]})
+    spike_positions_x = cluster_firings.x_position_cm.values
+    firing_rate_map = np.zeros((number_of_bins_x))
+    for x in range(number_of_bins_x):
+        for y in range(number_of_bins_y):
+            px = x * bin_size_pixels + (bin_size_pixels / 2)
+            spike_distances = np.sqrt(np.power(px - spike_positions_x, 2))
+            spike_distances = spike_distances[~np.isnan(spike_distances)]
+            occupancy_distances = np.sqrt(np.power((px - positions_x), 2))
+            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
+            bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
+
+            if bin_occupancy >= min_dwell:
+                firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+            else:
+                firing_rate_map[x] = 0
+
+    return firing_rate_map
+
+
+
+def calculate_probe_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+    print('Started another cluster')
+    print(cluster)
+    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
+    cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.probe_position_cm[cluster_index]})
+    spike_positions_x = cluster_firings.x_position_cm.values
+    firing_rate_map = np.zeros((number_of_bins_x))
+    for x in range(number_of_bins_x):
+        for y in range(number_of_bins_y):
+            px = x * bin_size_pixels + (bin_size_pixels / 2)
+            spike_distances = np.sqrt(np.power(px - spike_positions_x, 2))
+            spike_distances = spike_distances[~np.isnan(spike_distances)]
+            occupancy_distances = np.sqrt(np.power((px - positions_x), 2))
+            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
+            bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
+
+            if bin_occupancy >= min_dwell:
+                firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+            else:
+                firing_rate_map[x] = 0
+
+    return firing_rate_map
+
+
+
+
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.time_seconds.diff().mean()*1000
@@ -69,13 +121,20 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     clusters = range(len(firing_data_spatial))
     num_cores = multiprocessing.cpu_count()
     time_start = time.time()
-    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    firing_rate_maps_b = Parallel(n_jobs=num_cores)(delayed(calculate_beaconed_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    firing_rate_maps_nb = Parallel(n_jobs=num_cores)(delayed(calculate_nonbeaconed_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    firing_rate_maps_p = Parallel(n_jobs=num_cores)(delayed(calculate_probe_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
     time_end = time.time()
     print('Making the rate maps took:')
     time_diff = time_end - time_start
     print(time_diff)
-    firing_data_spatial['firing_maps'] = firing_rate_maps
+    firing_data_spatial['firing_maps_b'] = firing_rate_maps_b
+    firing_data_spatial['firing_maps_nb'] = firing_rate_maps_nb
+    firing_data_spatial['firing_maps_p'] = firing_rate_maps_p
     return firing_data_spatial
+
+
+
 
 
 def get_position_heatmap(spatial_data, prm):
