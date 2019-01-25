@@ -5,6 +5,7 @@ import pandas as pd
 from scipy import stats
 import shutil
 import sys
+from statsmodels.sandbox.stats.multicomp import multipletests
 import threading
 
 import OverallAnalysis.false_positives
@@ -149,6 +150,17 @@ def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
     return field_data
 
 
+# perform Benjamini/Hochberg correction on p values calculated from the percentile of observed data relative to shuffled
+def calculate_corrected_p_values(field_data):
+    corrected_p_values = []
+    for index, field in field_data.iterrows():
+        p_values = field.percentile_of_observed_data
+        reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
+        corrected_p_values.append(pvals_corrected)
+    field_data['p_values_corrected_bars'] = corrected_p_values
+    return field_data
+
+
 def plot_bar_chart_for_fields(field_data, path):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
@@ -191,8 +203,9 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
 def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
-    field_data = test_if_real_hd_differs_from_shuffled(field_data)
-    field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)
+    field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
+    field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
+    field_data = calculate_corrected_p_values(field_data)  # BH correction on p values from previous function
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
     return field_data
