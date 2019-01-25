@@ -126,6 +126,27 @@ def test_if_real_hd_differs_from_shuffled(field_data):
     return field_data
 
 
+# this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
+def test_if_shuffle_differs_from_other_shuffles(field_data):
+    number_of_shuffles = len(field_data.shuffled_data[0])
+    rejected_bins_all_shuffles = []
+    for index, field in field_data.iterrows():
+        rejects_field = np.empty(number_of_shuffles)
+        rejects_field[:] = np.nan
+        for shuffle in range(number_of_shuffles):
+            diff_field = (field.shuffled_percentile_threshold_95 < field.field_histograms_hz[shuffle]) + (field.shuffled_percentile_threshold_5 > field.field_histograms_hz[shuffle])  # this is a pairwise OR on the binary arrays
+            number_of_diffs = diff_field.sum()
+            rejects_field[shuffle] = number_of_diffs
+        rejected_bins_all_shuffles.append(rejects_field)
+
+    field_data['number_of_different_bins'] = rejected_bins_all_shuffles
+
+
+
+    return field_data
+
+
+
 # calculate percentile of real data relative to shuffled for each bar
 def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
     percentile_observed_data_bars = []
@@ -211,6 +232,7 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
+    field_data = test_if_shuffle_differs_from_other_shuffles(field_data)
     field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data)  # BH correction on p values from previous function
