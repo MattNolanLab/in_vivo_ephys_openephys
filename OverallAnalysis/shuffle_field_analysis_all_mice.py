@@ -20,9 +20,7 @@ def get_accepted_fields(shuffled_field_data):
     return shuffled_field_data
 
 
-def main():
-    shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
-    shuffled_field_data = get_accepted_fields(shuffled_field_data)
+def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
     number_of_rejects = shuffled_field_data.number_of_different_bins
     fig, ax = plt.subplots()
     plt.hist(number_of_rejects)
@@ -33,8 +31,13 @@ def main():
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number of fields')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects.png')
-    pass
-    # find 95th percentile and see how many fields have a significant number of rejects
+
+
+def main():
+    shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
+    shuffled_field_data = get_accepted_fields(shuffled_field_data)
+    plot_histogram_of_number_of_rejected_bars(shuffled_field_data)
+
 
 
 if __name__ == '__main__':
