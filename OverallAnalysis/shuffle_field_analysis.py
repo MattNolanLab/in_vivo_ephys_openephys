@@ -146,6 +146,7 @@ def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
     return field_data
 
 
+#  convert percentile to p value by subtracting the percentile from 100 when it is > than 50
 def convert_percentile_to_p_value(field_data):
     p_values = []
     for index, field in field_data.iterrows():
@@ -153,7 +154,6 @@ def convert_percentile_to_p_value(field_data):
         percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
         p_values.append(percentile_values)
     field_data['shuffle_p_values'] = p_values
-
     return field_data
 
 
