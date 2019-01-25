@@ -138,7 +138,7 @@ def test_if_shuffle_differs_from_other_shuffles(field_data):
             number_of_diffs = diff_field.sum()
             rejects_field[shuffle] = number_of_diffs
         rejected_bins_all_shuffles.append(rejects_field)
-    field_data['number_of_different_bins'] = rejected_bins_all_shuffles
+    field_data['number_of_different_bins_shuffled'] = rejected_bins_all_shuffles
     return field_data
 
 
