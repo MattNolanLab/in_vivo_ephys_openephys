@@ -223,11 +223,13 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
         plt.close()
 
 
+# the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
 def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
     field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
     field_data = test_if_shuffle_differs_from_other_shuffles(field_data)
+
     field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data)  # BH correction on p values from previous function
@@ -244,7 +246,7 @@ def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
 
 
 # add shuffled data to data frame as a new column for each field
-def shuffle_field_data(field_data, number_of_times_to_shuffle, path, number_of_bins):
+def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=100):
     if os.path.exists(path + 'shuffle_analysis') is True:
         shutil.rmtree(path + 'shuffle_analysis')
     os.makedirs(path + 'shuffle_analysis')
@@ -277,7 +279,7 @@ def process_recordings():
                 position_data = pd.read_pickle(position_data_frame_path)
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
                 if not field_df.empty:
-                    field_df = shuffle_field_data(field_df, 1000, recording_folder + '/MountainSort/', number_of_bins=20)
+                    field_df = shuffle_field_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20, number_of_times_to_shuffle=1000)
                     field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
                     field_df.to_pickle(recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl')
                     print('I finished analyzing ' + recording_folder)
@@ -293,7 +295,7 @@ def local_data_test():
     position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
-    field_df = shuffle_field_data(field_df, 1000, local_path, number_of_bins=20)
+    field_df = shuffle_field_data(field_df, local_path, number_of_bins=20, number_of_times_to_shuffle=1000)
     field_df = analyze_shuffled_data(field_df, local_path, number_of_bins=20)
     field_df.to_pickle(local_path + 'shuffle_analysis/shuffled_fields.pkl')
     # save new field df so that another script can read them all and combine to look at the distribution of rejects
