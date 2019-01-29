@@ -27,8 +27,8 @@ def find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data):
         flat_shuffled.extend(field)
     tail = max(flat_shuffled)
     percentile_95 = np.percentile(flat_shuffled, 95)
-    percentile_99_7 = np.percentile(flat_shuffled, 99.7)
-    return tail, percentile_95, percentile_99_7
+    percentile_99 = np.percentile(flat_shuffled, 99)
+    return tail, percentile_95, percentile_99
 
 
 def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
@@ -46,6 +46,10 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
 
 def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     number_of_rejects = shuffled_field_data.number_of_different_bins_shuffled
+    flat_shuffled = []
+    for field in number_of_rejects:
+        flat_shuffled.extend(field)
+    plt.hist(flat_shuffled, color='black')
     fig, ax = plt.subplots()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -53,20 +57,40 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number shuffles')
-    flat_shuffled = []
-    for field in number_of_rejects:
-        flat_shuffled.extend(field)
-    plt.hist(flat_shuffled, color='black')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled.png')
+
+
+def make_combined_plot_of_distributions(shuffled_field_data):
+    tail, percentile_95, percentile_99 = find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data)
+
+    number_of_rejects_shuffled = shuffled_field_data.number_of_different_bins_shuffled
+    flat_shuffled = []
+    for field in number_of_rejects_shuffled:
+        flat_shuffled.extend(field)
+    fig, ax = plt.subplots()
+    plt.hist(flat_shuffled, normed=True, color='black', alpha=0.5)
+
+    number_of_rejects_real = shuffled_field_data.number_of_different_bins
+    plt.hist(number_of_rejects_real, normed=True, color='navy', alpha=0.5)
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Number of rejected bars')
+    ax.set_ylabel('Number shuffles')
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined.png')
+
+
 
 
 def main():
     shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
     shuffled_field_data = get_accepted_fields(shuffled_field_data)
-    tail, percentile_95, percentile_99_7 = find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data)
 
     plot_histogram_of_number_of_rejected_bars(shuffled_field_data)
     plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data)
+    make_combined_plot_of_distributions(shuffled_field_data)
 
 
 
