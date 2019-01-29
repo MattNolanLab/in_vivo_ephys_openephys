@@ -49,8 +49,8 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     flat_shuffled = []
     for field in number_of_rejects:
         flat_shuffled.extend(field)
-    plt.hist(flat_shuffled, color='black')
     fig, ax = plt.subplots()
+    plt.hist(flat_shuffled, color='black')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
