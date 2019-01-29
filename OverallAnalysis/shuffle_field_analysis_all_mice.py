@@ -81,7 +81,7 @@ def make_combined_plot_of_distributions(shuffled_field_data):
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Number shuffles')
+    ax.set_ylabel('Proportion')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined.png')
 
 
