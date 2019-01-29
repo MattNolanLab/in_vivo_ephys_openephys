@@ -20,6 +20,17 @@ def get_accepted_fields(shuffled_field_data):
     return shuffled_field_data
 
 
+def find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data):
+    number_of_rejects = shuffled_field_data.number_of_different_bins_shuffled
+    flat_shuffled = []
+    for field in number_of_rejects:
+        flat_shuffled.extend(field)
+    tail = max(flat_shuffled)
+    percentile_95 = np.percentile(flat_shuffled, 95)
+    percentile_99_7 = np.percentile(flat_shuffled, 99.7)
+    return tail, percentile_95, percentile_99_7
+
+
 def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
     number_of_rejects = shuffled_field_data.number_of_different_bins
     fig, ax = plt.subplots()
@@ -52,6 +63,8 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
 def main():
     shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
     shuffled_field_data = get_accepted_fields(shuffled_field_data)
+    tail, percentile_95, percentile_99_7 = find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data)
+
     plot_histogram_of_number_of_rejected_bars(shuffled_field_data)
     plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data)
 
