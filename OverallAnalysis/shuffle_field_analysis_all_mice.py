@@ -36,27 +36,17 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
 def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     number_of_rejects = shuffled_field_data.number_of_different_bins_shuffled
     fig, ax = plt.subplots()
-    plt.hist(number_of_rejects)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number shuffles')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled1.png')
-
     flat_shuffled = []
     for field in number_of_rejects:
         flat_shuffled.extend(field)
-
     plt.hist(flat_shuffled, color='black')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.xaxis.set_ticks_position('bottom')
-    ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Number shuffles')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled2.png')
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled.png')
 
 
 def main():
