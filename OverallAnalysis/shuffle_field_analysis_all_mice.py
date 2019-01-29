@@ -72,6 +72,9 @@ def make_combined_plot_of_distributions(shuffled_field_data):
 
     number_of_rejects_real = shuffled_field_data.number_of_different_bins
     plt.hist(number_of_rejects_real, normed=True, color='navy', alpha=0.5)
+    plt.axvline(x=tail, color='red', alpha=0.5, linestyle='dashed')
+    plt.axvline(x=percentile_95, color='red', alpha=0.5, linestyle='dashed')
+    plt.axvline(x=percentile_99, color='red', alpha=0.5, linestyle='dashed')
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
