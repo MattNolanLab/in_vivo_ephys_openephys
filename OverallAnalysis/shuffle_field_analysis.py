@@ -246,7 +246,7 @@ def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
 
 
 # add shuffled data to data frame as a new column for each field
-def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=100):
+def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=1000):
     if os.path.exists(path + 'shuffle_analysis') is True:
         shutil.rmtree(path + 'shuffle_analysis')
     os.makedirs(path + 'shuffle_analysis')
