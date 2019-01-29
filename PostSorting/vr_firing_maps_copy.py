@@ -17,7 +17,7 @@ def get_dwell(spatial_data, prm):
 
 
 def get_bin_size(prm):
-    bin_size_cm = 2.5
+    bin_size_cm = 0.5
     return bin_size_cm
 
 
@@ -115,7 +115,7 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.time_seconds.diff().mean()*1000
     min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
-    smooth = 5 
+    smooth = 1
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
     clusters = range(len(firing_data_spatial))
@@ -132,8 +132,6 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     firing_data_spatial['firing_maps_nb'] = firing_rate_maps_nb
     firing_data_spatial['firing_maps_p'] = firing_rate_maps_p
     return firing_data_spatial
-
-
 
 
 
