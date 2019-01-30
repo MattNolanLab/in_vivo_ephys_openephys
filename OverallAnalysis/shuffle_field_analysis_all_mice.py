@@ -42,6 +42,7 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number of fields')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects.png')
+    plt.close()
 
 
 def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
@@ -58,6 +59,7 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number shuffles')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled.png')
+    plt.close()
 
 
 def make_combined_plot_of_distributions(shuffled_field_data):
@@ -87,6 +89,7 @@ def make_combined_plot_of_distributions(shuffled_field_data):
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Proportion')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined_all.png')
+    plt.close()
 
 
 def plot_number_of_significant_p_values(field_data):
@@ -100,6 +103,7 @@ def plot_number_of_significant_p_values(field_data):
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number of p values')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_significant_p_BH.png')
+    plt.close()
 
 
 def main():
