@@ -134,7 +134,7 @@ def count_number_of_significantly_different_bars_per_field(field_data, significa
         # count significant p values
         number_of_significant_p_values_field = (field.p_values_corrected_bars[index] < false_positive_ratio).sum()
         number_of_significant_p_values.append(number_of_significant_p_values_field)
-    field_data['number_of__different_bins_BH_method'] = number_of_significant_p_values_field
+    field_data['number_of_different_bins_BH_method'] = number_of_significant_p_values
     return field_data
 
 
