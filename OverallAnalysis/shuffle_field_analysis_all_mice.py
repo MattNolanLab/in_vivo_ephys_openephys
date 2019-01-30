@@ -85,6 +85,17 @@ def make_combined_plot_of_distributions(shuffled_field_data):
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined.png')
 
 
+def plot_number_of_significant_p_values(field_data):
+    number_of_significant_p_values = field_data.number_of_different_bins_BH_method
+    fig, ax = plt.subplots()
+    plt.hist(number_of_significant_p_values, color='lime')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Number of rejected bars')
+    ax.set_ylabel('Number of p values')
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_significant_p_BH.png')
 
 
 def main():
@@ -93,6 +104,7 @@ def main():
 
     plot_histogram_of_number_of_rejected_bars(shuffled_field_data)
     plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data)
+    plot_number_of_significant_p_values(shuffled_field_data)
     make_combined_plot_of_distributions(shuffled_field_data)
 
 
