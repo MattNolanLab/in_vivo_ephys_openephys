@@ -24,15 +24,23 @@ def get_position_data_frame(matlab_data):
     position_data = PostSorting.open_field_spatial_data.calculate_central_speed(position_data)
     position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
     # plt.plot(position_data.position_x, position_data.position_y) # this is to plot the trajectory. it looks weird
-
     return position_of_mouse
 
 
 def main():
     matlab_data = loadmat('//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/11084-03020501_t2c1.mat')
+    # todo: iterate over all data and load them for analysis - get session ID so cells can be added to session
     position_data = get_position_data_frame(matlab_data)
 
     # get spike df     # spike_times = data['ts']
+    ''' this should have for each cell in the session - the session should be identified by the session id in the position data (?)
+    "session_id": session_id,
+    "cluster_id":  int(cluster),
+    "tetrode": tetrode,
+    "primary_channel": ch,
+    "firing_times": cluster_firings,
+    "firing_times_opto": cluster_firings_opto
+    '''
 
 if __name__ == '__main__':
     main()
