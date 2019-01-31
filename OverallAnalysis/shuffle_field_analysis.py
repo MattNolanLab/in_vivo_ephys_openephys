@@ -186,13 +186,19 @@ def convert_percentile_to_p_value(field_data):
 
 
 # perform Benjamini/Hochberg correction on p values calculated from the percentile of observed data relative to shuffled
-def calculate_corrected_p_values(field_data):
+def calculate_corrected_p_values(field_data, type='bh'):
     corrected_p_values = []
     for index, field in field_data.iterrows():
         p_values = field.shuffle_p_values
-        reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
-        corrected_p_values.append(pvals_corrected)
-    field_data['p_values_corrected_bars'] = corrected_p_values
+        if type == 'bh':
+            reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
+            corrected_p_values.append(pvals_corrected)
+        if type == 'holm':
+            reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='holm')
+            corrected_p_values.append(pvals_corrected)
+
+    field_name = 'p_values_corrected_bars_' + type
+    field_data[field_name] = corrected_p_values
     return field_data
 
 
@@ -244,7 +250,8 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
 
     field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
-    field_data = calculate_corrected_p_values(field_data)  # BH correction on p values from previous function
+    field_data = calculate_corrected_p_values(field_data, type='bh')  # BH correction on p values from previous function
+    field_data = calculate_corrected_p_values(field_data, type='holm')  # Holm correction on p values from previous function
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95)
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
