@@ -30,35 +30,33 @@ def initialize_parameters(recording_to_process):
 
 
 def process_position_data(recording_to_process, prm):
-    spatial_data = None
-    spatial_data = PostSorting.vr_spatial_data.process_position_data(recording_to_process, prm)
-    return spatial_data
+    raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position_data(raw_position_data, prm)
+    return raw_position_data, processed_position_data
+
+
+def process_firing_properties(recording_to_process, session_type, prm):
+    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+    return spike_data, bad_clusters
 
 
 def make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data):
     PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, prm)
-    PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
-    PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, prm)
-    gc.collect()
-    PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
     PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
     gc.collect()
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_all')
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data_movement,raw_position_data, processed_position_data, prm, prefix='_movement')
-    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data_stationary,raw_position_data, processed_position_data, prm, prefix='_stationary')
     gc.collect()
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data_movement, prm, prefix='_movement')
-    PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data_stationary, prm, prefix='_stationary')
-    PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
-    PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data_movement, raw_position_data, processed_position_data, prm, prefix='_movement')
-    PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data_stationary, raw_position_data, processed_position_data, prm, prefix='_stationary')
-    PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
-    PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_movement')
-    PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_stationary')
-    #PostSorting.vr_make_plots.plot_spike_rate_vs_speed(spike_data, processed_position_data, prm)
+    #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+    #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data_movement, raw_position_data, processed_position_data, prm, prefix='_movement')
+    #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
+    #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_movement')
 
 
 def save_data_frames(prm, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
@@ -86,27 +84,25 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     initialize_parameters(recording_to_process)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
-    raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = process_position_data(raw_position_data, prm)
 
-    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
-    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+    raw_position_data, processed_position_data = process_position_data(recording_to_process, prm)
+    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
+
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
         save_data_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
         return
 
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
+    #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data, spike_data_movement, spike_data_stationary = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
-    #new way of making firing rate maps
-    spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
 
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data.binned_speed_ms_per_trial)
+
+    #
     spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data.binned_time_ms)
     spike_data_movement = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, processed_position_data.binned_time_moving_ms)
     spike_data_stationary = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_stationary, raw_position_data, processed_position_data, processed_position_data.binned_time_stationary_ms)
     make_plots(spike_data, spike_data_movement, spike_data_stationary, raw_position_data, processed_position_data)
-    #spike_data = PostSorting.vr_ramp_cell_test.analyse_ramp_firing(prm,spike_data)
     gc.collect()
     save_data_frames(prm, spike_data, raw_position_data, processed_position_data, bad_clusters)
 
