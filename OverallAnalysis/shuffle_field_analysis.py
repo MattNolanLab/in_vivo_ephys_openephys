@@ -126,15 +126,20 @@ def test_if_real_hd_differs_from_shuffled(field_data):
     return field_data
 
 
-# this uses the p values that are based on the position of the real data relative to shuffled (B/H corrected)
-def count_number_of_significantly_different_bars_per_field(field_data, significance_level=95):
+# this uses the p values that are based on the position of the real data relative to shuffled (corrected_
+def count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh'):
     number_of_significant_p_values = []
     false_positive_ratio = (100 - significance_level) / 100
     for index, field in field_data.iterrows():
         # count significant p values
-        number_of_significant_p_values_field = (field.p_values_corrected_bars < false_positive_ratio).sum()
-        number_of_significant_p_values.append(number_of_significant_p_values_field)
-    field_data['number_of_different_bins_BH_method'] = number_of_significant_p_values
+        if type == 'bh':
+            number_of_significant_p_values_field = (field.p_values_corrected_bars_bh < false_positive_ratio).sum()
+            number_of_significant_p_values.append(number_of_significant_p_values_field)
+        if type == 'holm':
+            number_of_significant_p_values_field = (field.p_values_corrected_bars_holm < false_positive_ratio).sum()
+            number_of_significant_p_values.append(number_of_significant_p_values_field)
+    field_name = 'number_of_different_bins_' + type
+    field_data[field_name] = number_of_significant_p_values
     return field_data
 
 
@@ -252,7 +257,8 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data, type='bh')  # BH correction on p values from previous function
     field_data = calculate_corrected_p_values(field_data, type='holm')  # Holm correction on p values from previous function
-    field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95)
+    field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh')
+    field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='holm')
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
     return field_data
