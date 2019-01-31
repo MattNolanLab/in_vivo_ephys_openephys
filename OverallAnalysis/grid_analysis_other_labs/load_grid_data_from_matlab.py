@@ -29,7 +29,7 @@ def get_position_data_frame(matlab_data):
 
 def main():
     matlab_data = loadmat('//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/11084-03020501_t2c1.mat')
-    # todo: iterate over all data and load them for analysis - get session ID so cells can be added to session
+    # todo: iterate over all data and load them for analysis - get session ID so cells can be added to session. iterate in all_data
     position_data = get_position_data_frame(matlab_data)
 
     # get spike df     # spike_times = data['ts']
