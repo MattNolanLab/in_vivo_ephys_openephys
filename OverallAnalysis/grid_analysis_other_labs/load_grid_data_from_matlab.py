@@ -89,10 +89,11 @@ def process_data(folder_to_search_in):
                     session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                     print('Session ID = ' + session_id)
                     firing_data_session = pd.DataFrame()
-                    firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data)
+                    firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data_session)
                     firing_data = firing_data.append(firing_data_session)
                     print('Finished processing ' + session_id)
 
+    print('Processing finished.')
 
 def main():
     process_data('//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data')
