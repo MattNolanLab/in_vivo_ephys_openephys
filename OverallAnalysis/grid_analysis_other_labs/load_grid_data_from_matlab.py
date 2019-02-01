@@ -56,8 +56,13 @@ def get_position_data_frame(matlab_data):
 # search for all cells in the session where the position data was found correctly
 def get_firing_data(folder_to_search_in, session_id, firing_data):
     for name in glob.glob(folder_to_search_in + '/*' + session_id + '*'):
-        print(name)
-        # get firing data from this cell
+        if os.path.exists(name):
+            if 'EEG' not in name and 'EGF' not in name and 'POS' not in name and 'md5' not in name:
+                print('I found this cell' + name)
+                firing_times = pd.DataFrame()
+                firing_times['times'] = loadmat(name)['cellTS']
+
+                # get firing data from this cell (firing times)
     return firing_data
 
 
@@ -65,16 +70,16 @@ def process_data(folder_to_search_in):
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
             if 'POS' in name:
-                print('I found this cell:' + name)
+                print('I found this:' + name)
                 position_data_matlab = loadmat(name)
                 position_data = get_position_data_frame(position_data_matlab)
                 if position_data is not False:
-                    print(position_data.head())
+                    # print(position_data.head())
                     # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
                     session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                     print('Session ID = ' + session_id)
                     firing_data = pd.DataFrame()
-                    firing_data = get_firing_data(folder_to_search_in, session_id)
+                    firing_data = get_firing_data(folder_to_search_in, session_id, firing_data)
 
 
 
