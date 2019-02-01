@@ -87,12 +87,10 @@ def process_data(folder_to_search_in):
                     # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
                     session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                     print('Session ID = ' + session_id)
-                    firing_data = pd.DataFrame()
-                    firing_data = get_firing_data(folder_to_search_in, session_id, firing_data)
-
-
-
-
+                    firing_data_session = pd.DataFrame()
+                    firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data)
+                    firing_data = firing_data.append(firing_data_session)
+                    print('Finished processing ' + session_id)
 
 
 def main():
