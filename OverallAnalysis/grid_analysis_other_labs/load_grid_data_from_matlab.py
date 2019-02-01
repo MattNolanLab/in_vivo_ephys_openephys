@@ -76,6 +76,7 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
 
 
 def process_data(folder_to_search_in):
+    firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
             if 'POS' in name:
