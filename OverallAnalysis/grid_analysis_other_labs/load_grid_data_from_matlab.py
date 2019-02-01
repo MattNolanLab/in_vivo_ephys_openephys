@@ -53,16 +53,31 @@ def get_position_data_frame(matlab_data):
         return False
 
 
+# search for all cells in the session where the position data was found correctly
+def get_firing_data(folder_to_search_in, session_id, firing_data):
+    for name in glob.glob(folder_to_search_in + '/*' + session_id + '*'):
+        print(name)
+        # get firing data from this cell
+    return firing_data
+
+
 def process_data(folder_to_search_in):
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
             if 'POS' in name:
                 print('I found this cell:' + name)
-                cell = loadmat(name)
-                position_data = get_position_data_frame(cell)
+                position_data_matlab = loadmat(name)
+                position_data = get_position_data_frame(position_data_matlab)
                 if position_data is not False:
                     print(position_data.head())
-            # figure out session id here and load firing data from all cells for each session so each trajectory is only processed once
+                    # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
+                    session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
+                    print('Session ID = ' + session_id)
+                    firing_data = pd.DataFrame()
+                    firing_data = get_firing_data(folder_to_search_in, session_id)
+
+
+
 
 
 
