@@ -66,7 +66,7 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
                 firing_times = pd.DataFrame()
                 firing_times['times'] = loadmat(name)['cellTS']
                 firing_times['times'] = firing_times['times'].sum()
-                firing_times_all_cells.append(firing_times.times.vales)
+                firing_times_all_cells.append(firing_times.times.values)
                 cell_names_all.append(cell_id)
                 session_ids_all.append(session_id)
     firing_data['session_id'] = session_ids_all
