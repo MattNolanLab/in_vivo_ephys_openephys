@@ -40,7 +40,6 @@ def process_data(folder_to_search_in):
             # figure out session id here and load firing data from all cells for each session so each trajectory is only processed once
 
 
-
 def main():
     process_data('//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini')
     matlab_data = loadmat('//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/11084-03020501_t2c1.mat')
