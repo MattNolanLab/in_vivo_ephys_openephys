@@ -35,11 +35,11 @@ def reshape_spike_histogram(spike_histogram):
 def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data_dwell_time):
     firing_rate_map['dwell_time'] = processed_position_data_dwell_time
     firing_rate_map['b_spike_rate_on_trials'] = np.nan_to_num(np.where(firing_rate_map['b_spike_num_on_trials'] > 0, firing_rate_map['b_spike_num_on_trials']/firing_rate_map['dwell_time'], 0))
-    spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(np.array(firing_rate_map['b_spike_rate_on_trials']))
+    spike_data.at[cluster_index, 'b_spike_rate_on_trials'] = list(np.array(firing_rate_map['b_spike_rate_on_trials']))
     firing_rate_map['nb_spike_rate_on_trials'] = np.nan_to_num(np.where(firing_rate_map['nb_spike_num_on_trials'] > 0, firing_rate_map['nb_spike_num_on_trials']/firing_rate_map['dwell_time'], 0))
-    spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(np.array(firing_rate_map['nb_spike_rate_on_trials']))
+    spike_data.at[cluster_index, 'nb_spike_rate_on_trials'] = list(np.array(firing_rate_map['nb_spike_rate_on_trials']))
     firing_rate_map['p_spike_rate_on_trials'] = np.nan_to_num(np.where(firing_rate_map['p_spike_num_on_trials'] > 0, firing_rate_map['p_spike_num_on_trials']/firing_rate_map['dwell_time'], 0))
-    spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(np.array(firing_rate_map['p_spike_rate_on_trials']))
+    spike_data.at[cluster_index, 'p_spike_rate_on_trials'] = list(np.array(firing_rate_map['p_spike_rate_on_trials']))
     return spike_data
 
 

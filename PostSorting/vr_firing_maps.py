@@ -65,14 +65,17 @@ def bin_spikes_over_location(spatial_data,trials,locations,number_of_trials, num
     avg_spike_histogram = sum_spikes_over_trials(spike_histogram, number_of_trials)
     return avg_spike_histogram
 
+
 def sum_spikes_over_trials(spike_histogram, number_of_trials):
     avg_spike_histogram = np.sum(spike_histogram, axis=0)/number_of_trials
     return avg_spike_histogram
+
 
 def bin_spikes_over_location_on_trials(spatial_data,trials,locations,number_of_trials, number_of_bins,array_of_trials):
     spike_histogram = create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials)
     avg_spike_histogram = reshape_spike_histogram(spike_histogram)
     return avg_spike_histogram
+
 
 def reshape_spike_histogram(spike_histogram):
     reshaped_spike_histogram = np.reshape(spike_histogram, (spike_histogram.shape[0]*spike_histogram.shape[1]))
@@ -81,29 +84,16 @@ def reshape_spike_histogram(spike_histogram):
 
 def find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, processed_position_data, cluster_index):
     bin_size_cm,number_of_bins = get_bin_size(raw_position_data) # get bin info
-    #load data from dataframe
     trials_b = np.array(spike_data.at[cluster_index, 'beaconed_trial_number']);locations_b = np.array(spike_data.at[cluster_index, 'beaconed_position_cm'])
     trials_nb = np.array(spike_data.at[cluster_index,'nonbeaconed_trial_number']);locations_nb = np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm'])
     trials_p = np.array(spike_data.at[cluster_index, 'probe_trial_number']);locations_p = np.array(spike_data.at[cluster_index, 'probe_position_cm'])
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials+1,1) # array of unique trial numbers
     number_of_beaconed_trials,number_of_nonbeaconed_trials, number_of_probe_trials = get_trial_numbers(processed_position_data)
-
     # call function to bin spike data according to location and trial number, average over trials and import into dataframe
     firing_rate_map['b_spike_number'] = bin_spikes_over_location(raw_position_data,trials_b,locations_b,number_of_beaconed_trials, number_of_bins,array_of_trials)
     firing_rate_map['nb_spike_number'] = bin_spikes_over_location(raw_position_data,trials_nb,locations_nb,number_of_nonbeaconed_trials, number_of_bins,array_of_trials)
     firing_rate_map['p_spike_number'] = bin_spikes_over_location(raw_position_data,trials_p,locations_p,number_of_probe_trials, number_of_bins,array_of_trials)
-    spike_data.at[cluster_index,'b_spike_number'] = list(firing_rate_map['b_spike_number'])
-    spike_data.at[cluster_index,'nb_spike_number'] = list(firing_rate_map['nb_spike_number'])
-    spike_data.at[cluster_index,'p_spike_number'] = list(firing_rate_map['p_spike_number'])
-
-    # this calls same functions but without suming spikes over trials, saves to dataframe for further analysis in R
-    b_spike_num_on_trials = bin_spikes_over_location_on_trials(raw_position_data,trials_b,locations_b,number_of_beaconed_trials, number_of_bins,array_of_trials)
-    nb_spike_num_on_trials = bin_spikes_over_location_on_trials(raw_position_data,trials_nb,locations_nb,number_of_nonbeaconed_trials, number_of_bins,array_of_trials)
-    p_spike_num_on_trials = bin_spikes_over_location_on_trials(raw_position_data,trials_p,locations_p,number_of_probe_trials, number_of_bins,array_of_trials)
-    spike_data.at[cluster_index,'b_spike_num_on_trials'] = list(b_spike_num_on_trials)
-    spike_data.at[cluster_index,'nb_spike_num_on_trials'] = list(nb_spike_num_on_trials)
-    spike_data.at[cluster_index,'p_spike_num_on_trials'] = list(p_spike_num_on_trials)
     return firing_rate_map,number_of_bins,array_of_trials
 
 
