@@ -55,14 +55,23 @@ def get_position_data_frame(matlab_data):
 
 # search for all cells in the session where the position data was found correctly
 def get_firing_data(folder_to_search_in, session_id, firing_data):
+    firing_times_all_cells = []
+    session_ids_all = []
+    cell_names_all = []
     for name in glob.glob(folder_to_search_in + '/*' + session_id + '*'):
         if os.path.exists(name):
             if 'EEG' not in name and 'EGF' not in name and 'POS' not in name and 'md5' not in name:
-                print('I found this cell' + name)
+                cell_id = name.split('\\')[-1].split('_')[-1].split('.')[0]
+                print('I found this cell:' + name)
                 firing_times = pd.DataFrame()
                 firing_times['times'] = loadmat(name)['cellTS']
-
-                # get firing data from this cell (firing times)
+                firing_times['times'] = firing_times['times'].sum()
+                firing_times_all_cells.append(firing_times.times.vales)
+                cell_names_all.append(cell_id)
+                session_ids_all.append(session_id)
+    firing_data['session_id'] = session_ids_all
+    firing_data['cell_id'] = cell_names_all
+    firing_data['firing_times'] = firing_times_all_cells
     return firing_data
 
 
