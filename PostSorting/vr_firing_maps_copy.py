@@ -17,7 +17,7 @@ def get_dwell(spatial_data, prm):
 
 
 def get_bin_size(prm):
-    bin_size_cm = 0.5
+    bin_size_cm = 1
     return bin_size_cm
 
 
@@ -51,7 +51,7 @@ def calculate_beaconed_firing_rate_for_cluster_parallel(cluster, smooth, firing_
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
     cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.beaconed_position_cm[cluster_index], 'y_position_cm': firing_data_spatial.beaconed_trial_number[cluster_index]})
     spike_positions_x = cluster_firings.x_position_cm.values
-    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    firing_rate_map = np.zeros((number_of_bins_x))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
             px = x * bin_size_pixels + (bin_size_pixels / 2)
@@ -63,9 +63,9 @@ def calculate_beaconed_firing_rate_for_cluster_parallel(cluster, smooth, firing_
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
-                firing_rate_map[x,y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+                firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
             else:
-                firing_rate_map[x,y] = 0
+                firing_rate_map[x] = 0
 
     return firing_rate_map
 
@@ -77,7 +77,7 @@ def calculate_nonbeaconed_firing_rate_for_cluster_parallel(cluster, smooth, firi
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
     cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.nonbeaconed_position_cm[cluster_index], 'y_position_cm': firing_data_spatial.nonbeaconed_trial_number[cluster_index]})
     spike_positions_x = cluster_firings.x_position_cm.values
-    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    firing_rate_map = np.zeros((number_of_bins_x))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
             px = x * bin_size_pixels + (bin_size_pixels / 2)
@@ -89,9 +89,9 @@ def calculate_nonbeaconed_firing_rate_for_cluster_parallel(cluster, smooth, firi
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
-                firing_rate_map[x,y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+                firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
             else:
-                firing_rate_map[x,y] = 0
+                firing_rate_map[x] = 0
 
     return firing_rate_map
 
@@ -103,7 +103,7 @@ def calculate_probe_firing_rate_for_cluster_parallel(cluster, smooth, firing_dat
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
     cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.probe_position_cm[cluster_index], 'y_position_cm': firing_data_spatial.probe_trial_number[cluster_index]})
     spike_positions_x = cluster_firings.x_position_cm.values
-    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    firing_rate_map = np.zeros((number_of_bins_x))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
             px = x * bin_size_pixels + (bin_size_pixels / 2)
@@ -115,9 +115,9 @@ def calculate_probe_firing_rate_for_cluster_parallel(cluster, smooth, firing_dat
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
-                firing_rate_map[x,y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+                firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
             else:
-                firing_rate_map[x,y] = 0
+                firing_rate_map[x] = 0
 
     return firing_rate_map
 
