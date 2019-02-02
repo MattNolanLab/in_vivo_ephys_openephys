@@ -36,7 +36,6 @@ def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, pro
     firing_rate_map['normalised_b_spike_number'] = np.nan_to_num(np.where(firing_rate_map['b_spike_number'] > 0, firing_rate_map['b_spike_number']/firing_rate_map['dwell_time'], 0))
     firing_rate_map['normalised_nb_spike_number'] = np.nan_to_num(np.where(firing_rate_map['nb_spike_number'] > 0, firing_rate_map['nb_spike_number']/firing_rate_map['dwell_time'], 0))
     firing_rate_map['normalised_p_spike_number'] = np.nan_to_num(np.where(firing_rate_map['p_spike_number'] > 0, firing_rate_map['p_spike_number']/firing_rate_map['dwell_time'], 0))
-
     # un-smoothed
     average_spikes_over_trials = np.array(firing_rate_map['normalised_b_spike_number'])
     spike_data.at[cluster_index, 'avg_spike_per_bin_b'] = list(average_spikes_over_trials)
@@ -44,7 +43,6 @@ def normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, pro
     spike_data.at[cluster_index, 'avg_spike_per_bin_nb'] = list(average_spikes_over_trials)
     average_spikes_over_trials = np.array(firing_rate_map['normalised_p_spike_number'])
     spike_data.at[cluster_index, 'avg_spike_per_bin_p'] = list(average_spikes_over_trials)
-
     # smoothed
     """
     average_spikes_over_trials = np.array(firing_rate_map['normalised_b_spike_number'])
