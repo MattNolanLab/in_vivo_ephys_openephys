@@ -75,6 +75,16 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
     return firing_data
 
 
+def get_spatial_data_for_firing_events(firing_data, position_data):
+    for index, cell in firing_data.iterrows():
+        firing_times = cell.firing_times.round(2)  # turn this into position indices based on sampling rate
+        #  take indices from position array and add x, y and hd to firing times df
+
+        pass
+
+    return firing_data
+
+
 def process_data(folder_to_search_in):
     firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
@@ -92,6 +102,8 @@ def process_data(folder_to_search_in):
                     firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data_session)
                     firing_data = firing_data.append(firing_data_session)
                     print('Finished processing ' + session_id)
+                    # get corresponding position and HD data for spike data frame
+                    firing_data = get_spatial_data_for_firing_events(firing_data, position_data)
 
     print('Processing finished.')
 
