@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import PostSorting.open_field_spatial_data
+import PostSorting.open_field_head_direction
 
 
 # this is necessary, because several datasets are missing tracking information from the second LED
@@ -66,6 +67,8 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
     firing_times_all_cells = []
     session_ids_all = []
     cell_names_all = []
+    cluster_id_all = []
+    cell_counter = 1
     for name in glob.glob(folder_to_search_in + '/*' + session_id + '*'):
         if os.path.exists(name):
             if 'EEG' not in name and 'EGF' not in name and 'POS' not in name and 'md5' not in name:
@@ -77,8 +80,11 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
                 firing_times_all_cells.append(firing_times.times.values)
                 cell_names_all.append(cell_id)
                 session_ids_all.append(session_id)
+                cluster_id_all.append(cell_counter)
+                cell_counter += 1
     firing_data['session_id'] = session_ids_all
     firing_data['cell_id'] = cell_names_all
+    firing_data['cluster_id'] = cluster_id_all
     firing_data['firing_times'] = firing_times_all_cells
     return firing_data
 
@@ -107,6 +113,21 @@ def get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate
     return firing_data
 
 
+# load firing data and get corresponding spatial data
+def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id):
+    sampling_rate_of_position_data = calculate_position_sampling_rate(position_data)
+    # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
+    session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
+    print('Session ID = ' + session_id)
+    firing_data_session = pd.DataFrame()
+    firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data_session)
+    firing_data = firing_data.append(firing_data_session)
+    print('Finished processing ' + session_id)
+    # get corresponding position and HD data for spike data frame
+    firing_data = get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate_of_position_data)
+    return firing_data
+
+
 def process_data(folder_to_search_in):
     firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
@@ -115,19 +136,12 @@ def process_data(folder_to_search_in):
                 print('I found this:' + name)
                 position_data_matlab = loadmat(name)
                 position_data = get_position_data_frame(position_data_matlab)
+                session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                 if position_data is not False:
-                    sampling_rate_of_position_data = calculate_position_sampling_rate(position_data)
-                    # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
-                    session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
-                    print('Session ID = ' + session_id)
-                    firing_data_session = pd.DataFrame()
-                    firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data_session)
-                    firing_data = firing_data.append(firing_data_session)
-                    print('Finished processing ' + session_id)
-                    # get corresponding position and HD data for spike data frame
-                    firing_data = get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate_of_position_data)
+                    firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
 
     print('Processing finished.')
+
 
 def main():
     process_data('//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data')
