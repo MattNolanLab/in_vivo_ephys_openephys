@@ -160,6 +160,7 @@ def process_data(folder_to_search_in):
                     firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
                     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
                     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data, firing_data, prm)
+                    # TODO : call individual functions separately, figure out what to do with the dwell time
                     pass
                     #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                     # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
