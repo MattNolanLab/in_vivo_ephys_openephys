@@ -6,6 +6,10 @@ import os
 import pandas as pd
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_head_direction
+import PostSorting.parameters
+
+prm = PostSorting.parameters.Parameters()
+prm.set_sampling_rate(48000)  # this is according to Sarolini et al. (2006)
 
 
 # this is necessary, because several datasets are missing tracking information from the second LED
@@ -59,6 +63,7 @@ def calculate_position_sampling_rate(position_data):
     times = position_data.time_seconds
     interval = times[1] - times[0]
     sampling_rate = 1 / interval
+    prm.set_sampling_rate(sampling_rate)
     return sampling_rate
 
 
@@ -139,6 +144,13 @@ def process_data(folder_to_search_in):
                 session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                 if position_data is not False:
                     firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
+                    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
+                    # position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data, firing_data, prm)
+                    #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+                    # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
+                    # save data frames
+                    # make plots
+
 
     print('Processing finished.')
 
