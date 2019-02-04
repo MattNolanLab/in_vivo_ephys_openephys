@@ -127,7 +127,6 @@ def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in
     firing_data_session = pd.DataFrame()
     firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data_session)
     firing_data = firing_data.append(firing_data_session)
-    print('Finished processing ' + session_id)
     # get corresponding position and HD data for spike data frame
     firing_data = get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate_of_position_data)
     return firing_data
