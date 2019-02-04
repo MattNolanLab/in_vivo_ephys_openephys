@@ -53,6 +53,14 @@ def get_position_data_frame(matlab_data):
         return False
 
 
+# calculate the sampling rate of the position data (camera) based on the intervals in the array
+def calculate_position_sampling_rate(position_data):
+    times = position_data.time_seconds
+    interval = times[1] - times[0]
+    sampling_rate = 1 / interval
+    return sampling_rate
+
+
 # search for all cells in the session where the position data was found correctly
 def get_firing_data(folder_to_search_in, session_id, firing_data):
     firing_times_all_cells = []
@@ -75,13 +83,27 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
     return firing_data
 
 
-def get_spatial_data_for_firing_events(firing_data, position_data):
+# get corresponding position data for firing events
+def get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate_position_data):
+    spike_position_x_all = []
+    spike_position_y_all = []
+    spike_hd_all = []
+    spike_speed_all = []
     for index, cell in firing_data.iterrows():
         firing_times = cell.firing_times.round(2)  # turn this into position indices based on sampling rate
-        #  take indices from position array and add x, y and hd to firing times df
-
-        pass
-
+        corresponding_indices_in_position_data = np.round(firing_times / (1 / sampling_rate_position_data))
+        spike_x = position_data.position_x[corresponding_indices_in_position_data]
+        spike_y = position_data.position_y[corresponding_indices_in_position_data]
+        spike_hd = position_data.hd[corresponding_indices_in_position_data]
+        spike_speed = position_data.speed[corresponding_indices_in_position_data]
+        spike_position_x_all.append(spike_x)
+        spike_position_y_all.append(spike_y)
+        spike_hd_all.append(spike_hd)
+        spike_speed_all.append(spike_speed)
+    firing_data['position_x'] = spike_position_x_all
+    firing_data['position_y'] = spike_position_y_all
+    firing_data['hd'] = spike_hd_all
+    firing_data['speed'] = spike_speed_all
     return firing_data
 
 
@@ -94,7 +116,7 @@ def process_data(folder_to_search_in):
                 position_data_matlab = loadmat(name)
                 position_data = get_position_data_frame(position_data_matlab)
                 if position_data is not False:
-                    # print(position_data.head())
+                    sampling_rate_of_position_data = calculate_position_sampling_rate(position_data)
                     # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
                     session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                     print('Session ID = ' + session_id)
@@ -103,7 +125,7 @@ def process_data(folder_to_search_in):
                     firing_data = firing_data.append(firing_data_session)
                     print('Finished processing ' + session_id)
                     # get corresponding position and HD data for spike data frame
-                    firing_data = get_spatial_data_for_firing_events(firing_data, position_data)
+                    firing_data = get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate_of_position_data)
 
     print('Processing finished.')
 
