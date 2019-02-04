@@ -1,3 +1,4 @@
+import file_utility
 import glob
 from mat4py import loadmat
 import matplotlib.pylab as plt
@@ -131,8 +132,18 @@ def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in
     return firing_data
 
 
+# make folder for output and set parameter object to point at it
+def create_folder_structure(file_path, session_id, rat_id, prm):
+    main_folder = file_path.split('\\')[:-1][0]
+    main_recording_session_folder = main_folder + '/' + session_id + '-' + rat_id
+    prm.set_file_path(main_recording_session_folder)
+    if os.path.exists(main_recording_session_folder) is False:
+        os.makedirs(main_recording_session_folder)
+
+
 def process_data(folder_to_search_in):
     prm.set_sampling_rate(48000)  # this is according to Sarolini et al. (2006)
+    prm.set_sorter_name('Manual')
     prm.set_is_stable(True)  # todo: this needs to be removed - R analysis won't run for now
     firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
@@ -142,7 +153,9 @@ def process_data(folder_to_search_in):
                 position_data_matlab = loadmat(name)
                 position_data = get_position_data_frame(position_data_matlab)
                 session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
+                rat_id = name.split('\\')[-1].split('.')[0].split('-')[0]
                 if position_data is not False:
+                    create_folder_structure(name, session_id, rat_id, prm)
                     firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
                     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
                     # position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data, firing_data, prm)
