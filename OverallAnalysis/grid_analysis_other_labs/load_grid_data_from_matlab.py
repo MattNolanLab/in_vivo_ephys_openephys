@@ -9,7 +9,6 @@ import PostSorting.open_field_head_direction
 import PostSorting.parameters
 
 prm = PostSorting.parameters.Parameters()
-prm.set_sampling_rate(48000)  # this is according to Sarolini et al. (2006)
 
 
 # this is necessary, because several datasets are missing tracking information from the second LED
@@ -63,7 +62,6 @@ def calculate_position_sampling_rate(position_data):
     times = position_data.time_seconds
     interval = times[1] - times[0]
     sampling_rate = 1 / interval
-    prm.set_sampling_rate(sampling_rate)
     return sampling_rate
 
 
@@ -134,6 +132,7 @@ def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in
 
 
 def process_data(folder_to_search_in):
+    prm.set_sampling_rate(48000)  # this is according to Sarolini et al. (2006)
     firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
