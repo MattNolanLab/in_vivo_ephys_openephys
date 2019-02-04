@@ -211,9 +211,9 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
-        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
-        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
+        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_b_spike_rate'])
+        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate'])
+        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_p_spike_rate'])
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(unsmooth_b, '-', color='Black')
@@ -224,9 +224,9 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
-        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb']))
-        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p']))
+        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_b_spike_rate']))
+        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate']))
+        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_p_spike_rate']))
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
@@ -268,9 +268,9 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         plot_utility.style_vr_plot(ax, x_max)
 
         ax = spikes_on_track.add_subplot(2, 1, 2)  # specify (nrows, ncols, axnum)
-        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
-        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
-        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
+        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_b_spike_rate'])
+        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate'])
+        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_p_spike_rate'])
         ax.plot(unsmooth_b, '-', color='Black')
         ax.plot(unsmooth_nb, '-', color='Red')
         ax.plot(unsmooth_p, '-', color='Blue')
@@ -279,9 +279,9 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
-        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb']))
-        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p']))
+        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_b_spike_rate']))
+        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate']))
+        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_p_spike_rate']))
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
