@@ -133,6 +133,7 @@ def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in
 
 def process_data(folder_to_search_in):
     prm.set_sampling_rate(48000)  # this is according to Sarolini et al. (2006)
+    prm.set_is_stable(True)  # todo: this needs to be removed - R analysis won't run for now
     firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
