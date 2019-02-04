@@ -74,18 +74,18 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
     cluster_id_all = []
     cell_counter = 1
     for name in glob.glob(folder_to_search_in + '/*' + session_id + '*'):
-        if os.path.exists(name):
-            if 'EEG' not in name and 'EGF' not in name and 'POS' not in name and 'md5' not in name:
-                cell_id = name.split('\\')[-1].split('_')[-1].split('.')[0]
-                print('I found this cell:' + name)
-                firing_times = pd.DataFrame()
-                firing_times['times'] = loadmat(name)['cellTS']
-                firing_times['times'] = firing_times['times'].sum()
-                firing_times_all_cells.append(firing_times.times.values)
-                cell_names_all.append(cell_id)
-                session_ids_all.append(session_id)
-                cluster_id_all.append(cell_counter)
-                cell_counter += 1
+        if os.path.exists(name) and os.path.isdir(name) is False:
+                if 'EEG' not in name and 'EGF' not in name and 'POS' not in name and 'md5' not in name:
+                    cell_id = name.split('\\')[-1].split('_')[-1].split('.')[0]
+                    print('I found this cell:' + name)
+                    firing_times = pd.DataFrame()
+                    firing_times['times'] = loadmat(name)['cellTS']
+                    firing_times['times'] = firing_times['times'].sum()
+                    firing_times_all_cells.append(firing_times.times.values)
+                    cell_names_all.append(cell_id)
+                    session_ids_all.append(session_id)
+                    cluster_id_all.append(cell_counter)
+                    cell_counter += 1
     firing_data['session_id'] = session_ids_all
     firing_data['cell_id'] = cell_names_all
     firing_data['cluster_id'] = cluster_id_all
@@ -137,8 +137,9 @@ def create_folder_structure(file_path, session_id, rat_id, prm):
     main_folder = file_path.split('\\')[:-1][0]
     main_recording_session_folder = main_folder + '/' + session_id + '-' + rat_id
     prm.set_file_path(main_recording_session_folder)
-    if os.path.exists(main_recording_session_folder) is False:
+    if os.path.isdir(main_recording_session_folder) is False:
         os.makedirs(main_recording_session_folder)
+        print('I made this folder: ' + main_recording_session_folder)
 
 
 def process_data(folder_to_search_in):
