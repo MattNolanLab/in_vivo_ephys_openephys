@@ -5,7 +5,8 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
-import PostSorting.open_field_firing_maps
+import OverallAnalysis.grid_analysis_other_labs.firing_maps
+import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_spatial_data
 import PostSorting.parameters
@@ -142,8 +143,13 @@ def create_folder_structure(file_path, session_id, rat_id, prm):
         print('I made this folder: ' + main_recording_session_folder)
 
 
+def get_rate_maps(position_data, firing_data):
+    position_heat_map, spatial_firing = OverallAnalysis.grid_analysis_other_labs.firing_maps.make_firing_field_maps(position_data, firing_data, prm)
+    return position_heat_map, spatial_firing
+
+
 def process_data(folder_to_search_in):
-    prm.set_sampling_rate(48000)  # this is according to Sarolini et al. (2006)
+    prm.set_sampling_rate(48000)  # this is according to Sargolini et al. (2006)
     prm.set_sorter_name('Manual')
     # prm.set_is_stable(True)  # todo: this needs to be removed - R analysis won't run for now
     firing_data = pd.DataFrame()
@@ -159,11 +165,10 @@ def process_data(folder_to_search_in):
                     create_folder_structure(name, session_id, rat_id, prm)
                     firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
                     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
-                    position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data, firing_data, prm)
-                    # TODO : call individual functions separately, figure out what to do with the dwell time
-                    pass
+                    position_heat_map, spatial_firing = get_rate_maps(position_data, firing_data)
                     #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
-                    # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
+                    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
+                    pass
                     # save data frames
                     # make plots
 
