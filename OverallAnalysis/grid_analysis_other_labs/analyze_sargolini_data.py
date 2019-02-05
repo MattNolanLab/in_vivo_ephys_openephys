@@ -5,6 +5,9 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
+import sys
+import traceback
+
 import OverallAnalysis.grid_analysis_other_labs.firing_maps
 import PostSorting.make_plots
 import PostSorting.open_field_make_plots
@@ -12,7 +15,6 @@ import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_spatial_data
 import PostSorting.parameters
-
 prm = PostSorting.parameters.Parameters()
 
 
@@ -201,16 +203,20 @@ def process_data(folder_to_search_in):
                 session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
                 rat_id = name.split('\\')[-1].split('.')[0].split('-')[0]
                 if position_data is not False:
-                    create_folder_structure(name, session_id, rat_id, prm)
-                    firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
-                    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
-                    position_heat_map, spatial_firing = get_rate_maps(position_data, firing_data)
-                    #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
-                    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
-                    save_data_frames(spatial_firing, position_data)
-                    make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
-                    # save data frames
-                    # make plots
+                    try:
+                        create_folder_structure(name, session_id, rat_id, prm)
+                        firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
+                        hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
+                        position_heat_map, spatial_firing = get_rate_maps(position_data, firing_data)
+                        #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+                        spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
+                        save_data_frames(spatial_firing, position_data)
+                        make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
+                    except Exception as ex:
+                        print('I failed to analyze this cell.')
+                        print(ex)
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        traceback.print_tb(exc_traceback)
 
     print('Processing finished.')
 
