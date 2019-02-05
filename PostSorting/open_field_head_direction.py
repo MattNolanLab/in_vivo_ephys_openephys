@@ -203,7 +203,7 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
     spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster].values
     spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster].values
     spatial_firing_cluster['hd'] = spatial_firing.hd[cluster].values
-    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster].values
+    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
     hd_in_field, spike_times = get_hd_in_field_spikes(rate_map_indices, spatial_firing_cluster, prm)
     hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field, spike_times
