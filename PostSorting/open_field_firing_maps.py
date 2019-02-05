@@ -86,7 +86,8 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     return firing_data_spatial
 
 
-def get_position_heatmap(spatial_data, prm, min_dwell, min_dwell_distance_cm):
+def get_position_heatmap(spatial_data, prm):
+    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
     bin_size_cm = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
 
@@ -121,8 +122,7 @@ def find_maximum_firing_rate(spatial_firing):
 
 
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
-    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
-    position_heat_map = get_position_heatmap(spatial_data, prm, min_dwell, min_dwell_distance_cm)
+    position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
     #position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
     firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
