@@ -6,6 +6,8 @@ import numpy as np
 import os
 import pandas as pd
 import OverallAnalysis.grid_analysis_other_labs.firing_maps
+import PostSorting.make_plots
+import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_spatial_data
@@ -78,6 +80,7 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
     session_ids_all = []
     cell_names_all = []
     cluster_id_all = []
+    number_of_spikes_all = []
     cell_counter = 1
     for name in glob.glob(folder_to_search_in + '/*' + session_id + '*'):
         if os.path.exists(name) and os.path.isdir(name) is False:
@@ -91,11 +94,13 @@ def get_firing_data(folder_to_search_in, session_id, firing_data):
                     cell_names_all.append(cell_id)
                     session_ids_all.append(session_id)
                     cluster_id_all.append(cell_counter)
+                    number_of_spikes_all.append(len(firing_times.times))
                     cell_counter += 1
     firing_data['session_id'] = session_ids_all
     firing_data['cell_id'] = cell_names_all
     firing_data['cluster_id'] = cluster_id_all
     firing_data['firing_times'] = firing_times_all_cells
+    firing_data['number_of_spikes'] = number_of_spikes_all
     return firing_data
 
 
@@ -105,6 +110,8 @@ def get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate
     spike_position_y_all = []
     spike_hd_all = []
     spike_speed_all = []
+    mean_firing_rate_all = []
+    total_length_of_session_seconds = position_data.time_seconds.max()
     for index, cell in firing_data.iterrows():
         firing_times = cell.firing_times.round(2)  # turn this into position indices based on sampling rate
         corresponding_indices_in_position_data = np.round(firing_times / (1 / sampling_rate_position_data))
@@ -116,12 +123,14 @@ def get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate
         spike_position_y_all.append(spike_y)
         spike_hd_all.append(spike_hd)
         spike_speed_all.append(spike_speed)
+        mean_firing_rate_all.append(cell.number_of_spikes / total_length_of_session_seconds)
     firing_data['position_x'] = np.array(spike_position_x_all)
     firing_data['position_y'] = np.array(spike_position_y_all)
     firing_data['position_x_pixels'] = np.array(spike_position_x_all)
     firing_data['position_y_pixels'] = np.array(spike_position_y_all)
     firing_data['hd'] = np.array(spike_hd_all)
     firing_data['speed'] = np.array(spike_speed_all)
+    firing_data['mean_firing_rate'] = np.array(mean_firing_rate_all)
     return firing_data
 
 
@@ -144,6 +153,7 @@ def create_folder_structure(file_path, session_id, rat_id, prm):
     main_folder = file_path.split('\\')[:-1][0]
     main_recording_session_folder = main_folder + '/' + session_id + '-' + rat_id
     prm.set_file_path(main_recording_session_folder)
+    prm.set_output_path(main_recording_session_folder)
     if os.path.isdir(main_recording_session_folder) is False:
         os.makedirs(main_recording_session_folder)
         print('I made this folder: ' + main_recording_session_folder)
@@ -152,6 +162,28 @@ def create_folder_structure(file_path, session_id, rat_id, prm):
 def get_rate_maps(position_data, firing_data):
     position_heat_map, spatial_firing = OverallAnalysis.grid_analysis_other_labs.firing_maps.make_firing_field_maps(position_data, firing_data, prm)
     return position_heat_map, spatial_firing
+
+
+def save_data_frames(spatial_firing, spatial_data):
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
+    spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
+
+
+def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
+    PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
+    PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
+    PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
+    PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
+    # PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
+    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
 def process_data(folder_to_search_in):
@@ -175,7 +207,8 @@ def process_data(folder_to_search_in):
                     position_heat_map, spatial_firing = get_rate_maps(position_data, firing_data)
                     #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
-                    pass
+                    save_data_frames(spatial_firing, position_data)
+                    make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
                     # save data frames
                     # make plots
 
