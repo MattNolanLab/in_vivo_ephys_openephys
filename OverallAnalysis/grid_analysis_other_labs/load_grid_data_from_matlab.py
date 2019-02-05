@@ -53,7 +53,11 @@ def get_position_data_frame(matlab_data):
         position_data = PostSorting.open_field_spatial_data.calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
         position_data = PostSorting.open_field_spatial_data.shift_to_start_from_zero_at_bottom_left(position_data)
         position_data = PostSorting.open_field_spatial_data.calculate_central_speed(position_data)
-        position_of_mouse = position_data[['time_seconds', 'position_x', 'position_y', 'hd', 'speed']].copy()
+        position_data['position_x_pixels'] = position_data.position_x.values  # this is here so I don't have to change the pipeline too much
+        position_data['position_y_pixels'] = position_data.position_y.values
+        position_data['hd'] = position_data['hd'].values
+        position_data['synced_time'] = position_data.time_seconds
+        position_of_mouse = position_data[['time_seconds', 'synced_time', 'position_x', 'position_y', 'position_x_pixels', 'position_y_pixels', 'hd', 'speed']].copy()
         # plt.plot(position_data.position_x, position_data.position_y) # this is to plot the trajectory. it looks weird
         return position_of_mouse
     else:
@@ -112,10 +116,12 @@ def get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate
         spike_position_y_all.append(spike_y)
         spike_hd_all.append(spike_hd)
         spike_speed_all.append(spike_speed)
-    firing_data['position_x'] = spike_position_x_all
-    firing_data['position_y'] = spike_position_y_all
-    firing_data['hd'] = spike_hd_all
-    firing_data['speed'] = spike_speed_all
+    firing_data['position_x'] = np.array(spike_position_x_all)
+    firing_data['position_y'] = np.array(spike_position_y_all)
+    firing_data['position_x_pixels'] = np.array(spike_position_x_all)
+    firing_data['position_y_pixels'] = np.array(spike_position_y_all)
+    firing_data['hd'] = np.array(spike_hd_all)
+    firing_data['speed'] = np.array(spike_speed_all)
     return firing_data
 
 
@@ -150,6 +156,7 @@ def get_rate_maps(position_data, firing_data):
 
 def process_data(folder_to_search_in):
     prm.set_sampling_rate(48000)  # this is according to Sargolini et al. (2006)
+    prm.set_pixel_ratio(100)  # this is because the data is already in cm so there's no need to convert
     prm.set_sorter_name('Manual')
     # prm.set_is_stable(True)  # todo: this needs to be removed - R analysis won't run for now
     firing_data = pd.DataFrame()
@@ -171,7 +178,6 @@ def process_data(folder_to_search_in):
                     pass
                     # save data frames
                     # make plots
-
 
     print('Processing finished.')
 
