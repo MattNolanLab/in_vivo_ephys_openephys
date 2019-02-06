@@ -212,30 +212,6 @@ def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
     field_data['percentile_of_observed_data'] = percentile_observed_data_bars
     return field_data
 
-'''
-# calculate percentile of real data relative to shuffled for each bar todo rewrite this for shuffled data
-def calculate_percentile_of_shuffled_data(field_data, number_of_bars=20):
-    percentile_observed_data_bars = []
-    for index, field in field_data.iterrows():
-        field_histograms = field['shuffled_data']
-        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
-        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
-        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
-        number_of_shuffles = len(field_data.shuffled_data[0])
-        percentiles_of_shuffles = []
-        for shuffle in range(number_of_shuffles):
-            percentiles_of_observed_bars = np.empty(number_of_bars)
-            percentiles_of_observed_bars[:] = np.nan
-            for bar in range(number_of_bars):
-                observed_data = field.hd_histogram_real_data[bar]
-                shuffled_data = shuffled_data_normalized[:, bar]
-                percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
-                percentiles_of_observed_bars[bar] = percentile_of_observed_data
-            percentile_observed_data_bars.append(percentiles_of_observed_bars)
-    field_data['percentile_of_observed_data'] = percentile_observed_data_bars
-    return field_data
-'''
-
 
 #  convert percentile to p value by subtracting the percentile from 100 when it is > than 50
 def convert_percentile_to_p_value(field_data):
