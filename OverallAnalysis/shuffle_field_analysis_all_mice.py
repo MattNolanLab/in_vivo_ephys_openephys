@@ -96,7 +96,8 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
         number_of_significant_p_values = field_data.number_of_different_bins_holm
 
     fig, ax = plt.subplots()
-    plt.hist(number_of_significant_p_values, color='yellow')
+    plt.hist(number_of_significant_p_values, normed='True', color='yellow', alpha=50)
+    plt.hist(field_data.number_of_different_bins_shuffled_corrected_p, normed='True', color='grey', alpha=50)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
