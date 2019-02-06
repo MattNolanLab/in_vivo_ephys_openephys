@@ -175,9 +175,9 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
         spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
 
         #uncomment if you want to plot stops
         #ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
