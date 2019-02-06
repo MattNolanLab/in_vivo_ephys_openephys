@@ -159,6 +159,40 @@ def test_if_shuffle_differs_from_other_shuffles(field_data):
     return field_data
 
 
+# this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
+# perform B/H analysis on each shuffle and count rejects
+def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, number_of_bars=20):
+    number_of_shuffles = len(field_data.shuffled_data[0])
+    rejected_bins_all_shuffles = []
+    for index, field in field_data.iterrows():
+        field_histograms = field['shuffled_data']
+        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
+        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
+        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        rejects_field = np.empty(number_of_shuffles)
+        rejects_field[:] = np.nan
+        percentile_observed_data_bars = []
+        for shuffle in range(number_of_shuffles):
+            percentiles_of_observed_bars = np.empty(number_of_bars)
+            percentiles_of_observed_bars[:] = np.nan
+            for bar in range(number_of_bars):
+                observed_data = shuffled_data_normalized[shuffle][bar]
+                shuffled_data = shuffled_data_normalized[:, bar]
+                percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
+                percentiles_of_observed_bars[bar] = percentile_of_observed_data
+            percentile_observed_data_bars.append(percentiles_of_observed_bars)  # percentile of shuffle relative to all other shuffles
+            # convert percentile to p value
+            percentiles_of_observed_bars[percentiles_of_observed_bars > 50] = 100 - percentiles_of_observed_bars[percentiles_of_observed_bars > 50]
+            # correct p values (B/H)
+            reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(percentiles_of_observed_bars, alpha=0.05, method='fdr_bh')
+            # count significant bars and put this number in df
+            number_of_rejects = reject.sum()
+            rejects_field[shuffle] = number_of_rejects
+        rejected_bins_all_shuffles.append(rejects_field)
+    field_data['number_of_different_bins_shuffled_corrected_p'] = rejected_bins_all_shuffles
+    return field_data
+
+
 # calculate percentile of real data relative to shuffled for each bar
 def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
     percentile_observed_data_bars = []
@@ -177,6 +211,30 @@ def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
         percentile_observed_data_bars.append(percentiles_of_observed_bars)
     field_data['percentile_of_observed_data'] = percentile_observed_data_bars
     return field_data
+
+'''
+# calculate percentile of real data relative to shuffled for each bar todo rewrite this for shuffled data
+def calculate_percentile_of_shuffled_data(field_data, number_of_bars=20):
+    percentile_observed_data_bars = []
+    for index, field in field_data.iterrows():
+        field_histograms = field['shuffled_data']
+        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
+        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
+        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        number_of_shuffles = len(field_data.shuffled_data[0])
+        percentiles_of_shuffles = []
+        for shuffle in range(number_of_shuffles):
+            percentiles_of_observed_bars = np.empty(number_of_bars)
+            percentiles_of_observed_bars[:] = np.nan
+            for bar in range(number_of_bars):
+                observed_data = field.hd_histogram_real_data[bar]
+                shuffled_data = shuffled_data_normalized[:, bar]
+                percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
+                percentiles_of_observed_bars[bar] = percentile_of_observed_data
+            percentile_observed_data_bars.append(percentiles_of_observed_bars)
+    field_data['percentile_of_observed_data'] = percentile_observed_data_bars
+    return field_data
+'''
 
 
 #  convert percentile to p value by subtracting the percentile from 100 when it is > than 50
@@ -254,11 +312,13 @@ def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
     field_data = test_if_shuffle_differs_from_other_shuffles(field_data)
 
     field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
+    # field_data = calculate_percentile_of_shuffled_data(field_data, number_of_bars=20)
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data, type='bh')  # BH correction on p values from previous function
     field_data = calculate_corrected_p_values(field_data, type='holm')  # Holm correction on p values from previous function
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh')
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='holm')
+    field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, number_of_bars=20)
     plot_bar_chart_for_fields(field_data, save_path)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
     return field_data
