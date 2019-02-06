@@ -45,11 +45,11 @@ def reshape_to_average_over_trials(array, number_of_trials, number_of_trial_type
 
 def average_over_trials(cluster_index, spike_data, number_of_trials, processed_position_data):
     number_of_beaconed_trials,number_of_nonbeaconed_trials, number_of_probe_trials = get_trial_numbers(processed_position_data)
-    reshaped_spike_histogram = reshape_to_average_over_trials(spike_data.at[cluster_index, 'b_spike_rate_on_trials'], number_of_trials, number_of_beaconed_trials)
+    reshaped_spike_histogram = reshape_to_average_over_trials(np.array(spike_data.at[cluster_index, 'b_spike_rate_on_trials']), number_of_trials, number_of_beaconed_trials)
     spike_data.at[cluster_index, 'avg_b_spike_rate'] = list(reshaped_spike_histogram)
-    reshaped_spike_histogram = reshape_to_average_over_trials(spike_data.at[cluster_index, 'nb_spike_rate_on_trials'], number_of_trials, number_of_nonbeaconed_trials)
+    reshaped_spike_histogram = reshape_to_average_over_trials(np.array(spike_data.at[cluster_index, 'nb_spike_rate_on_trials']), number_of_trials, number_of_nonbeaconed_trials)
     spike_data.at[cluster_index, 'avg_nb_spike_rate'] = list(reshaped_spike_histogram)
-    reshaped_spike_histogram = reshape_to_average_over_trials(spike_data.at[cluster_index, 'p_spike_rate_on_trials'], number_of_trials, number_of_probe_trials)
+    reshaped_spike_histogram = reshape_to_average_over_trials(np.array(spike_data.at[cluster_index, 'p_spike_rate_on_trials']), number_of_trials, number_of_probe_trials)
     spike_data.at[cluster_index, 'avg_p_spike_rate'] = list(reshaped_spike_histogram)
     return spike_data
 
@@ -75,7 +75,7 @@ def find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, cluste
     spike_data.at[cluster_index,'nb_spike_num_on_trials'] = list(np.array(firing_rate_map['nb_spike_num_on_trials']))
     firing_rate_map['p_spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'probe_trial_number']), np.array(spike_data.at[cluster_index, 'probe_position_cm']), number_of_bins,array_of_trials)
     spike_data.at[cluster_index,'p_spike_num_on_trials'] = list(np.array(firing_rate_map['p_spike_num_on_trials']))
-    return firing_rate_map,number_of_bins,array_of_trials
+    return firing_rate_map,number_of_bins,array_of_trials,spike_data
 
 
 def make_firing_field_maps(spike_data, raw_position_data, processed_position_data):
@@ -83,7 +83,7 @@ def make_firing_field_maps(spike_data, raw_position_data, processed_position_dat
     for cluster_index in range(len(spike_data)):
         firing_rate_map = pd.DataFrame()
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, cluster_index)
+        firing_rate_map,number_of_bins,array_of_trials,spike_data = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, cluster_index)
         spike_data = normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         spike_data = average_over_trials(cluster_index,spike_data, raw_position_data.trial_number.max(), processed_position_data)
         #smooth_firing_rate(cluster_index,spike_data)
