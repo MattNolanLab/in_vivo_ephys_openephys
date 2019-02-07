@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
+import scipy.stats
 
 # this data frame contains results calculated by shuffle_field_analysis.py combined by load_data_frames.py
 local_path_to_shuffled_field_data = '/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl'
@@ -111,6 +112,19 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     plt.close()
 
 
+def compare_distributions(x, y):
+    stat, p = scipy.stats.mannwhitneyu(x, y)
+    return p
+
+
+def compare_shuffled_to_real_data_mw_test(field_data):
+    flat_shuffled = []
+    for field in field_data.number_of_different_bins_shuffled_corrected_p:
+        flat_shuffled.extend(field)
+    p1 = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+    print(p1)
+
+
 def main():
     shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
     shuffled_field_data = get_accepted_fields(shuffled_field_data)
@@ -120,6 +134,8 @@ def main():
     plot_number_of_significant_p_values(shuffled_field_data, type='bh')
     plot_number_of_significant_p_values(shuffled_field_data, type='holm')
     make_combined_plot_of_distributions(shuffled_field_data)
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data)
+
 
 
 
