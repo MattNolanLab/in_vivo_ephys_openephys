@@ -117,12 +117,22 @@ def compare_distributions(x, y):
     return p
 
 
-def compare_shuffled_to_real_data_mw_test(field_data):
-    flat_shuffled = []
-    for field in field_data.number_of_different_bins_shuffled_corrected_p:
-        flat_shuffled.extend(field)
-    p1 = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
-    print(p1)
+def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
+    if analysis_type == 'bh':
+        flat_shuffled = []
+        for field in field_data.number_of_different_bins_shuffled_corrected_p:
+            flat_shuffled.extend(field)
+            p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+            print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+            return p_bh
+
+    if analysis_type == 'percentile':
+        flat_shuffled = []
+        for field in field_data.number_of_different_bins_shuffled:
+            flat_shuffled.extend(field)
+            p_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
+            print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+            return p_percentile
 
 
 def main():
@@ -134,9 +144,9 @@ def main():
     plot_number_of_significant_p_values(shuffled_field_data, type='bh')
     plot_number_of_significant_p_values(shuffled_field_data, type='holm')
     make_combined_plot_of_distributions(shuffled_field_data)
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data)
 
-
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data, analysis_type='bh')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data, analysis_type='percentile')
 
 
 if __name__ == '__main__':
