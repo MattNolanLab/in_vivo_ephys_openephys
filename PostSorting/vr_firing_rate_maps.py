@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import matplotlib.pylab as plt
 
 def get_trial_numbers(spatial_data):
     beaconed_trial_no = spatial_data.at[0,'beaconed_total_trial_number']
@@ -38,8 +38,9 @@ def reshape_spike_histogram(spike_histogram):
 
 
 def reshape_to_average_over_trials(array, number_of_trials, number_of_trial_type_trials):
-    reshaped_spike_histogram = np.reshape(array, (200, int(number_of_trials)))
-    avg_spike_histogram = np.sum(reshaped_spike_histogram, axis=1)/number_of_trial_type_trials
+    reshaped_spike_histogram = np.reshape(array, (int(number_of_trials), 200))
+    avg_spike_histogram = np.sum(reshaped_spike_histogram, axis=0)/number_of_trial_type_trials
+    plt.plot(avg_spike_histogram)
     return avg_spike_histogram
 
 
