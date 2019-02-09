@@ -86,8 +86,8 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pkl')   # for two-sample watson analysis
-    load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
+    load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all.pkl')   # for two-sample watson analysis
+    # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
 
 if __name__ == '__main__':
