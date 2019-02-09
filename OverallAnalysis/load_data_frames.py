@@ -42,7 +42,7 @@ def load_data_frame_spatial_firing(output_path):
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
                 print(spatial_firing_data.head())
-    spatial_firing_data.to_pickle(local_output_path)
+    spatial_firing_data.to_pickle(output_path)
 
 
 # for shuffle analysis
