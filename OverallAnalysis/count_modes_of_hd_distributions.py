@@ -9,9 +9,9 @@ def count_modes_of_hd_distributions():
     print(spatial_firing.head())
 
     for index, cluster in spatial_firing.iterrows():
-        hd_cluster = cluster.hd
+        hd_cluster = cluster.hd  # todo need to convert this to an R object http://rpy.sourceforge.net/rpy2/doc-2.2/html/vector.html
         r.r.source('count_modes_of_circular_dist.R')
-        output = r.r['your_function_name'](param1, param2, param3)
+        aic = r.r['count_number_of_modes'](hd_cluster)  # turn this back to python object
 
     # rerun load df function to get hd from all recordings...
 
