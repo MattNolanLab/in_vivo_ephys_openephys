@@ -4,13 +4,15 @@
 # and brought them to radians using
 
 # x is the array containing head-direction values
+
+#count_number_of_modes <- function(path){
+#    X <- read.csv(path)
 count_number_of_modes <- function(X){
-    #X[,1] <- X[,1]*pi/180
-    X <- X*pi/180
+    X[1] <- X[1]*pi/180
     X     <- cbind(X, rep(1, nrow(X)))
 
     # next I converted to cartesian co-ordinates in order to pass the data of right type to function movMF
-
+    # install.packages("useful")
     library(useful)
     cartcoords <- (pol2cart(r=X[,2], theta=X[,1]))[,1:2]
 
@@ -19,6 +21,7 @@ count_number_of_modes <- function(X){
     # class of models. The code for the fitting part is
 
     ## fitting mvM
+    # install.packages("movMF")
     library(movMF)
     M <- 30
     fit <- vector('list', M)
