@@ -12,6 +12,7 @@ def count_modes_of_hd_distributions():
     spatial_firing = pd.read_pickle(local_path)
     print(spatial_firing.head())
     number_of_modes_all_clusters = []
+    aic_number_of_modes = []
     for index, cluster in spatial_firing.iterrows():
         cluster_hd_np = np.array(cluster.hd)
         cluster_hd_np = cluster_hd_np[~np.isnan(cluster_hd_np)]
@@ -21,10 +22,12 @@ def count_modes_of_hd_distributions():
         robj.r.source('count_modes_circular.R')
         rcall = robj.r['count_modes']
         aic = rcall(hd_cluster_r)
+        aic_number_of_modes.append(aic)
         print(aic)
         number_of_modes = np.argmin(aic) + 1
         number_of_modes_all_clusters.append(number_of_modes)
     spatial_firing['number_od_modes_hd'] = number_of_modes_all_clusters
+    spatial_firing['number_od_modes_hd_aic'] = aic_number_of_modes
     print(spatial_firing.columns)
     print(spatial_firing.head())
     return spatial_firing

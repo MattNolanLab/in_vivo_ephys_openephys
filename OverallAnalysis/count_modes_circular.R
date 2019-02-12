@@ -45,5 +45,6 @@ count_modes <- function(hd){
 
     library(ggplot2)
     plot(aic, type="l", ylab="AIC", xlab="Number of components (or modes??)")
+    gc()
     return(aic)
     }
