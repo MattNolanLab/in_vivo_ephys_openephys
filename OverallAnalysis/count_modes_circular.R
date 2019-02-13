@@ -39,10 +39,11 @@ get_aic <- function(fit, M){
 
          for(i in 1:M){
               fit[[i]] <- movMF(as.matrix(cartcoords), k=i, control=list(maxiter=1000))
+         }
 
          return(fit)
 
-     }}
+     }
 
 
      get_fit_value <- function(i, cartcoords){

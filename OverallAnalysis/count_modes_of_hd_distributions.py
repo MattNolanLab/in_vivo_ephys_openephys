@@ -30,14 +30,17 @@ def count_modes_of_hd_distributions():
         cart_coord_hd = convert_to_cart_coord_r(hd_cluster_r)
 
         gc.collect()
-        fit_mixed_models_once = robj.r['get_fit_value']
-        fit_results = []
+        #fit_mixed_models_once = robj.r['get_fit_value']
+        #fit_results = []
         print(datetime.datetime.now())
-        for number_of_modes in range(max_number_of_modes_to_try_to_fit):
-            fit = fit_mixed_models_once(number_of_modes + 1, cart_coord_hd)
-            fit_results.append(fit)
-            gc.collect()
-            print(datetime.datetime.now())
+
+
+        #for number_of_modes in range(max_number_of_modes_to_try_to_fit):
+          #  fit = fit_mixed_models_once(number_of_modes + 1, cart_coord_hd)
+           # fit_results.append(fit)
+            #gc.collect()
+            #print(datetime.datetime.now())
+        #fits = robj.vectors.ListVector(fit_results)
 
         # make r vector out of fit_results and give that to get_aic_r
 
