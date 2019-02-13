@@ -1,3 +1,4 @@
+import gc
 import numpy as np
 import os
 import pandas as pd
@@ -13,15 +14,25 @@ def count_modes_of_hd_distributions():
     print(spatial_firing.head())
     number_of_modes_all_clusters = []
     aic_number_of_modes = []
+
+    robj.r.source('count_modes_circular.R')
     for index, cluster in spatial_firing.iterrows():
         cluster_hd_np = np.array(cluster.hd)
         cluster_hd_np = cluster_hd_np[~np.isnan(cluster_hd_np)]
         cluster_hd_np = np.round(cluster_hd_np, 4)
+        cluster_hd_np = cluster_hd_np * np.pi / 180
         hd_cluster = pd.DataFrame({'hd':cluster_hd_np})
         hd_cluster_r = pandas2ri.py2ri(hd_cluster)
-        robj.r.source('count_modes_circular.R')
-        rcall = robj.r['count_modes']
-        aic = rcall(hd_cluster_r)
+
+        convert_to_cart_coord_r = robj.r['cart_coord']
+        cart_coord_hd = convert_to_cart_coord_r(hd_cluster_r)
+
+        gc.collect()
+        fit_mixed_models = robj.r['fit_mixed_models']
+        fit = fit_mixed_models(cart_coord_hd, 12)
+        gc.collect()
+        get_aic_r = robj.r['get_aic']
+        aic = get_aic_r(fit, 12)
         aic_number_of_modes.append(aic)
         print(aic)
         number_of_modes = np.argmin(aic) + 1
