@@ -33,17 +33,22 @@ get_aic <- function(fit, M){
     ## fitting mvM
 
      fit_mixed_models <- function(cartcoords, M){
-         print(str(cartcoords))
-         #print(cartcoords)
          library(movMF)
          #M <- 12
          fit <- vector('list', M)
 
          for(i in 1:M){
               fit[[i]] <- movMF(as.matrix(cartcoords), k=i, control=list(maxiter=1000))
-              print('fit i')
-              print(fit[i])}
 
          return(fit)
 
-     }
+     }}
+
+
+     get_fit_value <- function(i, cartcoords){
+        library(movMF)
+        fit <- vector('list', 1)
+        fit[[1]] <- movMF(as.matrix(cartcoords), k=i, control=list(maxiter=1000))
+        return(fit)}
+
+

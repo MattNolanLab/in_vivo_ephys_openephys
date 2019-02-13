@@ -1,3 +1,4 @@
+import datetime
 import gc
 import numpy as np
 import os
@@ -10,17 +11,18 @@ output_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all_hd_mod
 
 
 def count_modes_of_hd_distributions():
+    max_number_of_modes_to_try_to_fit = 12
     spatial_firing = pd.read_pickle(local_path)
     print(spatial_firing.head())
     number_of_modes_all_clusters = []
     aic_number_of_modes = []
-
     robj.r.source('count_modes_circular.R')
     for index, cluster in spatial_firing.iterrows():
         cluster_hd_np = np.array(cluster.hd)
         cluster_hd_np = cluster_hd_np[~np.isnan(cluster_hd_np)]
         cluster_hd_np = np.round(cluster_hd_np, 4)
         cluster_hd_np = cluster_hd_np * np.pi / 180
+
         hd_cluster = pd.DataFrame({'hd':cluster_hd_np})
         hd_cluster_r = pandas2ri.py2ri(hd_cluster)
 
@@ -28,6 +30,17 @@ def count_modes_of_hd_distributions():
         cart_coord_hd = convert_to_cart_coord_r(hd_cluster_r)
 
         gc.collect()
+        fit_mixed_models_once = robj.r['get_fit_value']
+        fit_results = []
+        print(datetime.datetime.now())
+        for number_of_modes in range(max_number_of_modes_to_try_to_fit):
+            fit = fit_mixed_models_once(number_of_modes + 1, cart_coord_hd)
+            fit_results.append(fit)
+            gc.collect()
+            print(datetime.datetime.now())
+
+        # make r vector out of fit_results and give that to get_aic_r
+
         fit_mixed_models = robj.r['fit_mixed_models']
         fit = fit_mixed_models(cart_coord_hd, 12)
         gc.collect()
