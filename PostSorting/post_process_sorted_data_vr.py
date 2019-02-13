@@ -63,7 +63,7 @@ def save_data_frames(prm, spatial_firing, raw_position_data, processed_position_
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
-    raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+    #raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
     processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
     bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 
@@ -89,13 +89,15 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-        PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
+        #PostSorting.vr_make_plots.plot_combined_behaviour(raw_position_data, processed_position_data, prm)
         save_data_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
         return
 
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data, spike_data_movement = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
-    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data)
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_for_trial_types(spike_data, raw_position_data, processed_position_data)
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
+
     #spike_data = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data, raw_position_data, processed_position_data, processed_position_data.binned_time_ms)
 
     #spike_data_movement = PostSorting.vr_firing_maps.make_firing_field_maps(spike_data_movement, raw_position_data, processed_position_data, processed_position_data.binned_time_moving_ms)

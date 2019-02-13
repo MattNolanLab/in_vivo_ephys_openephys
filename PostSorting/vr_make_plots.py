@@ -198,7 +198,10 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
         plot_utility.style_track_plot(ax, 200)
         plot_utility.style_vr_plot(ax, x_max)
         plt.locator_params(axis = 'y', nbins  = 4)
-        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        try:
+            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        except ValueError:
+            continue
         plt.savefig(prm.get_output_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 

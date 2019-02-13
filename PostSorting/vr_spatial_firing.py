@@ -7,11 +7,9 @@ prm = PostSorting.parameters.Parameters()
 
 def add_columns_to_dataframe(spike_data):
     spike_data["x_position_cm"] = ""
-    spike_data["y_position_cm"] = ""
     spike_data["trial_number"] = ""
     spike_data["trial_type"] = ""
     spike_data["speed_per200ms"] = ""
-    spike_data["time_ms"] = ""
     spike_data["beaconed_position_cm"] = ""
     spike_data["beaconed_trial_number"] = ""
     spike_data["nonbeaconed_position_cm"] = ""
@@ -29,6 +27,7 @@ def add_columns_to_dataframe(spike_data):
     spike_data["nb_spike_num_on_trials"] = ""
     spike_data["p_spike_num_on_trials"] = ""
     spike_data["spike_rate_on_trials"] = ""
+    spike_data["spike_rate_on_trials_smoothed"] = ""
     spike_data["b_spike_rate_on_trials"] = ""
     spike_data["nb_spike_rate_on_trials"] = ""
     spike_data["p_spike_rate_on_trials"] = ""

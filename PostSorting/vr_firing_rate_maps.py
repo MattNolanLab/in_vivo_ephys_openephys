@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pylab as plt
 import PostSorting.vr_sync_spatial_data
 
+
 def get_trial_numbers(spatial_data):
     beaconed_trial_no = spatial_data.at[0,'beaconed_total_trial_number']
     nonbeaconed_trial_no = spatial_data.at[0,'nonbeaconed_total_trial_number']
@@ -96,6 +97,12 @@ def make_firing_field_maps_for_trial_types(spike_data, raw_position_data, proces
 
 
 def add_data_to_dataframe(cluster_index, firing_rate_map, spike_data):
+    sn=[]
+    sn.append(np.array(firing_rate_map['spike_num_on_trials']))
+    sn.append(np.array(firing_rate_map['trial_number']))
+    sn.append(np.array(firing_rate_map['trial_type']))
+    spike_data.at[cluster_index, 'spike_num_on_trials'] = list(sn)
+
     sr=[]
     sr.append(np.array(firing_rate_map['spike_rate_on_trials']))
     sr.append(np.array(firing_rate_map['trial_number']))
@@ -103,7 +110,7 @@ def add_data_to_dataframe(cluster_index, firing_rate_map, spike_data):
     spike_data.at[cluster_index, 'spike_rate_on_trials'] = list(sr)
 
     sr_smooth=[]
-    sr_smooth.append(np.array(firing_rate_map['spike_rate_on_trials']))
+    sr_smooth.append(np.array(firing_rate_map['spike_rate_on_trials_smoothed']))
     sr_smooth.append(np.array(firing_rate_map['trial_number']))
     sr_smooth.append(np.array(firing_rate_map['trial_type']))
     spike_data.at[cluster_index, 'spike_rate_on_trials_smoothed'] = list(sr_smooth)
@@ -136,8 +143,7 @@ def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cl
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials+1,1) # array of unique trial numbers
     firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), number_of_bins,array_of_trials)
-    spike_data.at[cluster_index,'spike_num_on_trials'] = list(np.array(firing_rate_map['spike_num_on_trials']))
-    return firing_rate_map,number_of_bins,array_of_trials,spike_data
+    return firing_rate_map,number_of_bins,array_of_trials
 
 
 def make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data):
@@ -145,14 +151,12 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
     for cluster_index in range(len(spike_data)):
         firing_rate_map = pd.DataFrame()
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        firing_rate_map,number_of_bins,array_of_trials,spike_data = find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index)
+        firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index)
         firing_rate_map = add_trial_number(firing_rate_map, processed_position_data)
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
-
-
 
     print('-------------------------------------------------------------')
     print('firing field maps processed for all trials')
