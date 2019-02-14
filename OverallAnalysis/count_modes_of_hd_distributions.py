@@ -30,6 +30,7 @@ def count_modes_of_hd_distributions():
 
     for index, cluster in spatial_firing.iterrows():
         try:
+            print(index)
             hd_cluster_r = format_input_for_r(cluster)
             convert_to_cart_coord_r = robj.r['cart_coord']
             cart_coord_hd = convert_to_cart_coord_r(hd_cluster_r)
