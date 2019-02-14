@@ -7,7 +7,6 @@ prm = PostSorting.parameters.Parameters()
 
 def add_columns_to_dataframe(spike_data):
     spike_data["x_position_cm"] = ""
-    spike_data["y_position_cm"] = ""
     spike_data["trial_number"] = ""
     spike_data["trial_type"] = ""
     spike_data["speed_per200ms"] = ""
@@ -17,17 +16,24 @@ def add_columns_to_dataframe(spike_data):
     spike_data["nonbeaconed_trial_number"] = ""
     spike_data["probe_position_cm"] = ""
     spike_data["probe_trial_number"] = ""
-    spike_data["avg_spike_per_bin_b"] = ""
-    spike_data["avg_spike_per_bin_nb"] = ""
-    spike_data["avg_spike_per_bin_p"] = ""
-    spike_data["normalised_b_spike_number"] = ""
-    spike_data["normalised_nb_spike_number"] = ""
-    spike_data["normalised_p_spike_number"] = ""
-    spike_data["location_intervals"] = ""
-    spike_data["firing_intervals"] = ""
-    spike_data["linear_regression_whole_track"] = ""
-    spike_data["linear_regression_reward_zone"] = ""
-    spike_data["firing_maps"] = ""
+    spike_data["avg_b_spike_num"] = ""
+    spike_data["avg_nb_spike_num"] = ""
+    spike_data["avg_p_spike_num"] = ""
+    spike_data["avg_b_spike_rate"] = ""
+    spike_data["avg_nb_spike_rate"] = ""
+    spike_data["avg_p_spike_rate"] = ""
+    spike_data["spike_num_on_trials"] = ""
+    spike_data["b_spike_num_on_trials"] = ""
+    spike_data["nb_spike_num_on_trials"] = ""
+    spike_data["p_spike_num_on_trials"] = ""
+    spike_data["spike_rate_on_trials"] = ""
+    spike_data["spike_rate_on_trials_smoothed"] = ""
+    spike_data["b_spike_rate_on_trials"] = ""
+    spike_data["nb_spike_rate_on_trials"] = ""
+    spike_data["p_spike_rate_on_trials"] = ""
+    spike_data["gauss_convolved_firing_maps_b"] = ""
+    spike_data["gauss_convolved_firing_maps_nb"] = ""
+    spike_data["gauss_convolved_firing_maps_p"] = ""
     return spike_data
 
 
@@ -35,7 +41,7 @@ def add_speed(spike_data, spatial_data_speed):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.speed_per200ms[cluster_index] = spatial_data_speed[cluster_firing_indices]
+        spike_data.speed_per200ms[cluster_index] = list(spatial_data_speed[cluster_firing_indices])
     return spike_data
 
 
@@ -43,7 +49,7 @@ def add_position_x(spike_data, spatial_data_x):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.x_position_cm[cluster_index] = spatial_data_x[cluster_firing_indices]
+        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices])
     return spike_data
 
 
@@ -51,7 +57,7 @@ def add_trial_number(spike_data, spatial_data_trial_number):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_number[cluster_index] = spatial_data_trial_number[cluster_firing_indices].values.astype(np.uint16)
+        spike_data.trial_number[cluster_index] = list(spatial_data_trial_number[cluster_firing_indices].values.astype(np.uint16))
     return spike_data
 
 
@@ -59,7 +65,7 @@ def add_trial_type(spike_data, spatial_data_trial_type):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_type[cluster_index] = spatial_data_trial_type[cluster_firing_indices].values.astype(np.uint8)
+        spike_data.trial_type[cluster_index] = list(spatial_data_trial_type[cluster_firing_indices].values.astype(np.uint8))
     return spike_data
 
 
@@ -159,8 +165,8 @@ def process_spatial_firing(spike_data, spatial_data):
     spike_data, spike_data_movement, spike_data_stationary = split_spatial_firing_by_speed(spike_data, spike_data_movement,spike_data_stationary)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
     spike_data_movement = split_spatial_firing_by_trial_type(spike_data_movement)
-    spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
+    #spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
     print('-------------------------------------------------------------')
     print('spatial firing processed')
     print('-------------------------------------------------------------')
-    return spike_data, spike_data_movement, spike_data_stationary
+    return spike_data, spike_data_movement

@@ -40,7 +40,7 @@ def split_stop_data_by_trial_type(spatial_data):
 
 def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     print('I am plotting stop rasta...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
+    save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stops_on_track = plt.figure(figsize=(6,6))
@@ -62,7 +62,7 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     x_max = max(raw_position_data.trial_number)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
 
 
@@ -166,17 +166,18 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
 
 def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting spike rastas...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/spike_trajectories'
+    save_path = prm.get_output_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
+
     rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0)) #
     rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        spikes_on_track = plt.figure(figsize=(6,6))
+        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        cluster_firing_indices = spike_data.firing_times[cluster_index]
 
         #uncomment if you want to plot stops
         #ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
@@ -195,25 +196,28 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
         ax.xaxis.set_ticks_position('bottom')
 
         plot_utility.style_track_plot(ax, 200)
-        x_max = max(raw_position_data.trial_number[cluster_firing_indices])+0.5
         plot_utility.style_vr_plot(ax, x_max)
-        plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.locator_params(axis = 'y', nbins  = 4)
+        try:
+            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        except ValueError:
+            continue
+        plt.savefig(prm.get_output_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
 
 def plot_firing_rate_maps(spike_data, prm, prefix):
     print('I am plotting firing rate maps...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/spike_rate'
+    save_path = prm.get_output_path() + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
-        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
-        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
+        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_b_spike_rate'])
+        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate'])
+        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_p_spike_rate'])
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(unsmooth_b, '-', color='Black')
@@ -224,9 +228,9 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
-        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb']))
-        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p']))
+        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_b_spike_rate']))
+        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate']))
+        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_p_spike_rate']))
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
@@ -236,13 +240,13 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
 
 def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting combined spike rastas and spike rate...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots'
+    save_path = prm.get_output_path() + '/Figures/combined_spike_plots'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))
@@ -268,9 +272,9 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         plot_utility.style_vr_plot(ax, x_max)
 
         ax = spikes_on_track.add_subplot(2, 1, 2)  # specify (nrows, ncols, axnum)
-        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b'])
-        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb'])
-        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p'])
+        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_b_spike_rate'])
+        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate'])
+        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_p_spike_rate'])
         ax.plot(unsmooth_b, '-', color='Black')
         ax.plot(unsmooth_nb, '-', color='Red')
         ax.plot(unsmooth_p, '-', color='Blue')
@@ -279,9 +283,9 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_b']))
-        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_nb']))
-        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_spike_per_bin_p']))
+        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_b_spike_rate']))
+        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate']))
+        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_p_spike_rate']))
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
@@ -290,7 +294,7 @@ def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_p
             plot_utility.style_vr_plot(ax, p_x_max)
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace = .2, wspace = .2,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/combined_spike_plots/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(prm.get_output_path() + '/Figures/combined_spike_plots/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
 
@@ -373,7 +377,6 @@ def plot_spike_rate_vs_speed(spike_data, processed_position_data, prm):
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
-
 
 
 
