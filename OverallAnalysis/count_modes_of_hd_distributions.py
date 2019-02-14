@@ -48,9 +48,11 @@ def count_modes_of_hd_distributions():
             print(aic)
             number_of_modes = np.argmin(aic) + 1
             number_of_modes_all_clusters.append(number_of_modes)
-            print(number_of_modes_all_clusters)
+            print('Number of modes is: ' + str(number_of_modes))
+
         except:
             print('There was a problem with processing this cluster.')
+            print(number_of_modes_all_clusters)
             number_of_modes_all_clusters.append(np.nan)
             # might want to append array with nan
 
