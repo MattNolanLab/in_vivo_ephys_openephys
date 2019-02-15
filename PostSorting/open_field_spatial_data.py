@@ -17,6 +17,8 @@ One recording folder has no more than one bonsai file, so this is sufficient for
 
 
 def find_bonsai_file(recording_folder):
+    if os.path.isdir(recording_folder) is False:
+        print('    Error in open_field_spatial_data.py : The folder you specified as recording folder does not exist, please check if the path is correct.')
     path_to_bonsai_file = ''
     is_found = False
     for name in glob.glob(recording_folder + '/*.csv'):
