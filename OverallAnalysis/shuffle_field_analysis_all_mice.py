@@ -113,7 +113,7 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number of p values')
-    ax.set_ylim(0, 0.15)
+    ax.set_ylim(0, 0.2)
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_significant_p_ ' + type +'.png')
     plt.close()
 
