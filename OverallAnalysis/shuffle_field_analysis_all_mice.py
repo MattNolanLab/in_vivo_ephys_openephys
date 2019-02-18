@@ -85,7 +85,7 @@ def make_combined_plot_of_distributions(shuffled_field_data):
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Proportion')
+    ax.set_ylabel('Number of p values')
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined_all.png')
     plt.close()
 
@@ -97,7 +97,7 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
         number_of_significant_p_values = field_data.number_of_different_bins_holm
 
     fig, ax = plt.subplots()
-    plt.hist(number_of_significant_p_values, normed='True', color='yellow', alpha=0.5)
+    plt.hist(number_of_significant_p_values, normed='True', color='navy', alpha=0.5)
     flat_shuffled = []
     for field in field_data.number_of_different_bins_shuffled_corrected_p:
         flat_shuffled.extend(field)
@@ -108,6 +108,7 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number of p values')
+    ax.set_ylim(0, 0.15)
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_significant_p_ ' + type +'.png')
     plt.close()
 
