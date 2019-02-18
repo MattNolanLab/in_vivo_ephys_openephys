@@ -7,11 +7,16 @@ import scipy.stats
 local_path_to_shuffled_field_data = '/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl'
 
 # this is a list of fields included in the analysis with session_ids cluster ids and field ids
-list_of_accepted_fields_path = '/Users/s1466507/Documents/Ephys/recordings/included_fields_detector2.csv'
+list_of_accepted_fields_path_grid = '/Users/s1466507/Documents/Ephys/recordings/included_fields_detector2_grid.csv'
+list_of_accepted_fields_path_not_classified = '/Users/s1466507/Documents/Ephys/recordings/included_fields_detector2_not_classified.csv'
 
 
-def get_accepted_fields(shuffled_field_data):
-    accepted_fields = pd.read_csv(list_of_accepted_fields_path)
+def get_accepted_fields(shuffled_field_data, type='grid'):
+    if type == 'not_classified':
+        accepted_fields = pd.read_csv(list_of_accepted_fields_path_not_classified)
+    else:
+        accepted_fields = pd.read_csv(list_of_accepted_fields_path_grid)
+
     shuffled_field_data['field_id_unique'] = shuffled_field_data.session_id + '_' + shuffled_field_data.cluster_id.apply(str) + '_' + (shuffled_field_data.field_id + 1).apply(str)
     accepted_fields['field_id_unique'] = accepted_fields['Session ID'] + '_' + accepted_fields.Cell.apply(str) + '_' + accepted_fields.field.apply(str)
 
@@ -63,7 +68,7 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     plt.close()
 
 
-def make_combined_plot_of_distributions(shuffled_field_data):
+def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
     tail, percentile_95, percentile_99 = find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data)
 
     number_of_rejects_shuffled = shuffled_field_data.number_of_different_bins_shuffled
@@ -86,7 +91,7 @@ def make_combined_plot_of_distributions(shuffled_field_data):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Number of rejected bars')
     ax.set_ylabel('Number of p values')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined_all.png')
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined_all_' + tag + '.png')
     plt.close()
 
 
@@ -136,18 +141,28 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
             return p_percentile
 
 
-def main():
-    shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
-    shuffled_field_data = get_accepted_fields(shuffled_field_data)
-
+def plot_distibutions_for_fields(shuffled_field_data, tag='grid'):
     plot_histogram_of_number_of_rejected_bars(shuffled_field_data)
     plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data)
-    plot_number_of_significant_p_values(shuffled_field_data, type='bh')
-    plot_number_of_significant_p_values(shuffled_field_data, type='holm')
-    make_combined_plot_of_distributions(shuffled_field_data)
+    plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag)
+    plot_number_of_significant_p_values(shuffled_field_data, type='holm_' + tag)
+    make_combined_plot_of_distributions(shuffled_field_data, tag=tag)
 
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data, analysis_type='bh')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data, analysis_type='percentile')
+
+def main():
+    shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data)
+    shuffled_field_data_grid = get_accepted_fields(shuffled_field_data, type='grid')
+    shuffled_field_data_not_classified = get_accepted_fields(shuffled_field_data, type='not_classified')
+
+    plot_distibutions_for_fields(shuffled_field_data_grid, 'grid')
+    plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified')
+
+    print('Grid cells:')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
+    print('Not classified cells:')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile')
 
 
 if __name__ == '__main__':
