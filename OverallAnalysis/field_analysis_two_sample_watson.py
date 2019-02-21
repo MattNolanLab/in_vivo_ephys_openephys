@@ -76,7 +76,7 @@ def plot_histogram_of_watson_stat(field_data):
     plt.hist(watson_stats_accepted_fields, bins=30, color='lime')
     plt.axvline(x=0.385, linewidth=5, color='red')  # p < 0.001 threshold
     plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01
-    pass
+    plt.savefig(analysis_path + 'two_sample_watson_stats_hist.png')
 
 
 def main():
