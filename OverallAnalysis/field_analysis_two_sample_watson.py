@@ -79,9 +79,11 @@ def compare_hd_when_the_cell_fired_to_heading(field_data):
 
 def plot_histogram_of_watson_stat(field_data, type='all'):
     if type == 'grid':
-        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]  # todo select grid cells
+        grid_cells = field_data['cell type'] == 'grid'
+        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field & grid_cells]
     elif type == 'nc':
-        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]  # todo select grid cells
+        not_classified = field_data['cell type'] == 'na'
+        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field & not_classified]
     else:
         watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]
 
@@ -105,6 +107,8 @@ def main():
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
     plot_histogram_of_watson_stat(field_data)
+    plot_histogram_of_watson_stat(field_data, type='grid')
+    plot_histogram_of_watson_stat(field_data, type='nc')
 
 
 if __name__ == '__main__':
