@@ -72,8 +72,10 @@ def compare_hd_when_the_cell_fired_to_heading(field_data):
 
 
 def plot_histogram_of_watson_stat(field_data):
-    plt.hist(field_data.watson_two_stat, bins=30)
-    plt.axvline(x=0.385, linewidth=5, color='red')
+    watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]
+    plt.hist(watson_stats_accepted_fields, bins=30, color='lime')
+    plt.axvline(x=0.385, linewidth=5, color='red')  # p < 0.001 threshold
+    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01
     pass
 
 
@@ -83,7 +85,6 @@ def main():
     field_data = tag_accepted_fields(field_data, accepted_fields)
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
     plot_histogram_of_watson_stat(field_data)
-
 
 
 if __name__ == '__main__':
