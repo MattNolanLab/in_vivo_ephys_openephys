@@ -2,7 +2,6 @@ import glob
 import matplotlib.pylab as plt
 import os
 import pandas as pd
-import numpy as np
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 
@@ -48,6 +47,13 @@ def tag_accepted_fields(field_data, accepted_fields):
     return field_data
 
 
+# todo: replace this with python implementation
+def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
+    accepted_fields_to_merge = accepted_fields[['unique_id', 'cell type', 'grid score', 'hd score']]
+    field_data_merged = pd.merge(field_data, accepted_fields_to_merge, on='unique_id')
+    return field_data_merged
+
+
 # run 2 sample watson test and put it in df
 def run_two_sample_watson_test(hd_cluster, hd_session):
     circular = importr("circular")
@@ -71,18 +77,32 @@ def compare_hd_when_the_cell_fired_to_heading(field_data):
     return field_data
 
 
-def plot_histogram_of_watson_stat(field_data):
-    watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]
-    plt.hist(watson_stats_accepted_fields, bins=30, color='lime')
-    plt.axvline(x=0.385, linewidth=5, color='red')  # p < 0.001 threshold
-    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01
-    plt.savefig(analysis_path + 'two_sample_watson_stats_hist.png')
+def plot_histogram_of_watson_stat(field_data, type='all'):
+    if type == 'grid':
+        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]  # todo select grid cells
+    elif type == 'nc':
+        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]  # todo select grid cells
+    else:
+        watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field]
+
+    fig, ax = plt.subplots()
+    plt.hist(watson_stats_accepted_fields, bins=20, color='navy')
+    # plt.axvline(x=0.385, linewidth=1, color='red')  # p < 0.001 threshold
+    plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Two-sample Watson test stat')
+    ax.set_ylabel('Frequency')
+    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '.png')
 
 
 def main():
     field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_watson_test.pkl')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
     field_data = tag_accepted_fields(field_data, accepted_fields)
+    field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
     plot_histogram_of_watson_stat(field_data)
 
