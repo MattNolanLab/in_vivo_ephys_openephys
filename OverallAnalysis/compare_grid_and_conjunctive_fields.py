@@ -57,6 +57,8 @@ def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
 # combine hd from all fields and calculate angle (:=alpha) between population mean vector for cell and 0 (use hd score code)
 def calculate_population_mean_vector_angle(field_data):
     print(field_data)
+    list_of_cells = field_data.unique_cell_id
+    # get list of cells to have unique items and iterate on this to get the combined hd from all fields of each cell
     for index, field in field_data.iterrows():
         print(field)
     # combine_hd_from_fields_of_cell in new array
