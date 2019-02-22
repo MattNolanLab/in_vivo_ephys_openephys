@@ -36,7 +36,7 @@ def load_data_frame_spatial_firing(output_path):
 
             '''
             if ('hd_hist_first_half' in spatial_firing) and ('watson_test_hd' in spatial_firing):
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half', 'watson_test_hd', 'hd_score', 'hd']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half', 'watson_test_hd', 'hd_score', 'hd', 'kuiper_cluster', 'watson_cluster']].copy()
 
                 # print(spatial_firing.head())
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
@@ -86,7 +86,7 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all.pkl')   # for two-sample watson analysis
+    load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
 
