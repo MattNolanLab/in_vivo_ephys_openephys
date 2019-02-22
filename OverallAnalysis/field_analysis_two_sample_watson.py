@@ -7,7 +7,7 @@ from rpy2.robjects.packages import importr
 
 
 server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/'
+analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_fields/'
 
 
 # load field data from server - must include hd in fields
