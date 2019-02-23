@@ -90,13 +90,14 @@ def calculate_population_mean_vector_angle(field_data):
         hd_histogram_cluster = hd_histogram_cluster / hd_histogram_session
         angle_to_rotate_by = get_angle_of_population_mean_vector(hd_histogram_cluster)
         angles_to_rotate_by.extend([angle_to_rotate_by] * number_of_fields)
-        hd_from_all_fields_clusters.extend([hd_from_all_fields_cluster] * number_of_fields)
+        hd_from_all_fields_clusters.extend([hd_histogram_cluster] * number_of_fields)
 
     field_data['mean_population_mean_vector_angle'] = angles_to_rotate_by
-    field_data['hd_from_all_fields'] = hd_from_all_fields_clusters
+    field_data['hd_hist_from_all_fields'] = hd_from_all_fields_clusters
     return field_data
 
 # rotate combined distribution by angle and save in df for each field for each cell
+# rotate all distribution and combine them into one grouped by cell type
 
 
 def main():
