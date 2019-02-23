@@ -1,11 +1,15 @@
 import glob
+import matplotlib.pylab as plt
+import numpy as np
 import os
 import pandas as pd
+import PostSorting.open_field_head_direction
 
 # compare head-direction preference of firing fields of grid cells and conjunctive cells
 
 server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/compare_grid_and_conjunctive_fields/'
+sampling_rate = 30000
 
 
 # load data frame and save it
@@ -54,19 +58,40 @@ def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
     return field_data_merged
 
 
+def get_angle_of_population_mean_vector(hd_hist):
+    angles = np.linspace(-179, 180, 360)
+    angles_rad = angles*np.pi/180
+    dy = np.sin(angles_rad)
+    dx = np.cos(angles_rad)
+    totx = sum(dx * hd_hist)/sum(hd_hist)
+    toty = sum(dy * hd_hist)/sum(hd_hist)
+    # r = np.sqrt(totx*totx + toty*toty)
+    population_mean_vector_angle = np.arctan(toty / totx)
+    return population_mean_vector_angle
+
+
 # combine hd from all fields and calculate angle (:=alpha) between population mean vector for cell and 0 (use hd score code)
 def calculate_population_mean_vector_angle(field_data):
     print(field_data)
-    list_of_cells = field_data.unique_cell_id
-    # get list of cells to have unique items and iterate on this to get the combined hd from all fields of each cell
-    for index, field in field_data.iterrows():
-        print(field)
-    # combine_hd_from_fields_of_cell in new array
-    # calculate angle for combined distribution
-    # put that angle in df for all fields of cell
+    list_of_cells = field_data.unique_cell_id.unique()
+    angles_to_rotate_by = []
+    for cell in list_of_cells:
+        cell_fields = list(field_data.unique_cell_id == cell)
+        number_of_fields = field_data[cell_fields].sum()
+        hd_from_all_fields = field_data.hd_in_field_spikes[cell_fields]
+        hd_from_all_fields_session = list(field_data.hd_in_field_session[cell_fields])
+        hd_from_all_fields_cluster = [item for sublist in hd_from_all_fields for item in sublist]
+        hd_from_all_fields_session = [item for sublist in hd_from_all_fields_session for item in sublist]
+        hd_histogram_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_from_all_fields_session) / sampling_rate
+        hd_histogram_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_from_all_fields_cluster)
+        hd_histogram_cluster = hd_histogram_cluster / hd_histogram_session
+        angle_to_rotate_by = get_angle_of_population_mean_vector(hd_histogram_cluster)
+        angles_to_rotate_by.extend(angle_to_rotate_by * number_of_fields)
+
+    field_data['mean_population_mean_vector_angle'] = angles_to_rotate_by
     return field_data
 
-# combine data from fields and rotate by alpha
+# rotate combined distribution by angle and save in df for each field for each cell
 
 
 def main():
