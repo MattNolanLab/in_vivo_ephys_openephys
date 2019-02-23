@@ -1,4 +1,5 @@
 import glob
+import math
 import matplotlib.pylab as plt
 import numpy as np
 import os
@@ -66,7 +67,8 @@ def get_angle_of_population_mean_vector(hd_hist):
     totx = sum(dx * hd_hist)/sum(hd_hist)
     toty = sum(dy * hd_hist)/sum(hd_hist)
     # r = np.sqrt(totx*totx + toty*toty)
-    population_mean_vector_angle = np.arctan(toty / totx)
+    # population_mean_vector_angle = np.arctan(toty / totx)
+    population_mean_vector_angle = math.degrees(math.atan2(toty, totx))
     return population_mean_vector_angle
 
 
@@ -75,6 +77,7 @@ def calculate_population_mean_vector_angle(field_data):
     print(field_data)
     list_of_cells = field_data.unique_cell_id.unique()
     angles_to_rotate_by = []
+    hd_from_all_fields_clusters = []
     for cell in list_of_cells:
         cell_fields = list(field_data.unique_cell_id == cell)
         number_of_fields = len(field_data[cell_fields])
@@ -87,8 +90,10 @@ def calculate_population_mean_vector_angle(field_data):
         hd_histogram_cluster = hd_histogram_cluster / hd_histogram_session
         angle_to_rotate_by = get_angle_of_population_mean_vector(hd_histogram_cluster)
         angles_to_rotate_by.extend([angle_to_rotate_by] * number_of_fields)
+        hd_from_all_fields_clusters.extend([hd_from_all_fields_cluster] * number_of_fields)
 
     field_data['mean_population_mean_vector_angle'] = angles_to_rotate_by
+    field_data['hd_from_all_fields'] = hd_from_all_fields_clusters
     return field_data
 
 # rotate combined distribution by angle and save in df for each field for each cell
