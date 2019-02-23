@@ -77,7 +77,7 @@ def calculate_population_mean_vector_angle(field_data):
     angles_to_rotate_by = []
     for cell in list_of_cells:
         cell_fields = list(field_data.unique_cell_id == cell)
-        number_of_fields = field_data[cell_fields].sum()
+        number_of_fields = len(field_data[cell_fields])
         hd_from_all_fields = field_data.hd_in_field_spikes[cell_fields]
         hd_from_all_fields_session = list(field_data.hd_in_field_session[cell_fields])
         hd_from_all_fields_cluster = [item for sublist in hd_from_all_fields for item in sublist]
@@ -86,7 +86,7 @@ def calculate_population_mean_vector_angle(field_data):
         hd_histogram_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_from_all_fields_cluster)
         hd_histogram_cluster = hd_histogram_cluster / hd_histogram_session
         angle_to_rotate_by = get_angle_of_population_mean_vector(hd_histogram_cluster)
-        angles_to_rotate_by.extend(angle_to_rotate_by * number_of_fields)
+        angles_to_rotate_by.extend([angle_to_rotate_by] * number_of_fields)
 
     field_data['mean_population_mean_vector_angle'] = angles_to_rotate_by
     return field_data
