@@ -109,7 +109,24 @@ def rotate_by_population_mean_vector(field_data):
     field_data['hd_hist_from_all_fields_rotated'] = rotated_histograms
     return field_data
 
+
 # combine all distributions for each cell type into plot
+def plot_rotated_histograms_for_cell_type(field_data, type='grid'):
+    list_of_cells = field_data.unique_cell_id.unique()
+    histograms = []
+    for cell in list_of_cells:
+        cell_type = field_data['cell type'] == type  # filter for cell type
+        fields_of_cell = field_data.unique_cell_id == cell  # filter for cell
+        if not field_data[fields_of_cell & cell_type].empty:
+            histogram = field_data[fields_of_cell & cell_type].hd_hist_from_all_fields_rotated.iloc[0]
+            histograms.append(histogram)
+
+    plt.cla()
+    # combine them to make one polar plot
+    plt.hist(histograms)
+
+
+
 
 
 def main():
@@ -119,6 +136,7 @@ def main():
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = calculate_population_mean_vector_angle(field_data)
     field_data = rotate_by_population_mean_vector(field_data)
+    plot_rotated_histograms_for_cell_type(field_data, type='grid')
 
 
 if __name__ == '__main__':
