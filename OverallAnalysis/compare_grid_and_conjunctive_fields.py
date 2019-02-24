@@ -1,3 +1,4 @@
+from collections import deque
 import glob
 import math
 import matplotlib.pylab as plt
@@ -92,12 +93,23 @@ def calculate_population_mean_vector_angle(field_data):
         angles_to_rotate_by.extend([angle_to_rotate_by] * number_of_fields)
         hd_from_all_fields_clusters.extend([hd_histogram_cluster] * number_of_fields)
 
-    field_data['mean_population_mean_vector_angle'] = angles_to_rotate_by
+    field_data['population_mean_vector_angle'] = angles_to_rotate_by
     field_data['hd_hist_from_all_fields'] = hd_from_all_fields_clusters
     return field_data
 
-# rotate combined distribution by angle and save in df for each field for each cell
-# rotate all distribution and combine them into one grouped by cell type
+
+# rotate combined distribution by angle and save in df for each field for each cell (each field will have the cell hist)
+def rotate_by_population_mean_vector(field_data):
+    rotated_histograms = []
+    for index, field in field_data.iterrows():
+        histogram_to_rotate = deque(field.hd_hist_from_all_fields)
+        angle_to_rotate_by = field.population_mean_vector_angle
+        histogram_to_rotate.rotate(int(round(angle_to_rotate_by)))  # rotates in place
+        rotated_histograms.append(histogram_to_rotate)
+    field_data['hd_hist_from_all_fields_rotated'] = rotated_histograms
+    return field_data
+
+# combine all distributions for each cell type into plot
 
 
 def main():
@@ -106,6 +118,7 @@ def main():
     field_data = tag_accepted_fields(field_data, accepted_fields)
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = calculate_population_mean_vector_angle(field_data)
+    field_data = rotate_by_population_mean_vector(field_data)
 
 
 if __name__ == '__main__':
