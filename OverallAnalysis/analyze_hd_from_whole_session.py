@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pylab as plt
 import numpy as np
 import OverallAnalysis.false_positives
 import OverallAnalysis.analyze_field_correlations
@@ -8,6 +9,12 @@ def load_data_frame(path):
     # this is the output of load_df.py which read all dfs from a folder and saved selected columns into a combined df
     df = pd.read_pickle(path)
     return df
+
+
+def plot_hd_vs_watson_stat(df_all_mice):
+    plt.figure()
+    hd_score = df_all_mice.hd_score
+    watson_two_stat = df_all_mice.watson_test_hd
 
 
 def add_combined_id_to_df(df_all_mice):
@@ -57,11 +64,13 @@ def main():
     print('Number of excitatory neurons with significantly different HD that are hd cells: ' + str(len(df_all_mice[watson_significant & excitatory_neurons & is_hd_cell])))
     print('Number of inhibitory neurons with significantly different HD that are hd cells: ' + str(len(df_all_mice[watson_significant & inhibitory_neurons & is_hd_cell])))
 
+    plot_hd_vs_watson_stat(df_all_mice)
     # find those where the hd polar plot significantly differs in the first vs second half
     # run load_df again and add the result of the 2 sample watson test to the big df and then filter for that here
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant], save_output_path + 'correlation_hd_session.png')
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & excitatory_neurons], save_output_path + 'correlation_hd_session_excitatory.png')
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory.png')
+
 
 
 if __name__ == '__main__':
