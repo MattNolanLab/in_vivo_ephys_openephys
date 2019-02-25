@@ -27,9 +27,9 @@ def add_combined_id_to_df(df_all_mice):
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pkl'
-    path_to_data = 'C:/Users/s1466507/Documents/Ephys/recordings/'
-    save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
+    local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
+    path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
+    save_output_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
     false_positives_path = path_to_data + 'false_positives_all.txt'
     df_all_mice = load_data_frame(local_path)
     list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
