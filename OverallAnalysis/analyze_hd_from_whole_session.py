@@ -79,7 +79,7 @@ def main():
     df_all_mice = add_combined_id_to_df(df_all_mice)
     df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
     correlation_between_first_and_second_halves_of_session(df_all_mice, save_output_path)
-    plot_hd_vs_watson_stat(df_all_mice)
+    plot_hd_vs_watson_stat(df_all_mice, save_output_path)
 
 
 if __name__ == '__main__':
