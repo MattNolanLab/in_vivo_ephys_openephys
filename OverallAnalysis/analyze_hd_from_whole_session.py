@@ -1,14 +1,69 @@
+import glob
 import pandas as pd
 import matplotlib.pylab as plt
 import numpy as np
 import OverallAnalysis.false_positives
 import OverallAnalysis.analyze_field_correlations
+import os
+
+local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
+path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
+save_output_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
+server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+local_output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
+
+
+def load_data_frame_spatial_firing(output_path):
+    spatial_firing_data = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a firing data frame.')
+            spatial_firing = pd.read_pickle(data_frame_path)
+            '''
+            'session_id' 'cluster_id' 'tetrode' 'primary_channel' 'firing_times'
+             'firing_times_opto' 'number_of_spikes' 'mean_firing_rate' 'isolation'
+             'noise_overlap' 'peak_snr' 'peak_amp' 'random_snippets' 'position_x'
+             'position_x_pixels' 'position_y' 'position_y_pixels' 'hd' 'speed'
+             'hd_spike_histogram' 'max_firing_rate_hd' 'preferred_HD' 'hd_score'
+             'firing_maps' 'max_firing_rate' 'firing_fields' 'field_max_firing_rate'
+             'firing_fields_hd_session' 'firing_fields_hd_cluster' 'field_hd_max_rate'
+             'field_preferred_hd' 'field_hd_score' 'number_of_spikes_in_fields'
+             'time_spent_in_fields_sampling_points' 'spike_times_in_fields'
+             'times_in_session_fields' 'field_corr_r' 'field_corr_p'
+             'hd_correlation_first_vs_second_half'
+             'hd_correlation_first_vs_second_half_p' 'hd_hist_first_half'
+             'hd_hist_second_half'
+
+            '''
+            if ('hd_hist_first_half' in spatial_firing) and ('watson_test_hd' in spatial_firing):
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half', 'watson_test_hd', 'hd_score', 'hd', 'kuiper_cluster', 'watson_cluster', 'firing_maps']].copy()
+
+                # print(spatial_firing.head())
+                spatial_firing_data = spatial_firing_data.append(spatial_firing)
+
+                print(spatial_firing_data.head())
+    spatial_firing_data.to_pickle(output_path)
+    return spatial_firing_data
 
 
 def load_data_frame(path):
-    # this is the output of load_df.py which read all dfs from a folder and saved selected columns into a combined df
-    df = pd.read_pickle(path)
+    if os.path.exists(local_path):
+        df = pd.read_pickle(path)
+    else:
+        df = load_data_frame_spatial_firing(local_output_path)
+
     return df
+
+
+def load_data_and_tag_false_positive_cells():
+    false_positives_path = path_to_data + 'false_positives_all.txt'
+    df_all_mice = load_data_frame(local_path)
+    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
+    df_all_mice = add_combined_id_to_df(df_all_mice)
+    df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
+    return df_all_mice
 
 
 def plot_hd_vs_watson_stat(df_all_mice, save_output_path):
@@ -23,6 +78,7 @@ def plot_hd_vs_watson_stat(df_all_mice, save_output_path):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Head-direction score')
     ax.set_ylabel('Two-sample Watson test stat')
+    plt.axhline(0.385, color='red')
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells.png')
 
 
@@ -67,19 +123,18 @@ def correlation_between_first_and_second_halves_of_session(df_all_mice, save_out
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory.png')
 
 
+def add_grid_score_to_df(df_all_mice):
+    print(df_all_mice.head())
+
+
+
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
-    path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
-    save_output_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
-    false_positives_path = path_to_data + 'false_positives_all.txt'
-    df_all_mice = load_data_frame(local_path)
-    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
-    df_all_mice = add_combined_id_to_df(df_all_mice)
-    df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
+    df_all_mice = load_data_and_tag_false_positive_cells()
     correlation_between_first_and_second_halves_of_session(df_all_mice, save_output_path)
     plot_hd_vs_watson_stat(df_all_mice, save_output_path)
+    add_grid_score_to_df(df_all_mice)
 
 
 if __name__ == '__main__':
