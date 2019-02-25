@@ -5,6 +5,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
+import plot_utility
 import PostSorting.open_field_head_direction
 
 # compare head-direction preference of firing fields of grid cells and conjunctive cells
@@ -121,12 +122,20 @@ def plot_rotated_histograms_for_cell_type(field_data, type='grid'):
             histogram = field_data[fields_of_cell & cell_type].hd_hist_from_all_fields_rotated.iloc[0]
             histograms.append(histogram)
 
-    plt.cla()
+    hd_polar_fig = plt.figure()
+    ax = hd_polar_fig.add_subplot(1, 1, 1)
+    for histogram in histograms:
+        theta = np.linspace(0, 2 * np.pi, 361)
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax = plot_utility.style_polar_plot(ax)
+        ax.plot(theta[:-1], histogram, color='gray', linewidth=2, alpha=70)
     # combine them to make one polar plot
-    plt.hist(histograms)
+    print('histrograms are plotted')
+    average_histogram = np.average(histograms, axis=0)
+    theta = np.linspace(0, 2 * np.pi, 361)
+    ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
 
-
-
+    plt.savefig(analysis_path + 'rotated_hd_histograms_' + type + '.png')
 
 
 def main():
@@ -137,6 +146,8 @@ def main():
     field_data = calculate_population_mean_vector_angle(field_data)
     field_data = rotate_by_population_mean_vector(field_data)
     plot_rotated_histograms_for_cell_type(field_data, type='grid')
+    plot_rotated_histograms_for_cell_type(field_data, type='conjunctive')
+    plot_rotated_histograms_for_cell_type(field_data, type='nc')
 
 
 if __name__ == '__main__':
