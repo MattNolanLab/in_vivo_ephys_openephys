@@ -71,12 +71,14 @@ def get_angle_of_population_mean_vector(hd_hist):
     # r = np.sqrt(totx*totx + toty*toty)
     # population_mean_vector_angle = np.arctan(toty / totx)
     population_mean_vector_angle = math.degrees(math.atan2(toty, totx))
+    if (totx > 0) or (toty > 0):
+        population_mean_vector_angle = population_mean_vector_angle * (-1)
+    population_mean_vector_angle += 180
     return population_mean_vector_angle
 
 
 # combine hd from all fields and calculate angle (:=alpha) between population mean vector for cell and 0 (use hd score code)
 def calculate_population_mean_vector_angle(field_data):
-    print(field_data)
     list_of_cells = field_data.unique_cell_id.unique()
     angles_to_rotate_by = []
     hd_from_all_fields_clusters = []
@@ -113,15 +115,17 @@ def rotate_by_population_mean_vector(field_data):
 
 # combine all distributions for each cell type into plot
 def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
+    print('analyze ' + cell_type + ' cells')
     list_of_cells = field_data.unique_cell_id.unique()
     histograms = []
     for cell in list_of_cells:
-        cell_type = field_data['cell type'] == cell_type  # filter for cell type
+        cell_type_filter = field_data['cell type'] == cell_type  # filter for cell type
         fields_of_cell = field_data.unique_cell_id == cell  # filter for cell
-        if not field_data[fields_of_cell & cell_type].empty:
-            histogram = field_data[fields_of_cell & cell_type].hd_hist_from_all_fields_rotated.iloc[0]
+        if not field_data[fields_of_cell & cell_type_filter].empty:
+            histogram = field_data[fields_of_cell & cell_type_filter].hd_hist_from_all_fields_rotated.iloc[0]
             histograms.append(histogram)
 
+    plt.cla()
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)
     for histogram in histograms:
@@ -134,6 +138,7 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     theta = np.linspace(0, 2 * np.pi, 361)
     ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
     plt.savefig(analysis_path + 'rotated_hd_histograms_' + cell_type + '.png')
+    plt.close()
 
 
 def main():
@@ -146,6 +151,7 @@ def main():
     plot_rotated_histograms_for_cell_type(field_data, cell_type='grid')
     plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive')
     plot_rotated_histograms_for_cell_type(field_data, cell_type='na')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='hd')
 
 
 if __name__ == '__main__':
