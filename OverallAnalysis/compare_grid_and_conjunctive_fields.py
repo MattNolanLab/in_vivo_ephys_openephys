@@ -126,6 +126,7 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     plt.cla()
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)
+    print('Number of ' + cell_type + ' cells:' + str(len(histograms)))
     for histogram in histograms:
         theta = np.linspace(0, 2 * np.pi, 361)
         ax = plt.subplot(1, 1, 1, polar=True)
