@@ -89,6 +89,9 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
 
     fig, ax = plt.subplots()
     plt.hist(watson_stats_accepted_fields, bins=20, color='navy')
+    print('Number of ' + type + ' fields: ' + str(len(watson_stats_accepted_fields)))
+    print('p < 0.01 for ' + str((watson_stats_accepted_fields > 0.268).sum()))
+
     # plt.axvline(x=0.385, linewidth=1, color='red')  # p < 0.001 threshold
     plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
     ax.spines['top'].set_visible(False)
