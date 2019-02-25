@@ -135,7 +135,7 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     average_histogram = np.average(histograms, axis=0)
     theta = np.linspace(0, 2 * np.pi, 361)
     ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
-    plt.savefig(analysis_path + 'rotated_hd_histograms_' + cell_type + '.png')
+    plt.savefig(analysis_path + 'rotated_hd_histograms_' + cell_type + '.png', dpi=300, bbox_inches="tight")
     plt.close()
 
 
