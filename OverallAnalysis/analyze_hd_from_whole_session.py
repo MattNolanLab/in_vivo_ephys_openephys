@@ -5,6 +5,7 @@ import numpy as np
 import OverallAnalysis.false_positives
 import OverallAnalysis.analyze_field_correlations
 import os
+import PostSorting.open_field_grid_cells
 
 local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
 path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
@@ -53,7 +54,6 @@ def load_data_frame(path):
         df = pd.read_pickle(path)
     else:
         df = load_data_frame_spatial_firing(local_output_path)
-
     return df
 
 
@@ -125,6 +125,7 @@ def correlation_between_first_and_second_halves_of_session(df_all_mice, save_out
 
 def add_grid_score_to_df(df_all_mice):
     print(df_all_mice.head())
+    df_all_mice = PostSorting.open_field_grid_cells.process_grid_data(df_all_mice)
 
 
 
