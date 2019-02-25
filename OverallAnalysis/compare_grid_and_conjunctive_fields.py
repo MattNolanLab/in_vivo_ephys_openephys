@@ -112,11 +112,11 @@ def rotate_by_population_mean_vector(field_data):
 
 
 # combine all distributions for each cell type into plot
-def plot_rotated_histograms_for_cell_type(field_data, type='grid'):
+def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     list_of_cells = field_data.unique_cell_id.unique()
     histograms = []
     for cell in list_of_cells:
-        cell_type = field_data['cell type'] == type  # filter for cell type
+        cell_type = field_data['cell type'] == cell_type  # filter for cell type
         fields_of_cell = field_data.unique_cell_id == cell  # filter for cell
         if not field_data[fields_of_cell & cell_type].empty:
             histogram = field_data[fields_of_cell & cell_type].hd_hist_from_all_fields_rotated.iloc[0]
@@ -130,12 +130,10 @@ def plot_rotated_histograms_for_cell_type(field_data, type='grid'):
         ax = plot_utility.style_polar_plot(ax)
         ax.plot(theta[:-1], histogram, color='gray', linewidth=2, alpha=70)
     # combine them to make one polar plot
-    print('histrograms are plotted')
     average_histogram = np.average(histograms, axis=0)
     theta = np.linspace(0, 2 * np.pi, 361)
     ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
-
-    plt.savefig(analysis_path + 'rotated_hd_histograms_' + type + '.png')
+    plt.savefig(analysis_path + 'rotated_hd_histograms_' + cell_type + '.png')
 
 
 def main():
@@ -145,9 +143,9 @@ def main():
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = calculate_population_mean_vector_angle(field_data)
     field_data = rotate_by_population_mean_vector(field_data)
-    plot_rotated_histograms_for_cell_type(field_data, type='grid')
-    plot_rotated_histograms_for_cell_type(field_data, type='conjunctive')
-    plot_rotated_histograms_for_cell_type(field_data, type='nc')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='grid')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='na')
 
 
 if __name__ == '__main__':
