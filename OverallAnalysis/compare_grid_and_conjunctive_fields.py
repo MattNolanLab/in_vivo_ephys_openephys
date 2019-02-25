@@ -70,9 +70,7 @@ def get_angle_of_population_mean_vector(hd_hist):
     toty = sum(dy * hd_hist)/sum(hd_hist)
     # r = np.sqrt(totx*totx + toty*toty)
     # population_mean_vector_angle = np.arctan(toty / totx)
-    population_mean_vector_angle = math.degrees(math.atan2(toty, totx))
-    if (totx > 0) or (toty > 0):
-        population_mean_vector_angle = population_mean_vector_angle * (-1)
+    population_mean_vector_angle = math.degrees(math.atan2(toty, totx)) * (-1)
     population_mean_vector_angle += 180
     return population_mean_vector_angle
 
