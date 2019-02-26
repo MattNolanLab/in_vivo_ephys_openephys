@@ -190,9 +190,8 @@ def process_grid_data(spatial_firing):
     grid_spacings = []
     field_sizes = []
     grid_scores = []
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_rate_map = spatial_firing.firing_maps[cluster]
+    for index, cluster in spatial_firing.iterrows():
+        firing_rate_map = cluster.firing_maps
         rate_map_correlogram = get_rate_map_autocorrelogram(firing_rate_map)
         rate_map_correlograms.append(np.copy(rate_map_correlogram))
         field_properties = find_autocorrelogram_peaks(rate_map_correlogram)
