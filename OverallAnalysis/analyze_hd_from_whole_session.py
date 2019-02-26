@@ -126,7 +126,7 @@ def correlation_between_first_and_second_halves_of_session(df_all_mice, save_out
 def add_grid_score_to_df(df_all_mice):
     if 'grid_score' not in df_all_mice.columns:
         df_all_mice = PostSorting.open_field_grid_cells.process_grid_data(df_all_mice)
-        df_all_mice.to_pickle(save_output_path)
+        df_all_mice.to_pickle(local_path)
     return df_all_mice
 
 
