@@ -49,15 +49,15 @@ calculated for all positions and returned as a correlation_vector. TThe correlat
 def get_rate_map_autocorrelogram(firing_rate_map):
     length_y = firing_rate_map.shape[0] - 1
     length_x = firing_rate_map.shape[1] - 1
-    correlation_vector = np.empty((length_x * 2 + 1, length_x * 2 + 1)) * 0
-    for shift_x in range(-length_x, length_x + 1):
-        for shift_y in range(-length_y, length_y + 1):
+    correlation_vector = np.empty((length_x * 2 + 1, length_y * 2 + 1)) * 0
+    for shift_x in range(-length_x, length_x):
+        for shift_y in range(-length_y, length_y):
             # shift map by x and y and remove extra bits
             shifted_map = get_shifted_map(firing_rate_map, shift_x, -shift_y)
             firing_rate_map_to_correlate, shifted_map = remove_zeros(firing_rate_map, shifted_map)
 
-            correlation_y = shift_x + length_x
-            correlation_x = shift_y + length_y
+            correlation_y = shift_y + length_y
+            correlation_x = shift_x + length_x
 
             if len(shifted_map) > 20:
                 # np.corrcoef(x,y)[0][1] gives the same result for 1d vectors as matlab's corr(x,y) (Pearson)
