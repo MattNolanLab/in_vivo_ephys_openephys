@@ -52,8 +52,9 @@ def format_bar_chart(ax):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head direction [degrees]')
-    ax.set_ylabel('Head-direction preference')
+    ax.set_xlabel('Head direction [degrees]', fontsize=20)
+    ax.set_ylabel('Frequency', fontsize=20)
+    ax.xaxis.set_tick_params(labelsize=20)
     return ax
 
 
