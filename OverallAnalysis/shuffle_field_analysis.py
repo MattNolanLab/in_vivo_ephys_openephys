@@ -52,9 +52,10 @@ def format_bar_chart(ax):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head direction [degrees]', fontsize=20)
-    ax.set_ylabel('Frequency', fontsize=20)
-    ax.xaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Head direction', fontsize=18)
+    ax.set_ylabel('Frequency', fontsize=18)
+    ax.xaxis.set_tick_params(labelsize=18)
+    ax.yaxis.set_tick_params(labelsize=18)
     return ax
 
 
@@ -350,8 +351,8 @@ def process_recordings():
 
 
 def local_data_test():
-    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
+    local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
+    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M13_2018-05-01_11-23-01_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M14_2018-05-16_11-29-05_of/MountainSort/'
 
