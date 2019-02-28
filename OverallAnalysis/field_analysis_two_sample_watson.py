@@ -103,20 +103,11 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
     plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '.png')
 
 
-def plot_rotation_examples(field_data):
-    grid_cells = field_data['cell type'] == 'grid'
-    combined_field_histograms = field_data.field_histograms_hz[field_data.accepted_field & grid_cells]
-    # plot some of them and plot the combined one
-
-
-
 def main():
     field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_watson_test.pkl')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
     field_data = tag_accepted_fields(field_data, accepted_fields)
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
-    plot_rotation_examples(field_data)
-
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
     plot_histogram_of_watson_stat(field_data)
     plot_histogram_of_watson_stat(field_data, type='grid')
