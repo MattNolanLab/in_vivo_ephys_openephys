@@ -102,7 +102,7 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Frequency', size=30)
-    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '.png')
+    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '.png', bbox_inches="tight")
 
 
 def main():
