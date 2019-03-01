@@ -89,6 +89,8 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
 
     fig, ax = plt.subplots()
     plt.hist(watson_stats_accepted_fields, bins=20, color='navy')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
     print('Number of ' + type + ' fields: ' + str(len(watson_stats_accepted_fields)))
     print('p < 0.01 for ' + str((watson_stats_accepted_fields > 0.268).sum()))
 
@@ -98,8 +100,8 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Two-sample Watson test stat')
-    ax.set_ylabel('Frequency')
+    ax.set_xlabel('Watson test statistic', size=30)
+    ax.set_ylabel('Frequency', size=30)
     plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '.png')
 
 
