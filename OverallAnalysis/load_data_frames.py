@@ -45,6 +45,40 @@ def load_data_frame_spatial_firing(output_path):
     spatial_firing_data.to_pickle(output_path)
 
 
+def load_data_frame(output_path):
+    spatial_firing_data = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a firing data frame.')
+            spatial_firing = pd.read_pickle(data_frame_path)
+            '''
+            'session_id' 'cluster_id' 'tetrode' 'primary_channel' 'firing_times'
+             'firing_times_opto' 'number_of_spikes' 'mean_firing_rate' 'isolation'
+             'noise_overlap' 'peak_snr' 'peak_amp' 'random_snippets' 'position_x'
+             'position_x_pixels' 'position_y' 'position_y_pixels' 'hd' 'speed'
+             'hd_spike_histogram' 'max_firing_rate_hd' 'preferred_HD' 'hd_score'
+             'firing_maps' 'max_firing_rate' 'firing_fields' 'field_max_firing_rate'
+             'firing_fields_hd_session' 'firing_fields_hd_cluster' 'field_hd_max_rate'
+             'field_preferred_hd' 'field_hd_score' 'number_of_spikes_in_fields'
+             'time_spent_in_fields_sampling_points' 'spike_times_in_fields'
+             'times_in_session_fields' 'field_corr_r' 'field_corr_p'
+             'hd_correlation_first_vs_second_half'
+             'hd_correlation_first_vs_second_half_p' 'hd_hist_first_half'
+             'hd_hist_second_half'
+
+            '''
+            if 'position_x' in spatial_firing:
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'firing_times', 'position_x', 'position_y', 'hd', 'speed']].copy()
+
+                # print(spatial_firing.head())
+                spatial_firing_data = spatial_firing_data.append(spatial_firing)
+
+            print(spatial_firing_data.head())
+    spatial_firing_data.to_pickle(output_path)
+
+
 # for shuffle analysis
 def load_data_frame_field_data_frame(output_path):
     field_data_combined = pd.DataFrame()
@@ -86,7 +120,8 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
+    load_data_frame('/Users/s1466507/Documents/Ephys/recordings/spatial_firing_all_mice.pkl')
+    # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
 
