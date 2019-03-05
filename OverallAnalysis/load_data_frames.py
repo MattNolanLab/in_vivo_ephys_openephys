@@ -1,6 +1,7 @@
 import os
 import glob
 import pandas as pd
+import numpy as np
 import OverallAnalysis.false_positives
 import PostSorting.open_field_grid_cells
 import OverallAnalysis.analyze_hd_from_whole_session
@@ -120,10 +121,10 @@ def load_position_data(output_path):
         if os.path.exists(data_frame_path):
             print('I found a firing data frame.')
             position = pd.read_pickle(data_frame_path)
-            synced_time.append(position.synced_time)
-            position_x.append(position.position_x)
-            position_y.append(position.position_y)
-            hd.append(position.hd)
+            synced_time.append(position.synced_time.values)
+            position_x.append(position.position_x.values)
+            position_y.append(position.position_y.values)
+            hd.append(position.hd.values)
             session_id.append(data_frame_path.split('/')[-4].split('\\')[-1])
             # spatial_data = spatial_data.append(position)
     spatial_data['session_id'] = session_id
