@@ -1,11 +1,16 @@
 import os
 import glob
 import pandas as pd
+import OverallAnalysis.false_positives
+import PostSorting.open_field_grid_cells
+import OverallAnalysis.analyze_hd_from_whole_session
 
 server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
 # server_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/'
 server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 local_output_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pkl'
+
+false_positives_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/false_positives_all.txt'
 
 
 test_image_path = '/Users/s1466507/Desktop/mouse.jpg'
@@ -53,29 +58,17 @@ def load_data_frame(output_path):
         if os.path.exists(data_frame_path):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
-            '''
-            'session_id' 'cluster_id' 'tetrode' 'primary_channel' 'firing_times'
-             'firing_times_opto' 'number_of_spikes' 'mean_firing_rate' 'isolation'
-             'noise_overlap' 'peak_snr' 'peak_amp' 'random_snippets' 'position_x'
-             'position_x_pixels' 'position_y' 'position_y_pixels' 'hd' 'speed'
-             'hd_spike_histogram' 'max_firing_rate_hd' 'preferred_HD' 'hd_score'
-             'firing_maps' 'max_firing_rate' 'firing_fields' 'field_max_firing_rate'
-             'firing_fields_hd_session' 'firing_fields_hd_cluster' 'field_hd_max_rate'
-             'field_preferred_hd' 'field_hd_score' 'number_of_spikes_in_fields'
-             'time_spent_in_fields_sampling_points' 'spike_times_in_fields'
-             'times_in_session_fields' 'field_corr_r' 'field_corr_p'
-             'hd_correlation_first_vs_second_half'
-             'hd_correlation_first_vs_second_half_p' 'hd_hist_first_half'
-             'hd_hist_second_half'
-
-            '''
             if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'firing_times', 'position_x', 'position_y', 'hd', 'speed']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'firing_times', 'position_x', 'position_y', 'hd', 'speed', 'firing_maps']].copy()
 
                 # print(spatial_firing.head())
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
             print(spatial_firing_data.head())
+    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
+    spatial_firing_data = OverallAnalysis.analyze_hd_from_whole_session.add_combined_id_to_df(spatial_firing_data)
+    spatial_firing_data['false_positive'] = spatial_firing_data['false_positive_id'].isin(list_of_false_positives)
+    spatial_firing_data = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing_data)
     spatial_firing_data.to_pickle(output_path)
 
 
@@ -120,7 +113,7 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    load_data_frame('/Users/s1466507/Documents/Ephys/recordings/spatial_firing_all_mice.pkl')
+    load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice.pkl')
     # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
