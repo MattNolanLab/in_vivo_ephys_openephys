@@ -152,7 +152,7 @@ def plot_results_of_watson_test(df_all_mice, cell_type='grid'):
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
-    ax.set_ylabel('Frequency', size=30)
+    ax.set_ylabel('Proportion', size=30)
     plt.savefig(save_output_path + 'two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
