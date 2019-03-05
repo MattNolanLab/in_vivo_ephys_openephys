@@ -130,11 +130,18 @@ def add_grid_score_to_df(df_all_mice):
     return df_all_mice
 
 
-def plot_results_of_watson_test(df_all_mice):
+def plot_results_of_watson_test(df_all_mice, cell_type='grid'):
     good_cluster = df_all_mice.false_positive == False
-    grid_cells = df_all_mice.grid_score >= 0.4
+    if cell_type == 'grid':
+        cells_to_analyze = df_all_mice.grid_score >= 0.4
+    elif cell_type == 'hd':
+        cells_to_analyze = df_all_mice.hd_score >= 0.5
+    else:
+        not_grid = df_all_mice.grid_score < 0.4
+        not_hd = df_all_mice.hd_score < 0.5
+        cells_to_analyze = not_grid & not_hd
 
-    watson_test_stats = df_all_mice.watson_cluster[good_cluster & grid_cells]
+    watson_test_stats = df_all_mice.watson_cluster[good_cluster & cells_to_analyze]
     fig, ax = plt.subplots()
     plt.hist(watson_test_stats, bins=30, color='navy')
     ax.xaxis.set_tick_params(labelsize=20)
@@ -146,7 +153,7 @@ def plot_results_of_watson_test(df_all_mice):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Frequency', size=30)
-    plt.savefig(save_output_path + 'two_sample_watson_stats_hist_all_spikes_grid_cells.png', bbox_inches="tight")
+    plt.savefig(save_output_path + 'two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
 def main():
@@ -156,7 +163,9 @@ def main():
     correlation_between_first_and_second_halves_of_session(df_all_mice, save_output_path)
     plot_hd_vs_watson_stat(df_all_mice, save_output_path)
     add_grid_score_to_df(df_all_mice)
-    plot_results_of_watson_test(df_all_mice)
+    plot_results_of_watson_test(df_all_mice, cell_type='grid')
+    plot_results_of_watson_test(df_all_mice, cell_type='hd')
+    plot_results_of_watson_test(df_all_mice, cell_type='nc')
 
 
 
