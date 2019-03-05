@@ -107,6 +107,33 @@ def load_data_frame_field_data_frame(output_path):
     field_data_combined.to_pickle(output_path)
 
 
+def load_position_data(output_path):
+    spatial_data = pd.DataFrame()
+    session_id = []
+    synced_time = []
+    position_x = []
+    position_y = []
+    hd = []
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/position.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a firing data frame.')
+            position = pd.read_pickle(data_frame_path)
+            synced_time.append(position.synced_time)
+            position_x.append(position.position_x)
+            position_y.append(position.position_y)
+            hd.append(position.hd)
+            session_id.append(data_frame_path.split('/')[-4].split('\\')[-1])
+            # spatial_data = spatial_data.append(position)
+    spatial_data['session_id'] = session_id
+    spatial_data['synced_time'] = synced_time
+    spatial_data['position_x'] = position_x
+    spatial_data['position_y'] = position_y
+    spatial_data['hd'] = hd
+    spatial_data.to_pickle(output_path)
+
+
 def main():
     if os.path.exists(test_image_path):
         print('I found the test file.')
@@ -114,7 +141,8 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice.pkl')
+    # load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice.pkl')
+    load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice.pkl')
     # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
