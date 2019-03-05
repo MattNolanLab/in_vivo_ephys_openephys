@@ -69,6 +69,7 @@ def load_data_frame(output_path):
     spatial_firing_data = OverallAnalysis.analyze_hd_from_whole_session.add_combined_id_to_df(spatial_firing_data)
     spatial_firing_data['false_positive'] = spatial_firing_data['false_positive_id'].isin(list_of_false_positives)
     spatial_firing_data = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing_data)
+    spatial_firing_data = spatial_firing_data.drop(columns="false_positive_id")
     spatial_firing_data.to_pickle(output_path)
 
 
