@@ -143,16 +143,20 @@ def plot_results_of_watson_test(df_all_mice, cell_type='grid'):
 
     watson_test_stats = df_all_mice.watson_cluster[good_cluster & cells_to_analyze]
     fig, ax = plt.subplots()
-    plt.hist(watson_test_stats, bins=30, color='navy')
+    plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
+    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Proportion', size=30)
+    plt.ylim(0, 0.05)
+    plt.xlim(0, 700)
+    ax.set_aspect(6000)
+    plt.yticks([0, 0.05])
     plt.savefig(save_output_path + 'two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
