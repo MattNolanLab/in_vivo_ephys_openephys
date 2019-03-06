@@ -5,13 +5,15 @@ import plot_utility
 path = 'C:/Users/s1466507/Dropbox/Edinburgh/PhD/thesis/5 firing_properties/field_correlations/fields_correlation_detector2.xlsx'
 
 
-def plot_correlation_coef_hist(correlation_coefs, save_path):
+def plot_correlation_coef_hist(correlation_coefs, save_path, y_axis_label='Number of fields'):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     fig, ax = plot_utility.style_plot(ax)
     ax.hist(correlation_coefs, color='navy')
-    plt.xlabel('Correlation coefficient', fontsize=22)
-    plt.ylabel('Number of fields', fontsize=22)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.xlabel('Correlation coefficient', fontsize=30)
+    plt.ylabel(y_axis_label, fontsize=30)
     plt.xlim(-1, 1)
     plt.axvline(x=0, color='red')
     plt.savefig(save_path)
