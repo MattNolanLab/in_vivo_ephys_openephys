@@ -182,9 +182,11 @@ def main():
 
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
-    #post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters', sorter_name='MS')
+    # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters', sorter_name='MS')
     # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='default')
     post_process_recording(recording_folder, 'openfield', run_type='stable')
+
+    #spatial_firing = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl')
 
 
 if __name__ == '__main__':
