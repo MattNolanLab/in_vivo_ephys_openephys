@@ -163,7 +163,6 @@ def post_process_recording(recording_to_process, session_type, run_type='default
             save_data_frames(spike_data, synced_spatial_data)
 
 
-
 #  this is here for testing
 def main():
     print('-------------------------------------------------------------')
@@ -172,13 +171,20 @@ def main():
     params = PostSorting.parameters.Parameters()
     params.set_pixel_ratio(440)
 
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of'
+    # recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of'
+
+    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-15_17-23-36_of'
+    # recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-22_17-34-12_of'
+    # recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-27_16-38-15_of'
+    # recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M7_2018-03-12_15-16-29_of'
+    # recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M13_2018-05-09_10-32-20_of'
+    # recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M15_2018-05-11_10-56-39_of'
+
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
     #post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters', sorter_name='MS')
     # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='default')
-    post_process_recording(recording_folder, 'openfield')
-
+    post_process_recording(recording_folder, 'openfield', run_type='stable')
 
 
 if __name__ == '__main__':
