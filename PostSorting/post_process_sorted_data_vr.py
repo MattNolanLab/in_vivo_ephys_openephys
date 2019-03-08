@@ -63,7 +63,7 @@ def save_data_frames(prm, spatial_firing, raw_position_data, processed_position_
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
-    #raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+    raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
     processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
     bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 

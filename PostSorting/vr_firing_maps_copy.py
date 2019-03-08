@@ -134,16 +134,13 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     clusters = range(len(firing_data_spatial))
     num_cores = multiprocessing.cpu_count()
     time_start = time.time()
-    firing_rate_maps_b = Parallel(n_jobs=num_cores)(delayed(calculate_beaconed_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values,  spatial_data.trial_number.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
-    firing_rate_maps_nb = Parallel(n_jobs=num_cores)(delayed(calculate_nonbeaconed_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values,  spatial_data.trial_number.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
-    firing_rate_maps_p = Parallel(n_jobs=num_cores)(delayed(calculate_probe_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values,  spatial_data.trial_number.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_beaconed_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.x_position_cm.values,  spatial_data.trial_number.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
     time_end = time.time()
     print('Making the rate maps took:')
     time_diff = time_end - time_start
     print(time_diff)
-    firing_data_spatial['firing_maps_b'] = firing_rate_maps_b
-    firing_data_spatial['firing_maps_nb'] = firing_rate_maps_nb
-    firing_data_spatial['firing_maps_p'] = firing_rate_maps_p
+    firing_data_spatial['firing_maps'] = firing_rate_maps
+
     return firing_data_spatial
 
 
