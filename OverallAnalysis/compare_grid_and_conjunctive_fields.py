@@ -72,7 +72,7 @@ def get_angle_of_population_mean_vector(hd_hist):
     # population_mean_vector_angle = np.arctan(toty / totx)
     population_mean_vector_angle = math.degrees(math.atan2(toty, totx)) * (-1)
     population_mean_vector_angle += 180
-    return population_mean_vector_angle
+    return population_mean_vector_angle, totx, toty
 
 
 # combine hd from all fields and calculate angle (:=alpha) between population mean vector for cell and 0 (use hd score code)
@@ -80,6 +80,8 @@ def calculate_population_mean_vector_angle(field_data):
     list_of_cells = field_data.unique_cell_id.unique()
     angles_to_rotate_by = []
     hd_from_all_fields_clusters = []
+    total_x = []
+    total_y = []
     for cell in list_of_cells:
         cell_fields = list(field_data.unique_cell_id == cell)
         number_of_fields = len(field_data[cell_fields])
@@ -90,12 +92,16 @@ def calculate_population_mean_vector_angle(field_data):
         hd_histogram_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_from_all_fields_session) / sampling_rate
         hd_histogram_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_from_all_fields_cluster)
         hd_histogram_cluster = hd_histogram_cluster / hd_histogram_session
-        angle_to_rotate_by = get_angle_of_population_mean_vector(hd_histogram_cluster)
+        angle_to_rotate_by, totx, toty = get_angle_of_population_mean_vector(hd_histogram_cluster)
         angles_to_rotate_by.extend([angle_to_rotate_by] * number_of_fields)
         hd_from_all_fields_clusters.extend([hd_histogram_cluster] * number_of_fields)
+        total_x.extend([totx] * number_of_fields)
+        total_y.extend([toty] * number_of_fields)
 
     field_data['population_mean_vector_angle'] = angles_to_rotate_by
     field_data['hd_hist_from_all_fields'] = hd_from_all_fields_clusters
+    field_data['population_mean_vector_x'] = total_x
+    field_data['population_mean_vector_y'] = total_y
     return field_data
 
 
@@ -126,7 +132,7 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     plt.cla()
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)
-    print('Number of ' + cell_type + ' cells:' + str(len(histograms)))
+    print('Number of ' + cell_type + ' cells: ' + str(len(histograms)))
     for histogram in histograms:
         theta = np.linspace(0, 2 * np.pi, 361)
         ax = plt.subplot(1, 1, 1, polar=True)
@@ -140,6 +146,50 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     plt.close()
 
 
+def plot_and_save_polar_histogram(histogram, name):
+    plt.cla()
+    theta = np.linspace(0, 2 * np.pi, 361)
+    ax = plt.subplot(1, 1, 1, polar=True)
+    ax = plot_utility.style_polar_plot(ax)
+    ax.plot(theta[:-1], histogram, color='gray', linewidth=10)
+    plt.savefig(analysis_path + 'rotated_hd_histograms_' + name + '.png', dpi=300, bbox_inches="tight")
+    plt.close()
+
+
+def plot_rotation_examples(field_data, type='grid'):
+    grid_cells = field_data['cell type'] == type
+    if type == 'grid':
+        cell_1 = 20
+        cell_2 = 25
+        cell_3 = 35
+    else:
+        cell_1 = 1
+        cell_2 = 3
+        cell_3 = 6
+    combined_field_histograms = field_data.hd_hist_from_all_fields[field_data.accepted_field & grid_cells]
+    rotated = field_data.hd_hist_from_all_fields_rotated[field_data.accepted_field & grid_cells]
+    total_x = field_data.population_mean_vector_x[field_data.accepted_field & grid_cells]
+    total_y = field_data.population_mean_vector_y[field_data.accepted_field & grid_cells]
+    # 20, 25, 35
+    plot_and_save_polar_histogram(combined_field_histograms.iloc[cell_1], type + '_cell_' + str(cell_1))
+    plot_and_save_polar_histogram(combined_field_histograms.iloc[cell_2], type + '_cell_' + str(cell_2))
+    plot_and_save_polar_histogram(combined_field_histograms.iloc[cell_3], type + '_cell_' + str(cell_3))
+
+    plot_and_save_polar_histogram(rotated.iloc[cell_1], type + '_cell_' + str(cell_1) + '_rotated')
+    plot_and_save_polar_histogram(rotated.iloc[cell_2], type + '_cell_' + str(cell_2) + '_rotated')
+    plot_and_save_polar_histogram(rotated.iloc[cell_3], type + '_cell_' + str(cell_3) + '_rotated')
+
+    # combine them to make one polar plot
+    hd_polar_fig = plt.figure()
+    ax = hd_polar_fig.add_subplot(1, 1, 1, polar=True)
+    ax = plot_utility.style_polar_plot(ax)
+    average_histogram = np.average([rotated.iloc[cell_1], rotated.iloc[cell_2], rotated.iloc[cell_3]], axis=0)
+    theta = np.linspace(0, 2 * np.pi, 361)
+    ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
+    plt.savefig(analysis_path + 'rotated_hd_histograms_' + 'combined_example_hist' + '.png', dpi=300, bbox_inches="tight")
+    plt.close()
+
+
 def main():
     field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_grid_vs_conjunctive_fields.pkl')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
@@ -147,6 +197,8 @@ def main():
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = calculate_population_mean_vector_angle(field_data)
     field_data = rotate_by_population_mean_vector(field_data)
+    plot_rotation_examples(field_data, type='grid')
+    plot_rotation_examples(field_data, type='conjunctive')
     plot_rotated_histograms_for_cell_type(field_data, cell_type='grid')
     plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive')
     plot_rotated_histograms_for_cell_type(field_data, cell_type='na')

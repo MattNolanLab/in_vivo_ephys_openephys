@@ -3,12 +3,15 @@ import pandas as pd
 import matplotlib.pylab as plt
 import scipy.stats
 
+
+analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis/'
+
 # this data frame contains results calculated by shuffle_field_analysis.py combined by load_data_frames.py
-local_path_to_shuffled_field_data = '/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl'
+local_path_to_shuffled_field_data =  analysis_path + 'shuffled_field_data_all_mice.pkl'
 
 # this is a list of fields included in the analysis with session_ids cluster ids and field ids
-list_of_accepted_fields_path_grid = '/Users/s1466507/Documents/Ephys/recordings/included_fields_detector2_grid.csv'
-list_of_accepted_fields_path_not_classified = '/Users/s1466507/Documents/Ephys/recordings/included_fields_detector2_not_classified.csv'
+list_of_accepted_fields_path_grid = analysis_path + 'included_fields_detector2_grid.csv'
+list_of_accepted_fields_path_not_classified = analysis_path + 'included_fields_detector2_not_classified.csv'
 
 
 def get_accepted_fields(shuffled_field_data, type='grid'):
@@ -45,9 +48,11 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Number of fields')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects.png')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / field', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects.png', bbox_inches = "tight")
     plt.close()
 
 
@@ -62,9 +67,11 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Number shuffles')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_shuffled.png')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / field', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.savefig(analysis_path + '/distribution_of_rejects_shuffled.png', bbox_inches="tight")
     plt.close()
 
 
@@ -81,17 +88,19 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
     number_of_rejects_real = shuffled_field_data.number_of_different_bins
     plt.hist(number_of_rejects_real, normed=True, color='navy', alpha=0.5)
 
-    plt.axvline(x=tail, color='red', alpha=0.5, linestyle='dashed')
-    plt.axvline(x=percentile_95, color='red', alpha=0.5, linestyle='dashed')
-    plt.axvline(x=percentile_99, color='red', alpha=0.5, linestyle='dashed')
+    # plt.axvline(x=tail, color='red', alpha=0.5, linestyle='dashed')
+    # plt.axvline(x=percentile_95, color='red', alpha=0.5, linestyle='dashed')
+    # plt.axvline(x=percentile_99, color='red', alpha=0.5, linestyle='dashed')
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Number of p values')
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_combined_all_' + tag + '.png')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / field', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.savefig(analysis_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches = "tight")
     plt.close()
 
 
@@ -111,10 +120,12 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Number of rejected bars')
-    ax.set_ylabel('Number of p values')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / field', size=30)
+    ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_significant_p_ ' + type +'.png')
+    plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
     plt.close()
 
 

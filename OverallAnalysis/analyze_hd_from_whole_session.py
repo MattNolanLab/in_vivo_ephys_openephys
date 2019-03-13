@@ -118,9 +118,9 @@ def correlation_between_first_and_second_halves_of_session(df_all_mice, save_out
     print('mean pearson r of correlation between first and second half')
     print(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster].mean())
 
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant], save_output_path + 'correlation_hd_session.png')
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & excitatory_neurons], save_output_path + 'correlation_hd_session_excitatory.png')
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory.png')
+    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant], save_output_path + 'correlation_hd_session.png', y_axis_label='Number of cells')
+    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & excitatory_neurons], save_output_path + 'correlation_hd_session_excitatory.png', y_axis_label='Number of cells')
+    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_mice.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory.png', y_axis_label='Number of cells')
 
 
 def add_grid_score_to_df(df_all_mice):
@@ -130,6 +130,36 @@ def add_grid_score_to_df(df_all_mice):
     return df_all_mice
 
 
+def plot_results_of_watson_test(df_all_mice, cell_type='grid'):
+    good_cluster = df_all_mice.false_positive == False
+    if cell_type == 'grid':
+        cells_to_analyze = df_all_mice.grid_score >= 0.4
+    elif cell_type == 'hd':
+        cells_to_analyze = df_all_mice.hd_score >= 0.5
+    else:
+        not_grid = df_all_mice.grid_score < 0.4
+        not_hd = df_all_mice.hd_score < 0.5
+        cells_to_analyze = not_grid & not_hd
+
+    watson_test_stats = df_all_mice.watson_cluster[good_cluster & cells_to_analyze]
+    fig, ax = plt.subplots()
+    plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Watson test statistic', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.ylim(0, 0.05)
+    plt.xlim(0, 700)
+    ax.set_aspect(6000)
+    plt.yticks([0, 0.05])
+    plt.savefig(save_output_path + 'two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
+
+
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
@@ -137,6 +167,10 @@ def main():
     correlation_between_first_and_second_halves_of_session(df_all_mice, save_output_path)
     plot_hd_vs_watson_stat(df_all_mice, save_output_path)
     add_grid_score_to_df(df_all_mice)
+    plot_results_of_watson_test(df_all_mice, cell_type='grid')
+    plot_results_of_watson_test(df_all_mice, cell_type='hd')
+    plot_results_of_watson_test(df_all_mice, cell_type='nc')
+
 
 
 if __name__ == '__main__':

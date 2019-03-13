@@ -136,15 +136,15 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
 
 
 # plot polar hd histograms without needing the whole df as an input
-def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path):
+def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path, color1='lime', color2='navy'):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     ax = plt.subplot(1, 1, 1, polar=True)
     ax = plot_utility.style_polar_plot(ax)
-    ax.plot(theta[:-1], hist_1, color='lime', linewidth=2)
-    ax.plot(theta[:-1], hist_2, color='navy', linewidth=2)
+    ax.plot(theta[:-1], hist_1, color=color1, linewidth=2)
+    ax.plot(theta[:-1], hist_2, color=color2, linewidth=2)
     # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
     plt.tight_layout()
     plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
@@ -175,7 +175,7 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
 
 def mark_firing_field_with_scatter(field, plot, colors, field_id):
     for bin in field:
-        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=5)
+        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=25)
     return plot
 
 
