@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import OverallAnalysis.false_positives
 import PostSorting.open_field_grid_cells
+import PostSorting.open_field_head_direction
 import OverallAnalysis.analyze_hd_from_whole_session
 
 server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
@@ -115,6 +116,7 @@ def load_position_data(output_path):
     position_x = []
     position_y = []
     hd = []
+    hd_histograms = []
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
         data_frame_path = recording_folder + '/MountainSort/DataFrames/position.pkl'
@@ -127,11 +129,16 @@ def load_position_data(output_path):
             hd.append(position.hd.values)
             session_id.append(data_frame_path.split('/')[-4].split('\\')[-1])
             # spatial_data = spatial_data.append(position)
+            angles_whole_session = (np.array(position.hd) + 180) * np.pi / 180
+            hd_histogram = PostSorting.open_field_head_direction.get_hd_histogram(angles_whole_session)
+            hd_histogram /= 30000  # sampling rate
+            hd_histograms.append(hd_histogram)
     spatial_data['session_id'] = session_id
     spatial_data['synced_time'] = synced_time
     spatial_data['position_x'] = position_x
     spatial_data['position_y'] = position_y
     spatial_data['hd'] = hd
+    spatial_data['hd_histogram'] = hd_histograms
     spatial_data.to_pickle(output_path)
 
 
@@ -139,8 +146,8 @@ def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist.pkl')
-    # load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice.pkl')
+    # load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist.pkl')
+    load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice_hist.pkl')
     # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
