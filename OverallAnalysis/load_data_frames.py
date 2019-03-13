@@ -60,7 +60,7 @@ def load_data_frame(output_path):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
             if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'firing_times', 'position_x', 'position_y', 'hd', 'speed', 'firing_maps']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'firing_times', 'position_x', 'position_y', 'hd', 'speed', 'firing_maps', 'hd_spike_histogram']].copy()
 
                 # print(spatial_firing.head())
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
@@ -136,14 +136,11 @@ def load_position_data(output_path):
 
 
 def main():
-    if os.path.exists(test_image_path):
-        print('I found the test file.')
-
     if os.path.exists(server_test_file):
         print('I see the server.')
 
-    # load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice.pkl')
-    load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice.pkl')
+    load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist.pkl')
+    # load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice.pkl')
     # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
 
