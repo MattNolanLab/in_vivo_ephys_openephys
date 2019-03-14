@@ -10,7 +10,8 @@ import PostSorting.open_field_head_direction
 
 # compare head-direction preference of firing fields of grid cells and conjunctive cells
 
-server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
 analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/compare_grid_and_conjunctive_fields/'
 sampling_rate = 30000
 
@@ -22,7 +23,7 @@ def load_data_frame_field_data(output_path):
         return field_data
     else:
         field_data_combined = pd.DataFrame()
-        for recording_folder in glob.glob(server_path + '*'):
+        for recording_folder in glob.glob(server_path_mouse + '*'):
             os.path.isdir(recording_folder)
             data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
             if os.path.exists(data_frame_path):
@@ -40,6 +41,35 @@ def load_data_frame_field_data(output_path):
                     print(field_data_combined.head())
         field_data_combined.to_pickle(output_path)
         return field_data_combined
+
+
+# todo fix this after shuffled fields are made
+def load_data_frame_field_data_rat(output_path):
+    if os.path.exists(output_path):
+        field_data = pd.read_pickle(output_path)
+        return field_data
+
+    else:
+        field_data_combined = pd.DataFrame()
+        for recording_folder in glob.glob(server_path_rat + '*'):
+            os.path.isdir(recording_folder)
+            data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+            if os.path.exists(data_frame_path):
+                print('I found a field data frame.')
+                field_data = pd.read_pickle(data_frame_path)
+                if 'field_id' in field_data:
+                    field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                        'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                        'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                        'times_session', 'time_spent_in_field', 'position_x_session',
+                                                        'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                        'hd_histogram_real_data', 'time_spent_in_bins',
+                                                        'field_histograms_hz']].copy()
+
+                    field_data_combined = field_data_combined.append(field_data_to_combine)
+                    print(field_data_combined.head())
+    field_data_combined.to_pickle(output_path)
+    return field_data_combined
 
 
 # select accepted fields based on list of fields that were correctly identified by field detector
@@ -190,7 +220,7 @@ def plot_rotation_examples(field_data, type='grid'):
     plt.close()
 
 
-def main():
+def analyse_mouse_data():
     field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_grid_vs_conjunctive_fields.pkl')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
     field_data = tag_accepted_fields(field_data, accepted_fields)
@@ -205,7 +235,16 @@ def main():
     plot_rotated_histograms_for_cell_type(field_data, cell_type='hd')
 
 
+def analyse_rat_data():
+    load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
+    # make combined df from rat data
+    # load data
+
+
+def main():
+    analyse_rat_data()
+    analyse_mouse_data()
+
+
 if __name__ == '__main__':
     main()
-
-# combine result for all cells
