@@ -348,8 +348,13 @@ def process_recordings(server_path, spike_sorter='/MountainSort'):
                 if not field_df.empty:
                     field_df = shuffle_field_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20, number_of_times_to_shuffle=1000)
                     field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
-                    field_df.to_pickle(recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl')
-                    print('I finished analyzing ' + recording_folder)
+                    try:
+                        field_df.to_pickle(recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl')
+                        print('I finished analyzing ' + recording_folder)
+                    except OSError as error:
+                        print('ERROR I failed to analyze ' + recording_folder)
+                        print(error)
+
 
 
 def local_data_test():
