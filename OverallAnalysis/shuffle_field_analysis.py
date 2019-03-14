@@ -16,7 +16,7 @@ import matplotlib.pylab as plt
 
 
 # server_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/'
-server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+# server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 # server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
 
 
@@ -333,13 +333,13 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
 
 
 # perform shuffle analysis for all mice and save data frames on server. this will later be loaded and combined
-def process_recordings():
+def process_recordings(server_path, spike_sorter='/MountainSort'):
     if os.path.exists(server_path):
         print('I see the server.')
     for recording_folder in glob.glob(server_path + '*'):
         if os.path.isdir(recording_folder):
-            spike_data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
-            position_data_frame_path = recording_folder + '/MountainSort/DataFrames/position.pkl'
+            spike_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
+            position_data_frame_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
             if os.path.exists(spike_data_frame_path):
                 print('I found a firing data frame.')
                 spatial_firing = pd.read_pickle(spike_data_frame_path)
@@ -373,8 +373,11 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    # process_recordings()
-    local_data_test()
+    server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+    # process_recordings(server_path_mouse)
+    server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+    process_recordings(server_path_rat, spike_sorter='')
+    # local_data_test()
 
 
 if __name__ == '__main__':
