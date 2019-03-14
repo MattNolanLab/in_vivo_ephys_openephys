@@ -356,7 +356,6 @@ def process_recordings(server_path, spike_sorter='/MountainSort'):
                         print(error)
 
 
-
 def local_data_test():
     local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
