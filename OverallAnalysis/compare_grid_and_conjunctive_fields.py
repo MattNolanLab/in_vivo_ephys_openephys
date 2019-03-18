@@ -53,7 +53,7 @@ def load_data_frame_field_data_rat(output_path):
         field_data_combined = pd.DataFrame()
         for recording_folder in glob.glob(server_path_rat + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+            data_frame_path = recording_folder + '/DataFrames/shuffled_fields.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
