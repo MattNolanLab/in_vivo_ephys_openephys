@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import plot_utility
 import PostSorting.open_field_head_direction
+import PostSorting.open_field_grid_cells
 
 # compare head-direction preference of firing fields of grid cells and conjunctive cells
 
@@ -64,12 +65,35 @@ def load_data_frame_field_data_rat(output_path):
                                                         'times_session', 'time_spent_in_field', 'position_x_session',
                                                         'position_y_session', 'hd_in_field_session', 'hd_hist_session',
                                                         'hd_histogram_real_data', 'time_spent_in_bins',
-                                                        'field_histograms_hz']].copy()
+                                                        'field_histograms_hz', 'firing_maps']].copy()
 
                     field_data_combined = field_data_combined.append(field_data_to_combine)
                     print(field_data_combined.head())
     field_data_combined.to_pickle(output_path)
     return field_data_combined
+
+
+def load_rat_data_frame_cells(output_path):
+    if os.path.exists(output_path):
+        field_data = pd.read_pickle(output_path)
+        return field_data
+    spatial_firing_data = pd.DataFrame()
+    for recording_folder in glob.glob(server_path_rat + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a firing data frame.')
+            spatial_firing = pd.read_pickle(data_frame_path)
+            if 'position_x' in spatial_firing:
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'firing_times', 'position_x', 'position_y', 'hd', 'speed', 'firing_maps', 'hd_spike_histogram']].copy()
+
+                # print(spatial_firing.head())
+                spatial_firing_data = spatial_firing_data.append(spatial_firing)
+
+            print(spatial_firing_data.head())
+    spatial_firing_data = OverallAnalysis.analyze_hd_from_whole_session.add_combined_id_to_df(spatial_firing_data)
+    spatial_firing_data = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing_data)
+    spatial_firing_data.to_pickle(output_path)
 
 
 # select accepted fields based on list of fields that were correctly identified by field detector
@@ -78,7 +102,11 @@ def tag_accepted_fields(field_data, accepted_fields):
     unique_cell_id = field_data.session_id + '_' + field_data.cluster_id.apply(str)
     field_data['unique_id'] = unique_id
     field_data['unique_cell_id'] = unique_cell_id
-    unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    if 'Session ID' in accepted_fields:
+        unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    else:
+        unique_id = accepted_fields['SessionID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+
     accepted_fields['unique_id'] = unique_id
     field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
     return field_data
@@ -89,6 +117,11 @@ def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
     accepted_fields_to_merge = accepted_fields[['unique_id', 'cell type', 'grid score', 'hd score']]
     field_data_merged = pd.merge(field_data, accepted_fields_to_merge, on='unique_id')
     return field_data_merged
+
+
+# add cell type tp rat data frame
+def add_cell_types_to_data_frame_rat(field_data, cell_data):
+    return field_data
 
 
 def get_angle_of_population_mean_vector(hd_hist):
@@ -236,9 +269,16 @@ def analyse_mouse_data():
 
 
 def analyse_rat_data():
-    load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
-    # make combined df from rat data
-    # load data
+    field_data_rat = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
+    accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
+    field_data_rat = tag_accepted_fields(field_data_rat, accepted_fields)
+
+    field_data_rat = calculate_population_mean_vector_angle(field_data_rat)
+    field_data = rotate_by_population_mean_vector(field_data_rat)
+    cell_data = load_data_frame_field_data(analysis_path + 'all_rats_cell.pkl')
+    field_data = add_cell_types_to_data_frame_rat(field_data, cell_data)
+    # get cell types added to df
+
 
 
 def main():
