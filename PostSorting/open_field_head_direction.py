@@ -82,7 +82,7 @@ def save_hd_for_r(hd_session, hd_cluster, cluster, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     np.savetxt(save_path + 'session.csv', hd_session, delimiter=',')
-    np.savetxt(save_path + 'cluster.csv', hd_cluster, delimiter=',', fmt='%s')
+    np.savetxt(save_path + 'cluster.csv', hd_cluster, delimiter=',')
 
 
 def write_shell_script_to_call_r_analysis(prm, cluster):
@@ -132,9 +132,9 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     hd_histogram /= prm.get_sampling_rate()
 
     hd_spike_histograms = []
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        angles_spike = (np.array(spatial_firing.hd[cluster]) + 180) * np.pi / 180
+    for index, cluster in spatial_firing.iterrows:
+        cluster = spatial_firing.cluster_id.values[index] - 1
+        angles_spike = (spatial_firing.hd[cluster] + 180) * np.pi / 180
 
         if prm.get_is_stable() is False:
             save_hd_for_r(angles_whole_session, angles_spike, cluster, prm)
