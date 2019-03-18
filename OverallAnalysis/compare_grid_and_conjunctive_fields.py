@@ -43,7 +43,7 @@ def load_data_frame_field_data(output_path):
         return field_data_combined
 
 
-# todo fix this after shuffled fields are made
+# loads shuffle analysis results for rat field data
 def load_data_frame_field_data_rat(output_path):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
