@@ -38,9 +38,8 @@ def get_hd_histogram(angles):
 def get_max_firing_rate(spatial_firing):
     max_firing_rates = []
     preferred_directions = []
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        hd_hist = spatial_firing.hd_spike_histogram[cluster]
+    for index, cluster in spatial_firing.iterrows():
+        hd_hist = cluster.hd_spike_histogram
         max_firing_rate = np.max(hd_hist.flatten())
         max_firing_rates.append(max_firing_rate)
 
