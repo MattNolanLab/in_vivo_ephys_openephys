@@ -82,7 +82,7 @@ def save_hd_for_r(hd_session, hd_cluster, cluster, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     np.savetxt(save_path + 'session.csv', hd_session, delimiter=',')
-    np.savetxt(save_path + 'cluster.csv', hd_cluster, delimiter=',')
+    np.savetxt(save_path + 'cluster.csv', hd_cluster, delimiter=',', fmt='%s')
 
 
 def write_shell_script_to_call_r_analysis(prm, cluster):
