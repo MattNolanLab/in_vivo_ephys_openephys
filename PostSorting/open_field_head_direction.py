@@ -132,7 +132,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     hd_histogram /= prm.get_sampling_rate()
 
     hd_spike_histograms = []
-    for index, cluster in spatial_firing.iterrows:
+    for index, cluster in spatial_firing.iterrows():
         cluster = spatial_firing.cluster_id.values[index] - 1
         angles_spike = (spatial_firing.hd[cluster] + 180) * np.pi / 180
 
