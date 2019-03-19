@@ -344,7 +344,8 @@ def process_recordings(server_path, spike_sorter='/MountainSort', redo_existing=
             if redo_existing is False:
                 if os.path.exists(shuffled_data_frame_path):
                     print('This was shuffled earlier.')
-                    return
+                    print(recording_folder)
+                    continue
             if os.path.exists(spike_data_frame_path):
                 print('I found a firing data frame.')
                 spatial_firing = pd.read_pickle(spike_data_frame_path)
