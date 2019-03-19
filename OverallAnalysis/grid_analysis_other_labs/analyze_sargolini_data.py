@@ -193,7 +193,6 @@ def process_data(folder_to_search_in):
     prm.set_pixel_ratio(100)  # this is because the data is already in cm so there's no need to convert
     prm.set_sorter_name('Manual')
     # prm.set_is_stable(True)  # todo: this needs to be removed - R analysis won't run for now
-    firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
             if 'POS' in name:
@@ -203,6 +202,7 @@ def process_data(folder_to_search_in):
                 session_id = name.split('\\')[-1].split('_')[0]
                 if position_data is not False:
                     try:
+                        firing_data = pd.DataFrame()
                         create_folder_structure(name, session_id, prm)
                         firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
                         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
