@@ -341,13 +341,13 @@ def process_recordings(server_path, spike_sorter='/MountainSort', redo_existing=
             spike_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
             position_data_frame_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
             shuffled_data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
-            if redo_existing is False:
-                if os.path.exists(shuffled_data_frame_path):
-                    print('This was shuffled earlier.')
-                    print(recording_folder)
-                    continue
             if os.path.exists(spike_data_frame_path):
                 print('I found a firing data frame.')
+                if redo_existing is False:
+                    if os.path.exists(shuffled_data_frame_path):
+                        print('This was shuffled earlier.')
+                        print(recording_folder)
+                        continue
                 spatial_firing = pd.read_pickle(spike_data_frame_path)
                 position_data = pd.read_pickle(position_data_frame_path)
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
