@@ -65,7 +65,7 @@ def load_data_frame_field_data_rat(output_path):
                                                         'times_session', 'time_spent_in_field', 'position_x_session',
                                                         'position_y_session', 'hd_in_field_session', 'hd_hist_session',
                                                         'hd_histogram_real_data', 'time_spent_in_bins',
-                                                        'field_histograms_hz', 'firing_maps']].copy()
+                                                        'field_histograms_hz', 'hd_score', 'grid_score']].copy()
 
                     field_data_combined = field_data_combined.append(field_data_to_combine)
                     print(field_data_combined.head())
@@ -120,7 +120,20 @@ def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
 
 
 # add cell type tp rat data frame
-def add_cell_types_to_data_frame_rat(field_data, cell_data):
+def add_cell_types_to_data_frame_rat(field_data):
+    cell_type = []
+    for index, field in field_data.iterrows():
+        if field.hd_score >= 0.5 and field.grid_score >= 0.4:
+            cell_type.append('conjunctive')
+        elif field.hd_score >= 0.5:
+            cell_type.append('hd')
+        elif field.grid_score >= 0.4:
+            cell_type.append('grid')
+        else:
+            cell_type.append('na')
+
+    field_data['cell type'] = cell_type
+
     return field_data
 
 
@@ -174,14 +187,17 @@ def rotate_by_population_mean_vector(field_data):
     for index, field in field_data.iterrows():
         histogram_to_rotate = deque(field.hd_hist_from_all_fields)
         angle_to_rotate_by = field.population_mean_vector_angle
-        histogram_to_rotate.rotate(int(round(angle_to_rotate_by)))  # rotates in place
-        rotated_histograms.append(histogram_to_rotate)
+        if np.isnan(field.population_mean_vector_angle):
+            rotated_histograms.append(np.nan)
+        else:
+            histogram_to_rotate.rotate(int(round(angle_to_rotate_by)))  # rotates in place
+            rotated_histograms.append(histogram_to_rotate)
     field_data['hd_hist_from_all_fields_rotated'] = rotated_histograms
     return field_data
 
 
 # combine all distributions for each cell type into plot
-def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
+def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='mouse'):
     print('analyze ' + cell_type + ' cells')
     list_of_cells = field_data.unique_cell_id.unique()
     histograms = []
@@ -205,7 +221,7 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid'):
     average_histogram = np.average(histograms, axis=0)
     theta = np.linspace(0, 2 * np.pi, 361)
     ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
-    plt.savefig(analysis_path + 'rotated_hd_histograms_' + cell_type + '.png', dpi=300, bbox_inches="tight")
+    plt.savefig(analysis_path + animal + '_rotated_hd_histograms_' + cell_type + '.png', dpi=300, bbox_inches="tight")
     plt.close()
 
 
@@ -262,23 +278,23 @@ def analyse_mouse_data():
     field_data = rotate_by_population_mean_vector(field_data)
     plot_rotation_examples(field_data, type='grid')
     plot_rotation_examples(field_data, type='conjunctive')
-    plot_rotated_histograms_for_cell_type(field_data, cell_type='grid')
-    plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive')
-    plot_rotated_histograms_for_cell_type(field_data, cell_type='na')
-    plot_rotated_histograms_for_cell_type(field_data, cell_type='hd')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='mouse')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive', animal='mouse')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='na', animal='mouse')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='hd', animal='mouse')
 
 
 def analyse_rat_data():
     field_data_rat = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     field_data_rat = tag_accepted_fields(field_data_rat, accepted_fields)
-
+    field_data_rat = add_cell_types_to_data_frame_rat(field_data_rat)
     field_data_rat = calculate_population_mean_vector_angle(field_data_rat)
     field_data = rotate_by_population_mean_vector(field_data_rat)
-    cell_data = load_data_frame_field_data(analysis_path + 'all_rats_cell.pkl')
-    field_data = add_cell_types_to_data_frame_rat(field_data, cell_data)
-    # get cell types added to df
-
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='rat')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive', animal='rat')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='na', animal='rat')
+    plot_rotated_histograms_for_cell_type(field_data, cell_type='hd', animal='rat')
 
 
 def main():
