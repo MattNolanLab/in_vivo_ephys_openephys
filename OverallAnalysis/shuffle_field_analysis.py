@@ -387,7 +387,7 @@ def main():
     server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
     # process_recordings(server_path_mouse)
     server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-    process_recordings(server_path_rat, spike_sorter='', redo_existing=False)
+    process_recordings(server_path_rat, spike_sorter='', redo_existing=True)
     # local_data_test()
 
 
