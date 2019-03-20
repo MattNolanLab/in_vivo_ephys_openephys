@@ -212,13 +212,16 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)
     print('Number of ' + cell_type + ' cells: ' + str(len(histograms)))
+    histograms_to_plot = []
     for histogram in histograms:
-        theta = np.linspace(0, 2 * np.pi, 361)
-        ax = plt.subplot(1, 1, 1, polar=True)
-        ax = plot_utility.style_polar_plot(ax)
-        ax.plot(theta[:-1], histogram, color='gray', linewidth=2, alpha=70)
+        if not np.isnan(histogram).any():
+            theta = np.linspace(0, 2 * np.pi, 361)
+            ax = plt.subplot(1, 1, 1, polar=True)
+            ax = plot_utility.style_polar_plot(ax)
+            ax.plot(theta[:-1], histogram, color='gray', linewidth=2, alpha=70)
+            histograms_to_plot.append(histogram)
     # combine them to make one polar plot
-    average_histogram = np.average(histograms, axis=0)
+    average_histogram = np.average(histograms_to_plot, axis=0)
     theta = np.linspace(0, 2 * np.pi, 361)
     ax.plot(theta[:-1], average_histogram, color='red', linewidth=10)
     plt.savefig(analysis_path + animal + '_rotated_hd_histograms_' + cell_type + '.png', dpi=300, bbox_inches="tight")
