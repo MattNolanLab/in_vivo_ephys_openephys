@@ -255,9 +255,11 @@ def analyze_rat_data():
     shuffled_field_data = load_data_frame_field_data_rat(local_path_to_shuffled_field_data_rats)
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
-    grid_cells = shuffled_field_data.grid_score >= 0.4
-    hd_cells = shuffled_field_data.hd_score >= 0.5
-    not_classified = np.logical_and(np.logical_not(grid_cells), np.logical_not(hd_cells))
+    grid = shuffled_field_data.grid_score >= 0.4
+    hd = shuffled_field_data.hd_score >= 0.5
+    not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
+    hd_cells = np.logical_and(np.logical_not(grid), hd)
+    grid_cells = np.logical_and(grid, np.logical_not(hd))
 
     shuffled_field_data_grid = shuffled_field_data[grid_cells]
     shuffled_field_data_not_classified = shuffled_field_data[not_classified]
