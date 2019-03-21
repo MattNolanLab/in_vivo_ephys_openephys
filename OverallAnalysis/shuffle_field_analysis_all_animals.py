@@ -2,9 +2,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
 import scipy.stats
+import os
+import glob
 
 
 analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis/'
+server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
 
 # this data frame contains results calculated by shuffle_field_analysis.py combined by load_data_frames.py
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
@@ -13,6 +16,39 @@ local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_al
 # this is a list of fields included in the analysis with session_ids cluster ids and field ids
 list_of_accepted_fields_path_grid = analysis_path + 'included_fields_detector2_grid.csv'
 list_of_accepted_fields_path_not_classified = analysis_path + 'included_fields_detector2_not_classified.csv'
+
+
+# loads shuffle analysis results for rat field data
+def load_data_frame_field_data_rat(output_path):
+    if os.path.exists(output_path):
+        field_data = pd.read_pickle(output_path)
+        return field_data
+
+    else:
+        field_data_combined = pd.DataFrame()
+        for recording_folder in glob.glob(server_path_rat + '*'):
+            os.path.isdir(recording_folder)
+            data_frame_path = recording_folder + '/DataFrames/shuffled_fields.pkl'
+            if os.path.exists(data_frame_path):
+                print('I found a field data frame.')
+                field_data = pd.read_pickle(data_frame_path)
+                if 'field_id' in field_data:
+                    field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                        'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                        'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                        'times_session', 'time_spent_in_field', 'position_x_session',
+                                                        'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                        'hd_histogram_real_data', 'time_spent_in_bins',
+                                                        'field_histograms_hz', 'hd_score', 'grid_score', 'shuffled_means', 'shuffled_std',
+                                                        'real_and_shuffled_data_differ_bin', 'number_of_different_bins',
+                                                        'number_of_different_bins_shuffled', 'number_of_different_bins_bh',
+                                                        'number_of_different_bins_holm', 'number_of_different_bins_shuffled_corrected_p']].copy()
+
+                    field_data_combined = field_data_combined.append(field_data_to_combine)
+                    print(field_data_combined.head())
+    field_data_combined.to_pickle(output_path)
+    return field_data_combined
+
 
 
 def get_accepted_fields_mouse(shuffled_field_data, type='grid'):
@@ -75,7 +111,7 @@ def find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data):
     return tail, percentile_95, percentile_99
 
 
-def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
+def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse'):
     number_of_rejects = shuffled_field_data.number_of_different_bins
     fig, ax = plt.subplots()
     plt.hist(number_of_rejects)
@@ -87,11 +123,11 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data):
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects.png', bbox_inches = "tight")
+    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_' + animal + '.png', bbox_inches = "tight")
     plt.close()
 
 
-def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
+def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal='mouse'):
     number_of_rejects = shuffled_field_data.number_of_different_bins_shuffled
     flat_shuffled = []
     for field in number_of_rejects:
@@ -106,7 +142,7 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data):
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.savefig(analysis_path + '/distribution_of_rejects_shuffled.png', bbox_inches="tight")
+    plt.savefig(analysis_path + '/distribution_of_rejects_shuffled' + animal + '.png', bbox_inches="tight")
     plt.close()
 
 
@@ -187,12 +223,12 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
             return p_percentile
 
 
-def plot_distibutions_for_fields(shuffled_field_data, tag='grid'):
-    plot_histogram_of_number_of_rejected_bars(shuffled_field_data)
-    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data)
-    plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag)
-    plot_number_of_significant_p_values(shuffled_field_data, type='holm_' + tag)
-    make_combined_plot_of_distributions(shuffled_field_data, tag=tag)
+def plot_distibutions_for_fields(shuffled_field_data, tag='grid', animal='mouse'):
+    plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal)
+    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal)
+    plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag + '_' + animal)
+    plot_number_of_significant_p_values(shuffled_field_data, type='holm_' + tag + '_' + animal)
+    make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal)
 
 
 def analyze_mouse_data():
@@ -217,13 +253,13 @@ def analyze_rat_data():
     shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
     grid_cells = shuffled_field_data.grid_score >= 0.4
     hd_cells = shuffled_field_data.hd_score >= 0.5
-    not_classified = not grid_cells and not hd_cells
+    not_classified = np.logical_and(np.logical_not(grid_cells), np.logical_not(hd_cells))
 
     shuffled_field_data_grid = shuffled_field_data[grid_cells]
     shuffled_field_data_not_classified = shuffled_field_data[not_classified]
 
-    plot_distibutions_for_fields(shuffled_field_data_grid, 'grid')
-    plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified')
+    plot_distibutions_for_fields(shuffled_field_data_grid, 'grid', animal='rat')
+    plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal='rat')
 
     print('Grid cells:')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
