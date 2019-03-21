@@ -248,7 +248,7 @@ def analyze_mouse_data():
 
 
 def analyze_rat_data():
-    shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data_rats)
+    shuffled_field_data = load_data_frame_field_data_rat(local_path_to_shuffled_field_data_rats)
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
     grid_cells = shuffled_field_data.grid_score >= 0.4
