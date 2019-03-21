@@ -1,17 +1,19 @@
 import glob
 import matplotlib.pylab as plt
+import numpy as np
 import os
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 
 
-server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
 analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_fields/'
 
 
 # load field data from server - must include hd in fields
-def load_data_frame_field_data(output_path):
+def load_data_frame_field_data(output_path, server_path, spike_sorter='/MountainSort'):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
@@ -19,7 +21,7 @@ def load_data_frame_field_data(output_path):
         field_data_combined = pd.DataFrame()
         for recording_folder in glob.glob(server_path + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
@@ -37,13 +39,73 @@ def load_data_frame_field_data(output_path):
         return field_data_combined
 
 
+def load_data_frame_field_data_rat(output_path, server_path, spike_sorter='/MountainSort'):
+    if os.path.exists(output_path):
+        field_data = pd.read_pickle(output_path)
+        return field_data
+    else:
+        field_data_combined = pd.DataFrame()
+        for recording_folder in glob.glob(server_path + '*'):
+            os.path.isdir(recording_folder)
+            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+            if os.path.exists(data_frame_path):
+                print('I found a field data frame.')
+                field_data = pd.read_pickle(data_frame_path)
+                if 'field_id' in field_data:
+                    field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                             'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                             'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                             'times_session', 'time_spent_in_field', 'position_x_session',
+                                             'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                             'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz', 'grid_score', 'grid_spacing', 'hd_score']].copy()
+
+                    field_data_combined = field_data_combined.append(field_data_to_combine)
+                    print(field_data_combined.head())
+        field_data_combined.to_pickle(output_path)
+        return field_data_combined
+
+
 # select accepted fields based on list of fields that were correctly identified by field detector
-def tag_accepted_fields(field_data, accepted_fields):
+def tag_accepted_fields_mouse(field_data, accepted_fields):
     unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
     field_data['unique_id'] = unique_id
     unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
     accepted_fields['unique_id'] = unique_id
     field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
+
+
+# select accepted fields based on list of fields that were correctly identified by field detector
+def tag_accepted_fields_rat(field_data, accepted_fields):
+    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    unique_cell_id = field_data.session_id + '_' + field_data.cluster_id.apply(str)
+    field_data['unique_id'] = unique_id
+    field_data['unique_cell_id'] = unique_cell_id
+    if 'Session ID' in accepted_fields:
+        unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    else:
+        unique_id = accepted_fields['SessionID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+
+    accepted_fields['unique_id'] = unique_id
+    field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
+
+
+# add cell type tp rat data frame
+def add_cell_types_to_data_frame_rat(field_data):
+    cell_type = []
+    for index, field in field_data.iterrows():
+        if field.hd_score >= 0.5 and field.grid_score >= 0.4:
+            cell_type.append('conjunctive')
+        elif field.hd_score >= 0.5:
+            cell_type.append('hd')
+        elif field.grid_score >= 0.4:
+            cell_type.append('grid')
+        else:
+            cell_type.append('na')
+
+    field_data['cell type'] = cell_type
+
     return field_data
 
 
@@ -77,7 +139,7 @@ def compare_hd_when_the_cell_fired_to_heading(field_data):
     return field_data
 
 
-def plot_histogram_of_watson_stat(field_data, type='all'):
+def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse'):
     if type == 'grid':
         grid_cells = field_data['cell type'] == 'grid'
         watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field & grid_cells]
@@ -91,7 +153,7 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
     plt.hist(watson_stats_accepted_fields, bins=20, color='navy')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    print('Number of ' + type + ' fields: ' + str(len(watson_stats_accepted_fields)))
+    print('Number of ' + type + ' fields in ' + animal + ': ' + str(len(watson_stats_accepted_fields)))
     print('p < 0.01 for ' + str((watson_stats_accepted_fields > 0.268).sum()))
 
     # plt.axvline(x=0.385, linewidth=1, color='red')  # p < 0.001 threshold
@@ -102,18 +164,35 @@ def plot_histogram_of_watson_stat(field_data, type='all'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Frequency', size=30)
-    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '.png', bbox_inches="tight")
+
+
+def analyze_mouse_data():
+    field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_watson_test.pkl', server_path_mouse)   # for two-sample watson analysis
+    accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
+    field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+    field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
+    plot_histogram_of_watson_stat(field_data, animal='mouse')
+    plot_histogram_of_watson_stat(field_data, type='grid', animal='mouse')
+    plot_histogram_of_watson_stat(field_data, type='nc', animal='mouse')
+
+
+def analyze_rat_data():
+    field_data = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_watson_test.pkl', server_path_rat, spike_sorter='')  # for two-sample watson analysis
+    accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
+    field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+    field_data = add_cell_types_to_data_frame_rat(field_data)
+    field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
+
+    plot_histogram_of_watson_stat(field_data, animal='rat')
+    plot_histogram_of_watson_stat(field_data, type='grid', animal='rat')
+    plot_histogram_of_watson_stat(field_data, type='nc', animal='rat')
 
 
 def main():
-    field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_watson_test.pkl')   # for two-sample watson analysis
-    accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
-    field_data = tag_accepted_fields(field_data, accepted_fields)
-    field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
-    field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
-    plot_histogram_of_watson_stat(field_data)
-    plot_histogram_of_watson_stat(field_data, type='grid')
-    plot_histogram_of_watson_stat(field_data, type='nc')
+    analyze_rat_data()
+    analyze_mouse_data()
 
 
 if __name__ == '__main__':
