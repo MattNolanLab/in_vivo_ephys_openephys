@@ -239,6 +239,7 @@ def analyze_mouse_data():
     plot_distibutions_for_fields(shuffled_field_data_grid, 'grid')
     plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified')
 
+    print('Mouse data:')
     print('Grid cells:')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
@@ -261,6 +262,7 @@ def analyze_rat_data():
     plot_distibutions_for_fields(shuffled_field_data_grid, 'grid', animal='rat')
     plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal='rat')
 
+    print('Rat data:')
     print('Grid cells:')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
