@@ -50,7 +50,6 @@ def load_data_frame_field_data_rat(output_path):
     return field_data_combined
 
 
-
 def get_accepted_fields_mouse(shuffled_field_data, type='grid'):
     if type == 'not_classified':
         accepted_fields = pd.read_csv(list_of_accepted_fields_path_not_classified)
@@ -121,6 +120,7 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlim(0, 20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
     plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_' + animal + '.png', bbox_inches = "tight")
@@ -142,6 +142,7 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, anim
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
+    ax.set_xlim(0, 20)
     plt.savefig(analysis_path + '/distribution_of_rejects_shuffled' + animal + '.png', bbox_inches="tight")
     plt.close()
 
@@ -171,6 +172,7 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
+    ax.set_xlim(0, 20)
     plt.savefig(analysis_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches = "tight")
     plt.close()
 
@@ -196,6 +198,7 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
+    ax.set_xlim(0, 20)
     plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
     plt.close()
 
