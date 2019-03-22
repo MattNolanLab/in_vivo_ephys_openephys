@@ -128,7 +128,7 @@ def plot_hd_vs_watson_stat(df_all_mice, animal='mouse'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Head-direction score')
     ax.set_ylabel('Two-sample Watson test stat')
-    plt.axhline(0.385, color='red')
+    plt.axhline(0.268, color='red')
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '.png')
 
 
@@ -157,7 +157,7 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
         watson_result_exists.sum()))
     print('excitatory: ' + str(len(df_all_animals[excitatory_neurons & watson_result_exists])))
     print('inhibitory: ' + str(len(df_all_animals[inhibitory_neurons & watson_result_exists])))
-    watson_significant = df_all_animals.watson_test_hd > 0.385  # p < 0.001
+    watson_significant = df_all_animals.watson_test_hd > 0.268  # p < 0.01
     print('Number of cells with significantly different HD distributions: ' + str(watson_significant.sum()))
     print('Number of excitatory neurons with significantly different HD: ' + str(len(df_all_animals[watson_significant & excitatory_neurons])))
     print('Number of inhibitory neurons with significantly different HD: ' + str(len(df_all_animals[watson_significant & inhibitory_neurons])))
@@ -208,10 +208,10 @@ def plot_results_of_watson_test(df_all_mice, cell_type='grid', animal='mouse'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.ylim(0, 0.05)
-    plt.xlim(0, 700)
-    ax.set_aspect(6000)
-    plt.yticks([0, 0.05])
+    # plt.ylim(0, 0.05)
+    # plt.xlim(0, 700)
+    # ax.set_aspect(6000)
+    # plt.yticks([0, 0.05])
     plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
@@ -238,8 +238,8 @@ def process_rat_data():
 
 
 def main():
-    process_rat_data()
     process_mouse_data()
+    process_rat_data()
 
 
 if __name__ == '__main__':
