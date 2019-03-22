@@ -191,7 +191,12 @@ def plot_results_of_watson_test(df_all_mice, cell_type='grid', animal='mouse'):
         not_hd = df_all_mice.hd_score < 0.5
         cells_to_analyze = not_grid & not_hd
 
-    watson_test_stats = df_all_mice.watson_cluster[good_cluster & cells_to_analyze]
+    if animal == 'rat':
+        watson_test_stats = df_all_mice.watson_test_hd[good_cluster & cells_to_analyze]
+    else:
+        watson_test_stats = df_all_mice.watson_cluster[good_cluster & cells_to_analyze]
+
+
     fig, ax = plt.subplots()
     plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
     ax.xaxis.set_tick_params(labelsize=20)
@@ -223,11 +228,13 @@ def process_mouse_data():
 
 def process_rat_data():
     all_rats = load_spatial_firing_rat(local_path_rat, server_path_rat, spike_sorter='')
-    correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
+    all_rats['false_positive'] = np.full(len(all_rats), False)
     plot_hd_vs_watson_stat(all_rats, animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='hd', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='nc', animal='rat')
+    # todo this needs to be added to the df
+    correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
 
 
 def main():
