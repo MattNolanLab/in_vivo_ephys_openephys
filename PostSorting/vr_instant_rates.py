@@ -59,7 +59,7 @@ def calculate_instant_firingrate(firing_times, window, array_out_size):
 
 def calculate_instant_rates(spike_data, raw_position_data):
     spike_data=add_columns_to_dataframe(spike_data)
-    speed_ms = np.array(raw_position_data['speed_per200ms'])
+    speed_ms = np.array(raw_position_data['velocity'])
     locations = np.array(raw_position_data['x_position_cm'])
     window = calculate_window()
     array_out_size = calculate_array_out(speed_ms, window)
