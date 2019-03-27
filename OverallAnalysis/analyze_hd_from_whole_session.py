@@ -35,8 +35,8 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
     two_watson_stats = []
     for index, cell in cell_data.iterrows():
         print('two-sample watson test on ' + str(cell.session_id) + str(cell.cluster_id))
-        hd_cluster = cell.hd
-        hd_session = position.hd
+        hd_cluster = (cell.hd + 180) * np.pi / 180
+        hd_session = (position.hd + 180) * np.pi / 180
         two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session)
         two_watson_stats.append(two_watson_stat)
     cell_data['watson_test_hd'] = two_watson_stats
