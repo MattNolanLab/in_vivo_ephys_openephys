@@ -217,22 +217,20 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_b_spike_rate'])
-        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate'])
-        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_p_spike_rate'])
+        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_firing_rate_data(spike_data, cluster_index)
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.plot(unsmooth_b, '-', color='Black')
-        ax.plot(unsmooth_nb, '-', color='Red')
-        ax.plot(unsmooth_p, '-', color='Blue')
+        ax.plot(avg_beaconed_spike_rate, '-', color='Black')
+        ax.plot(avg_nonbeaconed_spike_rate, '-', color='Red')
+        ax.plot(avg_probe_spike_rate, '-', color='Blue')
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_b_spike_rate']))
-        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate']))
-        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_p_spike_rate']))
+        nb_x_max = np.nanmax(avg_beaconed_spike_rate)
+        b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
+        p_x_max = np.nanmax(avg_probe_spike_rate)
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
