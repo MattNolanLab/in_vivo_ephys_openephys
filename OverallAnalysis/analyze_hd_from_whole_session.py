@@ -180,22 +180,25 @@ def add_grid_score_to_df(df_all_mice):
     return df_all_mice
 
 
-def plot_results_of_watson_test(df_all_mice, cell_type='grid', animal='mouse'):
-    good_cluster = df_all_mice.false_positive == False
+def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'):
+    good_cluster = df_all_animals.false_positive == False
     if cell_type == 'grid':
-        cells_to_analyze = df_all_mice.grid_score >= 0.4
+        grid = df_all_animals.grid_score >= 0.4
+        not_hd = df_all_animals.hd_score < 0.5
+        cells_to_analyze = df_all_animals[grid & not_hd]
     elif cell_type == 'hd':
-        cells_to_analyze = df_all_mice.hd_score >= 0.5
+        not_grid = df_all_animals.grid_score < 0.4
+        hd = df_all_animals.hd_score >= 0.5
+        cells_to_analyze = df_all_animals[not_grid & hd]
     else:
-        not_grid = df_all_mice.grid_score < 0.4
-        not_hd = df_all_mice.hd_score < 0.5
+        not_grid = df_all_animals.grid_score < 0.4
+        not_hd = df_all_animals.hd_score < 0.5
         cells_to_analyze = not_grid & not_hd
 
     if animal == 'rat':
-        watson_test_stats = df_all_mice.watson_test_hd[good_cluster & cells_to_analyze]
+        watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
     else:
-        watson_test_stats = df_all_mice.watson_cluster[good_cluster & cells_to_analyze]
-
+        watson_test_stats = df_all_animals.watson_cluster[good_cluster & cells_to_analyze]
 
     fig, ax = plt.subplots()
     plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
