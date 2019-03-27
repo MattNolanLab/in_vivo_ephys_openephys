@@ -185,15 +185,15 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     if cell_type == 'grid':
         grid = df_all_animals.grid_score >= 0.4
         not_hd = df_all_animals.hd_score < 0.5
-        cells_to_analyze = df_all_animals[grid & not_hd]
+        cells_to_analyze = grid & not_hd
     elif cell_type == 'hd':
         not_grid = df_all_animals.grid_score < 0.4
         hd = df_all_animals.hd_score >= 0.5
-        cells_to_analyze = df_all_animals[not_grid & hd]
+        cells_to_analyze = not_grid & hd
     else:
         not_grid = df_all_animals.grid_score < 0.4
         not_hd = df_all_animals.hd_score < 0.5
-        cells_to_analyze = df_all_animals[not_grid & not_hd]
+        cells_to_analyze = not_grid & not_hd
 
     if animal == 'rat':
         watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
