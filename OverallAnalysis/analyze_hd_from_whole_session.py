@@ -193,7 +193,7 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     else:
         not_grid = df_all_animals.grid_score < 0.4
         not_hd = df_all_animals.hd_score < 0.5
-        cells_to_analyze = not_grid & not_hd
+        cells_to_analyze = df_all_animals[not_grid & not_hd]
 
     if animal == 'rat':
         watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
@@ -221,7 +221,7 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
 def process_mouse_data():
     print('-------------------------------------------------------------')
     df_all_mice = load_data_and_tag_false_positive_cells()
-    correlation_between_first_and_second_halves_of_session(df_all_mice)
+    # correlation_between_first_and_second_halves_of_session(df_all_mice)
     plot_hd_vs_watson_stat(df_all_mice)
     add_grid_score_to_df(df_all_mice)
     plot_results_of_watson_test(df_all_mice, cell_type='grid')
@@ -237,7 +237,7 @@ def process_rat_data():
     plot_results_of_watson_test(all_rats, cell_type='hd', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='nc', animal='rat')
     # todo this needs to be added to the df
-    correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
+    # correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
 
 
 def main():
