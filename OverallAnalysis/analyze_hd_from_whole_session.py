@@ -199,9 +199,10 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
         watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
     else:
         watson_test_stats = df_all_animals.watson_cluster[good_cluster & cells_to_analyze]
-    print(animal)
+    print('\n' + animal)
     print(cell_type)
-    print(len(watson_test_stats))
+    print('all cells: ' + str(len(watson_test_stats)))
+    print('significant: ' + str(len(watson_test_stats > 0.268)))
 
     fig, ax = plt.subplots()
     plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
