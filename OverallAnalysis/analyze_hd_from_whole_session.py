@@ -17,7 +17,7 @@ path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson
 save_output_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
 server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-local_output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
+# local_output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
 
 
 # run 2 sample watson test and put it in df
