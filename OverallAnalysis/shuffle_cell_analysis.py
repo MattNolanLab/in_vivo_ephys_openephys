@@ -1,4 +1,5 @@
 import glob
+import numpy as np
 import os
 import pandas as pd
 
@@ -24,6 +25,8 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
 
             if 'position_x' in spatial_firing:
                 spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd']].copy()
+
+                # todo add position data (x, y, hd) here
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
                 print(spatial_firing_data.head())
@@ -32,8 +35,28 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
     return spatial_firing_data
 
 
+# todo rewrite this to work for cells
+# add shuffled data to data frame as a new column for each field
+def shuffle_data(spatial_firing, path, number_of_bins, number_of_times_to_shuffle=1000):
+    os.makedirs(path + 'shuffle_analysis')
+    field_histograms_all = []
+    for index, field in spatial_firing.iterrows():
+        print('I will shuffle data in the fields.')
+        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+        shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle)
+        for shuffle in range(number_of_times_to_shuffle):
+            shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
+            field_histograms[shuffle, :] = hist
+        field_histograms_all.append(field_histograms)
+    print(path)
+    spatial_firing['shuffled_data'] = field_histograms_all
+    return spatial_firing
+
+
+
 def process_data(spatial_firing):
-    pass
+    spatial_firing = shuffle_data(spatial_firing, path, number_of_bins, number_of_times_to_shuffle=1000)
 
 
 def main():
