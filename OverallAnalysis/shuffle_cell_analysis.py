@@ -18,17 +18,17 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
     spatial_firing_data = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        if os.path.exists(data_frame_path):
+        firing_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
+        position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        if os.path.exists(firing_data_frame_path):
             print('I found a firing data frame.')
-            spatial_firing = pd.read_pickle(data_frame_path)
+            spatial_firing = pd.read_pickle(firing_data_frame_path)
+            position = pd.read_pickle(position_path)
 
             if 'position_x' in spatial_firing:
                 spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd']].copy()
-
-                # todo add position data (x, y, hd) here
+                spatial_firing['trajectory_hd'] = [position.hd] * len(spatial_firing)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
-
                 print(spatial_firing_data.head())
 
     spatial_firing_data.to_pickle(output_path)
