@@ -2,10 +2,12 @@ import glob
 import numpy as np
 import os
 import pandas as pd
+import shutil
 
 
 local_path_mouse = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/all_mice_df.pkl'
 local_path_rat = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/all_rats_df.pkl'
+analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/'
 
 server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
@@ -35,28 +37,37 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
     return spatial_firing_data
 
 
+# todo adjust to cell data column names
+def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle):
+    number_of_spikes_in_field = cell['number_of_spikes_in_field']
+    time_spent_in_field = cell['time_spent_in_field']
+    shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    return shuffle_indices
+
+
 # todo rewrite this to work for cells
 # add shuffled data to data frame as a new column for each field
-def shuffle_data(spatial_firing, path, number_of_bins, number_of_times_to_shuffle=1000):
-    os.makedirs(path + 'shuffle_analysis')
-    field_histograms_all = []
-    for index, field in spatial_firing.iterrows():
+def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000):
+    if os.path.exists(analysis_path + 'shuffle_analysis') is True:
+        shutil.rmtree(analysis_path + 'shuffle_analysis')
+    os.makedirs(analysis_path + 'shuffle_analysis')
+
+    shuffled_histograms_all = []
+    for index, cell in spatial_firing.iterrows():
         print('I will shuffle data in the fields.')
-        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
-        shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle)
+        shuffled_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+        shuffle_indices = get_random_indices_for_shuffle(cell, number_of_times_to_shuffle)
         for shuffle in range(number_of_times_to_shuffle):
-            shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            shuffled_hd = cell['hd_in_field_session'][shuffle_indices[shuffle]]
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
-            field_histograms[shuffle, :] = hist
-        field_histograms_all.append(field_histograms)
-    print(path)
-    spatial_firing['shuffled_data'] = field_histograms_all
+            shuffled_histograms[shuffle, :] = hist
+        shuffled_histograms_all.append(shuffled_histograms)
+    spatial_firing['shuffled_data'] = shuffled_histograms_all
     return spatial_firing
 
 
-
 def process_data(spatial_firing):
-    spatial_firing = shuffle_data(spatial_firing, path, number_of_bins, number_of_times_to_shuffle=1000)
+    spatial_firing = shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000)
 
 
 def main():
