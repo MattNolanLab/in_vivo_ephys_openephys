@@ -13,6 +13,7 @@ import PostSorting.make_plots
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
+import PostSorting.open_field_grid_cells
 import PostSorting.open_field_spatial_data
 import PostSorting.parameters
 prm = PostSorting.parameters.Parameters()
@@ -140,7 +141,6 @@ def get_spatial_data_for_firing_events(firing_data, position_data, sampling_rate
 def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id):
     sampling_rate_of_position_data = calculate_position_sampling_rate(position_data)
     # example file name: 10073-17010302_POS.mat - ratID-sessionID_POS.mat
-    session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
     print('Session ID = ' + session_id)
     firing_data_session = pd.DataFrame()
     firing_data_session = get_firing_data(folder_to_search_in, session_id, firing_data_session)
@@ -151,9 +151,9 @@ def fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in
 
 
 # make folder for output and set parameter object to point at it
-def create_folder_structure(file_path, session_id, rat_id, prm):
+def create_folder_structure(file_path, session_id, prm):
     main_folder = file_path.split('\\')[:-1][0]
-    main_recording_session_folder = main_folder + '/' + session_id + '-' + rat_id
+    main_recording_session_folder = main_folder + '/' + session_id
     prm.set_file_path(main_recording_session_folder)
     prm.set_output_path(main_recording_session_folder)
     if os.path.isdir(main_recording_session_folder) is False:
@@ -180,7 +180,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
-    # PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
@@ -193,22 +193,21 @@ def process_data(folder_to_search_in):
     prm.set_pixel_ratio(100)  # this is because the data is already in cm so there's no need to convert
     prm.set_sorter_name('Manual')
     # prm.set_is_stable(True)  # todo: this needs to be removed - R analysis won't run for now
-    firing_data = pd.DataFrame()
     for name in glob.glob(folder_to_search_in + '/*.mat'):
         if os.path.exists(name):
             if 'POS' in name:
                 print('I found this:' + name)
                 position_data_matlab = loadmat(name)
                 position_data = get_position_data_frame(position_data_matlab)
-                session_id = name.split('\\')[-1].split('.')[0].split('-')[1].split('_')[0]
-                rat_id = name.split('\\')[-1].split('.')[0].split('-')[0]
+                session_id = name.split('\\')[-1].split('_')[0]
                 if position_data is not False:
                     try:
-                        create_folder_structure(name, session_id, rat_id, prm)
+                        firing_data = pd.DataFrame()
+                        create_folder_structure(name, session_id, prm)
                         firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
                         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
                         position_heat_map, spatial_firing = get_rate_maps(position_data, firing_data)
-                        #  # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+                        spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                         spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
                         save_data_frames(spatial_firing, position_data)
                         make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)

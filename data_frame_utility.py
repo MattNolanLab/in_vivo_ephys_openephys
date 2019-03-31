@@ -12,7 +12,7 @@ def df_empty(columns, dtypes, index=None):
     return df
 
 
-def append_field_to_data_frame(field_df, session_id, cluster_id, field_id, indices_rate_map, spike_times, number_of_spikes_in_field, position_x_spikes, position_y_spikes, hd_in_field_spikes, hd_hist_spikes, times_session, time_spent_in_field, position_x_session, position_y_session, hd_in_field_session, hd_hist_session):
+def append_field_to_data_frame(field_df, session_id, cluster_id, field_id, indices_rate_map, spike_times, number_of_spikes_in_field, position_x_spikes, position_y_spikes, hd_in_field_spikes, hd_hist_spikes, times_session, time_spent_in_field, position_x_session, position_y_session, hd_in_field_session, hd_hist_session, hd_score, grid_score, grid_spacing):
     field_df = field_df.append({
         "session_id": session_id,
         "cluster_id":  cluster_id,
@@ -29,13 +29,16 @@ def append_field_to_data_frame(field_df, session_id, cluster_id, field_id, indic
         "position_x_session": position_x_session,
         "position_y_session": position_y_session,
         "hd_in_field_session": hd_in_field_session,
-        "hd_hist_session": hd_hist_session
+        "hd_hist_session": hd_hist_session,
+        "hd_score": hd_score,
+        "grid_score": grid_score,
+        "grid_spacing": grid_spacing
     }, ignore_index=True)
     return field_df
 
 
 def get_field_data_frame(spatial_firing, position_data):
-    field_df = pd.DataFrame(columns=['session_id', 'cluster_id', 'field_id', 'indices_rate_map', 'spike_times', 'number_of_spikes_in_field', 'position_x_spikes', 'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes', 'times_session', 'time_spent_in_field', 'position_x_session', 'position_y_session', 'hd_in_field_session', 'hd_hist_session'])
+    field_df = pd.DataFrame(columns=['session_id', 'cluster_id', 'field_id', 'indices_rate_map', 'spike_times', 'number_of_spikes_in_field', 'position_x_spikes', 'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes', 'times_session', 'time_spent_in_field', 'position_x_session', 'position_y_session', 'hd_in_field_session', 'hd_hist_session', 'hd_score', 'grid_score', 'grid_spacing'])
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         cluster_id = spatial_firing.cluster_id[cluster]
@@ -62,8 +65,17 @@ def get_field_data_frame(spatial_firing, position_data):
                 hd_in_field_session = position_data.hd.values[mask_times_in_field]
                 hd_in_field_session = (np.array(hd_in_field_session) + 180) * np.pi / 180
                 hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
+                hd_score = spatial_firing.hd_score.iloc[cluster]
+                if 'grid_score' in spatial_firing:
+                    grid_score = spatial_firing.grid_score.iloc[cluster]
+                    grid_spacing = spatial_firing.grid_spacing.iloc[cluster]
+                    print('[data frame utility] - this does not have a grid score: ')
+                    print(spatial_firing.session_id)
+                else:
+                    grid_score = np.nan
+                    grid_spacing = np.nan
 
-                field_df = append_field_to_data_frame(field_df, session_id, cluster_id, field_id, indices_rate_map, spike_times, number_of_spikes_in_field, position_x_spikes, position_y_spikes, hd_in_field_spikes, hd_hist_spikes, times_session, time_spent_in_field, position_x_session, position_y_session, hd_in_field_session, hd_hist_session)
+                field_df = append_field_to_data_frame(field_df, session_id, cluster_id, field_id, indices_rate_map, spike_times, number_of_spikes_in_field, position_x_spikes, position_y_spikes, hd_in_field_spikes, hd_hist_spikes, times_session, time_spent_in_field, position_x_session, position_y_session, hd_in_field_session, hd_hist_session, hd_score, grid_score, grid_spacing)
     return field_df
 
 
