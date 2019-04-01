@@ -166,7 +166,8 @@ def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firin
     rejected_bins_all_shuffles = []
     for index, cell in spatial_firing.iterrows():
         cell_histograms = cell['shuffled_data']
-        cell_session_hd = cell['trajectory_hd']  # hd from the whole session
+        cell_session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session in field
+        cell_session_hd = cell_session_hd[~np.isnan(cell_session_hd)]
         time_spent_in_bins = np.histogram(cell_session_hd, bins=number_of_bars)[0]
         shuffled_data_normalized = cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         rejects_cell = np.empty(number_of_shuffles)
