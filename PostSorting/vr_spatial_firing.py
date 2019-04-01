@@ -169,4 +169,4 @@ def process_spatial_firing(spike_data, spatial_data):
     print('-------------------------------------------------------------')
     print('spatial firing processed')
     print('-------------------------------------------------------------')
-    return spike_data, spike_data_movement
+    return spike_data
