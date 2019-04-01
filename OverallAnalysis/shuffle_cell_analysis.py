@@ -3,7 +3,9 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
+from scipy import stats
 import shutil
+from statsmodels.sandbox.stats.multicomp import multipletests
 
 
 local_path_mouse = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/all_mice_df.pkl'
@@ -110,18 +112,18 @@ def add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_b
 
 
 # test whether real and shuffled data differ and add results (true/false for each bin) and number of diffs to data frame
-def test_if_real_hd_differs_from_shuffled(field_data):
+def test_if_real_hd_differs_from_shuffled(spatial_firing):
     real_and_shuffled_data_differ_bin = []
     number_of_diff_bins = []
-    for index, field in field_data.iterrows():
+    for index, cell in spatial_firing.iterrows():
         # diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
-        diff_field = (field.shuffled_percentile_threshold_95 < field.hd_histogram_real_data) + (field.shuffled_percentile_threshold_5 > field.hd_histogram_real_data)  # this is a pairwise OR on the binary arrays
-        number_of_diffs = diff_field.sum()
-        real_and_shuffled_data_differ_bin.append(diff_field)
+        diff_cell = (cell.shuffled_percentile_threshold_95 < cell.hd_histogram_real_data) + (cell.shuffled_percentile_threshold_5 > cell.hd_histogram_real_data)  # this is a pairwise OR on the binary arrays
+        number_of_diffs = diff_cell.sum()
+        real_and_shuffled_data_differ_bin.append(diff_cell)
         number_of_diff_bins.append(number_of_diffs)
-    field_data['real_and_shuffled_data_differ_bin'] = real_and_shuffled_data_differ_bin
-    field_data['number_of_different_bins'] = number_of_diff_bins
-    return field_data
+    spatial_firing['real_and_shuffled_data_differ_bin'] = real_and_shuffled_data_differ_bin
+    spatial_firing['number_of_different_bins'] = number_of_diff_bins
+    return spatial_firing
 
 
 # this uses the p values that are based on the position of the real data relative to shuffled (corrected_
@@ -142,19 +144,19 @@ def count_number_of_significantly_different_bars_per_field(field_data, significa
 
 
 # this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
-def test_if_shuffle_differs_from_other_shuffles(field_data):
-    number_of_shuffles = len(field_data.shuffled_data[0])
+def test_if_shuffle_differs_from_other_shuffles(spatial_firing):
+    number_of_shuffles = len(spatial_firing.shuffled_data.iloc[0])
     rejected_bins_all_shuffles = []
-    for index, field in field_data.iterrows():
-        rejects_field = np.empty(number_of_shuffles)
-        rejects_field[:] = np.nan
+    for index, cell in spatial_firing.iterrows():
+        rejects_cell = np.empty(number_of_shuffles)
+        rejects_cell[:] = np.nan
         for shuffle in range(number_of_shuffles):
-            diff_field = (field.shuffled_percentile_threshold_95 < field.field_histograms_hz[shuffle]) + (field.shuffled_percentile_threshold_5 > field.field_histograms_hz[shuffle])  # this is a pairwise OR on the binary arrays
-            number_of_diffs = diff_field.sum()
-            rejects_field[shuffle] = number_of_diffs
-        rejected_bins_all_shuffles.append(rejects_field)
-    field_data['number_of_different_bins_shuffled'] = rejected_bins_all_shuffles
-    return field_data
+            diff_cell = (cell.shuffled_percentile_threshold_95 < cell.cell_histograms_hz[shuffle]) + (cell.shuffled_percentile_threshold_5 > cell.cell_histograms_hz[shuffle])  # this is a pairwise OR on the binary arrays
+            number_of_diffs = diff_cell.sum()
+            rejects_cell[shuffle] = number_of_diffs
+        rejected_bins_all_shuffles.append(rejects_cell)
+    spatial_firing['number_of_different_bins_shuffled'] = rejected_bins_all_shuffles
+    return spatial_firing
 
 
 # this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
@@ -192,41 +194,42 @@ def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, n
 
 
 # calculate percentile of real data relative to shuffled for each bar
-def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
+def calculate_percentile_of_observed_data(spatial_firing, sampling_rate_video, number_of_bars=20):
     percentile_observed_data_bars = []
-    for index, field in field_data.iterrows():
-        field_histograms = field['shuffled_data']
-        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
-        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
-        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+    for index, cell in spatial_firing.iterrows():
+        cell_histograms = cell['shuffled_data']
+        cell_session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session in field
+        cell_session_hd = cell_session_hd[~np.isnan(cell_session_hd)]
+        time_spent_in_bins = np.histogram(cell_session_hd, bins=number_of_bars)[0]
+        shuffled_data_normalized = cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentiles_of_observed_bars = np.empty(number_of_bars)
         percentiles_of_observed_bars[:] = np.nan
         for bar in range(number_of_bars):
-            observed_data = field.hd_histogram_real_data[bar]
+            observed_data = cell.hd_histogram_real_data[bar]
             shuffled_data = shuffled_data_normalized[:, bar]
             percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
             percentiles_of_observed_bars[bar] = percentile_of_observed_data
         percentile_observed_data_bars.append(percentiles_of_observed_bars)
-    field_data['percentile_of_observed_data'] = percentile_observed_data_bars
-    return field_data
+    spatial_firing['percentile_of_observed_data'] = percentile_observed_data_bars
+    return spatial_firing
 
 
 #  convert percentile to p value by subtracting the percentile from 100 when it is > than 50
-def convert_percentile_to_p_value(field_data):
+def convert_percentile_to_p_value(spatial_firing):
     p_values = []
-    for index, field in field_data.iterrows():
-        percentile_values = field.percentile_of_observed_data
+    for index, cell in spatial_firing.iterrows():
+        percentile_values = cell.percentile_of_observed_data
         percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
         p_values.append(percentile_values)
-    field_data['shuffle_p_values'] = p_values
-    return field_data
+    spatial_firing['shuffle_p_values'] = p_values
+    return spatial_firing
 
 
 # perform Benjamini/Hochberg correction on p values calculated from the percentile of observed data relative to shuffled
-def calculate_corrected_p_values(field_data, type='bh'):
+def calculate_corrected_p_values(spatial_firing, type='bh'):
     corrected_p_values = []
-    for index, field in field_data.iterrows():
-        p_values = field.shuffle_p_values
+    for index, cell in spatial_firing.iterrows():
+        p_values = cell.shuffle_p_values
         if type == 'bh':
             reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
             corrected_p_values.append(pvals_corrected)
@@ -235,8 +238,8 @@ def calculate_corrected_p_values(field_data, type='bh'):
             corrected_p_values.append(pvals_corrected)
 
     field_name = 'p_values_corrected_bars_' + type
-    field_data[field_name] = corrected_p_values
-    return field_data
+    spatial_firing[field_name] = corrected_p_values
+    return spatial_firing
 
 
 def plot_bar_chart_for_fields(field_data, path):
@@ -321,7 +324,7 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, number
     spatial_firing = test_if_real_hd_differs_from_shuffled(spatial_firing)  # is the observed data within 95th percentile of the shuffled?
     spatial_firing = test_if_shuffle_differs_from_other_shuffles(spatial_firing)
 
-    spatial_firing = calculate_percentile_of_observed_data(spatial_firing, number_of_bins)  # this is relative to shuffled data
+    spatial_firing = calculate_percentile_of_observed_data(spatial_firing, sampling_rate_video, number_of_bins)  # this is relative to shuffled data
     # field_data = calculate_percentile_of_shuffled_data(field_data, number_of_bars=20)
     spatial_firing = convert_percentile_to_p_value(spatial_firing)  # this is needed to make it 2 tailed so diffs are picked up both ways
     spatial_firing = calculate_corrected_p_values(spatial_firing, type='bh')  # BH correction on p values from previous function
