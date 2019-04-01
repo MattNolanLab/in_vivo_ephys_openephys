@@ -1,4 +1,5 @@
 import glob
+import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
@@ -11,6 +12,20 @@ analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled
 
 server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+
+
+def format_bar_chart(ax):
+    plt.gcf().subplots_adjust(bottom=0.2)
+    plt.gcf().subplots_adjust(left=0.2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Head direction [deg]', fontsize=30)
+    ax.set_ylabel('Frequency [Hz]', fontsize=30)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    return ax
 
 
 def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/MountainSort'):
@@ -37,6 +52,233 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
     return spatial_firing_data
 
 
+def add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins=20):
+    shuffled_means = []
+    shuffled_stdevs = []
+    real_data_hz_all = []
+    time_spent_in_bins_all = []
+    histograms_hz_all = []
+    for index, cell in spatial_firing.iterrows():
+        cell_histograms = cell['shuffled_data']
+        cell_spikes_hd = np.asanyarray(cell['hd'])
+        cell_spikes_hd = cell_spikes_hd[~np.isnan(cell_spikes_hd)]  # real hd when the cell fired
+        cell_session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session in field
+        cell_session_hd = cell_session_hd[~np.isnan(cell_session_hd)]
+        time_spent_in_bins = np.histogram(cell_session_hd, bins=number_of_bins)[0]
+        time_spent_in_bins_all.append(time_spent_in_bins)
+        cell_histograms_hz = cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        histograms_hz_all.append(cell_histograms_hz)
+        mean_shuffled = np.mean(cell_histograms_hz, axis=0)
+        shuffled_means.append(mean_shuffled)
+        std_shuffled = np.std(cell_histograms_hz, axis=0)
+        shuffled_stdevs.append(std_shuffled)
+
+        real_data_hz = np.histogram(cell_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
+        real_data_hz_all.append(real_data_hz)
+    spatial_firing['shuffled_means'] = shuffled_means
+    spatial_firing['shuffled_std'] = shuffled_stdevs
+    spatial_firing['hd_histogram_real_data'] = real_data_hz_all
+    spatial_firing['time_spent_in_bins'] = time_spent_in_bins_all
+    spatial_firing['cell_histograms_hz'] = histograms_hz_all
+    return spatial_firing
+
+
+def add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_bins=20):
+    percentile_values_95_all = []
+    percentile_values_5_all = []
+    error_bar_up_all = []
+    error_bar_down_all = []
+    for index, cell in spatial_firing.iterrows():
+        shuffled_cell_histograms = cell['shuffled_data']
+        session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session
+        session_hd = session_hd[~np.isnan(session_hd)]
+        time_spent_in_bins = np.histogram(session_hd, bins=number_of_bins)[0]
+        cell_histograms_hz = shuffled_cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        percentile_value_shuffled_95 = np.percentile(cell_histograms_hz, 95, axis=0)
+        percentile_values_95_all.append(percentile_value_shuffled_95)
+        percentile_value_shuffled_5 = np.percentile(cell_histograms_hz, 5, axis=0)
+        percentile_values_5_all.append(percentile_value_shuffled_5)
+        error_bar_up = percentile_value_shuffled_95 - cell.shuffled_means
+        error_bar_down = cell.shuffled_means - percentile_value_shuffled_5
+        error_bar_up_all.append(error_bar_up)
+        error_bar_down_all.append(error_bar_down)
+    spatial_firing['shuffled_percentile_threshold_95'] = percentile_values_95_all
+    spatial_firing['shuffled_percentile_threshold_5'] = percentile_values_5_all
+    spatial_firing['error_bar_95'] = error_bar_up_all
+    spatial_firing['error_bar_5'] = error_bar_down_all
+    return spatial_firing
+
+
+# test whether real and shuffled data differ and add results (true/false for each bin) and number of diffs to data frame
+def test_if_real_hd_differs_from_shuffled(field_data):
+    real_and_shuffled_data_differ_bin = []
+    number_of_diff_bins = []
+    for index, field in field_data.iterrows():
+        # diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
+        diff_field = (field.shuffled_percentile_threshold_95 < field.hd_histogram_real_data) + (field.shuffled_percentile_threshold_5 > field.hd_histogram_real_data)  # this is a pairwise OR on the binary arrays
+        number_of_diffs = diff_field.sum()
+        real_and_shuffled_data_differ_bin.append(diff_field)
+        number_of_diff_bins.append(number_of_diffs)
+    field_data['real_and_shuffled_data_differ_bin'] = real_and_shuffled_data_differ_bin
+    field_data['number_of_different_bins'] = number_of_diff_bins
+    return field_data
+
+
+# this uses the p values that are based on the position of the real data relative to shuffled (corrected_
+def count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh'):
+    number_of_significant_p_values = []
+    false_positive_ratio = (100 - significance_level) / 100
+    for index, field in field_data.iterrows():
+        # count significant p values
+        if type == 'bh':
+            number_of_significant_p_values_field = (field.p_values_corrected_bars_bh < false_positive_ratio).sum()
+            number_of_significant_p_values.append(number_of_significant_p_values_field)
+        if type == 'holm':
+            number_of_significant_p_values_field = (field.p_values_corrected_bars_holm < false_positive_ratio).sum()
+            number_of_significant_p_values.append(number_of_significant_p_values_field)
+    field_name = 'number_of_different_bins_' + type
+    field_data[field_name] = number_of_significant_p_values
+    return field_data
+
+
+# this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
+def test_if_shuffle_differs_from_other_shuffles(field_data):
+    number_of_shuffles = len(field_data.shuffled_data[0])
+    rejected_bins_all_shuffles = []
+    for index, field in field_data.iterrows():
+        rejects_field = np.empty(number_of_shuffles)
+        rejects_field[:] = np.nan
+        for shuffle in range(number_of_shuffles):
+            diff_field = (field.shuffled_percentile_threshold_95 < field.field_histograms_hz[shuffle]) + (field.shuffled_percentile_threshold_5 > field.field_histograms_hz[shuffle])  # this is a pairwise OR on the binary arrays
+            number_of_diffs = diff_field.sum()
+            rejects_field[shuffle] = number_of_diffs
+        rejected_bins_all_shuffles.append(rejects_field)
+    field_data['number_of_different_bins_shuffled'] = rejected_bins_all_shuffles
+    return field_data
+
+
+# this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
+# perform B/H analysis on each shuffle and count rejects
+def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, number_of_bars=20):
+    number_of_shuffles = len(field_data.shuffled_data[0])
+    rejected_bins_all_shuffles = []
+    for index, field in field_data.iterrows():
+        field_histograms = field['shuffled_data']
+        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
+        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
+        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        rejects_field = np.empty(number_of_shuffles)
+        rejects_field[:] = np.nan
+        percentile_observed_data_bars = []
+        for shuffle in range(number_of_shuffles):
+            percentiles_of_observed_bars = np.empty(number_of_bars)
+            percentiles_of_observed_bars[:] = np.nan
+            for bar in range(number_of_bars):
+                observed_data = shuffled_data_normalized[shuffle][bar]
+                shuffled_data = shuffled_data_normalized[:, bar]
+                percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
+                percentiles_of_observed_bars[bar] = percentile_of_observed_data
+            percentile_observed_data_bars.append(percentiles_of_observed_bars)  # percentile of shuffle relative to all other shuffles
+            # convert percentile to p value
+            percentiles_of_observed_bars[percentiles_of_observed_bars > 50] = 100 - percentiles_of_observed_bars[percentiles_of_observed_bars > 50]
+            # correct p values (B/H)
+            reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(percentiles_of_observed_bars, alpha=0.05, method='fdr_bh')
+            # count significant bars and put this number in df
+            number_of_rejects = reject.sum()
+            rejects_field[shuffle] = number_of_rejects
+        rejected_bins_all_shuffles.append(rejects_field)
+    field_data['number_of_different_bins_shuffled_corrected_p'] = rejected_bins_all_shuffles
+    return field_data
+
+
+# calculate percentile of real data relative to shuffled for each bar
+def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
+    percentile_observed_data_bars = []
+    for index, field in field_data.iterrows():
+        field_histograms = field['shuffled_data']
+        field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
+        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
+        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        percentiles_of_observed_bars = np.empty(number_of_bars)
+        percentiles_of_observed_bars[:] = np.nan
+        for bar in range(number_of_bars):
+            observed_data = field.hd_histogram_real_data[bar]
+            shuffled_data = shuffled_data_normalized[:, bar]
+            percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
+            percentiles_of_observed_bars[bar] = percentile_of_observed_data
+        percentile_observed_data_bars.append(percentiles_of_observed_bars)
+    field_data['percentile_of_observed_data'] = percentile_observed_data_bars
+    return field_data
+
+
+#  convert percentile to p value by subtracting the percentile from 100 when it is > than 50
+def convert_percentile_to_p_value(field_data):
+    p_values = []
+    for index, field in field_data.iterrows():
+        percentile_values = field.percentile_of_observed_data
+        percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
+        p_values.append(percentile_values)
+    field_data['shuffle_p_values'] = p_values
+    return field_data
+
+
+# perform Benjamini/Hochberg correction on p values calculated from the percentile of observed data relative to shuffled
+def calculate_corrected_p_values(field_data, type='bh'):
+    corrected_p_values = []
+    for index, field in field_data.iterrows():
+        p_values = field.shuffle_p_values
+        if type == 'bh':
+            reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
+            corrected_p_values.append(pvals_corrected)
+        if type == 'holm':
+            reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='holm')
+            corrected_p_values.append(pvals_corrected)
+
+    field_name = 'p_values_corrected_bars_' + type
+    field_data[field_name] = corrected_p_values
+    return field_data
+
+
+def plot_bar_chart_for_fields(field_data, path):
+    for index, field in field_data.iterrows():
+        mean = field['shuffled_means']
+        std = field['shuffled_std']
+        field_spikes_hd = field['hd_in_field_spikes']
+        time_spent_in_bins = field['time_spent_in_bins']
+        field_histograms_hz = field['field_histograms_hz']
+        x_pos = np.arange(field_histograms_hz.shape[1])
+        fig, ax = plt.subplots()
+        ax = format_bar_chart(ax)
+        ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
+        x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+        plt.xticks(x_pos, x_labels)
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
+        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
+        plt.close()
+
+
+def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
+    for index, field in field_data.iterrows():
+        mean = field['shuffled_means']
+        percentile_95 = field['error_bar_95']
+        percentile_5 = field['error_bar_5']
+        field_spikes_hd = field['hd_in_field_spikes']
+        time_spent_in_bins = field['time_spent_in_bins']
+        field_histograms_hz = field['field_histograms_hz']
+        x_pos = np.arange(field_histograms_hz.shape[1])
+        fig, ax = plt.subplots()
+        ax = format_bar_chart(ax)
+        ax.errorbar(x_pos, mean, yerr=[percentile_5, percentile_95], alpha=0.7, color='black', ecolor='grey', capsize=10, fmt='o', markersize=10)
+        # ax.bar(x_pos, mean, yerr=[percentile_5, percentile_95], align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
+        x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+        plt.xticks(x_pos, x_labels)
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
+        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile')
+        plt.close()
+
+
 def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle):
     number_of_spikes_in_field = cell['number_of_spikes']
     length_of_recording = len(cell.trajectory_hd)
@@ -44,9 +286,11 @@ def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle):
     return shuffle_indices
 
 
-# todo rewrite this to work for cells
-# add shuffled data to data frame as a new column for each field
-def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000):
+# add shuffled data to data frame as a new column for each cell
+def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000, animal='mouse'):
+    if 'shuffled_data' in spatial_firing:
+        return spatial_firing
+
     if os.path.exists(analysis_path + 'shuffle_analysis') is True:
         shutil.rmtree(analysis_path + 'shuffle_analysis')
     os.makedirs(analysis_path + 'shuffle_analysis')
@@ -62,18 +306,44 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
             shuffled_histograms[shuffle, :] = hist
         shuffled_histograms_all.append(shuffled_histograms)
     spatial_firing['shuffled_data'] = shuffled_histograms_all
+    if animal == 'mouse':
+        spatial_firing.to_pickle(local_path_mouse)
+
+    if animal == 'rat':
+        spatial_firing.to_pickle(local_path_rat)
+
     return spatial_firing
 
 
-def process_data(spatial_firing):
-    spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000)
+def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, number_of_bins=20):
+    spatial_firing = add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins)
+    spatial_firing = add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_bins=20)
+    spatial_firing = test_if_real_hd_differs_from_shuffled(spatial_firing)  # is the observed data within 95th percentile of the shuffled?
+    spatial_firing = test_if_shuffle_differs_from_other_shuffles(spatial_firing)
+
+    spatial_firing = calculate_percentile_of_observed_data(spatial_firing, number_of_bins)  # this is relative to shuffled data
+    # field_data = calculate_percentile_of_shuffled_data(field_data, number_of_bars=20)
+    spatial_firing = convert_percentile_to_p_value(spatial_firing)  # this is needed to make it 2 tailed so diffs are picked up both ways
+    spatial_firing = calculate_corrected_p_values(spatial_firing, type='bh')  # BH correction on p values from previous function
+    spatial_firing = calculate_corrected_p_values(spatial_firing, type='holm')  # Holm correction on p values from previous function
+    spatial_firing = count_number_of_significantly_different_bars_per_field(spatial_firing, significance_level=95, type='bh')
+    spatial_firing = count_number_of_significantly_different_bars_per_field(spatial_firing, significance_level=95, type='holm')
+    spatial_firing = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firing, number_of_bars=20)
+    plot_bar_chart_for_fields(spatial_firing, save_path)
+    plot_bar_chart_for_fields_percentile_error_bar(spatial_firing, save_path)
+    return spatial_firing
+
+
+def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
+    spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
+    spatial_firing = analyze_shuffled_data(spatial_firing, analysis_path, sampling_rate_video, number_of_bins=20)
 
 
 def main():
     spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
-    process_data(spatial_firing_all_mice)
-    process_data(spatial_firing_all_rats)
+    process_data(spatial_firing_all_mice, 30, animal='mouse')
+    process_data(spatial_firing_all_rats, 50, animal='rat')
 
 
 if __name__ == '__main__':
