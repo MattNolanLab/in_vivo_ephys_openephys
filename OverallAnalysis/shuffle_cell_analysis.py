@@ -259,7 +259,7 @@ def plot_bar_chart_for_cells(spatial_firing, path, sampling_rate_video, animal):
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(cell_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['cluster_id']) + str(index) + '_SD')
+        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
         plt.close()
 
 
@@ -281,7 +281,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, sampling
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(cell_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['cluster_id']) + '_percentile')
+        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
 
 
