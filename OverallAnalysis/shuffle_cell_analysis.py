@@ -335,6 +335,7 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
     spatial_firing = count_number_of_significantly_different_bars_per_field(spatial_firing, significance_level=95, type='bh')
     spatial_firing = count_number_of_significantly_different_bars_per_field(spatial_firing, significance_level=95, type='holm')
     spatial_firing = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firing, sampling_rate_video, number_of_bars=20)
+    # todo it should save the new df here again and check before recalculating things
     plot_bar_chart_for_cells(spatial_firing, save_path, sampling_rate_video, animal)
     plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, save_path, sampling_rate_video, animal)
     return spatial_firing
