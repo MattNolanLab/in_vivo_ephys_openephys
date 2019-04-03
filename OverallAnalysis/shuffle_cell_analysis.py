@@ -3,6 +3,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
+import PostSorting.open_field_grid_cells
 from scipy import stats
 import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
@@ -45,8 +46,9 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
             position = pd.read_pickle(position_path)
 
             if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps']].copy()
                 spatial_firing['trajectory_hd'] = [position.hd] * len(spatial_firing)
+                spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
                 print(spatial_firing_data.head())
 
@@ -349,7 +351,13 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
 def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, analysis_path, sampling_rate_video, animal, number_of_bins=20)
-    print('I finihed the shuffled analysis ' + animal)
+    print('I finished the shuffled analysis ' + animal)
+    spatial_firing = add_grid_score_to_data(spatial_firing)
+    print('added grid score')
+    # remove false positives from mouse data
+    # plot histograms
+    # do mann whitney test
+
 
 
 def main():
