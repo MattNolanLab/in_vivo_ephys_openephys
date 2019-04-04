@@ -5,6 +5,7 @@ import os
 import OverallAnalysis.false_positives
 import pandas as pd
 import PostSorting.open_field_grid_cells
+import scipy
 from scipy import stats
 import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
@@ -59,19 +60,28 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
 def add_combined_id_to_df(spatial_firing):
     animal_ids = [session_id.split('_')[0] for session_id in spatial_firing.session_id.values]
     dates = [session_id.split('_')[1] for session_id in spatial_firing.session_id.values]
-    tetrode = spatial_firing.tetrode.values
-    cluster = spatial_firing.cluster_id.values
+    if 'tetrode' in spatial_firing:
+        tetrode = spatial_firing.tetrode.values
+        cluster = spatial_firing.cluster_id.values
 
-    combined_ids = []
-    for cell in range(len(spatial_firing)):
-        id = animal_ids[cell] + '-' + dates[cell] + '-Tetrode-' + str(tetrode[cell]) + '-Cluster-' + str(cluster[cell])
-        combined_ids.append(id)
-    spatial_firing['false_positive_id'] = combined_ids
+        combined_ids = []
+        for cell in range(len(spatial_firing)):
+            id = animal_ids[cell] + '-' + dates[cell] + '-Tetrode-' + str(tetrode[cell]) + '-Cluster-' + str(cluster[cell])
+            combined_ids.append(id)
+        spatial_firing['false_positive_id'] = combined_ids
+    else:
+        cluster = spatial_firing.cluster_id.values
+        combined_ids = []
+        for cell in range(len(spatial_firing)):
+            id = animal_ids[cell] + '-' + dates[cell] + '-Cluster-' + str(cluster[cell])
+            combined_ids.append(id)
+        spatial_firing['false_positive_id'] = combined_ids
+
     return spatial_firing
 
 
 def tag_false_positives(spatial_firing):
-    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(local_path)
+    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(local_path + 'false_positives_all.txt')
     spatial_firing = add_combined_id_to_df(spatial_firing)
     spatial_firing['false_positive'] = spatial_firing['false_positive_id'].isin(list_of_false_positives)
     return spatial_firing
@@ -369,13 +379,167 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
     return spatial_firing
 
 
+def find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data):
+    number_of_rejects = shuffled_field_data.number_of_different_bins_shuffled
+    flat_shuffled = []
+    for field in number_of_rejects:
+        flat_shuffled.extend(field)
+    tail = max(flat_shuffled)
+    percentile_95 = np.percentile(flat_shuffled, 95)
+    percentile_99 = np.percentile(flat_shuffled, 99)
+    return tail, percentile_95, percentile_99
+
+
+def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse'):
+    number_of_rejects = shuffled_field_data.number_of_different_bins
+    fig, ax = plt.subplots()
+    plt.hist(number_of_rejects)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlim(0, 20)
+    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.savefig(local_path + 'distribution_of_rejects_' + animal + '.png', bbox_inches="tight")
+    plt.close()
+
+
+def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_data, animal='mouse'):
+    number_of_rejects = shuffled_data.number_of_different_bins_shuffled
+    flat_shuffled = []
+    for field in number_of_rejects:
+        flat_shuffled.extend(field)
+    fig, ax = plt.subplots()
+    plt.hist(flat_shuffled, color='black')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    ax.set_xlim(0, 20)
+    plt.savefig(local_path + '/distribution_of_rejects_shuffled' + animal + '.png', bbox_inches="tight")
+    plt.close()
+
+
+def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
+    tail, percentile_95, percentile_99 = find_tail_of_shuffled_distribution_of_rejects(shuffled_data)
+
+    number_of_rejects_shuffled = shuffled_data.number_of_different_bins_shuffled
+    flat_shuffled = []
+    for field in number_of_rejects_shuffled:
+        flat_shuffled.extend(field)
+    fig, ax = plt.subplots()
+    plt.hist(flat_shuffled, normed=True, color='black', alpha=0.5)
+
+    number_of_rejects_real = shuffled_data.number_of_different_bins
+    plt.hist(number_of_rejects_real, normed=True, color='navy', alpha=0.5)
+
+    # plt.axvline(x=tail, color='red', alpha=0.5, linestyle='dashed')
+    # plt.axvline(x=percentile_95, color='red', alpha=0.5, linestyle='dashed')
+    # plt.axvline(x=percentile_99, color='red', alpha=0.5, linestyle='dashed')
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / field', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    ax.set_xlim(0, 20)
+    plt.savefig(local_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches="tight")
+    plt.close()
+
+
+def plot_number_of_significant_p_values(spatial_firing, type='bh'):
+    if type == 'bh':
+        number_of_significant_p_values = spatial_firing.number_of_different_bins_bh
+    else:
+        number_of_significant_p_values = spatial_firing.number_of_different_bins_holm
+
+    fig, ax = plt.subplots()
+    plt.hist(number_of_significant_p_values, normed='True', color='navy', alpha=0.5)
+    flat_shuffled = []
+    for field in spatial_firing.number_of_different_bins_shuffled_corrected_p:
+        flat_shuffled.extend(field)
+    plt.hist(flat_shuffled, normed='True', color='gray', alpha=0.5)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    ax.set_ylim(0, 0.2)
+    ax.set_xlim(0, 20)
+    plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
+    plt.close()
+
+
+def compare_distributions(x, y):
+    stat, p = scipy.stats.mannwhitneyu(x, y)
+    return p
+
+
+def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
+    if analysis_type == 'bh':
+        flat_shuffled = []
+        for field in field_data.number_of_different_bins_shuffled_corrected_p:
+            flat_shuffled.extend(field)
+            p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+            print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+            return p_bh
+
+    if analysis_type == 'percentile':
+        flat_shuffled = []
+        for field in field_data.number_of_different_bins_shuffled:
+            flat_shuffled.extend(field)
+            p_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
+            print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+            return p_percentile
+
+
+def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, tag='grid', animal='mouse'):
+    plot_histogram_of_number_of_rejected_bars(shuffled_spatial_firing_data, animal)
+    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_spatial_firing_data, animal)
+    plot_number_of_significant_p_values(shuffled_spatial_firing_data, type='bh_' + tag + '_' + animal)
+    plot_number_of_significant_p_values(shuffled_spatial_firing_data, type='holm_' + tag + '_' + animal)
+    make_combined_plot_of_distributions(shuffled_spatial_firing_data, tag=tag + '_' + animal)
+
+
 def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
     print('I finished the shuffled analysis on ' + animal + ' data.')
-    spatial_firing = tag_false_positives(spatial_firing)
-    # plot histograms
-    # do mann whitney test
+    if animal == 'mouse':
+        spatial_firing = tag_false_positives(spatial_firing)
+    print('I will plot histograms now.')
+    grid = spatial_firing.grid_score >= 0.4
+    hd = spatial_firing.hd_score >= 0.5
+    not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
+    hd_cells = np.logical_and(np.logical_not(grid), hd)
+    grid_cells = np.logical_and(grid, np.logical_not(hd))
+
+    shuffled_spatial_firing_grid = spatial_firing[grid_cells]
+    shuffled_spatial_firing_not_classified = spatial_firing[not_classified]
+
+    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal='rat')
+    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal='rat')
+
+    print(animal + ' data:')
+    print('Grid cells:')
+    compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_grid, analysis_type='bh')
+    compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_grid, analysis_type='percentile')
+    print('Not classified cells:')
+    compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_not_classified, analysis_type='bh')
+    compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_not_classified, analysis_type='percentile')
 
 
 def main():
