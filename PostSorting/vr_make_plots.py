@@ -305,9 +305,10 @@ def plot_gc_firing_rate_maps(spike_data, prm, prefix):
         plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
-        
+
 
 # unused code but might use in future
+
 '''
 def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting combined spike rastas and spike rate...')
