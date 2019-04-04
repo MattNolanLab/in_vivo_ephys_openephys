@@ -2,6 +2,7 @@ import glob
 import matplotlib.pylab as plt
 import numpy as np
 import os
+import OverallAnalysis.false_positives
 import pandas as pd
 import PostSorting.open_field_grid_cells
 from scipy import stats
@@ -54,6 +55,26 @@ def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/Moun
 
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
+
+
+def add_combined_id_to_df(spatial_firing):
+    animal_ids = [session_id.split('_')[0] for session_id in spatial_firing.session_id.values]
+    dates = [session_id.split('_')[1] for session_id in spatial_firing.session_id.values]
+    tetrode = spatial_firing.tetrode.values
+    cluster = spatial_firing.cluster_id.values
+
+    combined_ids = []
+    for cell in range(len(spatial_firing)):
+        id = animal_ids[cell] + '-' + dates[cell] + '-Tetrode-' + str(tetrode[cell]) + '-Cluster-' + str(cluster[cell])
+        combined_ids.append(id)
+    spatial_firing['false_positive_id'] = combined_ids
+    return spatial_firing
+
+
+def tag_false_positives(spatial_firing):
+    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(analysis_path)
+    spatial_firing = add_combined_id_to_df(spatial_firing)
+    spatial_firing['false_positive'] = spatial_firing['false_positive_id'].isin(list_of_false_positives)
 
 
 def add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins=20):
@@ -355,7 +376,6 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     # remove false positives from mouse data
     # plot histograms
     # do mann whitney test
-
 
 
 def main():
