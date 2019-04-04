@@ -3,7 +3,9 @@ import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
+import PostSorting.vr_extract_data
 import matplotlib.image as mpimg
+
 import pandas as pd
 from scipy import stats
 
@@ -215,22 +217,20 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        unsmooth_b = np.array(spike_data.at[cluster_index, 'avg_b_spike_rate'])
-        unsmooth_nb = np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate'])
-        unsmooth_p = np.array(spike_data.at[cluster_index, 'avg_p_spike_rate'])
+        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_firing_rate_data(spike_data, cluster_index)
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.plot(unsmooth_b, '-', color='Black')
-        ax.plot(unsmooth_nb, '-', color='Red')
-        ax.plot(unsmooth_p, '-', color='Blue')
+        ax.plot(avg_beaconed_spike_rate, '-', color='Black')
+        ax.plot(avg_nonbeaconed_spike_rate, '-', color='Red')
+        ax.plot(avg_probe_spike_rate, '-', color='Blue')
         ax.locator_params(axis = 'x', nbins=3)
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
-        nb_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_b_spike_rate']))
-        b_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_nb_spike_rate']))
-        p_x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'avg_p_spike_rate']))
+        nb_x_max = np.nanmax(avg_beaconed_spike_rate)
+        b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
+        p_x_max = np.nanmax(avg_probe_spike_rate)
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
@@ -241,33 +241,6 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
         plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
-        plt.close()
-
-
-def plot_firing_rate_maps_gc(spike_data, prm, prefix):
-    print('I am plotting gc convolved firing rate maps...')
-    save_path = prm.get_output_path() + '/Figures/gc_spike_rate'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
-    for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        avg_spikes_on_track = plt.figure(figsize=(6,4))
-
-        smooth_b = np.array(spike_data.at[cluster_index, 'firing_maps'])
-
-        ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax.plot(smooth_b, '-', color='Black')
-        ax.locator_params(axis = 'x', nbins=3)
-        ax.set_xticklabels(['0', '100', '200'])
-        plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
-        plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
-        plt.xlim(0,200)
-        x_max = np.nanmax(np.array(spike_data.at[cluster_index, 'firing_maps']))
-        plot_utility.style_vr_plot(ax, x_max)
-        plot_utility.style_track_plot(ax, 200)
-        plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
-
-        plt.savefig(prm.get_output_path() + '/Figures/gc_spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
 
 
@@ -377,49 +350,21 @@ def make_combined_figure(prm, spatial_firing, prefix):
         plt.close()
 
 
-def plot_spike_rate_vs_speed(spike_data, processed_position_data, prm):
-    print('plotting linear regression of speed vs firing rate...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/speed_regression'
+def plot_instant_rates(spatial_firing, prm):
+    print('I am plotting instant firing rate against speed and location...')
+    save_path = prm.get_output_path() + '/Figures/instant_rates'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-
-    average_speed = np.array(processed_position_data["binned_speed_ms_per_trial"])
-    for cluster in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster] - 1
-        speed_histogram = plt.figure(figsize=(6,6))
-        ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        beaconed_firing_rate = np.array(spike_data.at[cluster_index, "normalised_b_spike_number"])
-
-        slope,intercept,r_value, p_value, std_err = stats.linregress(beaconed_firing_rate,average_speed) #linear_regression
-        ablinevalues = []
-        for i in beaconed_firing_rate:
-            ablinevalues.append(slope*i+intercept)
-
-        ax.plot(beaconed_firing_rate,average_speed, 'o', color='Black', markersize = 1)
-        ax.plot(beaconed_firing_rate,ablinevalues, '-',color = 'Black', linewidth = 2)
-        plt.ylabel('Speed (cm/200ms)', fontsize=12, labelpad = 10)
-        plt.xlabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
-        ax.yaxis.set_ticks_position('left')
-        ax.xaxis.set_ticks_position('bottom')
-        plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_' + str(cluster_index + 1) + '.png', dpi=200)
-        plt.close()
+    for cluster_index in range(len(spatial_firing)):
+        cluster_index = spatial_firing.cluster_id.values[cluster_index] - 1
+        speed, location, firing_rate = PostSorting.vr_extract_data.extract_instant_rates(spatial_firing, cluster_index)
+        plot_instant_location(location, firing_rate)
+        plot_instant_speed(speed, firing_rate)
 
 
+def plot_instant_location(location, firing_rate):
+    return
 
 
-def main():
-    print('-------------------------------------------------------------')
-
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    recording_folder = '/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55' # test recording
-    prm.set_local_recording_folder_path('/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/DataFrames')
-    prm.set_output_path('/Users/sarahtennant/Work/Analysis/Opto_data/PVCre1/M1_D27_2018-10-05_11-17-55/')
-    spatial_firing = pd.read_pickle(prm.get_local_recording_folder_path() + '/spatial_firing.pkl')
-    spatial_data = pd.read_pickle(prm.get_local_recording_folder_path() + '/position.pkl')
-    make_combined_figure(prm, spatial_firing)
-
-
-if __name__ == '__main__':
-    main()
+def plot_instant_speed(speed, firing_rate):
+    return
