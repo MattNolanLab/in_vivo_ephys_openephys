@@ -1,6 +1,5 @@
 import numpy as np
-import pandas as pd
-
+import PostSorting.Create2DHistogram
 
 
 def add_columns_to_dataframe(spike_data):
@@ -62,8 +61,6 @@ def generate_reward_indicator(processed_position_data):
 def split_trials_by_reward(processed_position_data,spike_data):
 
     spike_data = add_columns_to_dataframe(spike_data)
-
-    #rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0), dtype=np.int16)
     rewarded_trials = np.array(np.arange(25,100,1))
 
     for cluster_index in range(len(spike_data)):
