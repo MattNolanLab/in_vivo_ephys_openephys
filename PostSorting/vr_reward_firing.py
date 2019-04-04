@@ -20,6 +20,45 @@ def add_columns_to_dataframe(spike_data):
 
 
 
+def create_reward_histogram(processed_position_data):
+    rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0), dtype=np.int16)
+    rewarded_positions = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0), dtype=np.int16)
+    bins = np.arange(0,(200)+1,1)
+    max_trial = np.array(processed_position_data['trial_number_in_bin']).max()
+    trialrange = np.arange(1,(max_trial+1),1)
+    reward_histogram = PostSorting.Create2DHistogram.create_2dhistogram(rewarded_trials, rewarded_positions, bins, trialrange)
+    return reward_histogram
+
+
+def reshape_reward_histogram(reward_histogram, processed_position_data):
+    reshaped_reward_histogram = np.reshape(reward_histogram, (reward_histogram.shape[0]*reward_histogram.shape[1]))
+    processed_position_data['reward_histogram'] = list(reshaped_reward_histogram)
+    return processed_position_data
+
+
+def find_rewarded_trials(reward_histogram):
+    trial_indicator = np.sum(reward_histogram, axis=1)
+    return trial_indicator
+
+
+def fill_in_binned_trial_indicator(trial_indicator):
+    binned_trial_indicator=[]
+    for row in trial_indicator:
+        trial_reward_indicator = [row]
+        whole_trial_as_indicator = np.repeat(trial_reward_indicator, 200)
+        binned_trial_indicator = np.append(binned_trial_indicator, whole_trial_as_indicator)
+    return binned_trial_indicator
+
+
+def generate_reward_indicator(processed_position_data):
+    reward_histogram = create_reward_histogram(processed_position_data)
+    processed_position_data = reshape_reward_histogram(reward_histogram, processed_position_data)
+    trial_indicator = find_rewarded_trials(reward_histogram)
+    binned_trial_indicator = fill_in_binned_trial_indicator(trial_indicator)
+    processed_position_data['binned_trial_indicator'] = list(binned_trial_indicator)
+    return processed_position_data
+
+
 def split_trials_by_reward(processed_position_data,spike_data):
 
     spike_data = add_columns_to_dataframe(spike_data)
@@ -55,4 +94,6 @@ def split_trials_by_reward(processed_position_data,spike_data):
         spike_data.at[cluster_index, 'rewarded_probe_trial_numbers'] = list(rewarded_probe_trial_numbers)
 
     return spike_data
+
+
 

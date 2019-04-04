@@ -1,4 +1,5 @@
 import glob
+import time
 import numpy as np
 import os
 import pandas as pd
@@ -16,7 +17,7 @@ import matplotlib.pylab as plt
 
 
 # server_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/'
-server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+# server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 # server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
 
 
@@ -48,12 +49,16 @@ def get_field_data():
 
 
 def format_bar_chart(ax):
+    plt.gcf().subplots_adjust(bottom=0.2)
+    plt.gcf().subplots_adjust(left=0.2)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head direction [degrees]')
-    ax.set_ylabel('Head-direction preference')
+    ax.set_xlabel('Head direction [deg]', fontsize=30)
+    ax.set_ylabel('Frequency [Hz]', fontsize=30)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
     return ax
 
 
@@ -329,28 +334,38 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
 
 
 # perform shuffle analysis for all mice and save data frames on server. this will later be loaded and combined
-def process_recordings():
+def process_recordings(server_path, spike_sorter='/MountainSort', redo_existing=True):
     if os.path.exists(server_path):
         print('I see the server.')
     for recording_folder in glob.glob(server_path + '*'):
         if os.path.isdir(recording_folder):
-            spike_data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
-            position_data_frame_path = recording_folder + '/MountainSort/DataFrames/position.pkl'
+            spike_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
+            position_data_frame_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+            shuffled_data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
             if os.path.exists(spike_data_frame_path):
                 print('I found a firing data frame.')
+                if redo_existing is False:
+                    if os.path.exists(shuffled_data_frame_path):
+                        print('This was shuffled earlier.')
+                        print(recording_folder)
+                        continue
                 spatial_firing = pd.read_pickle(spike_data_frame_path)
                 position_data = pd.read_pickle(position_data_frame_path)
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
                 if not field_df.empty:
                     field_df = shuffle_field_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20, number_of_times_to_shuffle=1000)
                     field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
-                    field_df.to_pickle(recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl')
-                    print('I finished analyzing ' + recording_folder)
+                    try:
+                        field_df.to_pickle(recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl')
+                        print('I finished analyzing ' + recording_folder)
+                    except OSError as error:
+                        print('ERROR I failed to analyze ' + recording_folder)
+                        print(error)
 
 
 def local_data_test():
-    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
+    local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
+    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M13_2018-05-01_11-23-01_of/MountainSort/'
     # local_path = '/Users/s1466507/Documents/Ephys/recordings/M14_2018-05-16_11-29-05_of/MountainSort/'
 
@@ -369,8 +384,11 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    # process_recordings()
-    local_data_test()
+    server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+    # process_recordings(server_path_mouse)
+    server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+    process_recordings(server_path_rat, spike_sorter='', redo_existing=True)
+    # local_data_test()
 
 
 if __name__ == '__main__':
