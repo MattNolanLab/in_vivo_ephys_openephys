@@ -123,7 +123,7 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse
     ax.set_xlim(0, 20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.savefig('/Users/s1466507/Documents/Ephys/recordings/distribution_of_rejects_' + animal + '.png', bbox_inches = "tight")
+    plt.savefig(analysis_path + 'distribution_of_rejects_' + animal + '.png', bbox_inches="tight")
     plt.close()
 
 

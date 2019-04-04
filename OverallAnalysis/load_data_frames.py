@@ -142,11 +142,49 @@ def load_position_data(output_path):
     spatial_data.to_pickle(output_path)
 
 
+def load_field_data_for_r(output_path):
+    field_data_combined = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a field data frame.')
+            field_data = pd.read_pickle(data_frame_path)
+            '''
+            'session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+            'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+            'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+            'times_session', 'time_spent_in_field', 'position_x_session',
+            'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+            'shuffled_data', 'shuffled_means', 'shuffled_std',
+            'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz',
+            'real_and_shuffled_data_differ_bin', 'number_of_different_bins'
+            '''
+            if 'shuffled_data' in field_data:
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                    'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                    'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                    'times_session', 'time_spent_in_field', 'position_x_session',
+                                                    'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                    'shuffled_means', 'shuffled_std',
+                                                    'hd_histogram_real_data', 'time_spent_in_bins',
+                                                    'field_histograms_hz',
+                                                    'real_and_shuffled_data_differ_bin', 'number_of_different_bins',
+                                                    'number_of_different_bins_shuffled', 'number_of_different_bins_bh',
+                                                    'number_of_different_bins_holm',
+                                                    'number_of_different_bins_shuffled_corrected_p']].copy()
+                field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
+
+                field_data_combined = field_data_combined.append(field_data_to_combine)
+                print(field_data_combined.head())
+    field_data_combined.to_pickle(output_path)
+
+
 def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
-
-    load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist2.pkl')
+    load_field_data_for_r('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/field_data_modes.pkl')
+    # load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist2.pkl')
     # load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice_hist.pkl')
     # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis
