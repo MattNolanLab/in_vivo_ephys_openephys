@@ -152,7 +152,6 @@ def get_position_heatmap(spatial_data, prm):
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
     bin_size_cm = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
-
     position_heat_map = np.zeros((number_of_bins_x, number_of_bins_y))
 
     # find value for each bin for heatmap
