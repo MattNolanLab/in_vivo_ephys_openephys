@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
 
+
 def extract_instant_rates(spike_data, cluster_index):
     speed = np.array(spike_data.loc[cluster_index].instant_rates[0])
     location = np.array(spike_data.loc[cluster_index].instant_rates[1])
     firing_rate = np.array(spike_data.loc[cluster_index].instant_rates[2])
-
-    #cluster_firings = pd.DataFrame({ 'speed' :  spike_data.loc[cluster_index].instant_rates[0], 'location' :  spike_data.loc[cluster_index].instant_rates[1], 'firing_rate' :  spike_data.loc[cluster_index].instant_rates[2]})
     return speed, location, firing_rate
 
 
@@ -17,6 +16,11 @@ def extract_firing_rate_data(spike_data, cluster_index):
 
 def extract_smoothed_firing_rate_data(spike_data, cluster_index):
     cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[0], 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[2]})
+    return cluster_firings
+
+
+def extract_gc_firing_rate_data(spike_data, cluster_index):
+    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.loc[cluster_index].firing_maps, 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[2]})
     return cluster_firings
 
 
@@ -76,6 +80,13 @@ def extract_average_firing_rate_data(spike_data, cluster_index):
 
 def extract_smoothed_average_firing_rate_data(spike_data, cluster_index):
     cluster_firings = extract_smoothed_firing_rate_data(spike_data, cluster_index)
+    beaconed_cluster_firings, nonbeaconed_cluster_firings, probe_cluster_firings = split_firing_data_by_trial_type(cluster_firings)
+    average_beaconed_spike_rate, average_nonbeaconed_spike_rate, average_probe_spike_rate = reshape_and_average_over_trials(np.array(beaconed_cluster_firings["firing_rate"]), np.array(nonbeaconed_cluster_firings["firing_rate"]), np.array(probe_cluster_firings["firing_rate"]), max(cluster_firings["trial_number"]))
+    return average_beaconed_spike_rate, average_nonbeaconed_spike_rate, average_probe_spike_rate
+
+
+def extract_gc_average_firing_rate_data(spike_data, cluster_index):
+    cluster_firings = extract_gc_firing_rate_data(spike_data, cluster_index)
     beaconed_cluster_firings, nonbeaconed_cluster_firings, probe_cluster_firings = split_firing_data_by_trial_type(cluster_firings)
     average_beaconed_spike_rate, average_nonbeaconed_spike_rate, average_probe_spike_rate = reshape_and_average_over_trials(np.array(beaconed_cluster_firings["firing_rate"]), np.array(nonbeaconed_cluster_firings["firing_rate"]), np.array(probe_cluster_firings["firing_rate"]), max(cluster_firings["trial_number"]))
     return average_beaconed_spike_rate, average_nonbeaconed_spike_rate, average_probe_spike_rate
