@@ -352,7 +352,6 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, analysis_path, sampling_rate_video, animal, number_of_bins=20)
     print('I finished the shuffled analysis ' + animal)
-    spatial_firing = add_grid_score_to_data(spatial_firing)
     print('added grid score')
     # remove false positives from mouse data
     # plot histograms
