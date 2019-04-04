@@ -5,7 +5,6 @@ import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
 import matplotlib.image as mpimg
-
 import pandas as pd
 from scipy import stats
 
@@ -244,6 +243,43 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.close()
 
 
+def plot_firing_rate_maps(spike_data, prm, prefix):
+    print('I am plotting firing rate maps...')
+    save_path = prm.get_output_path() + '/Figures/spike_rate'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        avg_spikes_on_track = plt.figure(figsize=(6,4))
+
+        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_gc_firing_rate_data(spike_data, cluster_index)
+
+        ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        ax.plot(avg_beaconed_spike_rate, '-', color='Black')
+        ax.plot(avg_nonbeaconed_spike_rate, '-', color='Red')
+        ax.plot(avg_probe_spike_rate, '-', color='Blue')
+        ax.locator_params(axis = 'x', nbins=3)
+        ax.set_xticklabels(['0', '100', '200'])
+        plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
+        plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
+        plt.xlim(0,200)
+        nb_x_max = np.nanmax(avg_beaconed_spike_rate)
+        b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
+        p_x_max = np.nanmax(avg_probe_spike_rate)
+        if b_x_max > nb_x_max and b_x_max > p_x_max:
+            plot_utility.style_vr_plot(ax, b_x_max)
+        elif b_x_max < nb_x_max and b_x_max > p_x_max:
+            plot_utility.style_vr_plot(ax, nb_x_max)
+        elif b_x_max > nb_x_max and b_x_max < p_x_max:
+            plot_utility.style_vr_plot(ax, p_x_max)
+        plot_utility.style_track_plot(ax, 200)
+        plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
+
+        plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.close()
+
+# unused code but might use in future
+'''
 def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting combined spike rastas and spike rate...')
     save_path = prm.get_output_path() + '/Figures/combined_spike_plots'
@@ -349,22 +385,4 @@ def make_combined_figure(prm, spatial_firing, prefix):
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + str(prefix) + '.png', dpi=1000)
         plt.close()
 
-
-def plot_instant_rates(spatial_firing, prm):
-    print('I am plotting instant firing rate against speed and location...')
-    save_path = prm.get_output_path() + '/Figures/instant_rates'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
-    for cluster_index in range(len(spatial_firing)):
-        cluster_index = spatial_firing.cluster_id.values[cluster_index] - 1
-        speed, location, firing_rate = PostSorting.vr_extract_data.extract_instant_rates(spatial_firing, cluster_index)
-        plot_instant_location(location, firing_rate)
-        plot_instant_speed(speed, firing_rate)
-
-
-def plot_instant_location(location, firing_rate):
-    return
-
-
-def plot_instant_speed(speed, firing_rate):
-    return
+'''
