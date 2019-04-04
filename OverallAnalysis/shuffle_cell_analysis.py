@@ -410,8 +410,8 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse
 def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_data, animal='mouse'):
     number_of_rejects = shuffled_data.number_of_different_bins_shuffled
     flat_shuffled = []
-    for field in number_of_rejects:
-        flat_shuffled.extend(field)
+    for cell in number_of_rejects:
+        flat_shuffled.extend(cell)
     fig, ax = plt.subplots()
     plt.hist(flat_shuffled, color='black')
     ax.spines['top'].set_visible(False)
@@ -432,8 +432,8 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
 
     number_of_rejects_shuffled = shuffled_data.number_of_different_bins_shuffled
     flat_shuffled = []
-    for field in number_of_rejects_shuffled:
-        flat_shuffled.extend(field)
+    for cell in number_of_rejects_shuffled:
+        flat_shuffled.extend(cell)
     fig, ax = plt.subplots()
     plt.hist(flat_shuffled, normed=True, color='black', alpha=0.5)
 
@@ -450,7 +450,7 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xlabel('Rejected bars / field', size=30)
+    ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_xlim(0, 20.5)
     plt.savefig(local_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches="tight")
@@ -466,8 +466,8 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     fig, ax = plt.subplots()
     plt.hist(number_of_significant_p_values, normed='True', color='navy', alpha=0.5)
     flat_shuffled = []
-    for field in spatial_firing.number_of_different_bins_shuffled_corrected_p:
-        flat_shuffled.extend(field)
+    for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
+        flat_shuffled.extend(cell)
     plt.hist(flat_shuffled, normed='True', color='gray', alpha=0.5)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -488,20 +488,20 @@ def compare_distributions(x, y):
     return p
 
 
-def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
+def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
     if analysis_type == 'bh':
         flat_shuffled = []
-        for field in field_data.number_of_different_bins_shuffled_corrected_p:
-            flat_shuffled.extend(field)
-            p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+        for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
+            flat_shuffled.extend(cell)
+            p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
             print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
             return p_bh
 
     if analysis_type == 'percentile':
         flat_shuffled = []
-        for field in field_data.number_of_different_bins_shuffled:
-            flat_shuffled.extend(field)
-            p_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
+        for cell in spatial_firing.number_of_different_bins_shuffled:
+            flat_shuffled.extend(cell)
+            p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
             print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
             return p_percentile
 
