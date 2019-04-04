@@ -530,8 +530,8 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     shuffled_spatial_firing_grid = spatial_firing[grid_cells]
     shuffled_spatial_firing_not_classified = spatial_firing[not_classified]
 
-    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal='rat')
-    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal='rat')
+    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal)
+    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal)
 
     print(animal + ' data:')
     print('Grid cells:')
