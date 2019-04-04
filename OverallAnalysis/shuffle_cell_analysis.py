@@ -9,10 +9,9 @@ from scipy import stats
 import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
 
-
-local_path_mouse = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/all_mice_df.pkl'
-local_path_rat = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/all_rats_df.pkl'
-analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/'
+local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/'
+local_path_mouse = local_path + 'all_mice_df.pkl'
+local_path_rat = local_path + 'all_rats_df.pkl'
 
 server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
 server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
@@ -72,7 +71,7 @@ def add_combined_id_to_df(spatial_firing):
 
 
 def tag_false_positives(spatial_firing):
-    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(analysis_path)
+    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(local_path)
     spatial_firing = add_combined_id_to_df(spatial_firing)
     spatial_firing['false_positive'] = spatial_firing['false_positive_id'].isin(list_of_false_positives)
     return spatial_firing
@@ -321,9 +320,9 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
     if 'shuffled_data' in spatial_firing:
         return spatial_firing
 
-    if os.path.exists(analysis_path + 'shuffle_analysis') is True:
-        shutil.rmtree(analysis_path + 'shuffle_analysis')
-    os.makedirs(analysis_path + 'shuffle_analysis')
+    if os.path.exists(local_path + 'shuffle_analysis') is True:
+        shutil.rmtree(local_path + 'shuffle_analysis')
+    os.makedirs(local_path + 'shuffle_analysis')
 
     shuffled_histograms_all = []
     for index, cell in spatial_firing.iterrows():
@@ -372,7 +371,7 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
 
 def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
-    spatial_firing = analyze_shuffled_data(spatial_firing, analysis_path, sampling_rate_video, animal, number_of_bins=20)
+    spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
     print('I finished the shuffled analysis on ' + animal + ' data.')
     spatial_firing = tag_false_positives(spatial_firing)
     # plot histograms
