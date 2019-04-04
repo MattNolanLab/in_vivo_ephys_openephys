@@ -75,6 +75,7 @@ def tag_false_positives(spatial_firing):
     list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(analysis_path)
     spatial_firing = add_combined_id_to_df(spatial_firing)
     spatial_firing['false_positive'] = spatial_firing['false_positive_id'].isin(list_of_false_positives)
+    return spatial_firing
 
 
 def add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins=20):
@@ -373,7 +374,7 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, analysis_path, sampling_rate_video, animal, number_of_bins=20)
     print('I finished the shuffled analysis on ' + animal + ' data.')
-    # remove false positives from mouse data
+    spatial_firing = tag_false_positives(spatial_firing)
     # plot histograms
     # do mann whitney test
 
