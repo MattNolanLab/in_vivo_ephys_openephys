@@ -400,7 +400,7 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xlim(0, 20)
+    ax.set_xlim(0, 20.5)
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     plt.savefig(local_path + 'distribution_of_rejects_' + animal + '.png', bbox_inches="tight")
@@ -422,7 +422,7 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_data, animal='mo
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
-    ax.set_xlim(0, 20)
+    ax.set_xlim(0, 20.5)
     plt.savefig(local_path + '/distribution_of_rejects_shuffled' + animal + '.png', bbox_inches="tight")
     plt.close()
 
@@ -452,7 +452,7 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
-    ax.set_xlim(0, 20)
+    ax.set_xlim(0, 20.5)
     plt.savefig(local_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches="tight")
     plt.close()
 
@@ -478,7 +478,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
-    ax.set_xlim(0, 20)
+    ax.set_xlim(0, 20.5)
     plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
     plt.close()
 
