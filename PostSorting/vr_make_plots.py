@@ -8,6 +8,14 @@ import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
 
+'''
+
+# Plot basic info to check recording is good:
+> movement channel
+> trial channels (one and two)
+
+'''
+
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, prm):
     plt.plot(location)
@@ -29,6 +37,16 @@ def plot_trial_channels(trial1, trial2, prm):
     plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2' + '.png')
     plt.close()
 
+
+'''
+
+# Plot behavioural info:
+> stops on trials 
+> avg stop histogram
+> avg speed histogram
+> combined plot
+
+'''
 
 def split_stop_data_by_trial_type(spatial_data):
     locations,trials,trial_type = PostSorting.vr_stop_analysis.load_stop_data(spatial_data)
@@ -165,6 +183,15 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
     plt.close()
 
 
+
+'''
+
+# Plot spatial firing info:
+> spikes per trial
+> firing rate
+
+'''
+
 def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting spike rastas...')
     save_path = prm.get_output_path() + '/Figures/spike_trajectories'
@@ -243,7 +270,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.close()
 
 
-def plot_firing_rate_maps(spike_data, prm, prefix):
+def plot_gc_firing_rate_maps(spike_data, prm, prefix):
     print('I am plotting firing rate maps...')
     save_path = prm.get_output_path() + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
@@ -277,6 +304,8 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
 
         plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
         plt.close()
+
+        
 
 # unused code but might use in future
 '''
