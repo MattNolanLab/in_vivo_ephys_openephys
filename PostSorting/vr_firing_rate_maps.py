@@ -19,6 +19,12 @@ def get_bin_size(spatial_data):
     return bin_size_cm,number_of_bins
 
 
+@jit
+def gaussian_kernel(kernx):
+    kerny = np.exp(np.power(kernx, 2)/2 * (-1))
+    return kerny
+
+
 def create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials):
     posrange = np.linspace(spatial_data.x_position_cm.min(), spatial_data.x_position_cm.max(), num=number_of_bins+1)
     trialrange = np.unique(array_of_trials)
