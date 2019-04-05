@@ -182,6 +182,8 @@ def main():
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M7_2018-03-12_15-16-29_of'
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M13_2018-05-09_10-32-20_of'
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M15_2018-05-11_10-56-39_of'
+    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-03-08_14-37-05_of'
+
 
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
