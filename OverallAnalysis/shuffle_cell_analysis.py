@@ -494,6 +494,7 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
         for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(cell)
             p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
+            print('Number of cells: ' + str(len(spatial_firing)))
             print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
             return p_bh
 
