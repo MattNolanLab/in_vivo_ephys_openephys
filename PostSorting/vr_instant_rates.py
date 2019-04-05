@@ -31,7 +31,7 @@ def calculate_instant_speed(speed_ms, window, array_out_size):
         start_index=int(i*window)
         end_index=int((i+1)*window)
         index_speed=np.mean(speed_ms[start_index:end_index])
-        instant_speed[row] = index_speed
+        instant_speed[row] = gaussian_kernel(index_speed)
     return instant_speed
 
 
@@ -53,7 +53,7 @@ def calculate_instant_firingrate(firing_times, window, array_out_size):
         start_index=int(i*window)
         end_index=int((i+1)*window)
         firing_events=firing_times[np.where(np.logical_and(firing_times > start_index, firing_times <= (end_index + 1)))]
-        instant_firing_rate[row] = firing_events.shape[0]
+        instant_firing_rate[row] = gaussian_kernel(firing_events.shape[0])
     return instant_firing_rate
 
 
@@ -81,3 +81,10 @@ def add_data_to_frame(spike_data, cluster_index, instant_speed, instant_firing_r
     sn.append(np.array(instant_firing_rate))
     spike_data.at[cluster_index, 'instant_rates'] = list(sn)
     return spike_data
+
+
+
+@jit
+def gaussian_kernel(kernx):
+    kerny = np.exp(np.power(kernx, 2)/2 * (-1))
+    return kerny
