@@ -17,7 +17,7 @@ def get_dwell(spatial_data, prm):
 
 
 def get_bin_size(prm):
-    bin_size_cm = 1
+    bin_size_cm = 2
     return bin_size_cm
 
 
@@ -104,11 +104,11 @@ def calculate_firing_rate_for_cluster_parallel_trial_by_trial(cluster, smooth, f
     cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.x_position_cm[cluster_index], 'y_position_cm': firing_data_spatial.trial_number[cluster_index], 'trial_type': firing_data_spatial.trial_type[cluster_index]})
     spike_positions_x = cluster_firings.x_position_cm.values
     spike_trial_types = cluster_firings.trial_type.values
-    spike_trials = cluster_firings.trial_numbers.values
+    spike_trials = cluster_firings.y_position_cm.values
     firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y, 3))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
-            trial_type = np.take(spike_trial_types[np.where(spike_trials == y)])
+            trial_type = np.unique(np.take(spike_trial_types, np.where(spike_trials == y)))
             px = x * bin_size_pixels + (bin_size_pixels / 2)
             py = y * bin_size_pixels + (bin_size_pixels / 2)
             spike_distances = np.sqrt(np.power(px - spike_positions_x, 2))
@@ -129,7 +129,7 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.time_seconds.diff().mean()*1000
     min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
-    smooth = 1
+    smooth = 2
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
     clusters = range(len(firing_data_spatial))
@@ -179,7 +179,7 @@ def find_maximum_firing_rate(spatial_firing):
 
 
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
-    position_heat_map = get_position_heatmap(spatial_data, prm)
+    #position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
     #firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
     return firing_data_spatial

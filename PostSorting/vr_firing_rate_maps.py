@@ -134,7 +134,11 @@ def add_trial_number(firing_rate_map, processed_position_data):
 
 
 def smooth_spike_rate(firing_rate_map):
-    firing_rate_map['spike_rate_on_trials_smoothed'] = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(np.array(firing_rate_map['spike_rate_on_trials'])), 5)
+    firing_rate_map['spike_rate_on_trials_convolved'] = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(np.array(firing_rate_map['spike_rate_on_trials'])), 5)
+    return firing_rate_map
+
+
+def gaussian_convolve_spike_rate(firing_rate_map):
     return firing_rate_map
 
 
@@ -162,6 +166,7 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
+        firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
 
     print('-------------------------------------------------------------')

@@ -7,10 +7,10 @@ import PostSorting.temporal_firing
 import PostSorting.vr_spatial_data
 import PostSorting.vr_make_plots
 import PostSorting.vr_spatial_firing
-import PostSorting.vr_firing_maps
 import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
+import PostSorting.vr_firing_maps_copy
 import gc
 
 prm = PostSorting.parameters.Parameters()
@@ -95,7 +95,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     #spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_for_trial_types(spike_data, raw_position_data, processed_position_data)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
-    spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
+    #spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
 
     save_data_frames(prm, spike_data, raw_position_data, processed_position_data, bad_clusters)
     make_plots(spike_data, spike_data, raw_position_data, processed_position_data)
