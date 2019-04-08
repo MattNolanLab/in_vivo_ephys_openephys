@@ -1,0 +1,1 @@
+# count modes in firing fields
