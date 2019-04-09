@@ -11,7 +11,12 @@
 #    plot(cell, type="l")         # Compare with original density
 #    plot(density(x))
 rejection.sampling = function(n, cell, k=NULL) {
+    # install.packages("movMF")
     P = function(x) { cell[x] }                     # Target density
+    print("cell is:")
+    print(cell)
+    print("P is:")
+    print(P)
     Q = function(x) { dunif(x, min=1, max=360) }    # Proposal density
     rQ = function(n) { runif(n, min=1, max=360) }   # Proposal random sample
     if ( is.null(k) ) {
@@ -19,10 +24,14 @@ rejection.sampling = function(n, cell, k=NULL) {
         k = max(P(x) / Q(x))          # Scaling factor k so that k*Q(x) will envelope P(x) "just enough"
     }
     samp = vector(mode="numeric", length=n)
+    print("samp is:")
+    print(samp)
     for ( i in 1:n ) {
         repeat {
             z = rQ(1)
             u = runif(1, 0, k*Q(z))
+            print("This is u in rejection sampling: ")
+            print(u)
             if ( u <= P(z) ) break
         }
         samp[i] = z
