@@ -77,7 +77,7 @@ def analyze_histograms(field_data):
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
     field_data['fitted_density'] = fitted_densities
-    field_data['mode_angles'] = mode_angles
+    field_data['mode_angles'] = mode_angles # does not seem ok, max is very high
 
     return field_data
 
