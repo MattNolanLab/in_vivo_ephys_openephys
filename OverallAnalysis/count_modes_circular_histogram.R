@@ -168,7 +168,7 @@ get_estimated_density = function(fit){
 }
 
 
-get_modes = function(fit){
+plot_modes = function(fit){
     plot.vMF(fit)
 
 }
