@@ -151,6 +151,17 @@ plot.vMF = function(fit) {
 }
 
 
+get_model_fit_alpha = function(fit) {
+    return( fit$alpha )
+}
+
+
+get_model_fit_theta = function(fit) {
+    return( fit$theta )
+}
+
+
+
 
 
 

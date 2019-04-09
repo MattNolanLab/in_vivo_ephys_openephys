@@ -36,6 +36,11 @@ def analyze_histograms(field_data):
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
             fit = fit_von_mises_mixed_model(resampled_distribution)
+            get_model_fit_alpha = robj.r('get_model_fit_alpha')
+            get_model_fit_theta = robj.r('get_model_fit_theta')
+            alpha = get_model_fit_alpha(fit)
+            theta = get_model_fit_theta(fit)
+            print(alpha)
 
     return field_data
 
