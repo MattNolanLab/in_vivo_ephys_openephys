@@ -53,7 +53,7 @@ def get_peaks_in_degrees(theta):
     angles = []
     theta_x = theta[:int(len(theta) / 2)]
     theta_y = theta[int(len(theta) / 2):]
-    return theta_x * 180 / np.pi
+    return np.asanyarray(theta_x) * 180 / np.pi
 
 
 def analyze_histograms(field_data):
