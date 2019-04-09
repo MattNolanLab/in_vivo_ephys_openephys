@@ -36,8 +36,8 @@ def load_data_frame_spatial_firing_modeling(output_path, server_path, spike_sort
             if 'position_x' in spatial_firing:
                 spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps', 'grid_score', 'grid_spacing']].copy()
                 spatial_firing['trajectory_hd'] = [position.hd] * len(spatial_firing)
-                spatial_firing['position_x'] = [position.position_x] * len(spatial_firing)
-                spatial_firing['position_y'] = [position.position_y] * len(spatial_firing)
+                spatial_firing['trajectory_position_x'] = [position.position_x] * len(spatial_firing)
+                spatial_firing['trajectory_position_y'] = [position.position_y] * len(spatial_firing)
 
                 # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
