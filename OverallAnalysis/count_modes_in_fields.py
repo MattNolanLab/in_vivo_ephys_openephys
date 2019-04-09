@@ -40,8 +40,11 @@ def analyze_histograms(field_data):
             get_model_fit_theta = robj.r('get_model_fit_theta')
             alpha = get_model_fit_alpha(fit)
             theta = get_model_fit_theta(fit)
-            print(alpha)
-
+            get_estimated_density = robj.r('get_estimated_density')
+            estimated_density = get_estimated_density(fit)
+            get_modes =robj.r("get_modes")
+            modes = get_modes(fit)
+            print(theta)  # these are the estimated modes (polar coordinates
     return field_data
 
 

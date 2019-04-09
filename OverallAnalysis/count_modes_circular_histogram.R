@@ -161,6 +161,18 @@ get_model_fit_theta = function(fit) {
 }
 
 
+get_estimated_density = function(fit){
+    angs_cart <- tocartesian(torad(seq(0.1, 360, 0.1)))
+    estimated_density <- dmovMF(angs_cart, fit$theta)
+    return(estimated_density)
+}
+
+
+get_modes = function(fit){
+    plot.vMF(fit)
+
+}
+
 
 
 
