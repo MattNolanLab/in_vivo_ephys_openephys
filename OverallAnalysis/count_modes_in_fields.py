@@ -2,6 +2,7 @@ import matplotlib.pylab as plt
 import math_utility
 import numpy as np
 import pandas as pd
+import plot_utility
 from rpy2 import robjects as robj
 from rpy2.robjects import pandas2ri
 
@@ -48,17 +49,27 @@ def plot_modes_in_r(fit):
     plot_modes(fit)
 
 
-def get_peaks_in_degrees(theta):
-    print(theta)
-    angles = []
-    theta_x = theta[:int(len(theta) / 2)]
-    theta_y = theta[int(len(theta) / 2):]
-    return np.asanyarray(theta_x) * 180 / np.pi
+def plot_modes_python(real_cell, estimated_density, angles_x, angles_y):
+    hd_polar_fig = plt.figure()
+    hd_polar_fig.set_size_inches(5, 5, forward=True)
+    ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    theta_estimate = np.linspace(0, 2 * np.pi, 3601)  # x axis
+    theta_real = np.linspace(0, 2 * np.pi, 361)  # x axis
+    ax = plt.subplot(1, 1, 1, polar=True)
+    ax = plot_utility.style_polar_plot(ax)
+    for mode in range(len(angles_x)):
+        ax.plot([0, angles_x[mode]], [0, angles_y[mode]], zorder=3, color='navy')
+    ax.plot(theta_estimate[:-1], list(estimated_density), color='black', linewidth=2)
+    ax.plot(theta_real[:-1], list(real_cell), color='red', linewidth=2)
+    plt.tight_layout()
+    plt.show()
+    plt.close()
 
 
 def analyze_histograms(field_data):
     robj.r.source('count_modes_circular_histogram.R')
-    mode_angles = []
+    mode_angles_x = []
+    mode_angles_y = []
     fitted_densities = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
@@ -66,19 +77,24 @@ def analyze_histograms(field_data):
         if np.isnan(hd_histogram_field).sum() > 0:
             print('skipping this field, it has nans')
             fitted_density = np.nan
-            angles = np.nan
+            angles_x = np.nan
+            angles_y = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
             fit = fit_von_mises_mixed_model(resampled_distribution)
             theta = get_model_fit_theta_value(fit)
-            angles = get_peaks_in_degrees(theta)
+            angles_x = theta[:int(len(theta) / 2)]
+            angles_y = theta[int(len(theta) / 2):]
             fitted_density = get_estimated_density_function(fit)
-        mode_angles.append(angles)
+            plot_modes_in_r(fit)
+            plot_modes_python(hd_histogram_field, fitted_density, angles_x, angles_y)
+        mode_angles_x.append(angles_x)
+        mode_angles_y.append(angles_y)
         fitted_densities.append(fitted_density)
     field_data['fitted_density'] = fitted_densities
-    field_data['mode_angles'] = mode_angles # does not seem ok, max is very high
-
+    field_data['mode_angles_x'] = mode_angles_x  # does not seem ok, max is very high
+    field_data['mode_angles_y'] = mode_angles_y
     return field_data
 
 
