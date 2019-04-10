@@ -50,16 +50,17 @@ def plot_modes_in_r(fit):
     plot_modes(fit)
 
 
-def plot_modes_python(real_cell, estimated_density, angles):
+def plot_modes_python(real_cell, estimated_density, theta):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     theta_estimate = np.linspace(0, 2 * np.pi, 3601)  # x axis
     theta_real = np.linspace(0, 2 * np.pi, 361)  # x axis
     ax = plt.subplot(1, 1, 1, polar=True)
-    # ax = plot_utility.style_polar_plot(ax)
-    for mode in range(len(angles)):
-        ax.plot((0, angles[mode]), (0, 2), color='navy', linewidth=5)
+    ax = plot_utility.style_polar_plot(ax)
+    for mode in range(int(len(theta)/2)):
+        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
+        ax.plot((0, angle), (0, length), color='navy', linewidth=5)
     ax.plot(theta_estimate[:-1], list(estimated_density), color='black', linewidth=2)
     ax.plot(theta_real[:-1], list(real_cell), color='red', linewidth=2)
     plt.tight_layout()
@@ -107,8 +108,7 @@ def analyze_histograms(field_data):
             # angles_x, angles_y = convert_mode_angles_to_polar(theta)
             plot_modes_in_r(fit)
             concentration = np.asanyarray(theta)[0]
-            angles = np.asanyarray(theta)[0]
-            plot_modes_python(hd_histogram_field, fitted_density, angles)
+            plot_modes_python(hd_histogram_field, fitted_density, theta)
         mode_angles_x.append(angles_x)
         mode_angles_y.append(angles_y)
         fitted_densities.append(fitted_density)

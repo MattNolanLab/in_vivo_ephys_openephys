@@ -147,6 +147,7 @@ plot.vMF = function(fit) {
         v = unit.vector(as.numeric(fit$theta[i,]))
         arrows(0,0, v[1],v[2], length=0.05, col="red")
         text(rbind(as.numeric(v)*1.1), labels=paste(p[i],"\n",conc[i], sep=""), cex=0.7)
+        # text(rbind(as.numeric(v)*1.1), labels=paste(round(fit$theta[i,], 2), sep=""), cex=0.7)
     }
 }
 
