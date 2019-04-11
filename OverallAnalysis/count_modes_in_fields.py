@@ -1,7 +1,9 @@
 import cmath
+import glob
 import matplotlib.pylab as plt
 import math_utility
 import numpy as np
+import os
 import pandas as pd
 import plot_utility
 from rpy2 import robjects as robj
@@ -9,6 +11,86 @@ from rpy2.robjects import pandas2ri
 
 
 local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/field_modes/'
+server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+
+
+def load_field_data(output_path, server_path):
+    if os.path.exists(output_path):
+        field_data = pd.read_pickle(output_path)
+        return field_data
+    field_data_combined = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a field data frame.')
+            field_data = pd.read_pickle(data_frame_path)
+            if 'shuffled_data' in field_data:
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                    'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                    'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                    'times_session', 'time_spent_in_field', 'position_x_session',
+                                                    'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                    'hd_histogram_real_data', 'time_spent_in_bins',
+                                                    'field_histograms_hz']].copy()
+                field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
+
+                field_data_combined = field_data_combined.append(field_data_to_combine)
+                print(field_data_combined.head())
+    field_data_combined.to_pickle(output_path)
+    return field_data_combined
+
+
+# select accepted fields based on list of fields that were correctly identified by field detector
+def tag_accepted_fields_mouse(field_data, accepted_fields):
+    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    field_data['unique_id'] = unique_id
+    unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    accepted_fields['unique_id'] = unique_id
+    field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
+
+
+# select accepted fields based on list of fields that were correctly identified by field detector
+def tag_accepted_fields_rat(field_data, accepted_fields):
+    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    unique_cell_id = field_data.session_id + '_' + field_data.cluster_id.apply(str)
+    field_data['unique_id'] = unique_id
+    field_data['unique_cell_id'] = unique_cell_id
+    if 'Session ID' in accepted_fields:
+        unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    else:
+        unique_id = accepted_fields['SessionID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+
+    accepted_fields['unique_id'] = unique_id
+    field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
+
+
+# add cell type tp rat data frame
+def add_cell_types_to_data_frame_rat(field_data):
+    cell_type = []
+    for index, field in field_data.iterrows():
+        if field.hd_score >= 0.5 and field.grid_score >= 0.4:
+            cell_type.append('conjunctive')
+        elif field.hd_score >= 0.5:
+            cell_type.append('hd')
+        elif field.grid_score >= 0.4:
+            cell_type.append('grid')
+        else:
+            cell_type.append('na')
+
+    field_data['cell type'] = cell_type
+
+    return field_data
+
+
+# todo: replace this with python implementation
+def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
+    accepted_fields_to_merge = accepted_fields[['unique_id', 'cell type', 'grid score', 'hd score']]
+    field_data_merged = pd.merge(field_data, accepted_fields_to_merge, on='unique_id')
+    return field_data_merged
 
 
 def resample_histogram(histogram):
@@ -100,17 +182,25 @@ def get_mode_angles_degrees(theta):
     return angles
 
 
+def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
+    # plot_modes_in_r(fit)
+    # concentration = np.asanyarray(theta)[0]
+    path = local_path + 'estimated_modes/' + field.session_id + str(field.cluster_id) + str(field.field_id)
+    plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
+
+
 def analyze_histograms(field_data):
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
+    angles_stds = []
     fitted_densities = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
-        # print(hd_histogram_field)
         if np.isnan(hd_histogram_field).sum() > 0:
             print('skipping this field, it has nans')
             fitted_density = np.nan
             angles = np.nan
+            angles_std = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
@@ -119,27 +209,56 @@ def analyze_histograms(field_data):
             theta = get_model_fit_theta_value(fit)
             angles = get_mode_angles_degrees(theta)
             fitted_density = get_estimated_density_function(fit)
+            angles_std = np.nan
             if len(angles) > 0:
-                pass
-                # plot_modes_in_r(fit)
-                # concentration = np.asanyarray(theta)[0]
-                path = local_path + 'estimated_modes/' + field.session_id + str(field.cluster_id) + str(field.field_id)
-                plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
+                plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
+                angles_std = np.std(angles)
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
+        angles_stds.append(angles_std)
     field_data['fitted_density'] = fitted_densities
     field_data['mode_angles'] = mode_angles  # does not seem ok, max is very high
+    field_data['angles_std'] = angles_stds
     return field_data
 
 
-def process_circular_data():
+def plot_std_of_modes(field_data, animal):
+    print(animal + ' modes are analyzed')
+    grid_cells = field_data['cell type'] == 'grid'
+    conjunctive_cells = field_data['cell type'] == 'conjunctive'
+    accepted_field = field_data['accepted_field'] == True
+    print('cell')
+    grid_modes_std = field_data[accepted_field & grid_cells].angles_std
+    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std
+    plt.hist(grid_modes_std, color='navy')
+    plt.hist(conjunctive_modes_std, color='red')
+    plt.show()
+    plt.close()
+    plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells.png')
+
+
+def process_circular_data(animal):
     print('I am loading the data frame that has the fields')
-    field_data = pd.read_pickle(local_path + 'field_data_modes.pkl')
-    field_data = analyze_histograms(field_data)
+    if animal == 'mouse':
+        field_data = load_field_data(local_path + 'field_data_modes_mouse.pkl', server_path_mouse)
+        field_data = analyze_histograms(field_data)
+        accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
+        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+        # field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+        field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+
+    if animal == 'rat':
+        accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
+        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+        field_data = add_cell_types_to_data_frame_rat(field_data)
+    plot_std_of_modes(field_data, 'mouse')
+
+
 
 
 def main():
-    process_circular_data()
+    process_circular_data('mouse')
+    process_circular_data('rat')
 
 
 if __name__ == '__main__':
