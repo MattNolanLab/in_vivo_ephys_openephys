@@ -50,7 +50,15 @@ def plot_modes_in_r(fit):
     plot_modes(fit)
 
 
-def plot_modes_python(real_cell, estimated_density, theta):
+def generate_colors(number_of_firing_fields):
+    colors = [[0, 1, 0], [1, 0.6, 0.3], [0, 1, 1], [1, 0, 1], [0.7, 0.3, 1], [0.6, 0.5, 0.4], [0.6, 0, 0]]  # green, orange, cyan, pink, purple, grey, dark red
+    if number_of_firing_fields > len(colors):
+        for i in range(number_of_firing_fields):
+            colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
+    return colors
+
+
+def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -58,37 +66,38 @@ def plot_modes_python(real_cell, estimated_density, theta):
     theta_real = np.linspace(0, 2 * np.pi, 361)  # x axis
     ax = plt.subplot(1, 1, 1, polar=True)
     ax = plot_utility.style_polar_plot(ax)
-    for mode in range(int(len(theta)/2)):
+    lengthes = []
+    angles = []
+    number_of_modes = int(len(theta)/2)
+    for mode in range(number_of_modes):
         length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
-        ax.plot((0, angle), (0, length), color='navy', linewidth=5)
-    ax.plot(theta_estimate[:-1], list(estimated_density), color='black', linewidth=2)
-    ax.plot(theta_real[:-1], list(real_cell), color='red', linewidth=2)
+        lengthes.append(length)
+        angles.append(angle)
+    scale_for_lines = max(real_cell) / max(lengthes)
+
+    for mode in range(number_of_modes):
+        ax.plot((0, angles[mode]), (0, lengthes[mode]*scale_for_lines), color='gray', linewidth=3)
+    scale_for_density = max(real_cell) / max(estimated_density)
+    ax.plot(theta_estimate[:-1], list(estimated_density)*scale_for_density, color='black', linewidth=2)
+    colors = generate_colors(field_id + 1)
+    ax.plot(theta_real[:-1], list(real_cell), color=colors[field_id], linewidth=2)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(path)
     plt.close()
 
 
-def convert_mode_angles_to_polar(theta):
-    all_angles_x = []
-    all_angles_y = []
-    # rectangular (complex) format - x + i*y
-    angles_x = np.asanyarray(theta)[0]
-    angles_y = np.asanyarray(theta)[1]
-    # python complex type - x + i*y
-    for vector in range(len(angles_x)):
-        # r is the distance from 0 and phi the phase angle.
-        complex_angle = complex(angles_x[vector], angles_y[vector])
-        r, phi = cmath.polar(complex_angle)
-        phi = phi % (2 * np.pi)
-        all_angles_x.append(phi)
-        all_angles_y.append(r)
-    return all_angles_x, all_angles_y
+def get_mode_angles_degrees(theta):
+    angles = []
+    for mode in range(int(len(theta)/2)):
+        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
+        angle *= 180 / np.pi
+        angles.append(angle)
+    return angles
 
 
 def analyze_histograms(field_data):
     robj.r.source('count_modes_circular_histogram.R')
-    mode_angles_x = []
-    mode_angles_y = []
+    mode_angles = []
     fitted_densities = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
@@ -96,25 +105,25 @@ def analyze_histograms(field_data):
         if np.isnan(hd_histogram_field).sum() > 0:
             print('skipping this field, it has nans')
             fitted_density = np.nan
-            angles_x = np.nan
-            angles_y = np.nan
+            angles = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
             fit = fit_von_mises_mixed_model(resampled_distribution)
-            alpha = get_model_fit_alpha_value(fit)  # probability, the relative strength of belief in that mode
+            # alpha = get_model_fit_alpha_value(fit)  # probability, the relative strength of belief in that mode
             theta = get_model_fit_theta_value(fit)
+            angles = get_mode_angles_degrees(theta)
             fitted_density = get_estimated_density_function(fit)
-            # angles_x, angles_y = convert_mode_angles_to_polar(theta)
-            plot_modes_in_r(fit)
-            concentration = np.asanyarray(theta)[0]
-            plot_modes_python(hd_histogram_field, fitted_density, theta)
-        mode_angles_x.append(angles_x)
-        mode_angles_y.append(angles_y)
+            if len(angles) > 0:
+                pass
+                # plot_modes_in_r(fit)
+                # concentration = np.asanyarray(theta)[0]
+                path = local_path + 'estimated_modes/' + field.session_id + str(field.cluster_id) + str(field.field_id)
+                plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
+        mode_angles.append(angles)
         fitted_densities.append(fitted_density)
     field_data['fitted_density'] = fitted_densities
-    field_data['mode_angles_x'] = mode_angles_x  # does not seem ok, max is very high
-    field_data['mode_angles_y'] = mode_angles_y
+    field_data['mode_angles'] = mode_angles  # does not seem ok, max is very high
     return field_data
 
 
