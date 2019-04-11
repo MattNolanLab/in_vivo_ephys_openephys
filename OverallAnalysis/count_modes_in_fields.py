@@ -15,14 +15,14 @@ server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_taggin
 server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
 
 
-def load_field_data(output_path, server_path):
+def load_field_data(output_path, server_path, spike_sorter):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
     field_data_combined = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+        data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
         if os.path.exists(data_frame_path):
             print('I found a field data frame.')
             field_data = pd.read_pickle(data_frame_path)
@@ -35,6 +35,10 @@ def load_field_data(output_path, server_path):
                                                     'hd_histogram_real_data', 'time_spent_in_bins',
                                                     'field_histograms_hz']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
+                if 'hd_score' in field_data:
+                    field_data_combined['hd_score'] = field_data.hd_score
+                if 'grid_score' in field_data:
+                    field_data_combined['grid_score'] = field_data.grid_score
 
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
@@ -227,6 +231,7 @@ def plot_std_of_modes(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
     accepted_field = field_data['accepted_field'] == True
+    # todo only analyze the cells with at least 2 fields
     print('cell')
     grid_modes_std = field_data[accepted_field & grid_cells].angles_std
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std
@@ -240,18 +245,21 @@ def plot_std_of_modes(field_data, animal):
 def process_circular_data(animal):
     print('I am loading the data frame that has the fields')
     if animal == 'mouse':
-        field_data = load_field_data(local_path + 'field_data_modes_mouse.pkl', server_path_mouse)
+        field_data = load_field_data(local_path + 'field_data_modes_mouse.pkl', server_path_mouse, '/MountainSort')
         field_data = analyze_histograms(field_data)
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         # field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
         field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+        plot_std_of_modes(field_data, 'mouse')
 
     if animal == 'rat':
+        field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
+        field_data = analyze_histograms(field_data)
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame_rat(field_data)
-    plot_std_of_modes(field_data, 'mouse')
+        plot_std_of_modes(field_data, 'rat')
 
 
 
