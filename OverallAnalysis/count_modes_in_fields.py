@@ -58,6 +58,17 @@ def generate_colors(number_of_firing_fields):
     return colors
 
 
+def find_angles_and_lengths(theta):
+    lengths = []
+    angles = []
+    number_of_modes = int(len(theta)/2)
+    for mode in range(number_of_modes):
+        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
+        lengths.append(length)
+        angles.append(angle)
+    return angles, lengths
+
+
 def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
@@ -66,17 +77,11 @@ def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
     theta_real = np.linspace(0, 2 * np.pi, 361)  # x axis
     ax = plt.subplot(1, 1, 1, polar=True)
     ax = plot_utility.style_polar_plot(ax)
-    lengthes = []
-    angles = []
-    number_of_modes = int(len(theta)/2)
+    angles, lengths = find_angles_and_lengths(theta)
+    scale_for_lines = max(real_cell) / max(lengths)
+    number_of_modes = int(len(theta) / 2)
     for mode in range(number_of_modes):
-        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
-        lengthes.append(length)
-        angles.append(angle)
-    scale_for_lines = max(real_cell) / max(lengthes)
-
-    for mode in range(number_of_modes):
-        ax.plot((0, angles[mode]), (0, lengthes[mode]*scale_for_lines), color='red', linewidth=3)
+        ax.plot((0, angles[mode]), (0, lengths[mode]*scale_for_lines), color='red', linewidth=3)
     scale_for_density = max(real_cell) / max(estimated_density)
     ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', linewidth=2)
     colors = generate_colors(field_id + 1)
