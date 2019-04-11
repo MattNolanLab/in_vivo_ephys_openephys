@@ -230,8 +230,8 @@ def plot_std_of_modes(field_data, animal):
     print('cell')
     grid_modes_std = field_data[accepted_field & grid_cells].angles_std
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std
-    plt.hist(grid_modes_std, color='navy')
-    plt.hist(conjunctive_modes_std, color='red')
+    plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy')
+    plt.hist(conjunctive_modes_std[~np.isnan(conjunctive_modes_std)], color='red')
     plt.show()
     plt.close()
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells.png')
