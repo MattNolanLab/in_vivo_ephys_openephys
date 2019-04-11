@@ -76,7 +76,7 @@ def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
     scale_for_lines = max(real_cell) / max(lengthes)
 
     for mode in range(number_of_modes):
-        ax.plot((0, angles[mode]), (0, lengthes[mode]*scale_for_lines), color='gray', linewidth=3)
+        ax.plot((0, angles[mode]), (0, lengthes[mode]*scale_for_lines), color='red', linewidth=3)
     scale_for_density = max(real_cell) / max(estimated_density)
     ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', linewidth=2)
     colors = generate_colors(field_id + 1)
