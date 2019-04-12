@@ -234,9 +234,25 @@ def plot_std_of_modes(field_data, animal):
     print('Plot standard deviation of modes for grid and conjunctive cells.')
     field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
 
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+    std_mode_angles_cells = []
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        mode_angles = field_data.loc[field_data['unique_cell_id'] == cell_id].mode_angles
+        print(mode_angles)
+        if mode_angles.notnull().sum() > 1:  # only do this for cells with multiple fields
+            modes = []
+            for field_mode in mode_angles:
+                if field_mode is not np.nan:
+                    modes.extend(field_mode)
+            std_mode_angles_cells.extend([np.std(modes)] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
+        else:
+            std_mode_angles_cells.extend([np.nan] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
 
-    grid_modes_std = field_data[accepted_field & grid_cells].angles_std
-    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std
+    field_data['angles_std_cell'] = std_mode_angles_cells
+
+    grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell
+    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell
     plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy')
     plt.hist(conjunctive_modes_std[~np.isnan(conjunctive_modes_std)], color='red')
     plt.show()
@@ -251,7 +267,6 @@ def process_circular_data(animal):
         field_data = analyze_histograms(field_data)
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-        # field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
         field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
         plot_std_of_modes(field_data, 'mouse')
 
