@@ -226,6 +226,13 @@ def analyze_histograms(field_data):
     return field_data
 
 
+def find_average_distance_of_modes(modes):
+    pass
+    # calculate mean and std in a circular way https://rosettacode.org/wiki/Averages/Mean_angle#Python
+
+
+
+
 def plot_std_of_modes(field_data, animal):
     print(animal + ' modes are analyzed')
     grid_cells = field_data['cell type'] == 'grid'
