@@ -231,8 +231,10 @@ def plot_std_of_modes(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
     accepted_field = field_data['accepted_field'] == True
-    # todo only analyze the cells with at least 2 fields
-    print('cell')
+    print('Plot standard deviation of modes for grid and conjunctive cells.')
+    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+
+
     grid_modes_std = field_data[accepted_field & grid_cells].angles_std
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std
     plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy')
@@ -260,8 +262,6 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame_rat(field_data)
         plot_std_of_modes(field_data, 'rat')
-
-
 
 
 def main():
