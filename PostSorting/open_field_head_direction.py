@@ -206,6 +206,10 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
         spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
         spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
         spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
+    elif type(spatial_firing.position_x_pixels[cluster]) is list:
+        spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
+        spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
+        spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
     else:
         spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster].values
         spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster].values
