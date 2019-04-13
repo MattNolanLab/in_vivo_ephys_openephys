@@ -36,9 +36,9 @@ def load_field_data(output_path, server_path, spike_sorter):
                                                     'field_histograms_hz']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
                 if 'hd_score' in field_data:
-                    field_data_combined['hd_score'] = field_data.hd_score
+                    field_data_to_combine['hd_score'] = field_data.hd_score
                 if 'grid_score' in field_data:
-                    field_data_combined['grid_score'] = field_data.grid_score
+                    field_data_to_combine['grid_score'] = field_data.grid_score
 
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
@@ -281,7 +281,7 @@ def process_circular_data(animal):
 
 
 def main():
-    process_circular_data('mouse')
+    # process_circular_data('mouse')
     process_circular_data('rat')
 
 
