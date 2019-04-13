@@ -1,4 +1,3 @@
-import cmath
 import glob
 import matplotlib.pylab as plt
 import math_utility
@@ -7,6 +6,7 @@ import os
 import pandas as pd
 import plot_utility
 from rpy2 import robjects as robj
+from scipy.stats import circstd
 from rpy2.robjects import pandas2ri
 
 
@@ -226,13 +226,6 @@ def analyze_histograms(field_data):
     return field_data
 
 
-def find_average_distance_of_modes(modes):
-    pass
-    # calculate mean and std in a circular way https://rosettacode.org/wiki/Averages/Mean_angle#Python
-
-
-
-
 def plot_std_of_modes(field_data, animal):
     print(animal + ' modes are analyzed')
     grid_cells = field_data['cell type'] == 'grid'
@@ -252,7 +245,8 @@ def plot_std_of_modes(field_data, animal):
             for field_mode in mode_angles:
                 if field_mode is not np.nan:
                     modes.extend(field_mode)
-            std_mode_angles_cells.extend([np.std(modes)] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
+            std_modes = circstd(modes, high=180, low=-180)
+            std_mode_angles_cells.extend([std_modes] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
         else:
             std_mode_angles_cells.extend([np.nan] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
 
