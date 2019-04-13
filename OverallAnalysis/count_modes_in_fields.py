@@ -226,6 +226,20 @@ def analyze_histograms(field_data):
     return field_data
 
 
+def format_bar_chart(ax):
+    plt.gcf().subplots_adjust(bottom=0.2)
+    plt.gcf().subplots_adjust(left=0.2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Standard deviation modes', fontsize=30)
+    ax.set_ylabel('Number of cells', fontsize=30)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    return ax
+
+
 def plot_std_of_modes(field_data, animal):
     print(animal + ' modes are analyzed')
     grid_cells = field_data['cell type'] == 'grid'
@@ -254,9 +268,11 @@ def plot_std_of_modes(field_data, animal):
 
     grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax)
     plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy')
     plt.hist(conjunctive_modes_std[~np.isnan(conjunctive_modes_std)], color='red')
-    plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells.png')
+    plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
 
 
