@@ -264,8 +264,8 @@ def plot_std_of_modes(field_data, animal):
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax)
-    plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy')
-    plt.hist(conjunctive_modes_std[~np.isnan(conjunctive_modes_std)], color='red')
+    plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(conjunctive_modes_std[~np.isnan(conjunctive_modes_std)], color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
 
