@@ -314,10 +314,10 @@ def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
     print('p value for equal var test (Levene): ' + str(p_equal_var))
     if p_equal_var <= 0.05:
         t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=True)
-        print('T-test with equal variances result:' + str(p_t))
+        print('T-test with equal variances result: ' + str(p_t))
     else:
         t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=False)
-        print('T-test with unequal variances result:' + str(p_t))
+        print('T-test with unequal variances result: ' + str(p_t))
 
 
 def process_circular_data(animal):
