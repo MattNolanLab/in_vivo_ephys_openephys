@@ -282,16 +282,16 @@ def process_circular_data(animal):
 
     if animal == 'rat':
         field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
-        field_data = analyze_histograms(field_data)
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+        field_data = analyze_histograms(field_data)
         field_data = add_cell_types_to_data_frame_rat(field_data)
         plot_std_of_modes(field_data, 'rat')
 
 
 def main():
-    # process_circular_data('mouse')
     process_circular_data('rat')
+    process_circular_data('mouse')
 
 
 if __name__ == '__main__':
