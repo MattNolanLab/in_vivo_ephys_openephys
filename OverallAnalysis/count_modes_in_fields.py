@@ -285,8 +285,9 @@ def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
     print('number of grid cells:' + str(len(grid_modes_std)))
     print('number of conjunctive cells:' + str(len(conjunctive_modes_std)))
 
-    w, p_equal_val = scipy.stats.levene(grid_modes_std, conjunctive_modes_std)
-    if p_equal_val <= 0.05:
+    w, p_equal_var = scipy.stats.levene(grid_modes_std, conjunctive_modes_std)
+    print('p value for equal var test (Levene): ' + str(p_equal_var))
+    if p_equal_var <= 0.05:
         t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=True)
         print('T-test with equal variances result:' + p_t)
     else:
