@@ -277,7 +277,7 @@ def get_mode_std_for_cell(field_data):
                 std_cells.extend(std_angles)
         else:
             std_cells.extend([np.asanyarray(std_angles)[0]])
-
+    std_cells = [x for x in std_cells if ~np.isnan(x)]
     return std_cells
 
 
