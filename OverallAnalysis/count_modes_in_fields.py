@@ -231,7 +231,7 @@ def format_bar_chart(ax):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Standard deviation modes', fontsize=30)
+    ax.set_xlabel('Standard dev of modes', fontsize=30)
     ax.set_ylabel('Number of cells', fontsize=30)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
