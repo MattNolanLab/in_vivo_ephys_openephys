@@ -236,8 +236,8 @@ def format_bar_chart(ax):
 
 
 def calculate_std_of_modes_for_cells(field_data, animal):
-    print(animal + ' modes are analyzed')
-    print('Plot standard deviation of modes for grid and conjunctive cells.')
+    # print(animal + ' modes are analyzed')
+    # print('Plot standard deviation of modes for grid and conjunctive cells.')
     field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
 
     list_of_cells = np.unique(list(field_data.unique_cell_id))
@@ -245,7 +245,7 @@ def calculate_std_of_modes_for_cells(field_data, animal):
     for cell in range(len(list_of_cells)):
         cell_id = list_of_cells[cell]
         mode_angles = field_data.loc[field_data['unique_cell_id'] == cell_id].mode_angles
-        print(mode_angles)
+        # print(mode_angles)
         if mode_angles.notnull().sum() > 1:  # only do this for cells with multiple fields
             modes = []
             for field_mode in mode_angles:
@@ -276,14 +276,22 @@ def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
     accepted_field = field_data['accepted_field'] == True
-    grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell
-    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell
+    grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell.dropna()
+    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell.dropna()
 
     stat, p = scipy.stats.mannwhitneyu(grid_modes_std, conjunctive_modes_std)
     print('p value from mann-whitney test for grid and conj cells from ' + animal + ':')
     print(p)
     print('number of grid cells:' + str(len(grid_modes_std)))
     print('number of conjunctive cells:' + str(len(conjunctive_modes_std)))
+
+    w, p_equal_val = scipy.stats.levene(grid_modes_std, conjunctive_modes_std)
+    if p_equal_val <= 0.05:
+        t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=True)
+        print('T-test with equal variances result:' + p_t)
+    else:
+        t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=False)
+        print('T-test with unequal variances result:' + p_t)
 
 
 def process_circular_data(animal):
