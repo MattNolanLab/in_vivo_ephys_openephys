@@ -196,7 +196,6 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
 def analyze_histograms(field_data):
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
-    angles_stds = []
     fitted_densities = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
@@ -204,7 +203,6 @@ def analyze_histograms(field_data):
             print('skipping this field, it has nans')
             fitted_density = np.nan
             angles = np.nan
-            angles_std = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
@@ -213,16 +211,12 @@ def analyze_histograms(field_data):
             theta = get_model_fit_theta_value(fit)
             angles = get_mode_angles_degrees(theta)
             fitted_density = get_estimated_density_function(fit)
-            angles_std = np.nan
             if len(angles) > 0:
                 plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
-                angles_std = np.std(angles)
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
-        angles_stds.append(angles_std)
     field_data['fitted_density'] = fitted_densities
     field_data['mode_angles'] = mode_angles  # does not seem ok, max is very high
-    field_data['angles_std'] = angles_stds
     return field_data
 
 
@@ -296,7 +290,7 @@ def process_circular_data(animal):
 
 
 def main():
-    process_circular_data('mouse')
+    # process_circular_data('mouse')
     process_circular_data('rat')
 
 
