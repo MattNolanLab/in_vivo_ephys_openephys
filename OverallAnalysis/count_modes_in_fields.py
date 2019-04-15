@@ -194,7 +194,9 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
     plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
 
 
-def analyze_histograms(field_data):
+def analyze_histograms(field_data, output_path):
+    if 'mode_angles' in field_data:
+        return field_data
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
     fitted_densities = []
@@ -217,7 +219,8 @@ def analyze_histograms(field_data):
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
     field_data['fitted_density'] = fitted_densities
-    field_data['mode_angles'] = mode_angles  # does not seem ok, max is very high
+    field_data['mode_angles'] = mode_angles
+    field_data.to_pickle(output_path)
     return field_data
 
 
@@ -298,8 +301,9 @@ def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
-        field_data = load_field_data(local_path + 'field_data_modes_mouse.pkl', server_path_mouse, '/MountainSort')
-        field_data = analyze_histograms(field_data)
+        mouse_path = local_path + 'field_data_modes_mouse.pkl'
+        field_data = load_field_data(mouse_path, server_path_mouse, '/MountainSort')
+        field_data = analyze_histograms(field_data, mouse_path)
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
@@ -308,10 +312,11 @@ def process_circular_data(animal):
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
 
     if animal == 'rat':
+        rat_path = local_path + 'field_data_modes_rat.pkl'
         field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
-        field_data = analyze_histograms(field_data)
+        field_data = analyze_histograms(field_data, rat_path)
         field_data = add_cell_types_to_data_frame_rat(field_data)
         calculate_std_of_modes_for_cells(field_data, 'rat')
         plot_std_of_modes(field_data, 'rat')
