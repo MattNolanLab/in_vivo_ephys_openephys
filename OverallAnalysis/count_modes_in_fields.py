@@ -342,7 +342,7 @@ def process_circular_data(animal):
         field_data = add_cell_types_to_data_frame_rat(field_data)
         calculate_std_of_modes_for_cells(field_data, 'rat')
         plot_std_of_modes(field_data, 'rat')
-        compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
+        compare_mode_distributions_of_grid_and_conj_cells(field_data, 'rat')
 
 
 def main():
