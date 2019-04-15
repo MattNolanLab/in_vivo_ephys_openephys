@@ -82,9 +82,10 @@ def calculate_border_score(firing_fields_cluster, bin_size_cm):
     # only execute if there are firing fields to analyse
     if len(firing_fields_cluster)>0:
 
-        distance_mat = distance_matrix(firing_fields_cluster[0], bin_size_cm)
+        normalised_distance_mat = distance_matrix(firing_fields_cluster[0], bin_size_cm)
 
         normalized_fields = []
+        dm = []
 
         maxcM = 0
 
@@ -111,17 +112,16 @@ def calculate_border_score(firing_fields_cluster, bin_size_cm):
 
             normalized_field = field/np.sum(field)
 
-            normalized_fields.append(normalized_field)
+            dm_for_field = np.multiply(normalized_field, normalised_distance_mat)  # weight by shortest distance to the perimeter
+            dm_for_field = np.sum(dm_for_field)
 
-        normalized_fields = stack_fields(normalized_fields) # stack into single rate map
+            dm.append(dm_for_field)
 
-        dm = np.multiply(normalized_fields, distance_mat)  # weight by shortest distance to the perimeter
-        dm = np.mean(dm[dm!=0])
-        dm = np.mean(dm)   # average weighted firing distance
+        dm_all_fields = np.mean(dm)
 
+        # final measure of mean firing distance
+        dm = dm_all_fields.copy()
         cM = maxcM
-        print(cM, "=cM")
-        print(dm, "=dm")
 
         border_score = (cM - dm) / (cM + dm)
 
