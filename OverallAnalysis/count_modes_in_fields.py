@@ -8,6 +8,7 @@ import plot_utility
 from rpy2 import robjects as robj
 from scipy.stats import circstd
 from rpy2.robjects import pandas2ri
+import scipy.stats
 
 
 local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/field_modes/'
@@ -271,6 +272,20 @@ def plot_std_of_modes(field_data, animal):
     plt.close()
 
 
+def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
+    grid_cells = field_data['cell type'] == 'grid'
+    conjunctive_cells = field_data['cell type'] == 'conjunctive'
+    accepted_field = field_data['accepted_field'] == True
+    grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell
+    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell
+
+    stat, p = scipy.stats.mannwhitneyu(grid_modes_std, conjunctive_modes_std)
+    print('p value from mann-whitney test for grid and conj cells from ' + animal + ':')
+    print(p)
+    print('number of grid cells:' + str(len(grid_modes_std)))
+    print('number of conjunctive cells:' + str(len(conjunctive_modes_std)))
+
+
 def process_circular_data(animal):
     print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -279,8 +294,9 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
-        calculate_std_of_modes_for_cells(field_data, animal)
+        calculate_std_of_modes_for_cells(field_data, 'mouse')
         plot_std_of_modes(field_data, 'mouse')
+        compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
 
     if animal == 'rat':
         field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
@@ -288,8 +304,9 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = analyze_histograms(field_data)
         field_data = add_cell_types_to_data_frame_rat(field_data)
-        calculate_std_of_modes_for_cells(field_data, animal)
+        calculate_std_of_modes_for_cells(field_data, 'rat')
         plot_std_of_modes(field_data, 'rat')
+        compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
 
 
 def main():
