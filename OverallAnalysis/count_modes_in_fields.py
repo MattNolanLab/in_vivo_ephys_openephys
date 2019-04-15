@@ -234,11 +234,8 @@ def format_bar_chart(ax):
     return ax
 
 
-def plot_std_of_modes(field_data, animal):
+def calculate_std_of_modes_for_cells(field_data, animal):
     print(animal + ' modes are analyzed')
-    grid_cells = field_data['cell type'] == 'grid'
-    conjunctive_cells = field_data['cell type'] == 'conjunctive'
-    accepted_field = field_data['accepted_field'] == True
     print('Plot standard deviation of modes for grid and conjunctive cells.')
     field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
 
@@ -257,9 +254,13 @@ def plot_std_of_modes(field_data, animal):
             std_mode_angles_cells.extend([std_modes] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
         else:
             std_mode_angles_cells.extend([np.nan] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
-
     field_data['angles_std_cell'] = std_mode_angles_cells
 
+
+def plot_std_of_modes(field_data, animal):
+    grid_cells = field_data['cell type'] == 'grid'
+    conjunctive_cells = field_data['cell type'] == 'conjunctive'
+    accepted_field = field_data['accepted_field'] == True
     grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell
     fig, ax = plt.subplots()
@@ -278,6 +279,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+        calculate_std_of_modes_for_cells(field_data, animal)
         plot_std_of_modes(field_data, 'mouse')
 
     if animal == 'rat':
@@ -286,6 +288,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = analyze_histograms(field_data)
         field_data = add_cell_types_to_data_frame_rat(field_data)
+        calculate_std_of_modes_for_cells(field_data, animal)
         plot_std_of_modes(field_data, 'rat')
 
 
