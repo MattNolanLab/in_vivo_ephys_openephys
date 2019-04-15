@@ -295,7 +295,7 @@ def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
 
 
 def process_circular_data(animal):
-    print('I am loading the data frame that has the fields')
+    # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
         field_data = load_field_data(local_path + 'field_data_modes_mouse.pkl', server_path_mouse, '/MountainSort')
         field_data = analyze_histograms(field_data)
