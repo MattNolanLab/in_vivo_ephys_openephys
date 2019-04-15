@@ -267,14 +267,18 @@ def calculate_std_of_modes_for_cells(field_data, animal):
 
 
 def get_mode_std_for_cell(field_data):
-    print('cell')
     std_cells = []
     list_of_cells = np.unique(list(field_data.unique_cell_id))
     for cell in range(len(list_of_cells)):
         cell_id = list_of_cells[cell]
         std_angles = field_data.loc[field_data['unique_cell_id'] == cell_id].angles_std_cell
-        std_cells.extend(std_angles)
-    return std_angles
+        if type(std_angles) is float:
+            if ~np.isnan(std_angles):
+                std_cells.extend(std_angles)
+        else:
+            std_cells.extend([np.asanyarray(std_angles)[0]])
+
+    return std_cells
 
 
 def plot_std_of_modes(field_data, animal):
@@ -285,8 +289,8 @@ def plot_std_of_modes(field_data, animal):
     conjunctive_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax)
-    plt.hist(grid_modes_std_cell[~np.isnan(grid_modes_std_cell)], color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
-    plt.hist(conjunctive_modes_std_cell[~np.isnan(conjunctive_modes_std_cell)], color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(grid_modes_std_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(conjunctive_modes_std_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
 
@@ -296,7 +300,9 @@ def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
     accepted_field = field_data['accepted_field'] == True
     grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell.dropna()
+    grid_modes_std = get_mode_std_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell.dropna()
+    conjunctive_modes_std = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
 
     stat, p = scipy.stats.mannwhitneyu(grid_modes_std, conjunctive_modes_std)
     print('p value from mann-whitney test for grid and conj cells from ' + animal + ':')
@@ -340,7 +346,7 @@ def process_circular_data(animal):
 
 
 def main():
-    #process_circular_data('rat')
+    process_circular_data('rat')
     process_circular_data('mouse')
 
 
