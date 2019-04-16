@@ -1,13 +1,15 @@
-import cmath
 import glob
 import matplotlib.pylab as plt
 import math_utility
+import math
 import numpy as np
 import os
 import pandas as pd
 import plot_utility
 from rpy2 import robjects as robj
+from scipy.stats import circstd
 from rpy2.robjects import pandas2ri
+import scipy.stats
 
 
 local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/field_modes/'
@@ -36,9 +38,9 @@ def load_field_data(output_path, server_path, spike_sorter):
                                                     'field_histograms_hz']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
                 if 'hd_score' in field_data:
-                    field_data_combined['hd_score'] = field_data.hd_score
+                    field_data_to_combine['hd_score'] = field_data.hd_score
                 if 'grid_score' in field_data:
-                    field_data_combined['grid_score'] = field_data.grid_score
+                    field_data_to_combine['grid_score'] = field_data.grid_score
 
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
@@ -193,10 +195,11 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
     plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
 
 
-def analyze_histograms(field_data):
+def analyze_histograms(field_data, output_path):
+    if 'mode_angles' in field_data:
+        return field_data
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
-    angles_stds = []
     fitted_densities = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
@@ -204,7 +207,6 @@ def analyze_histograms(field_data):
             print('skipping this field, it has nans')
             fitted_density = np.nan
             angles = np.nan
-            angles_std = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
@@ -213,60 +215,139 @@ def analyze_histograms(field_data):
             theta = get_model_fit_theta_value(fit)
             angles = get_mode_angles_degrees(theta)
             fitted_density = get_estimated_density_function(fit)
-            angles_std = np.nan
             if len(angles) > 0:
                 plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
-                angles_std = np.std(angles)
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
-        angles_stds.append(angles_std)
     field_data['fitted_density'] = fitted_densities
-    field_data['mode_angles'] = mode_angles  # does not seem ok, max is very high
-    field_data['angles_std'] = angles_stds
+    field_data['mode_angles'] = mode_angles
+    field_data.to_pickle(output_path)
     return field_data
 
 
+def format_bar_chart(ax):
+    plt.gcf().subplots_adjust(bottom=0.2)
+    plt.gcf().subplots_adjust(left=0.2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Standard dev of modes', fontsize=30)
+    ax.set_ylabel('Number of cells', fontsize=30)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    return ax
+
+
+def calculate_std_of_modes_for_cells(field_data, animal):
+    # print(animal + ' modes are analyzed')
+    # print('Plot standard deviation of modes for grid and conjunctive cells.')
+    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+    std_mode_angles_cells = []
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        mode_angles = field_data.loc[field_data['unique_cell_id'] == cell_id].mode_angles
+        # print(mode_angles)
+        if mode_angles.notnull().sum() > 1:  # only do this for cells with multiple fields
+            modes = []
+            for field_mode in mode_angles:
+                if type(field_mode) == float:
+                    if ~np.isnan(field_mode):
+                        modes.extend(field_mode)
+                else:
+                    modes.extend(field_mode)
+
+            std_modes = circstd(modes, high=180, low=-180)
+            std_mode_angles_cells.extend([std_modes] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
+        else:
+            std_mode_angles_cells.extend([np.nan] * len(field_data.loc[field_data['unique_cell_id'] == cell_id]))
+    field_data['angles_std_cell'] = std_mode_angles_cells
+
+
+def get_mode_std_for_cell(field_data):
+    std_cells = []
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        std_angles = field_data.loc[field_data['unique_cell_id'] == cell_id].angles_std_cell
+        if type(std_angles) is float:
+            if ~np.isnan(std_angles):
+                std_cells.extend(std_angles)
+        else:
+            std_cells.extend([np.asanyarray(std_angles)[0]])
+    std_cells = [x for x in std_cells if ~np.isnan(x)]
+    return std_cells
+
+
 def plot_std_of_modes(field_data, animal):
-    print(animal + ' modes are analyzed')
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
     accepted_field = field_data['accepted_field'] == True
-    print('Plot standard deviation of modes for grid and conjunctive cells.')
-    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
-
-
-    grid_modes_std = field_data[accepted_field & grid_cells].angles_std
-    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std
-    plt.hist(grid_modes_std[~np.isnan(grid_modes_std)], color='navy')
-    plt.hist(conjunctive_modes_std[~np.isnan(conjunctive_modes_std)], color='red')
-    plt.show()
+    grid_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & grid_cells])
+    conjunctive_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax)
+    plt.hist(grid_modes_std_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(conjunctive_modes_std_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
-    plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells.png')
+
+
+def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
+    grid_cells = field_data['cell type'] == 'grid'
+    conjunctive_cells = field_data['cell type'] == 'conjunctive'
+    accepted_field = field_data['accepted_field'] == True
+    grid_modes_std = field_data[accepted_field & grid_cells].angles_std_cell.dropna()
+    grid_modes_std = get_mode_std_for_cell(field_data[accepted_field & grid_cells])
+    conjunctive_modes_std = field_data[accepted_field & conjunctive_cells].angles_std_cell.dropna()
+    conjunctive_modes_std = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
+
+    stat, p = scipy.stats.mannwhitneyu(grid_modes_std, conjunctive_modes_std)
+    print('p value from mann-whitney test for grid and conj cells from ' + animal + ':')
+    print(p)
+    print('number of grid cells:' + str(len(grid_modes_std)))
+    print('number of conjunctive cells:' + str(len(conjunctive_modes_std)))
+
+    w, p_equal_var = scipy.stats.levene(grid_modes_std, conjunctive_modes_std)
+    print('p value for equal var test (Levene): ' + str(p_equal_var))
+    if p_equal_var <= 0.05:
+        t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=True)
+        print('T-test with equal variances result: ' + str(p_t))
+    else:
+        t, p_t = scipy.stats.ttest_ind(grid_modes_std, conjunctive_modes_std, axis=0, equal_var=False)
+        print('T-test with unequal variances result: ' + str(p_t))
 
 
 def process_circular_data(animal):
-    print('I am loading the data frame that has the fields')
+    # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
-        field_data = load_field_data(local_path + 'field_data_modes_mouse.pkl', server_path_mouse, '/MountainSort')
-        field_data = analyze_histograms(field_data)
+        mouse_path = local_path + 'field_data_modes_mouse.pkl'
+        field_data = load_field_data(mouse_path, server_path_mouse, '/MountainSort')
+        field_data = analyze_histograms(field_data, mouse_path)
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-        # field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
         field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+        calculate_std_of_modes_for_cells(field_data, 'mouse')
         plot_std_of_modes(field_data, 'mouse')
+        compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
 
     if animal == 'rat':
+        rat_path = local_path + 'field_data_modes_rat.pkl'
         field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
-        field_data = analyze_histograms(field_data)
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+        field_data = analyze_histograms(field_data, rat_path)
         field_data = add_cell_types_to_data_frame_rat(field_data)
+        calculate_std_of_modes_for_cells(field_data, 'rat')
         plot_std_of_modes(field_data, 'rat')
+        compare_mode_distributions_of_grid_and_conj_cells(field_data, 'rat')
 
 
 def main():
-    process_circular_data('mouse')
     process_circular_data('rat')
+    process_circular_data('mouse')
 
 
 if __name__ == '__main__':
