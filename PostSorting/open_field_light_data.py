@@ -19,8 +19,8 @@ def load_opto_data(recording_to_process, prm):
 
 
 def get_ons_and_offs(opto_data):
-    opto_on = np.where(opto_data > np.min(opto_data) + 100 * np.std(opto_data))
-    opto_off = np.where(opto_data <= np.min(opto_data) + 100 * np.std(opto_data))
+    opto_on = np.where(opto_data > np.min(opto_data) + 10 * np.std(opto_data))
+    opto_off = np.where(opto_data <= np.min(opto_data) + 10 * np.std(opto_data))
     return opto_on, opto_off
 
 
