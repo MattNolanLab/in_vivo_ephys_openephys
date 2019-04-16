@@ -42,8 +42,6 @@ def process_border_data(spatial_firing):
 
     for index, cluster in spatial_firing.iterrows():
         cluster_id = cluster.cluster_id
-        #print(index, "index")
-        #print(cluster_id, "=cluster_id")
 
         firing_rate_map = cluster.firing_maps
         firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map)
@@ -58,12 +56,10 @@ def process_border_data(spatial_firing):
         firing_fields_cluster = clip_fields_by_size(firing_fields_cluster, bin_size_cm=2.5)
         firing_fields_cluster = put_firing_rates_back(firing_fields_cluster, firing_rate_map)
 
-
         border_score = calculate_border_score(firing_fields_cluster, bin_size_cm=2.5)
 
         border_scores.append(border_score)
 
-        #plot_fields_in_cluster(firing_fields_cluster)
         plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
 
     spatial_firing['border_score'] = border_scores
@@ -84,7 +80,6 @@ def calculate_border_score(firing_fields_cluster, bin_size_cm):
 
         normalised_distance_mat = distance_matrix(firing_fields_cluster[0], bin_size_cm)
 
-        normalized_fields = []
         dm = []
 
         maxcM = 0
