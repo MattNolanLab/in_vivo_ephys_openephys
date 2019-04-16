@@ -9,7 +9,7 @@ import PostSorting.vr_spatial_firing
 import PostSorting.vr_firing_maps
 import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
-import PostSorting.vr_ramp_cell_test
+# import PostSorting.vr_ramp_cell_test
 import PostSorting.vr_firing_rate_maps
 import gc
 
