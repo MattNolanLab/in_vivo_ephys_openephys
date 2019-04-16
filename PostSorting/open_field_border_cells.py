@@ -53,7 +53,6 @@ def process_border_data(spatial_firing):
         fig.tight_layout()
         plt.show()
 
-        #firing_fields_cluster, _ = PostSorting.open_field_firing_fields.get_firing_field_data(spatial_firing, index, threshold=30)
         firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=30)
         firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
         firing_fields_cluster = clip_fields_by_size(firing_fields_cluster, bin_size_cm=2.5)
