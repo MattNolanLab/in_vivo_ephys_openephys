@@ -1,4 +1,5 @@
 from collections import deque
+import OverallAnalysis.folder_path_settings
 import glob
 import math
 import matplotlib.pylab as plt
@@ -11,9 +12,9 @@ import PostSorting.open_field_grid_cells
 
 # compare head-direction preference of firing fields of grid cells and conjunctive cells
 
-server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/compare_grid_and_conjunctive_fields/'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + 'compare_grid_and_conjunctive_fields/'
 sampling_rate = 30000
 
 
