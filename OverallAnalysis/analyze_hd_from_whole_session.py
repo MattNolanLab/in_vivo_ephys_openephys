@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pylab as plt
 import numpy as np
 import OverallAnalysis.false_positives
+import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
 import os
 import PostSorting.open_field_grid_cells
@@ -11,13 +12,12 @@ import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 
 
-local_path_mouse = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
-local_path_rat = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_rats_df_2.pkl'
-path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
-save_output_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
-server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-# local_output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
+local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df_2.pkl'
+local_path_rat = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_rats_df_2.pkl'
+path_to_data = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
+save_output_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 
 # run 2 sample watson test and put it in df
