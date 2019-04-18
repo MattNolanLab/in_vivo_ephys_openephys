@@ -34,7 +34,7 @@ def load_data_frame_spatial_firing_modeling(output_path, server_path, spike_sort
             position = pd.read_pickle(position_path)
 
             if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps', 'grid_score', 'grid_spacing']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'max_firing_rate_hd', 'position_x', 'position_y', 'hd', 'firing_maps', 'grid_score', 'grid_spacing']].copy()
                 spatial_firing['trajectory_hd'] = [np.asanyarray(position.hd)] * len(spatial_firing)
                 spatial_firing['trajectory_position_x'] = [np.asanyarray(position.position_x)] * len(spatial_firing)
                 spatial_firing['trajectory_position_y'] = [np.asanyarray(position.position_y)] * len(spatial_firing)
@@ -212,7 +212,7 @@ def load_field_data_for_r(output_path):
 def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
-    output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/rat_data.pkl'
+    output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/rat_data_hd.pkl'
     load_data_frame_spatial_firing_modeling(output_path, server_path_rat, spike_sorter='')
     # load_field_data_for_r('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/field_data_modes.pkl')
     # load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist2.pkl')
