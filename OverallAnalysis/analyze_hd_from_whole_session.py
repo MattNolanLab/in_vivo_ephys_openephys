@@ -12,8 +12,8 @@ import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 
 
-local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df_2.pkl'
-local_path_rat = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_rats_df_2.pkl'
+local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df.pkl'
+local_path_rat = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_rats_df.pkl'
 path_to_data = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
 save_output_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
@@ -35,7 +35,10 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
     two_watson_stats = []
     for index, cell in cell_data.iterrows():
         print('two-sample watson test on ' + str(cell.session_id) + str(cell.cluster_id))
-        hd_cluster = (cell.hd + 180) * np.pi / 180
+        if type(cell.hd) == list:
+            hd_cluster = (np.asanyarray(cell.hd) + 180) * np.pi / 180
+        else:
+            hd_cluster = (cell.hd + 180) * np.pi / 180
         hd_session = (position.hd + 180) * np.pi / 180
         two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session)
         two_watson_stats.append(two_watson_stat)
@@ -43,44 +46,7 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
     return cell_data
 
 
-def load_data_frame_spatial_firing_mouse(output_path, server_path, spike_sorter='/MountainSort'):
-    if os.path.exists(output_path):
-        spatial_firing = pd.read_pickle(output_path)
-        return spatial_firing
-    spatial_firing_data = pd.DataFrame()
-    for recording_folder in glob.glob(server_path + '*'):
-        os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        if os.path.exists(data_frame_path):
-            print('I found a firing data frame.')
-            spatial_firing = pd.read_pickle(data_frame_path)
-            '''
-            'session_id' 'cluster_id' 'tetrode' 'primary_channel' 'firing_times'
-             'firing_times_opto' 'number_of_spikes' 'mean_firing_rate' 'isolation'
-             'noise_overlap' 'peak_snr' 'peak_amp' 'random_snippets' 'position_x'
-             'position_x_pixels' 'position_y' 'position_y_pixels' 'hd' 'speed'
-             'hd_spike_histogram' 'max_firing_rate_hd' 'preferred_HD' 'hd_score'
-             'firing_maps' 'max_firing_rate' 'firing_fields' 'field_max_firing_rate'
-             'firing_fields_hd_session' 'firing_fields_hd_cluster' 'field_hd_max_rate'
-             'field_preferred_hd' 'field_hd_score' 'number_of_spikes_in_fields'
-             'time_spent_in_fields_sampling_points' 'spike_times_in_fields'
-             'times_in_session_fields' 'field_corr_r' 'field_corr_p'
-             'hd_correlation_first_vs_second_half'
-             'hd_correlation_first_vs_second_half_p' 'hd_hist_first_half'
-             'hd_hist_second_half'
-
-            '''
-            if ('hd_hist_first_half' in spatial_firing) and ('watson_test_hd' in spatial_firing):
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half', 'watson_test_hd', 'hd_score', 'hd', 'kuiper_cluster', 'watson_cluster', 'firing_maps']].copy()
-                spatial_firing_data = spatial_firing_data.append(spatial_firing)
-
-                print(spatial_firing_data.head())
-
-    spatial_firing_data.to_pickle(output_path)
-    return spatial_firing_data
-
-
-def load_spatial_firing_rat(output_path, server_path, spike_sorter=''):
+def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
     if os.path.exists(output_path):
         spatial_firing = pd.read_pickle(output_path)
         return spatial_firing
@@ -93,13 +59,19 @@ def load_spatial_firing_rat(output_path, server_path, spike_sorter=''):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
             position_data = pd.read_pickle(position_data_path)
+            if animal == 'rat':
+                spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
+                                       'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
+                                       'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
+                                       'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
+            if animal == 'mouse':
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'firing_times',
+                                                 'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
+                                                 'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
+                                                 'grid_spacing', 'field_size', 'grid_score', 'hd_score',
+                                                 'firing_fields']].copy()
 
-            spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
-                                   'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
-                                   'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
-                                   'grid_spacing', 'field_size', 'grid_score', 'firing_fields']].copy()
-            if 'watson_test_hd' not in spatial_firing:
-                spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
+            spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
             spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
     # compare first and second halves
@@ -109,7 +81,7 @@ def load_spatial_firing_rat(output_path, server_path, spike_sorter=''):
 
 def load_data_and_tag_false_positive_cells():
     false_positives_path = path_to_data + 'false_positives_all.txt'
-    df_all_mice = load_data_frame_spatial_firing_mouse(local_path_mouse, server_path_mouse)
+    df_all_mice = load_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', spike_sorter='/MountainSort')
     list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
     df_all_mice = add_combined_id_to_df(df_all_mice)
     df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
@@ -234,7 +206,7 @@ def process_mouse_data():
 
 
 def process_rat_data():
-    all_rats = load_spatial_firing_rat(local_path_rat, server_path_rat, spike_sorter='')
+    all_rats = load_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
     all_rats['false_positive'] = np.full(len(all_rats), False)
     plot_hd_vs_watson_stat(all_rats, animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
