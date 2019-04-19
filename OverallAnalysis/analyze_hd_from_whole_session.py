@@ -62,12 +62,12 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
                 if animal == 'rat':
                     spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
                                                     'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
-                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
+                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
                                                      'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
                 if animal == 'mouse':
                     spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'firing_times',
                                                      'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
-                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
+                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
                                                      'grid_spacing', 'field_size', 'grid_score', 'hd_score',
                                                      'firing_fields']].copy()
 
@@ -93,7 +93,10 @@ def plot_hd_vs_watson_stat(df_all_mice, animal='mouse'):
     fig, ax = plt.subplots()
     hd_score = df_all_mice[good_cluster].hd_score
     watson_two_stat = df_all_mice[good_cluster].watson_test_hd
-    plt.scatter(hd_score, watson_two_stat)
+    # plt.scatter(hd_score, watson_two_stat)
+    plt.scatter(np.asanyarray(hd_score)[:, 0], watson_two_stat)
+    plt.xscale('log')
+    plt.yscale('log')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
@@ -101,7 +104,7 @@ def plot_hd_vs_watson_stat(df_all_mice, animal='mouse'):
     ax.set_xlabel('Head-direction score')
     ax.set_ylabel('Two-sample Watson test stat')
     plt.axhline(0.268, color='red')
-    plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '.png')
+    plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
 
 
 def add_combined_id_to_df(df_all_mice):
@@ -198,7 +201,7 @@ def process_mouse_data():
 
 
 def process_rat_data():
-    all_rats = load_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
+    all_rats = load_spatial_firing(local_path_rat, server_path_rat, 'rat', spike_sorter='')
     all_rats['false_positive'] = np.full(len(all_rats), False)
     plot_hd_vs_watson_stat(all_rats, animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
@@ -209,7 +212,7 @@ def process_rat_data():
 
 
 def main():
-    process_mouse_data()
+    #process_mouse_data()
     process_rat_data()
 
 
