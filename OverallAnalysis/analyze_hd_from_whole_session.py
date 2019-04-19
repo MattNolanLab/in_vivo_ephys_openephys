@@ -211,7 +211,7 @@ def process_rat_data():
 
 
 def main():
-    #process_mouse_data()
+    process_mouse_data()
     process_rat_data()
 
 
