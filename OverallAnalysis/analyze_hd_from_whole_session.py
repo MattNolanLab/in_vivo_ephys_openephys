@@ -6,7 +6,6 @@ import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
 import os
-import PostSorting.open_field_grid_cells
 
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
@@ -59,20 +58,21 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
             position_data = pd.read_pickle(position_data_path)
-            if animal == 'rat':
-                spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
-                                       'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
-                                       'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
-                                       'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
-            if animal == 'mouse':
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'firing_times',
-                                                 'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
-                                                 'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
-                                                 'grid_spacing', 'field_size', 'grid_score', 'hd_score',
-                                                 'firing_fields']].copy()
+            if 'grid_score' in spatial_firing:
+                if animal == 'rat':
+                    spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
+                                                    'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
+                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
+                                                     'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
+                if animal == 'mouse':
+                    spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'firing_times',
+                                                     'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
+                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
+                                                     'grid_spacing', 'field_size', 'grid_score', 'hd_score',
+                                                     'firing_fields']].copy()
 
-            spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
-            spatial_firing_data = spatial_firing_data.append(spatial_firing)
+                spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
+                spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
     # compare first and second halves
     spatial_firing_data.to_pickle(output_path)
@@ -145,13 +145,6 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory_' + animal + '.png', y_axis_label='Number of cells')
 
 
-def add_grid_score_to_df(df_all_mice):
-    if 'grid_score' not in df_all_mice.columns:
-        df_all_mice = PostSorting.open_field_grid_cells.process_grid_data(df_all_mice)
-        df_all_mice.to_pickle(local_path_mouse)
-    return df_all_mice
-
-
 def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'):
     good_cluster = df_all_animals.false_positive == False
     if cell_type == 'grid':
@@ -199,7 +192,6 @@ def process_mouse_data():
     df_all_mice = load_data_and_tag_false_positive_cells()
     # correlation_between_first_and_second_halves_of_session(df_all_mice)
     plot_hd_vs_watson_stat(df_all_mice)
-    add_grid_score_to_df(df_all_mice)
     plot_results_of_watson_test(df_all_mice, cell_type='grid')
     plot_results_of_watson_test(df_all_mice, cell_type='hd')
     plot_results_of_watson_test(df_all_mice, cell_type='nc')
