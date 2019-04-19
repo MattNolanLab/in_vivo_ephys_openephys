@@ -93,8 +93,7 @@ def plot_hd_vs_watson_stat(df_all_mice, animal='mouse'):
     fig, ax = plt.subplots()
     hd_score = df_all_mice[good_cluster].hd_score
     watson_two_stat = df_all_mice[good_cluster].watson_test_hd
-    # plt.scatter(hd_score, watson_two_stat)
-    plt.scatter(np.asanyarray(hd_score)[:, 0], watson_two_stat)
+    plt.scatter(hd_score, watson_two_stat)
     plt.xscale('log')
     plt.yscale('log')
     ax.spines['top'].set_visible(False)
