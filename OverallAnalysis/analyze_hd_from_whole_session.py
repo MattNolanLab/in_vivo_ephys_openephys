@@ -214,6 +214,7 @@ def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
     plt.hist(hd_scores, bins=30, color='navy', normed=True)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
+    plt.xlim(0, 1)
     # plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
