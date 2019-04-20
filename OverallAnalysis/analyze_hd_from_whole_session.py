@@ -103,8 +103,8 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head-direction score')
-    ax.set_ylabel('Two-sample Watson test stat')
+    ax.set_xlabel('Head-direction score', fontsize=22)
+    ax.set_ylabel('Two-sample Watson test stat', fontsize=22)
     plt.axhline(0.268, color='red')
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
 
