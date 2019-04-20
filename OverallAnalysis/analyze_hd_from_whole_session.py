@@ -74,7 +74,6 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
                 spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
-    # compare first and second halves
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
 
@@ -88,12 +87,16 @@ def load_data_and_tag_false_positive_cells():
     return df_all_mice
 
 
-def plot_hd_vs_watson_stat(df_all_mice, animal='mouse'):
-    good_cluster = df_all_mice.false_positive == False
+def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
+    good_cluster = df_all_cells.false_positive == False
+    grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
     fig, ax = plt.subplots()
-    hd_score = df_all_mice[good_cluster].hd_score
-    watson_two_stat = df_all_mice[good_cluster].watson_test_hd
+    hd_score = df_all_cells[good_cluster].hd_score
+    watson_two_stat = df_all_cells[good_cluster].watson_test_hd
     plt.scatter(hd_score, watson_two_stat)
+    hd_score_grid = df_all_cells[good_cluster & grid_cell].hd_score
+    watson_two_stat_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
+    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red')
     plt.xscale('log')
     plt.yscale('log')
     ax.spines['top'].set_visible(False)
@@ -162,10 +165,9 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
         not_hd = df_all_animals.hd_score < 0.5
         cells_to_analyze = not_grid & not_hd
 
-    if animal == 'rat':
-        watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
-    else:
-        watson_test_stats = df_all_animals.watson_cluster[good_cluster & cells_to_analyze]
+    watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
+    watson_test_stats = watson_test_stats[~np.isnan(watson_test_stats)]
+
     print('\n' + animal)
     print(cell_type)
     print('all cells: ' + str(len(watson_test_stats)))
@@ -182,10 +184,6 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Proportion', size=30)
-    # plt.ylim(0, 0.05)
-    # plt.xlim(0, 700)
-    # ax.set_aspect(6000)
-    # plt.yticks([0, 0.05])
     plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
@@ -206,7 +204,6 @@ def process_rat_data():
     plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='hd', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='nc', animal='rat')
-    # todo this needs to be added to the df
     # correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
 
 
