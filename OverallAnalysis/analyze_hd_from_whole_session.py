@@ -187,6 +187,43 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
+def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
+    good_cluster = df_all_animals.false_positive == False
+    if cell_type == 'grid':
+        grid = df_all_animals.grid_score >= 0.4
+        not_hd = df_all_animals.hd_score < 0.5
+        cells_to_analyze = grid & not_hd
+    elif cell_type == 'hd':
+        not_grid = df_all_animals.grid_score < 0.4
+        hd = df_all_animals.hd_score >= 0.5
+        cells_to_analyze = not_grid & hd
+    else:
+        not_grid = df_all_animals.grid_score < 0.4
+        not_hd = df_all_animals.hd_score < 0.5
+        cells_to_analyze = not_grid & not_hd
+
+    hd_scores = df_all_animals.hd_score[good_cluster & cells_to_analyze]
+    hd_scores = hd_scores[~np.isnan(hd_scores)]
+
+    print('\n' + animal)
+    print(cell_type)
+    print('all cells: ' + str(len(hd_scores)))
+    print('significant: ' + str(len(hd_scores > 0.268)))
+
+    fig, ax = plt.subplots()
+    plt.hist(hd_scores, bins=30, color='navy', normed=True)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    # plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Head-direction score', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.savefig(save_output_path + animal + '_head_direction_histogram_' + cell_type + '_cells.png', bbox_inches="tight")
+
+
 def process_mouse_data():
     print('-------------------------------------------------------------')
     df_all_mice = load_data_and_tag_false_positive_cells()
@@ -195,6 +232,9 @@ def process_mouse_data():
     plot_results_of_watson_test(df_all_mice, cell_type='grid')
     plot_results_of_watson_test(df_all_mice, cell_type='hd')
     plot_results_of_watson_test(df_all_mice, cell_type='nc')
+    plot_hd_histograms(df_all_mice, cell_type='grid')
+    plot_hd_histograms(df_all_mice, cell_type='hd')
+    plot_hd_histograms(df_all_mice, cell_type='nc')
 
 
 def process_rat_data():
@@ -204,6 +244,9 @@ def process_rat_data():
     plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='hd', animal='rat')
     plot_results_of_watson_test(all_rats, cell_type='nc', animal='rat')
+    plot_hd_histograms(all_rats, cell_type='grid', animal='rat')
+    plot_hd_histograms(all_rats, cell_type='hd', animal='rat')
+    plot_hd_histograms(all_rats, cell_type='nc', animal='rat')
     # correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
 
 
