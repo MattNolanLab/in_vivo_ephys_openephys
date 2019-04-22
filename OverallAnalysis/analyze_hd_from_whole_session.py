@@ -78,15 +78,6 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
     return spatial_firing_data
 
 
-def load_data_and_tag_false_positive_cells():
-    false_positives_path = path_to_data + 'false_positives_all.txt'
-    df_all_mice = load_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', spike_sorter='/MountainSort')
-    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
-    df_all_mice = add_combined_id_to_df(df_all_mice)
-    df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
-    return df_all_mice
-
-
 def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     good_cluster = df_all_cells.false_positive == False
     grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
@@ -225,35 +216,48 @@ def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
     plt.savefig(save_output_path + animal + '_head_direction_histogram_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
-def process_mouse_data():
+def make_descriptive_plots(all_cells):
+    plot_hd_vs_watson_stat(all_cells)
+    plot_results_of_watson_test(all_cells, cell_type='grid')
+    plot_results_of_watson_test(all_cells, cell_type='hd')
+    plot_results_of_watson_test(all_cells, cell_type='nc')
+    plot_hd_histograms(all_cells, cell_type='grid')
+    plot_hd_histograms(all_cells, cell_type='hd')
+    plot_hd_histograms(all_cells, cell_type='nc')
+
+
+def tag_false_positives(all_cells, animal):
+    if animal == 'mouse':
+        false_positives_path = path_to_data + 'false_positives_all.txt'
+        list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
+        all_cells = add_combined_id_to_df(all_cells)
+        all_cells['false_positive'] = all_cells['false_positive_id'].isin(list_of_false_positives)
+    else:
+        all_cells['false_positive'] = np.full(len(all_cells), False)
+    return all_cells
+
+
+def process_data(animal):
     print('-------------------------------------------------------------')
-    df_all_mice = load_data_and_tag_false_positive_cells()
+    if animal == 'mouse':
+        spike_sorter = '/MountainSort'
+        local_path_animal = local_path_mouse
+        server_path_animal = server_path_mouse
+    else:
+        spike_sorter = ''
+        local_path_animal = local_path_rat
+        server_path_animal = server_path_rat
+
+    all_cells = load_spatial_firing(local_path_animal, server_path_animal, animal, spike_sorter)
+    all_cells = tag_false_positives(all_cells, animal)
+
     # correlation_between_first_and_second_halves_of_session(df_all_mice)
-    plot_hd_vs_watson_stat(df_all_mice)
-    plot_results_of_watson_test(df_all_mice, cell_type='grid')
-    plot_results_of_watson_test(df_all_mice, cell_type='hd')
-    plot_results_of_watson_test(df_all_mice, cell_type='nc')
-    plot_hd_histograms(df_all_mice, cell_type='grid')
-    plot_hd_histograms(df_all_mice, cell_type='hd')
-    plot_hd_histograms(df_all_mice, cell_type='nc')
-
-
-def process_rat_data():
-    all_rats = load_spatial_firing(local_path_rat, server_path_rat, 'rat', spike_sorter='')
-    all_rats['false_positive'] = np.full(len(all_rats), False)
-    plot_hd_vs_watson_stat(all_rats, animal='rat')
-    plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
-    plot_results_of_watson_test(all_rats, cell_type='hd', animal='rat')
-    plot_results_of_watson_test(all_rats, cell_type='nc', animal='rat')
-    plot_hd_histograms(all_rats, cell_type='grid', animal='rat')
-    plot_hd_histograms(all_rats, cell_type='hd', animal='rat')
-    plot_hd_histograms(all_rats, cell_type='nc', animal='rat')
-    # correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
+    make_descriptive_plots(all_cells)
 
 
 def main():
-    process_mouse_data()
-    process_rat_data()
+    process_data('mouse')
+    process_data('rat')
 
 
 if __name__ == '__main__':
