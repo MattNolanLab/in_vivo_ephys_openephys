@@ -84,5 +84,6 @@ def main():
     position_data = pd.read_pickle('C:/Users/s1466507\Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/position.pkl')
     get_field_data_frame(spatial_firing, position_data)
 
+
 if __name__ == '__main__':
     main()
