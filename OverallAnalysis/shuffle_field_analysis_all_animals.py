@@ -1,21 +1,17 @@
 import numpy as np
+import OverallAnalysis.folder_path_settings
 import pandas as pd
 import matplotlib.pylab as plt
 import scipy.stats
 import os
 import glob
 
+analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
-analysis_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis/'
-server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-
-# this data frame contains results calculated by shuffle_field_analysis.py combined by load_data_frames.py
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
 local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_all_rats.pkl'
-
-# this is a list of fields included in the analysis with session_ids cluster ids and field ids
-list_of_accepted_fields_path_grid = analysis_path + 'included_fields_detector2_grid.csv'
-list_of_accepted_fields_path_not_classified = analysis_path + 'included_fields_detector2_not_classified.csv'
 
 
 # loads shuffle analysis results for field data
@@ -50,19 +46,15 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter):
     return field_data_combined
 
 
-def get_accepted_fields_mouse(shuffled_field_data, type='grid'):
-    if type == 'not_classified':
-        accepted_fields = pd.read_csv(list_of_accepted_fields_path_not_classified)
-    else:
-        accepted_fields = pd.read_csv(list_of_accepted_fields_path_grid)
-
-    shuffled_field_data['field_id_unique'] = shuffled_field_data.session_id + '_' + shuffled_field_data.cluster_id.apply(str) + '_' + (shuffled_field_data.field_id + 1).apply(str)
-    accepted_fields['field_id_unique'] = accepted_fields['Session ID'] + '_' + accepted_fields.Cell.apply(str) + '_' + accepted_fields.field.apply(str)
-
-    accepted = shuffled_field_data.field_id_unique.isin(accepted_fields.field_id_unique)
-    shuffled_field_data = shuffled_field_data[accepted]
-
-    return shuffled_field_data
+# select accepted fields based on list of fields that were correctly identified by field detector
+def tag_accepted_fields_mouse(field_data, accepted_fields):
+    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    field_data['unique_id'] = unique_id
+    unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    accepted_fields['unique_id'] = unique_id
+    field_data['unique_cell_id'] = field_data.session_id + '_' + field_data.cluster_id.apply(str)
+    field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
 
 
 # select accepted fields based on list of fields that were correctly identified by field detector
@@ -77,25 +69,8 @@ def tag_accepted_fields_rat(field_data, accepted_fields):
         unique_id = accepted_fields['SessionID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
 
     accepted_fields['unique_id'] = unique_id
+    field_data['unique_cell_id'] = field_data.session_id + '_' + field_data.cluster_id.apply(str)
     field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
-    return field_data
-
-
-# add cell type tp rat data frame
-def add_cell_types_to_data_frame_rat(field_data):
-    cell_type = []
-    for index, field in field_data.iterrows():
-        if field.hd_score >= 0.5 and field.grid_score >= 0.4:
-            cell_type.append('conjunctive')
-        elif field.hd_score >= 0.5:
-            cell_type.append('hd')
-        elif field.grid_score >= 0.4:
-            cell_type.append('grid')
-        else:
-            cell_type.append('na')
-
-    field_data['cell type'] = cell_type
-
     return field_data
 
 
@@ -226,7 +201,7 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
             return p_percentile
 
 
-def plot_distibutions_for_fields(shuffled_field_data, tag='grid', animal='mouse'):
+def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse'):
     plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal)
     plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal)
     plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag + '_' + animal)
@@ -234,51 +209,50 @@ def plot_distibutions_for_fields(shuffled_field_data, tag='grid', animal='mouse'
     make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal)
 
 
-def analyze_mouse_data():
-    shuffled_field_data = pd.read_pickle(local_path_to_shuffled_field_data_mice)
-    shuffled_field_data_grid = get_accepted_fields_mouse(shuffled_field_data, type='grid')
-    shuffled_field_data_not_classified = get_accepted_fields_mouse(shuffled_field_data, type='not_classified')
+def analyze_data(animal):
+    if animal == 'mouse':
+        local_path_to_field_data = local_path_to_shuffled_field_data_mice
+        server_path = server_path_mouse
+        spike_sorter = '/MountainSort'
+        accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
+    else:
+        local_path_to_field_data = local_path_to_shuffled_field_data_rats
+        server_path = server_path_rat
+        spike_sorter = ''
+        accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
 
-    plot_distibutions_for_fields(shuffled_field_data_grid, 'grid')
-    plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified')
-
-    print('Mouse data:')
-    print('Grid cells:')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
-    print('Not classified cells:')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile')
-
-
-def analyze_rat_data():
-    shuffled_field_data = load_data_frame_field_data(local_path_to_shuffled_field_data_rats, server_path_rat, spike_sorter='')
-    accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
-    shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
+    shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter)
+    if animal == 'mouse':
+        tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
+    else:
+        shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
     grid = shuffled_field_data.grid_score >= 0.4
     hd = shuffled_field_data.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
-    hd_cells = np.logical_and(np.logical_not(grid), hd)
     grid_cells = np.logical_and(grid, np.logical_not(hd))
 
     shuffled_field_data_grid = shuffled_field_data[grid_cells]
     shuffled_field_data_not_classified = shuffled_field_data[not_classified]
 
-    plot_distibutions_for_fields(shuffled_field_data_grid, 'grid', animal='rat')
-    plot_distibutions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal='rat')
+    plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal)
+    plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal)
 
-    print('Rat data:')
+    print(animal + ' data:')
     print('Grid cells:')
+    print('Number of grid fields: ' + str(len(shuffled_field_data_grid)))
+    print('Number of grid cells:' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
     print('Not classified cells:')
+    print('Number of not classified fields: ' + str(len(shuffled_field_data_not_classified)))
+    print('Number of not classified cells:' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile')
 
 
 def main():
-    analyze_rat_data()
-    analyze_mouse_data()
+    analyze_data('mouse')
+    analyze_data('rat')
 
 
 if __name__ == '__main__':
