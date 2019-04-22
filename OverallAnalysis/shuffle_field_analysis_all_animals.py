@@ -18,17 +18,17 @@ list_of_accepted_fields_path_grid = analysis_path + 'included_fields_detector2_g
 list_of_accepted_fields_path_not_classified = analysis_path + 'included_fields_detector2_not_classified.csv'
 
 
-# loads shuffle analysis results for rat field data
-def load_data_frame_field_data_rat(output_path):
+# loads shuffle analysis results for field data
+def load_data_frame_field_data(output_path, server_path, spike_sorter):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
 
     else:
         field_data_combined = pd.DataFrame()
-        for recording_folder in glob.glob(server_path_rat + '*'):
+        for recording_folder in glob.glob(server_path + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + '/DataFrames/shuffled_fields.pkl'
+            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
@@ -252,7 +252,7 @@ def analyze_mouse_data():
 
 
 def analyze_rat_data():
-    shuffled_field_data = load_data_frame_field_data_rat(local_path_to_shuffled_field_data_rats)
+    shuffled_field_data = load_data_frame_field_data(local_path_to_shuffled_field_data_rats, server_path_rat, spike_sorter='')
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
     grid = shuffled_field_data.grid_score >= 0.4
