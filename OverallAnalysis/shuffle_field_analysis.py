@@ -1,5 +1,4 @@
 import glob
-import time
 import numpy as np
 import os
 import pandas as pd
@@ -8,17 +7,13 @@ import shutil
 import sys
 from statsmodels.sandbox.stats.multicomp import multipletests
 import threading
-
 import OverallAnalysis.false_positives
+import OverallAnalysis.folder_path_settings
 import data_frame_utility
-import plot_utility
-
 import matplotlib.pylab as plt
 
-
-# server_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/'
-# server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-# server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 
 def add_combined_id_to_df(df_all_mice):
@@ -33,19 +28,6 @@ def add_combined_id_to_df(df_all_mice):
         combined_ids.append(id)
     df_all_mice['false_positive_id'] = combined_ids
     return df_all_mice
-
-
-def get_field_data():
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df.pkl'
-    path_to_data = 'C:/Users/s1466507/Documents/Ephys/recordings/'
-    save_output_path = 'C:/Users/s1466507/Documents/Ephys/overall_figures/'
-    false_positives_path = path_to_data + 'false_positives_all.txt'
-    df_all_mice = pd.read_pickle(local_path)
-    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
-    df_all_mice = add_combined_id_to_df(df_all_mice)
-    df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
-
-    good_cluster = df_all_mice.false_positive == False
 
 
 def format_bar_chart(ax):
@@ -121,7 +103,6 @@ def test_if_real_hd_differs_from_shuffled(field_data):
     real_and_shuffled_data_differ_bin = []
     number_of_diff_bins = []
     for index, field in field_data.iterrows():
-        # diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
         diff_field = (field.shuffled_percentile_threshold_95 < field.hd_histogram_real_data) + (field.shuffled_percentile_threshold_5 > field.hd_histogram_real_data)  # this is a pairwise OR on the binary arrays
         number_of_diffs = diff_field.sum()
         real_and_shuffled_data_differ_bin.append(diff_field)
@@ -333,7 +314,7 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
     return field_data
 
 
-# perform shuffle analysis for all mice and save data frames on server. this will later be loaded and combined
+# perform shuffle analysis for all animals and save data frames on server. this will later be loaded and combined
 def process_recordings(server_path, sampling_rate_video, spike_sorter='/MountainSort', redo_existing=True):
     if os.path.exists(server_path):
         print('I see the server.')
@@ -363,12 +344,9 @@ def process_recordings(server_path, sampling_rate_video, spike_sorter='/Mountain
                         print(error)
 
 
+# this is to test functions without accessing the server
 def local_data_test():
-    local_path = '/Users/s1466507/Documents/Ephys/recordings/M12_2018-04-10_14-22-14_of/MountainSort/'
-    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/'
-    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M13_2018-05-01_11-23-01_of/MountainSort/'
-    # local_path = '/Users/s1466507/Documents/Ephys/recordings/M14_2018-05-16_11-29-05_of/MountainSort/'
-
+    local_path = OverallAnalysis.folder_path_settings.get_local_test_recording_path()
     spatial_firing = pd.read_pickle(local_path + '/DataFrames/spatial_firing.pkl')
     position_data = pd.read_pickle(local_path + '/DataFrames/position.pkl')
 
@@ -376,7 +354,6 @@ def local_data_test():
     field_df = shuffle_field_data(field_df, local_path, number_of_bins=20, number_of_times_to_shuffle=1000)
     field_df = analyze_shuffled_data(field_df, 30, local_path, number_of_bins=20)
     field_df.to_pickle(local_path + 'shuffle_analysis/shuffled_fields.pkl')
-    # save new field df so that another script can read them all and combine to look at the distribution of rejects
 
 
 def main():
@@ -384,9 +361,8 @@ def main():
     threading.stack_size(200000000)
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-    # process_recordings(server_path_mouse, 30)
-    server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+
+    process_recordings(server_path_mouse, 30, redo_existing=True)
     process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True)
     # local_data_test()
 
