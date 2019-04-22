@@ -1,3 +1,4 @@
+import OverallAnalysis.folder_path_settings
 import pandas as pd
 import PostSorting.open_field_head_direction
 import numpy as np
@@ -80,8 +81,8 @@ def get_field_data_frame(spatial_firing, position_data):
 
 
 def main():
-    spatial_firing = pd.read_pickle('C:/Users/s1466507\Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/spatial_firing.pkl')
-    position_data = pd.read_pickle('C:/Users/s1466507\Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/position.pkl')
+    spatial_firing = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_test_recording_path() + 'DataFrames/spatial_firing.pkl')
+    position_data = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_test_recording_path() + 'DataFrames/position.pkl')
     get_field_data_frame(spatial_firing, position_data)
 
 
