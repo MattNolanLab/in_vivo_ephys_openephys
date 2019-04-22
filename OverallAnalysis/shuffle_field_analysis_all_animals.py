@@ -231,8 +231,10 @@ def analyze_data(animal):
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
     grid_cells = np.logical_and(grid, np.logical_not(hd))
 
-    shuffled_field_data_grid = shuffled_field_data[grid_cells]
-    shuffled_field_data_not_classified = shuffled_field_data[not_classified]
+    accepted_field = shuffled_field_data.accepted_field == True
+
+    shuffled_field_data_grid = shuffled_field_data[grid_cells & accepted_field]
+    shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
 
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal)
     plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal)
@@ -240,13 +242,13 @@ def analyze_data(animal):
     print(animal + ' data:')
     print('Grid cells:')
     print('Number of grid fields: ' + str(len(shuffled_field_data_grid)))
-    print('Number of grid cells:' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
+    print('Number of grid cells: ' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
     print('__________________________________')
-    print('Not classified cells:')
+    print('Not classified cells: ')
     print('Number of not classified fields: ' + str(len(shuffled_field_data_not_classified)))
-    print('Number of not classified cells:' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
+    print('Number of not classified cells: ' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile')
     print('__________________________________')
