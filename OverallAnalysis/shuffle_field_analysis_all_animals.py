@@ -243,11 +243,13 @@ def analyze_data(animal):
     print('Number of grid cells:' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
+    print('__________________________________')
     print('Not classified cells:')
     print('Number of not classified fields: ' + str(len(shuffled_field_data_not_classified)))
     print('Number of not classified cells:' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile')
+    print('__________________________________')
 
 
 def main():
