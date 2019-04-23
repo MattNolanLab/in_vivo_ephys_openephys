@@ -194,7 +194,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
         if is_open_field:
-            post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', run_type='stable')
+            post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
         if is_vr:
             post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr')
 
