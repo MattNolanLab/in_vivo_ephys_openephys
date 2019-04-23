@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
-import PostSorting.vr_extract_data
+# import PostSorting.vr_extract_data
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats

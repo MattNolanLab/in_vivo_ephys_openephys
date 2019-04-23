@@ -62,7 +62,7 @@ def format_bar_chart(ax):
     return ax
 
 
-def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
+def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins=20):
     fields_means = []
     fields_stdevs = []
     real_data_hz_all_fields = []
@@ -74,14 +74,14 @@ def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
         time_spent_in_bins_all.append(time_spent_in_bins)
-        field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        field_histograms_hz = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         field_histograms_hz_all.append(field_histograms_hz)
         mean_shuffled = np.mean(field_histograms_hz, axis=0)
         fields_means.append(mean_shuffled)
         std_shuffled = np.std(field_histograms_hz, axis=0)
         fields_stdevs.append(std_shuffled)
 
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         real_data_hz_all_fields.append(real_data_hz)
     field_data['shuffled_means'] = fields_means
     field_data['shuffled_std'] = fields_stdevs
@@ -91,7 +91,7 @@ def add_mean_and_std_to_field_df(field_data, number_of_bins=20):
     return field_data
 
 
-def add_percentile_values_to_df(field_data, number_of_bins=20):
+def add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20):
     field_percentile_values_95_all = []
     field_percentile_values_5_all = []
     error_bar_up_all = []
@@ -100,7 +100,7 @@ def add_percentile_values_to_df(field_data, number_of_bins=20):
         field_histograms = field['shuffled_data']
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
-        field_histograms_hz = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        field_histograms_hz = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentile_value_shuffled_95 = np.percentile(field_histograms_hz, 95, axis=0)
         field_percentile_values_95_all.append(percentile_value_shuffled_95)
         percentile_value_shuffled_5 = np.percentile(field_histograms_hz, 5, axis=0)
@@ -166,14 +166,14 @@ def test_if_shuffle_differs_from_other_shuffles(field_data):
 
 # this is to find the null distribution of number of rejected null hypothesis based on the shuffled data
 # perform B/H analysis on each shuffle and count rejects
-def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, number_of_bars=20):
+def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=20):
     number_of_shuffles = len(field_data.shuffled_data[0])
     rejected_bins_all_shuffles = []
     for index, field in field_data.iterrows():
         field_histograms = field['shuffled_data']
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
-        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        shuffled_data_normalized = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         rejects_field = np.empty(number_of_shuffles)
         rejects_field[:] = np.nan
         percentile_observed_data_bars = []
@@ -199,13 +199,13 @@ def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, n
 
 
 # calculate percentile of real data relative to shuffled for each bar
-def calculate_percentile_of_observed_data(field_data, number_of_bars=20):
+def calculate_percentile_of_observed_data(field_data, sampling_rate_video, number_of_bars=20):
     percentile_observed_data_bars = []
     for index, field in field_data.iterrows():
         field_histograms = field['shuffled_data']
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
-        shuffled_data_normalized = field_histograms * 30 / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        shuffled_data_normalized = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentiles_of_observed_bars = np.empty(number_of_bars)
         percentiles_of_observed_bars[:] = np.nan
         for bar in range(number_of_bars):
@@ -246,7 +246,7 @@ def calculate_corrected_p_values(field_data, type='bh'):
     return field_data
 
 
-def plot_bar_chart_for_fields(field_data, path):
+def plot_bar_chart_for_fields(field_data, sampling_rate_video, path):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
         std = field['shuffled_std']
@@ -259,13 +259,13 @@ def plot_bar_chart_for_fields(field_data, path):
         ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
         plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
         plt.close()
 
 
-def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
+def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, path):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
         percentile_95 = field['error_bar_95']
@@ -280,29 +280,29 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, path):
         # ax.bar(x_pos, mean, yerr=[percentile_5, percentile_95], align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * 30 / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
         plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile')
         plt.close()
 
 
 # the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
-def analyze_shuffled_data(field_data, save_path, number_of_bins=20):
-    field_data = add_mean_and_std_to_field_df(field_data, number_of_bins)
-    field_data = add_percentile_values_to_df(field_data, number_of_bins=20)
+def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20):
+    field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins)
+    field_data = add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
     field_data = test_if_shuffle_differs_from_other_shuffles(field_data)
 
-    field_data = calculate_percentile_of_observed_data(field_data, number_of_bins)  # this is relative to shuffled data
+    field_data = calculate_percentile_of_observed_data(field_data, sampling_rate_video, number_of_bins)  # this is relative to shuffled data
     # field_data = calculate_percentile_of_shuffled_data(field_data, number_of_bars=20)
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data, type='bh')  # BH correction on p values from previous function
     field_data = calculate_corrected_p_values(field_data, type='holm')  # Holm correction on p values from previous function
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh')
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='holm')
-    field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, number_of_bars=20)
-    plot_bar_chart_for_fields(field_data, save_path)
-    plot_bar_chart_for_fields_percentile_error_bar(field_data, save_path)
+    field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=20)
+    plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path)
+    plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path)
     return field_data
 
 
@@ -334,7 +334,7 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
 
 
 # perform shuffle analysis for all mice and save data frames on server. this will later be loaded and combined
-def process_recordings(server_path, spike_sorter='/MountainSort', redo_existing=True):
+def process_recordings(server_path, sampling_rate_video, spike_sorter='/MountainSort', redo_existing=True):
     if os.path.exists(server_path):
         print('I see the server.')
     for recording_folder in glob.glob(server_path + '*'):
@@ -354,7 +354,7 @@ def process_recordings(server_path, spike_sorter='/MountainSort', redo_existing=
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
                 if not field_df.empty:
                     field_df = shuffle_field_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20, number_of_times_to_shuffle=1000)
-                    field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20)
+                    field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', sampling_rate_video, number_of_bins=20)
                     try:
                         field_df.to_pickle(recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl')
                         print('I finished analyzing ' + recording_folder)
@@ -374,7 +374,7 @@ def local_data_test():
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
     field_df = shuffle_field_data(field_df, local_path, number_of_bins=20, number_of_times_to_shuffle=1000)
-    field_df = analyze_shuffled_data(field_df, local_path, number_of_bins=20)
+    field_df = analyze_shuffled_data(field_df, 30, local_path, number_of_bins=20)
     field_df.to_pickle(local_path + 'shuffle_analysis/shuffled_fields.pkl')
     # save new field df so that another script can read them all and combine to look at the distribution of rejects
 
@@ -385,9 +385,9 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
     server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-    # process_recordings(server_path_mouse)
+    # process_recordings(server_path_mouse, 30)
     server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-    process_recordings(server_path_rat, spike_sorter='', redo_existing=True)
+    process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True)
     # local_data_test()
 
 

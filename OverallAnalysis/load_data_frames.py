@@ -10,12 +10,41 @@ import OverallAnalysis.analyze_hd_from_whole_session
 server_test_file = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/test_analysis/M5_2018-03-05_13-30-30_of/parameters.txt'
 # server_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/'
 server_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
+server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
 local_output_path = '/Users/s1466507/Documents/Ephys/recordings/all_mice_df_2.pkl'
 
 false_positives_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/false_positives_all.txt'
 
 
 test_image_path = '/Users/s1466507/Desktop/mouse.jpg'
+
+
+def load_data_frame_spatial_firing_modeling(output_path, server_path, spike_sorter='/MountainSort'):
+    if os.path.exists(output_path):
+        spatial_firing = pd.read_pickle(output_path)
+        return spatial_firing
+    spatial_firing_data = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        firing_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
+        position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        if os.path.exists(firing_data_frame_path):
+            print('I found a firing data frame.')
+            spatial_firing = pd.read_pickle(firing_data_frame_path)
+            position = pd.read_pickle(position_path)
+
+            if 'position_x' in spatial_firing:
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'max_firing_rate_hd', 'position_x', 'position_y', 'hd', 'firing_maps', 'grid_score', 'grid_spacing']].copy()
+                spatial_firing['trajectory_hd'] = [np.asanyarray(position.hd)] * len(spatial_firing)
+                spatial_firing['trajectory_position_x'] = [np.asanyarray(position.position_x)] * len(spatial_firing)
+                spatial_firing['trajectory_position_y'] = [np.asanyarray(position.position_y)] * len(spatial_firing)
+
+                # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+                spatial_firing_data = spatial_firing_data.append(spatial_firing)
+                print(spatial_firing_data.head())
+
+    spatial_firing_data.to_pickle(output_path)
+    return spatial_firing_data
 
 
 def load_data_frame_spatial_firing(output_path):
@@ -142,11 +171,51 @@ def load_position_data(output_path):
     spatial_data.to_pickle(output_path)
 
 
+def load_field_data_for_r(output_path):
+    field_data_combined = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a field data frame.')
+            field_data = pd.read_pickle(data_frame_path)
+            '''
+            'session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+            'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+            'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+            'times_session', 'time_spent_in_field', 'position_x_session',
+            'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+            'shuffled_data', 'shuffled_means', 'shuffled_std',
+            'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz',
+            'real_and_shuffled_data_differ_bin', 'number_of_different_bins'
+            '''
+            if 'shuffled_data' in field_data:
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                    'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                    'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                    'times_session', 'time_spent_in_field', 'position_x_session',
+                                                    'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                    'shuffled_means', 'shuffled_std',
+                                                    'hd_histogram_real_data', 'time_spent_in_bins',
+                                                    'field_histograms_hz',
+                                                    'real_and_shuffled_data_differ_bin', 'number_of_different_bins',
+                                                    'number_of_different_bins_shuffled', 'number_of_different_bins_bh',
+                                                    'number_of_different_bins_holm',
+                                                    'number_of_different_bins_shuffled_corrected_p']].copy()
+                field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
+
+                field_data_combined = field_data_combined.append(field_data_to_combine)
+                print(field_data_combined.head())
+    field_data_combined.to_pickle(output_path)
+
+
 def main():
     if os.path.exists(server_test_file):
         print('I see the server.')
-
-    load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist2.pkl')
+    output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/rat_data_hd.pkl'
+    load_data_frame_spatial_firing_modeling(output_path, server_path_rat, spike_sorter='')
+    # load_field_data_for_r('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/field_data_modes.pkl')
+    # load_data_frame('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/spatial_firing_all_mice_hist2.pkl')
     # load_position_data('/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/data_for_modeling/trajectory_all_mice_hist.pkl')
     # load_data_frame_spatial_firing('/Users/s1466507/Documents/Ephys/recordings/all_mice_df_all2.pkl')   # for two-sample watson analysis
     # load_data_frame_field_data_frame('/Users/s1466507/Documents/Ephys/recordings/shuffled_field_data_all_mice.pkl')  # for shuffled field analysis

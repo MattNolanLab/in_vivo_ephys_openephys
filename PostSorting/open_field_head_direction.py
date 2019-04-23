@@ -133,7 +133,10 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     hd_spike_histograms = []
     for index, cluster in spatial_firing.iterrows():
         # cluster = spatial_firing.cluster_id.values[index] - 1
-        angles_spike = (cluster.hd + 180) * np.pi / 180
+        try:
+            angles_spike = (cluster.hd + 180) * np.pi / 180
+        except:
+            angles_spike = angles_spike = (np.array(cluster.hd) + 180) * np.pi / 180
 
         if prm.get_is_stable() is False:
             save_hd_for_r(angles_whole_session, angles_spike, index, prm)
@@ -200,6 +203,10 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
     cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
     spatial_firing_cluster = pd.DataFrame(cluster_id)
     if type(spatial_firing.position_x_pixels[cluster]) is np.ndarray:
+        spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
+        spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
+        spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
+    elif type(spatial_firing.position_x_pixels[cluster]) is list:
         spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
         spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
         spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]

@@ -65,13 +65,14 @@ def sync_data(recording_to_process, prm, spatial_data):
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
     PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
+    PostSorting.make_plots.plot_waveforms_opto(spatial_firing, prm)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
-    # PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
@@ -117,8 +118,8 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
         position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
-        # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
-        # spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
+        spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+        spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
         save_data_frames(spatial_firing, synced_spatial_data)
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
@@ -128,7 +129,7 @@ def run_analyses(spike_data_in, synced_spatial_data):
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
-    # spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+    spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
     save_data_frames(spatial_firing, synced_spatial_data)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
@@ -182,6 +183,8 @@ def main():
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M7_2018-03-12_15-16-29_of'
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M13_2018-05-09_10-32-20_of'
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M15_2018-05-11_10-56-39_of'
+    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-03-08_14-37-05_of'
+
 
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)
