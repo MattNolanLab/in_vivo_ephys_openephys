@@ -313,8 +313,8 @@ def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle):
 
 # add shuffled data to data frame as a new column for each cell
 def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000, animal='mouse'):
-    if 'shuffled_data' in spatial_firing:
-        return spatial_firing
+    #if 'shuffled_data' in spatial_firing:
+     #   return spatial_firing
 
     if os.path.exists(local_path + 'shuffle_analysis') is True:
         shutil.rmtree(local_path + 'shuffle_analysis')
@@ -342,8 +342,8 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
 
 
 def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal, number_of_bins=20):
-    if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
-        return spatial_firing
+    #if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
+        #return spatial_firing
     print('Analyze shuffled data.')
     spatial_firing = add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins)
     spatial_firing = add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_bins=20)
@@ -504,7 +504,6 @@ def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, 
 
 
 def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
-    spatial_firing = spatial_firing.head(2)
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
     print('I finished the shuffled analysis on ' + animal + ' data.')
