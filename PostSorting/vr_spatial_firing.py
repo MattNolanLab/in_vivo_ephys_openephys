@@ -106,7 +106,7 @@ def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_st
         spike_data_movement, spike_data_stationary = split_and_add_trial_number(cluster_index,spike_data_movement, spike_data_stationary, np.array(spike_data.trial_number[cluster_index]),above_threshold_indices,below_threshold_indices)
         spike_data_movement, spike_data_stationary = split_and_add_x_location_cm(cluster_index,spike_data_movement, spike_data_stationary, np.array(spike_data.x_position_cm[cluster_index]),above_threshold_indices,below_threshold_indices)
         spike_data_movement, spike_data_stationary = split_and_add_trial_type(cluster_index,spike_data_movement, spike_data_stationary, np.array(spike_data.trial_type[cluster_index]),above_threshold_indices,below_threshold_indices)
-    return spike_data, spike_data_movement, spike_data_stationary
+    return spike_data_movement
 
 
 def split_spatial_firing_by_trial_type(spike_data):
@@ -162,11 +162,11 @@ def process_spatial_firing(spike_data, spatial_data):
     spike_data_stationary = spike_data.copy()
 
     spike_data = find_firing_location_indices(spike_data, spatial_data)
-    spike_data, spike_data_movement, spike_data_stationary = split_spatial_firing_by_speed(spike_data, spike_data_movement,spike_data_stationary)
+    spike_data = split_spatial_firing_by_speed(spike_data, spike_data_movement,spike_data_stationary)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
     spike_data_movement = split_spatial_firing_by_trial_type(spike_data_movement)
     #spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
     print('-------------------------------------------------------------')
     print('spatial firing processed')
     print('-------------------------------------------------------------')
-    return spike_data, spike_data_movement
+    return spike_data

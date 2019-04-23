@@ -19,6 +19,12 @@ def get_bin_size(spatial_data):
     return bin_size_cm,number_of_bins
 
 
+@jit
+def gaussian_kernel(kernx):
+    kerny = np.exp(np.power(kernx, 2)/2 * (-1))
+    return kerny
+
+
 def create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials):
     posrange = np.linspace(spatial_data.x_position_cm.min(), spatial_data.x_position_cm.max(), num=number_of_bins+1)
     trialrange = np.unique(array_of_trials)
@@ -128,7 +134,11 @@ def add_trial_number(firing_rate_map, processed_position_data):
 
 
 def smooth_spike_rate(firing_rate_map):
-    firing_rate_map['spike_rate_on_trials_smoothed'] = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(np.array(firing_rate_map['spike_rate_on_trials'])), 5)
+    firing_rate_map['spike_rate_on_trials_convolved'] = PostSorting.vr_sync_spatial_data.get_rolling_sum(np.nan_to_num(np.array(firing_rate_map['spike_rate_on_trials'])), 5)
+    return firing_rate_map
+
+
+def gaussian_convolve_spike_rate(firing_rate_map):
     return firing_rate_map
 
 
@@ -156,6 +166,7 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
+        firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
 
     print('-------------------------------------------------------------')

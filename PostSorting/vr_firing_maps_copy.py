@@ -17,7 +17,7 @@ def get_dwell(spatial_data, prm):
 
 
 def get_bin_size(prm):
-    bin_size_cm = 1
+    bin_size_cm = 2
     return bin_size_cm
 
 
@@ -47,6 +47,7 @@ def gaussian_kernel(kernx):
     return kerny
 
 
+# not trial by trial calculation
 def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
@@ -70,8 +71,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
 
     return firing_rate_map
 
-
-
+'''
 def calculate_firing_rate_for_cluster_parallel_trial_by_trial(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     print(cluster)
@@ -90,21 +90,46 @@ def calculate_firing_rate_for_cluster_parallel_trial_by_trial(cluster, smooth, f
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
-                #firing_rate_map[x] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
                 firing_rate_map[x,y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
             else:
-                #firing_rate_map[x] = 0
                 firing_rate_map[x,y] = 0
 
     return firing_rate_map
+'''
 
+def calculate_firing_rate_for_cluster_parallel_trial_by_trial(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+    print('Started another cluster')
+    print(cluster)
+    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
+    cluster_firings = pd.DataFrame({'x_position_cm': firing_data_spatial.x_position_cm[cluster_index], 'y_position_cm': firing_data_spatial.trial_number[cluster_index], 'trial_type': firing_data_spatial.trial_type[cluster_index]})
+    spike_positions_x = cluster_firings.x_position_cm.values
+    spike_trial_types = cluster_firings.trial_type.values
+    spike_trials = cluster_firings.y_position_cm.values
+    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y, 3))
+    for x in range(number_of_bins_x):
+        for y in range(number_of_bins_y):
+            trial_type = np.unique(np.take(spike_trial_types, np.where(spike_trials == y)))
+            px = x * bin_size_pixels + (bin_size_pixels / 2)
+            py = y * bin_size_pixels + (bin_size_pixels / 2)
+            spike_distances = np.sqrt(np.power(px - spike_positions_x, 2))
+            spike_distances = spike_distances[~np.isnan(spike_distances)]
+            occupancy_distances = np.sqrt(np.power((px - positions_x), 2))
+            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
+            bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
+
+            if bin_occupancy >= min_dwell:
+                firing_rate_map[x,y,trial_type] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+            else:
+                firing_rate_map[x,y,trial_type] = 0
+
+    return firing_rate_map
 
 
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.time_seconds.diff().mean()*1000
     min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
-    smooth = 1
+    smooth = 2
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
     clusters = range(len(firing_data_spatial))
@@ -154,7 +179,7 @@ def find_maximum_firing_rate(spatial_firing):
 
 
 def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
-    position_heat_map = get_position_heatmap(spatial_data, prm)
+    #position_heat_map = get_position_heatmap(spatial_data, prm)
     firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
     #firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
     return firing_data_spatial
