@@ -92,7 +92,7 @@ def make_firing_field_maps_for_trial_types(spike_data, raw_position_data, proces
         firing_rate_map = pd.DataFrame()
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         firing_rate_map,number_of_bins,array_of_trials,spike_data = find_spikes_on_trials(firing_rate_map, spike_data, raw_position_data, cluster_index)
-        spike_data = normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data.binned_time_ms_per_trial)
+        spike_data = normalise_spike_number_by_time(cluster_index,spike_data,firing_rate_map, processed_position_data.binned_time_ms_per_trial_moving)
         spike_data = average_over_trials(cluster_index,spike_data, raw_position_data.trial_number.max(), processed_position_data)
         #smooth_firing_rate(cluster_index,spike_data)
     print('-------------------------------------------------------------')
@@ -163,7 +163,7 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index)
         firing_rate_map = add_trial_number(firing_rate_map, processed_position_data)
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
-        firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
+        firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial_moving)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
         firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
