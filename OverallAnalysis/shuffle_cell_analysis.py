@@ -504,7 +504,7 @@ def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, 
 
 
 def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
-    spatial_firing = spatial_firing.head(2)   # todo REMOVE THIS - FOR TESTING ONLY
+    spatial_firing = spatial_firing.head(2)
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
     print('I finished the shuffled analysis on ' + animal + ' data.')
