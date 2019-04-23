@@ -115,7 +115,7 @@ def add_data_to_dataframe(cluster_index, firing_rate_map, spike_data):
     spike_data.at[cluster_index, 'spike_rate_on_trials'] = list(sr)
 
     sr_smooth=[]
-    sr_smooth.append(np.array(firing_rate_map['spike_rate_on_trials_smoothed']))
+    sr_smooth.append(np.array(firing_rate_map['spike_rate_on_trials_convolved']))
     sr_smooth.append(np.array(firing_rate_map['trial_number']))
     sr_smooth.append(np.array(firing_rate_map['trial_type']))
     spike_data.at[cluster_index, 'spike_rate_on_trials_smoothed'] = list(sr_smooth)
