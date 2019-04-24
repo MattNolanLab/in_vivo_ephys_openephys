@@ -4,6 +4,7 @@ import math_utility
 import math
 import numpy as np
 import os
+import OverallAnalysis.folder_path_settings
 import pandas as pd
 import plot_utility
 from rpy2 import robjects as robj
@@ -12,9 +13,9 @@ from rpy2.robjects import pandas2ri
 import scipy.stats
 
 
-local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/field_modes/'
-server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_modes/'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 
 def load_field_data(output_path, server_path, spike_sorter):
@@ -75,7 +76,7 @@ def tag_accepted_fields_rat(field_data, accepted_fields):
 
 
 # add cell type tp rat data frame
-def add_cell_types_to_data_frame_rat(field_data):
+def add_cell_types_to_data_frame(field_data):
     cell_type = []
     for index, field in field_data.iterrows():
         if field.hd_score >= 0.5 and field.grid_score >= 0.4:
@@ -92,18 +93,12 @@ def add_cell_types_to_data_frame_rat(field_data):
     return field_data
 
 
-# todo: replace this with python implementation
-def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
-    accepted_fields_to_merge = accepted_fields[['unique_id', 'cell type', 'grid score', 'hd score']]
-    field_data_merged = pd.merge(field_data, accepted_fields_to_merge, on='unique_id')
-    return field_data_merged
-
-
 def resample_histogram(histogram):
     number_of_times_to_sample = robj.r(100000)
+    seed = robj.r(210)
     hd_cluster_r = robj.FloatVector(histogram)
     rejection_sampling_r = robj.r['rejection.sampling']
-    resampled_distribution = rejection_sampling_r(number_of_times_to_sample, hd_cluster_r)
+    resampled_distribution = rejection_sampling_r(number_of_times_to_sample, hd_cluster_r, seed)
     return resampled_distribution
 
 
@@ -328,7 +323,7 @@ def process_circular_data(animal):
         field_data = analyze_histograms(field_data, mouse_path)
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-        field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+        field_data = add_cell_types_to_data_frame(field_data)
         calculate_std_of_modes_for_cells(field_data, 'mouse')
         plot_std_of_modes(field_data, 'mouse')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
@@ -339,7 +334,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = analyze_histograms(field_data, rat_path)
-        field_data = add_cell_types_to_data_frame_rat(field_data)
+        field_data = add_cell_types_to_data_frame(field_data)
         calculate_std_of_modes_for_cells(field_data, 'rat')
         plot_std_of_modes(field_data, 'rat')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'rat')
