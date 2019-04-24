@@ -510,14 +510,15 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
     print('I will plot histograms now.')
+    good_cell = spatial_firing.false_positive == False
     grid = spatial_firing.grid_score >= 0.4
     hd = spatial_firing.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
     hd_cells = np.logical_and(np.logical_not(grid), hd)
     grid_cells = np.logical_and(grid, np.logical_not(hd))
 
-    shuffled_spatial_firing_grid = spatial_firing[grid_cells]
-    shuffled_spatial_firing_not_classified = spatial_firing[not_classified]
+    shuffled_spatial_firing_grid = spatial_firing[grid_cells & good_cell]
+    shuffled_spatial_firing_not_classified = spatial_firing[not_classified & good_cell]
 
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal)
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal)
