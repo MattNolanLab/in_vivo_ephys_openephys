@@ -10,8 +10,13 @@
 #    x = rejection.sampling(n, cell)
 #    plot(cell, type="l")         # Compare with original density
 #    plot(density(x))
-rejection.sampling = function(n, cell, k=NULL) {
+rejection.sampling = function(n, cell, seed, k=NULL) {
     # install.packages("movMF")
+    if(missing(seed)){
+        set.seed(225)
+    } else{
+        set.seed(seed)
+    }
     P = function(x) { cell[x] }                     # Target density
     Q = function(x) { dunif(x, min=1, max=360) }    # Proposal density
     rQ = function(n) { runif(n, min=1, max=360) }   # Proposal random sample
