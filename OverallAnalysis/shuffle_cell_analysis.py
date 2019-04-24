@@ -463,7 +463,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_xlabel('Significant bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20.5)
