@@ -108,11 +108,12 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head-direction score', fontsize=22)
-    ax.set_ylabel('Two-sample Watson test stat', fontsize=22)
+    ax.set_xlabel('Head-direction score', fontsize=30)
+    ax.set_ylabel('Watson test stat', fontsize=30)
     plt.axhline(0.386, color='red', alpha=0.8)  # p < 0.001
     plt.axhline(0.268, color='red', alpha=0.8)  # p < 0.01
-    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05)
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 16})
+    plt.tight_layout()
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
     plt.close()
 
