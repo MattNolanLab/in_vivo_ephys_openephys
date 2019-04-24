@@ -283,7 +283,7 @@ def plot_bar_chart_for_cells(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
         plt.close()
 
 
@@ -300,7 +300,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
 
 
@@ -316,9 +316,9 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
     if 'shuffled_data' in spatial_firing:
         return spatial_firing
 
-    if os.path.exists(local_path + 'shuffle_analysis') is True:
-        shutil.rmtree(local_path + 'shuffle_analysis')
-    os.makedirs(local_path + 'shuffle_analysis')
+    if os.path.exists(local_path + 'shuffle_analysis_' + animal) is True:
+        shutil.rmtree(local_path + 'shuffle_analysis_' + animal)
+    os.makedirs(local_path + 'shuffle_analysis_' + animal)
 
     shuffled_histograms_all = []
     for index, cell in spatial_firing.iterrows():
