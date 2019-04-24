@@ -100,7 +100,7 @@ def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
 
 
 def resample_histogram(histogram):
-    number_of_times_to_sample = robj.r(1000)
+    number_of_times_to_sample = robj.r(100000)
     hd_cluster_r = robj.FloatVector(histogram)
     rejection_sampling_r = robj.r['rejection.sampling']
     resampled_distribution = rejection_sampling_r(number_of_times_to_sample, hd_cluster_r)
