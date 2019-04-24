@@ -79,6 +79,7 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
 
 
 def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
+    plt.cla()
     good_cluster = df_all_cells.false_positive == False
     grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
     hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
@@ -87,7 +88,7 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     fig, ax = plt.subplots()
     hd_score = df_all_cells[good_cluster].hd_score
     watson_two_stat = df_all_cells[good_cluster].watson_test_hd
-    plt.scatter(hd_score, watson_two_stat, color='gray', marker='o', alpha=0.7)
+    plt.scatter(hd_score, watson_two_stat, color='gray', marker='o', alpha=0.7, label='non-spatial')
 
     hd_score_grid = df_all_cells[good_cluster & grid_cell].hd_score
     watson_two_stat_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
@@ -97,10 +98,10 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
 
     hd_score_conj = df_all_cells[good_cluster & conjunctive_cell].hd_score
     watson_two_stat_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
-
-    plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o')
-    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o')
-    plt.scatter(hd_score_conj, watson_two_stat_conj, color='yellow', marker='o')
+    plt.xlim([10**-1, 10**0])
+    plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o', label='hd')
+    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o', label='grid')
+    plt.scatter(hd_score_conj, watson_two_stat_conj, color='orange', marker='o', label='conjunctive')
     plt.xscale('log')
     plt.yscale('log')
     ax.spines['top'].set_visible(False)
@@ -109,8 +110,11 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Head-direction score', fontsize=22)
     ax.set_ylabel('Two-sample Watson test stat', fontsize=22)
-    plt.axhline(0.268, color='red')
+    plt.axhline(0.386, color='red', alpha=0.8)  # p < 0.001
+    plt.axhline(0.268, color='red', alpha=0.8)  # p < 0.01
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05)
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
+    plt.close()
 
 
 def add_combined_id_to_df(df_all_mice):
