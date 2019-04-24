@@ -54,6 +54,12 @@ def generate_time_bins(spike_times):
     return time_bins
 
 
+def generate_time_bins_for_speed(speed):
+    time_bins = np.arange(0, (speed.shape[0]), 7500)
+    #round down???
+    return time_bins
+
+
 def bin_spike_times(spike_times, number_of_bins):
     binned_spikes_in_time = create_histogram(spike_times, number_of_bins)
     return binned_spikes_in_time
@@ -68,7 +74,7 @@ def create_histogram(spike_times, number_of_bins):
 
 def convolve_binned_spikes(binned_spike_times):
     convolved_spikes=[]
-    convolved_spikes = elephant.statistics.fftkernel(binned_spike_times, 2)
+    convolved_spikes = fftkernel(binned_spike_times, 2)
     return convolved_spikes
 
 
@@ -83,12 +89,12 @@ def convolve_spikes_in_time(spike_data):
     return spike_data
 
 
-def convolve_speed_in_time(spike_data):
+def convolve_speed_in_time(spike_data, raw_spatial_data):
     print('I am convolving spikes in time...')
     for cluster in range(len(spike_data)):
         print(spike_data.at[cluster, "session_id"], cluster)
-        spike_times = np.array(spike_data.at[cluster, "speed_per200ms"])
-        number_of_bins = generate_time_bins(spike_times)
-        binned_speed = bin_spike_times(spike_times, number_of_bins)
+        speed = np.array(raw_spatial_data["speed_per200ms"])
+        number_of_bins = generate_time_bins_for_speed(speed)
+        binned_speed = bin_spike_times(speed, number_of_bins)
         convolved_speed = convolve_binned_spikes(binned_speed)
     return spike_data
