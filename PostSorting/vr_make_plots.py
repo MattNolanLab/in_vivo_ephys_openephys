@@ -311,7 +311,7 @@ def plot_gc_firing_rate_maps(spike_data, prm, prefix):
 plot gaussian convolved firing rate in time against similarly convolved speed and location. 
 '''
 
-def plot_convolved_rates_in_time(spike_data,processed_position_data, prm, prefix):
+def plot_convolved_rates_in_time(spike_data, prm):
     print('plotting spike rastas...')
     save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
     if os.path.exists(save_path) is False:
@@ -337,7 +337,7 @@ def plot_convolved_rates_in_time(spike_data,processed_position_data, prm, prefix
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_SPEED_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
         spikes_on_track = plt.figure(figsize=(4,5))
@@ -356,7 +356,7 @@ def plot_convolved_rates_in_time(spike_data,processed_position_data, prm, prefix
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
