@@ -81,13 +81,26 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
 def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     good_cluster = df_all_cells.false_positive == False
     grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
+    hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
+    conjunctive_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score >= 0.5)
+
     fig, ax = plt.subplots()
     hd_score = df_all_cells[good_cluster].hd_score
     watson_two_stat = df_all_cells[good_cluster].watson_test_hd
-    plt.scatter(hd_score, watson_two_stat)
+    plt.scatter(hd_score, watson_two_stat, color='gray', marker='o', alpha=0.7)
+
     hd_score_grid = df_all_cells[good_cluster & grid_cell].hd_score
     watson_two_stat_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
-    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red')
+
+    hd_score_hd = df_all_cells[good_cluster & hd_cell].hd_score
+    watson_two_stat_hd = df_all_cells[good_cluster & hd_cell].watson_test_hd
+
+    hd_score_conj = df_all_cells[good_cluster & conjunctive_cell].hd_score
+    watson_two_stat_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
+
+    plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o')
+    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o')
+    plt.scatter(hd_score_conj, watson_two_stat_conj, color='yellow', marker='o')
     plt.xscale('log')
     plt.yscale('log')
     ax.spines['top'].set_visible(False)
@@ -216,14 +229,14 @@ def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
     plt.savefig(save_output_path + animal + '_head_direction_histogram_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
-def make_descriptive_plots(all_cells):
-    plot_hd_vs_watson_stat(all_cells)
-    plot_results_of_watson_test(all_cells, cell_type='grid')
-    plot_results_of_watson_test(all_cells, cell_type='hd')
+def make_descriptive_plots(all_cells, animal):
+    plot_hd_vs_watson_stat(all_cells, animal)
+    plot_results_of_watson_test(all_cells, cell_type='grid', animal=animal)
+    plot_results_of_watson_test(all_cells, cell_type='hd', animal=animal)
     plot_results_of_watson_test(all_cells, cell_type='nc')
-    plot_hd_histograms(all_cells, cell_type='grid')
-    plot_hd_histograms(all_cells, cell_type='hd')
-    plot_hd_histograms(all_cells, cell_type='nc')
+    plot_hd_histograms(all_cells, cell_type='grid', animal=animal)
+    plot_hd_histograms(all_cells, cell_type='hd', animal=animal)
+    plot_hd_histograms(all_cells, cell_type='nc', animal=animal)
 
 
 def tag_false_positives(all_cells, animal):
@@ -252,7 +265,7 @@ def process_data(animal):
     all_cells = tag_false_positives(all_cells, animal)
 
     # correlation_between_first_and_second_halves_of_session(df_all_mice)
-    make_descriptive_plots(all_cells)
+    make_descriptive_plots(all_cells, animal)
 
 
 def main():
