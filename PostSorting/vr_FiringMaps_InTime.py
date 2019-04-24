@@ -78,6 +78,14 @@ def convolve_binned_spikes(binned_spike_times):
     return convolved_spikes
 
 
+def bin_speed(speed, speed_bins):
+    binned_speed=[]
+    for bcount, bin in enumerate(speed_bins):
+        mean_speed = np.nanmean(speed[bin:(bin+7500)])
+        binned_speed = np.append(binned_speed, mean_speed)
+    return binned_speed
+
+
 def convolve_spikes_in_time(spike_data):
     print('I am convolving spikes in time...')
     for cluster in range(len(spike_data)):
@@ -95,6 +103,6 @@ def convolve_speed_in_time(spike_data, raw_spatial_data):
         print(spike_data.at[cluster, "session_id"], cluster)
         speed = np.array(raw_spatial_data["speed_per200ms"])
         number_of_bins = generate_time_bins_for_speed(speed)
-        binned_speed = bin_spike_times(speed, number_of_bins)
+        binned_speed = bin_speed(speed, number_of_bins)
         convolved_speed = convolve_binned_spikes(binned_speed)
     return spike_data
