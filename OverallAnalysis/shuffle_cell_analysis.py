@@ -509,7 +509,9 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     print('I finished the shuffled analysis on ' + animal + ' data.')
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
-    print('I will plot histograms now.')
+    else:
+        spatial_firing['false_positive'] = False
+
     good_cell = spatial_firing.false_positive == False
     grid = spatial_firing.grid_score >= 0.4
     hd = spatial_firing.hd_score >= 0.5
