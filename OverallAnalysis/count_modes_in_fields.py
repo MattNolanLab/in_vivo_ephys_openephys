@@ -220,15 +220,15 @@ def analyze_histograms(field_data, output_path):
     return field_data
 
 
-def format_bar_chart(ax):
+def format_bar_chart(ax, x_label, y_label):
     plt.gcf().subplots_adjust(bottom=0.2)
     plt.gcf().subplots_adjust(left=0.2)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Standard dev of modes', fontsize=30)
-    ax.set_ylabel('Number of cells', fontsize=30)
+    ax.set_xlabel(x_label, fontsize=30)
+    ax.set_ylabel(y_label, fontsize=30)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     return ax
@@ -283,7 +283,7 @@ def plot_std_of_modes(field_data, animal):
     grid_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax)
+    ax = format_bar_chart(ax, 'Standard dev of modes', 'Number of cells')
     plt.hist(grid_modes_std_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
     plt.hist(conjunctive_modes_std_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
@@ -326,7 +326,7 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     grid_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax)
+    ax = format_bar_chart(ax, 'Number of modes', 'Number of cells')
     plt.hist(grid_number_of_modes_cell, color='navy', normed=True, alpha=0.7)
     plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, alpha=0.7)
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
