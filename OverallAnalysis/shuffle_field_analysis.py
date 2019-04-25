@@ -300,17 +300,22 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
         shutil.rmtree(path + 'shuffle_analysis')
     os.makedirs(path + 'shuffle_analysis')
     field_histograms_all = []
+    shuffled_hd_all = []
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
         field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
         shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle)
+        shuffled_hd_field = []
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            shuffled_hd_field.extend(shuffled_hd)
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
         field_histograms_all.append(field_histograms)
+        shuffled_hd_all.append(shuffled_hd_field)
     print(path)
     field_data['shuffled_data'] = field_histograms_all
+    field_data['shuffled_hd_distribution'] = shuffled_hd_all
     return field_data
 
 
