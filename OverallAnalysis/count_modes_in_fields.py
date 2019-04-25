@@ -290,6 +290,52 @@ def plot_std_of_modes(field_data, animal):
     plt.close()
 
 
+def get_number_of_modes_for_cell(field_data):
+    number_of_modes_cells = []
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+    for cell in range(len(list_of_cells)):
+        print('cell' + str(cell))
+        cell_id = list_of_cells[cell]
+        number_of_modes = 0
+        number_of_fields_with_modes = 0
+        mode_angles = field_data.loc[field_data['unique_cell_id'] == cell_id].mode_angles
+        if type(mode_angles) is float:
+            if ~np.isnan(mode_angles):
+                number_of_modes += 1
+                number_of_fields_with_modes += 1
+            else:
+                continue
+        else:
+            for field in mode_angles:
+                if type(field) is float:
+                    if ~np.isnan(field):
+                        number_of_modes += 1
+                        number_of_fields_with_modes += 1
+                else:
+                    number_of_modes += len(field)
+                    number_of_fields_with_modes += 1
+
+        print(number_of_modes)
+        print(number_of_fields_with_modes)
+        if number_of_fields_with_modes > 0:
+            number_of_modes_cells.extend([number_of_modes / number_of_fields_with_modes])
+    return number_of_modes_cells
+
+
+def plot_histogram_of_number_of_modes(field_data, animal):
+    grid_cells = field_data['cell type'] == 'grid'
+    conjunctive_cells = field_data['cell type'] == 'conjunctive'
+    accepted_field = field_data['accepted_field'] == True
+    grid_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & grid_cells])
+    conjunctive_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & conjunctive_cells])
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax)
+    plt.hist(grid_number_of_modes_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
+    plt.close()
+
+
 def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
@@ -326,6 +372,7 @@ def process_circular_data(animal):
         field_data = add_cell_types_to_data_frame(field_data)
         calculate_std_of_modes_for_cells(field_data, 'mouse')
         plot_std_of_modes(field_data, 'mouse')
+        plot_histogram_of_number_of_modes(field_data, 'mouse')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
 
     if animal == 'rat':
@@ -337,6 +384,7 @@ def process_circular_data(animal):
         field_data = add_cell_types_to_data_frame(field_data)
         calculate_std_of_modes_for_cells(field_data, 'rat')
         plot_std_of_modes(field_data, 'rat')
+        plot_histogram_of_number_of_modes(field_data, 'rat')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'rat')
 
 
