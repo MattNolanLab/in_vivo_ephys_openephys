@@ -294,7 +294,6 @@ def get_number_of_modes_for_cell(field_data):
     number_of_modes_cells = []
     list_of_cells = np.unique(list(field_data.unique_cell_id))
     for cell in range(len(list_of_cells)):
-        print('cell' + str(cell))
         cell_id = list_of_cells[cell]
         number_of_modes = 0
         number_of_fields_with_modes = 0
@@ -315,8 +314,6 @@ def get_number_of_modes_for_cell(field_data):
                     number_of_modes += len(field)
                     number_of_fields_with_modes += 1
 
-        print(number_of_modes)
-        print(number_of_fields_with_modes)
         if number_of_fields_with_modes > 0:
             number_of_modes_cells.extend([number_of_modes / number_of_fields_with_modes])
     return number_of_modes_cells
@@ -330,8 +327,8 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     conjunctive_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax)
-    plt.hist(grid_number_of_modes_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
-    plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(grid_number_of_modes_cell, color='navy', normed=True, alpha=0.7)
+    plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, alpha=0.7)
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
     plt.close()
 
