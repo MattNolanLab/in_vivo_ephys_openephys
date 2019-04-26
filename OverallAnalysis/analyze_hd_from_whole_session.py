@@ -101,6 +101,8 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     watson_two_stat_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
     plt.xlim([10**-1, 10**0])
     plt.ylim([10**-1, 10**3])
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
     plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o', s=marker_size, label='HD')
     plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o', s=marker_size, label='Grid')
     plt.scatter(hd_score_conj, watson_two_stat_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
