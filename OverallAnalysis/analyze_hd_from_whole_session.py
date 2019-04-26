@@ -80,6 +80,7 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
 
 def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     plt.cla()
+    marker_size = 45
     good_cluster = df_all_cells.false_positive == False
     grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
     hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
@@ -88,7 +89,7 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     fig, ax = plt.subplots()
     hd_score = df_all_cells[good_cluster].hd_score
     watson_two_stat = df_all_cells[good_cluster].watson_test_hd
-    plt.scatter(hd_score, watson_two_stat, color='gray', marker='o', alpha=0.7, label='non-spatial')
+    plt.scatter(hd_score, watson_two_stat, color='gray', marker='o', s=marker_size, alpha=0.7, label='Non-spatial')
 
     hd_score_grid = df_all_cells[good_cluster & grid_cell].hd_score
     watson_two_stat_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
@@ -99,9 +100,10 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     hd_score_conj = df_all_cells[good_cluster & conjunctive_cell].hd_score
     watson_two_stat_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
     plt.xlim([10**-1, 10**0])
-    plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o', label='hd')
-    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o', label='grid')
-    plt.scatter(hd_score_conj, watson_two_stat_conj, color='orange', marker='o', label='conjunctive')
+    plt.ylim([10**-1, 10**3])
+    plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o', s=marker_size, label='HD')
+    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o', s=marker_size, label='Grid')
+    plt.scatter(hd_score_conj, watson_two_stat_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
     plt.xscale('log')
     plt.yscale('log')
     ax.spines['top'].set_visible(False)
@@ -112,7 +114,7 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     ax.set_ylabel('Watson test stat', fontsize=30)
     plt.axhline(0.386, color='red', alpha=0.8)  # p < 0.001
     plt.axhline(0.268, color='red', alpha=0.8)  # p < 0.01
-    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 16})
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
     plt.tight_layout()
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
     plt.close()
