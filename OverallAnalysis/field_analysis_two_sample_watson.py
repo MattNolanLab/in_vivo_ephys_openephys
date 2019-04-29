@@ -13,6 +13,15 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_fields/'
 
 
+def calculate_watson_results_for_shuffled_data(server_path, animal):
+    # load df
+    # run watson test on shuffled data
+    # save df
+    pass
+
+
+
+
 # load field data from server - must include hd in fields
 def load_data_frame_field_data(output_path, server_path, spike_sorter='/MountainSort'):
     if os.path.exists(output_path):
@@ -104,7 +113,7 @@ def compare_hd_when_the_cell_fired_to_heading(field_data):
         hd_session = field.hd_in_field_session
         two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session)
         two_watson_stats.append(two_watson_stat)
-        field_data['watson_two_stat'] = two_watson_stats
+    field_data['watson_two_stat'] = two_watson_stats
     return field_data
 
 
