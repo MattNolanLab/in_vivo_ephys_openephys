@@ -71,8 +71,6 @@ def get_field_data_frame(spatial_firing, position_data):
                     grid_score = cluster.grid_score
                     grid_spacing = cluster.grid_spacing
                     field_size = cluster.field_size
-                    print('[data frame utility] - this does not have a grid score: ')
-                    print(spatial_firing.session_id)
                 else:
                     grid_score = np.nan
                     grid_spacing = np.nan
