@@ -37,8 +37,8 @@ def format_bar_chart(ax):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head direction [deg]', fontsize=30)
-    ax.set_ylabel('Frequency [Hz]', fontsize=30)
+    ax.set_xlabel('Head direction (deg)', fontsize=30)
+    ax.set_ylabel('Frequency (Hz)', fontsize=30)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     return ax
@@ -359,7 +359,7 @@ def local_data_test():
 
     field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
     field_df = shuffle_field_data(field_df, local_path, number_of_bins=20, number_of_times_to_shuffle=1000)
-    field_df = analyze_shuffled_data(field_df, 30, local_path, number_of_bins=20)
+    field_df = analyze_shuffled_data(field_df, local_path, 30, number_of_bins=20)
     field_df.to_pickle(local_path + 'shuffle_analysis/shuffled_fields.pkl')
 
 
