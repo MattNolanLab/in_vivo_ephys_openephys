@@ -31,32 +31,6 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter='/Mountain
                                              'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
                                              'times_session', 'time_spent_in_field', 'position_x_session',
                                              'position_y_session', 'hd_in_field_session', 'hd_hist_session',
-                                             'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz']].copy()
-
-                    field_data_combined = field_data_combined.append(field_data_to_combine)
-                    print(field_data_combined.head())
-        field_data_combined.to_pickle(output_path)
-        return field_data_combined
-
-
-def load_data_frame_field_data_rat(output_path, server_path, spike_sorter='/MountainSort'):
-    if os.path.exists(output_path):
-        field_data = pd.read_pickle(output_path)
-        return field_data
-    else:
-        field_data_combined = pd.DataFrame()
-        for recording_folder in glob.glob(server_path + '*'):
-            os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
-            if os.path.exists(data_frame_path):
-                print('I found a field data frame.')
-                field_data = pd.read_pickle(data_frame_path)
-                if 'field_id' in field_data:
-                    field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
-                                             'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
-                                             'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
-                                             'times_session', 'time_spent_in_field', 'position_x_session',
-                                             'position_y_session', 'hd_in_field_session', 'hd_hist_session',
                                              'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz', 'grid_score', 'grid_spacing', 'hd_score']].copy()
 
                     field_data_combined = field_data_combined.append(field_data_to_combine)
@@ -92,7 +66,7 @@ def tag_accepted_fields_rat(field_data, accepted_fields):
 
 
 # add cell type tp rat data frame
-def add_cell_types_to_data_frame_rat(field_data):
+def add_cell_types_to_data_frame(field_data):
     cell_type = []
     for index, field in field_data.iterrows():
         if field.hd_score >= 0.5 and field.grid_score >= 0.4:
@@ -105,15 +79,7 @@ def add_cell_types_to_data_frame_rat(field_data):
             cell_type.append('na')
 
     field_data['cell type'] = cell_type
-
     return field_data
-
-
-# todo: replace this with python implementation
-def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
-    accepted_fields_to_merge = accepted_fields[['unique_id', 'cell type', 'grid score', 'hd score']]
-    field_data_merged = pd.merge(field_data, accepted_fields_to_merge, on='unique_id')
-    return field_data_merged
 
 
 # run 2 sample watson test and put it in df
@@ -127,11 +93,14 @@ def run_two_sample_watson_test(hd_cluster, hd_session):
 
 
 # call R to tun two sample watson test on HD from firing field when the cell fired vs HD when the mouse was in the field
-def compare_hd_when_the_cell_fired_to_heading(field_data):
+def compare_hd_when_the_cell_fired_to_heading(field_data, shuffled=False):
     two_watson_stats = []
     for index, field in field_data.iterrows():
         print('analyzing ' + field.unique_id)
-        hd_cluster = field.hd_in_field_spikes
+        if shuffled is False:
+            hd_cluster = field.hd_in_field_spikes
+        else:
+            hd_cluster = field.shuffled_hd_distribution
         hd_session = field.hd_in_field_session
         two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session)
         two_watson_stats.append(two_watson_stat)
@@ -167,32 +136,28 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse'):
     plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '.png', bbox_inches="tight")
 
 
-def analyze_mouse_data():
-    field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_watson_test.pkl', server_path_mouse)   # for two-sample watson analysis
-    accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
+def analyze_data(animal, shuffled=False):
+    if animal == 'mouse':
+        server_path = server_path_mouse
+        false_positive_file_name = 'list_of_accepted_fields.xlsx'
+        data_frame_name = 'all_mice_fields_watson_test.pkl'
+    else:
+        server_path = server_path_rat
+        false_positive_file_name = 'included_fields_detector2_sargolini.xlsx'
+        data_frame_name = 'all_rats_fields_watson_test.pkl'
+    field_data = load_data_frame_field_data(analysis_path + data_frame_name, server_path)   # for two-sample watson analysis
+    accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
     field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-    field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+    field_data = add_cell_types_to_data_frame(field_data)
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
-    plot_histogram_of_watson_stat(field_data, animal='mouse')
-    plot_histogram_of_watson_stat(field_data, type='grid', animal='mouse')
-    plot_histogram_of_watson_stat(field_data, type='nc', animal='mouse')
-
-
-def analyze_rat_data():
-    field_data = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_watson_test.pkl', server_path_rat, spike_sorter='')  # for two-sample watson analysis
-    accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
-    field_data = tag_accepted_fields_rat(field_data, accepted_fields)
-    field_data = add_cell_types_to_data_frame_rat(field_data)
-    field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
-
-    plot_histogram_of_watson_stat(field_data, animal='rat')
-    plot_histogram_of_watson_stat(field_data, type='grid', animal='rat')
-    plot_histogram_of_watson_stat(field_data, type='nc', animal='rat')
+    plot_histogram_of_watson_stat(field_data, animal=animal)
+    plot_histogram_of_watson_stat(field_data, type='grid', animal=animal)
+    plot_histogram_of_watson_stat(field_data, type='nc', animal=animal)
 
 
 def main():
-    analyze_rat_data()
-    analyze_mouse_data()
+    analyze_data('mouse')
+    analyze_data('rat')
 
 
 if __name__ == '__main__':
