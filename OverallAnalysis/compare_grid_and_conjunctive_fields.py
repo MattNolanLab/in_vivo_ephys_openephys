@@ -309,7 +309,7 @@ def analyse_rat_data():
 
 
 def main():
-    #analyse_rat_data()
+    analyse_rat_data()
     analyse_mouse_data()
 
 
