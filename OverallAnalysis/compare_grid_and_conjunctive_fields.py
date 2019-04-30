@@ -273,10 +273,16 @@ def plot_rotation_examples(field_data, type='grid'):
     plt.close()
 
 
+def plot_example_polar_histogram(field_data, cell_id):
+    field_data = field_data[field_data.unique_id == cell_id]
+    plot_and_save_polar_histogram(field_data.hd_hist_from_all_fields, '_cell_' + str(id))
+
+
 def analyse_mouse_data():
     field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_grid_vs_conjunctive_fields.pkl')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
     field_data = tag_accepted_fields(field_data, accepted_fields)
+    plot_example_polar_histogram(field_data, 20)  # todo debug and add proper unique ID not 20
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = calculate_population_mean_vector_angle(field_data)
     field_data = rotate_by_population_mean_vector(field_data)
@@ -292,6 +298,7 @@ def analyse_rat_data():
     field_data_rat = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     field_data_rat = tag_accepted_fields(field_data_rat, accepted_fields)
+    plot_example_polar_histogram(field_data_rat, '11207-06070501+02_2_1')  # todo debug
     field_data_rat = add_cell_types_to_data_frame_rat(field_data_rat)
     field_data_rat = calculate_population_mean_vector_angle(field_data_rat)
     field_data = rotate_by_population_mean_vector(field_data_rat)
