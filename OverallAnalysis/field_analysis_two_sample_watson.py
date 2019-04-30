@@ -13,13 +13,33 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_fields/'
 
 
-def calculate_watson_results_for_shuffled_data(server_path, animal):
-    # load df
-    # run watson test on shuffled data
-    # save df
-    pass
-
-
+def calculate_watson_results_for_shuffled_data(server_path, spike_sorter):
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+        data_frame_out = recording_folder + spike_sorter + '/DataFrames/shuffled_fields_watson.pkl'
+        if os.path.exists(data_frame_path):
+            if os.path.exists(data_frame_out):
+                continue
+            print('I found a field data frame. ' + recording_folder)
+            field_data = pd.read_pickle(data_frame_path)
+            if 'shuffled_hd_distribution' in field_data:
+                watson_stat_all_fields = []
+                for field in range((len(field_data))):
+                    hd_session = field_data.hd_in_field_session.iloc[field]
+                    shuffled_hd = field_data.shuffled_hd_distribution.iloc[field]
+                    number_of_spikes_in_field = field_data.iloc[field].number_of_spikes_in_field
+                    number_of_shuffles = int(len(shuffled_hd) / number_of_spikes_in_field)
+                    watson_stat_shuffle = []
+                    for shuffle in range(number_of_shuffles):
+                        individual_shuffle = shuffled_hd[shuffle*number_of_spikes_in_field:(shuffle+1) * number_of_spikes_in_field]
+                        individual_shuffle = np.around(individual_shuffle, decimals=2)
+                        watson_stat = run_two_sample_watson_test(individual_shuffle, hd_session)
+                        watson_stat = round(watson_stat, 2)
+                        watson_stat_shuffle.append(watson_stat)
+                    watson_stat_all_fields.append(watson_stat_shuffle)
+                field_data['watson_stat_shuffled'] = watson_stat_all_fields
+                field_data.to_pickle(data_frame_out)
 
 
 # load field data from server - must include hd in fields
@@ -31,7 +51,7 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter='/Mountain
         field_data_combined = pd.DataFrame()
         for recording_folder in glob.glob(server_path + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields_watson.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
@@ -43,7 +63,7 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter='/Mountain
                                                         'hd_in_field_session', 'hd_hist_session',
                                                         'hd_histogram_real_data', 'time_spent_in_bins',
                                                         'field_histograms_hz', 'grid_score', 'grid_spacing',
-                                                        'hd_score']].copy()
+                                                        'hd_score', 'watson_stat_shuffled']].copy()
 
                     field_data_combined = field_data_combined.append(field_data_to_combine)
                     # print(field_data_combined.head())
@@ -150,13 +170,21 @@ def analyze_data(animal):
         server_path = server_path_mouse
         false_positive_file_name = 'list_of_accepted_fields.xlsx'
         data_frame_name = 'all_mice_fields_watson_test.pkl'
+        spike_sorter = '/MountainSort'
     else:
         server_path = server_path_rat
         false_positive_file_name = 'included_fields_detector2_sargolini.xlsx'
         data_frame_name = 'all_rats_fields_watson_test.pkl'
-    field_data = load_data_frame_field_data(analysis_path + data_frame_name, server_path)   # for two-sample watson analysis
+        spike_sorter = ''
+
+    calculate_watson_results_for_shuffled_data(server_path, spike_sorter)
+
+    field_data = load_data_frame_field_data(analysis_path + data_frame_name, server_path, spike_sorter=spike_sorter)   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
-    field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    if animal == 'mouse':
+        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    if animal == 'rat':
+        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
     field_data = add_cell_types_to_data_frame(field_data)
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
     plot_histogram_of_watson_stat(field_data, animal=animal)
