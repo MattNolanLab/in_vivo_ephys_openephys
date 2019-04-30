@@ -229,12 +229,12 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='
     plt.close()
 
 
-def plot_and_save_polar_histogram(histogram, name):
+def plot_and_save_polar_histogram(histogram, name, color='gray', line_width=10):
     plt.cla()
     theta = np.linspace(0, 2 * np.pi, 361)
     ax = plt.subplot(1, 1, 1, polar=True)
     ax = plot_utility.style_polar_plot(ax)
-    ax.plot(theta[:-1], histogram, color='gray', linewidth=10)
+    ax.plot(theta[:-1], histogram, color=color, linewidth=line_width)
     plt.savefig(analysis_path + 'rotated_hd_histograms_' + name + '.png', dpi=300, bbox_inches="tight")
     plt.close()
 
@@ -275,16 +275,16 @@ def plot_rotation_examples(field_data, type='grid'):
 
 def plot_example_polar_histogram(field_data, cell_id):
     field_data = field_data[field_data.unique_id == cell_id]
-    plot_and_save_polar_histogram(field_data.hd_hist_from_all_fields, '_cell_' + str(id))
+    plot_and_save_polar_histogram(list(field_data.hd_hist_from_all_fields)[0], '_cell_' + str(cell_id), color='red', line_width=2)
 
 
 def analyse_mouse_data():
     field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_grid_vs_conjunctive_fields.pkl')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
     field_data = tag_accepted_fields(field_data, accepted_fields)
-    plot_example_polar_histogram(field_data, 20)  # todo debug and add proper unique ID not 20
     field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
     field_data = calculate_population_mean_vector_angle(field_data)
+    plot_example_polar_histogram(field_data, 'M12_2018-04-10_14-22-14_of_2_1')
     field_data = rotate_by_population_mean_vector(field_data)
     plot_rotation_examples(field_data, type='grid')
     plot_rotation_examples(field_data, type='conjunctive')
@@ -298,9 +298,9 @@ def analyse_rat_data():
     field_data_rat = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     field_data_rat = tag_accepted_fields(field_data_rat, accepted_fields)
-    plot_example_polar_histogram(field_data_rat, '11207-06070501+02_2_1')  # todo debug
     field_data_rat = add_cell_types_to_data_frame_rat(field_data_rat)
     field_data_rat = calculate_population_mean_vector_angle(field_data_rat)
+    plot_example_polar_histogram(field_data_rat, '11207-06070501+02_2_1')
     field_data = rotate_by_population_mean_vector(field_data_rat)
     plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='rat')
     plot_rotated_histograms_for_cell_type(field_data, cell_type='conjunctive', animal='rat')
@@ -309,7 +309,7 @@ def analyse_rat_data():
 
 
 def main():
-    analyse_rat_data()
+    #analyse_rat_data()
     analyse_mouse_data()
 
 
