@@ -146,9 +146,10 @@ def plot_rotated_histograms_for_cell_type(field_data, cell_type='grid', animal='
     histograms = []
     for cell in list_of_cells:
         cell_type_filter = field_data['cell type'] == cell_type  # filter for cell type
+        accepted = field_data['accepted_field'] == True
         fields_of_cell = field_data.unique_cell_id == cell  # filter for cell
-        if not field_data[fields_of_cell & cell_type_filter].empty:
-            histogram = field_data[fields_of_cell & cell_type_filter].hd_hist_from_all_fields_rotated.iloc[0]
+        if not field_data[fields_of_cell & cell_type_filter & accepted].empty:
+            histogram = field_data[fields_of_cell & cell_type_filter & accepted].hd_hist_from_all_fields_rotated.iloc[0]
             histograms.append(histogram)
 
     plt.cla()
@@ -188,9 +189,9 @@ def plot_rotation_examples(field_data, type='grid'):
         cell_2 = 25
         cell_3 = 35
     else:
-        cell_1 = 1
-        cell_2 = 3
-        cell_3 = 6
+        cell_1 = 0
+        cell_2 = 1
+        cell_3 = 2
     combined_field_histograms = field_data.hd_hist_from_all_fields[field_data.accepted_field & grid_cells]
     rotated = field_data.hd_hist_from_all_fields_rotated[field_data.accepted_field & grid_cells]
     total_x = field_data.population_mean_vector_x[field_data.accepted_field & grid_cells]
