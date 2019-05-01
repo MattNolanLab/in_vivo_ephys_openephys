@@ -18,83 +18,32 @@ analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + 'compare
 sampling_rate = 30000
 
 
-# load data frame and save it
-def load_data_frame_field_data(output_path):
-    if os.path.exists(output_path):
-        field_data = pd.read_pickle(output_path)
-        return field_data
-    else:
-        field_data_combined = pd.DataFrame()
-        for recording_folder in glob.glob(server_path_mouse + '*'):
-            os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
-            if os.path.exists(data_frame_path):
-                print('I found a field data frame.')
-                field_data = pd.read_pickle(data_frame_path)
-                if 'field_id' in field_data:
-                    field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
-                                             'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
-                                             'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
-                                             'times_session', 'time_spent_in_field', 'position_x_session',
-                                             'position_y_session', 'hd_in_field_session', 'hd_hist_session',
-                                             'hd_histogram_real_data', 'time_spent_in_bins', 'field_histograms_hz']].copy()
-
-                    field_data_combined = field_data_combined.append(field_data_to_combine)
-                    print(field_data_combined.head())
-        field_data_combined.to_pickle(output_path)
-        return field_data_combined
-
-
 # loads shuffle analysis results for rat field data
-def load_data_frame_field_data_rat(output_path):
+def load_data_frame_field_data(output_path, server_path, spike_sorter):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
 
-    else:
-        field_data_combined = pd.DataFrame()
-        for recording_folder in glob.glob(server_path_rat + '*'):
-            os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + '/DataFrames/shuffled_fields.pkl'
-            if os.path.exists(data_frame_path):
-                print('I found a field data frame.')
-                field_data = pd.read_pickle(data_frame_path)
-                if 'field_id' in field_data:
-                    field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
-                                                        'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
-                                                        'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
-                                                        'times_session', 'time_spent_in_field', 'position_x_session',
-                                                        'position_y_session', 'hd_in_field_session', 'hd_hist_session',
-                                                        'hd_histogram_real_data', 'time_spent_in_bins',
-                                                        'field_histograms_hz', 'hd_score', 'grid_score']].copy()
+    field_data_combined = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a field data frame.')
+            field_data = pd.read_pickle(data_frame_path)
+            if 'field_id' in field_data:
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                    'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                    'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                    'times_session', 'time_spent_in_field', 'position_x_session',
+                                                    'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                    'hd_histogram_real_data', 'time_spent_in_bins',
+                                                    'field_histograms_hz', 'hd_score', 'grid_score']].copy()
 
-                    field_data_combined = field_data_combined.append(field_data_to_combine)
-                    print(field_data_combined.head())
+                field_data_combined = field_data_combined.append(field_data_to_combine)
+                print(field_data_combined.head())
     field_data_combined.to_pickle(output_path)
     return field_data_combined
-
-
-def load_rat_data_frame_cells(output_path):
-    if os.path.exists(output_path):
-        field_data = pd.read_pickle(output_path)
-        return field_data
-    spatial_firing_data = pd.DataFrame()
-    for recording_folder in glob.glob(server_path_rat + '*'):
-        os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl'
-        if os.path.exists(data_frame_path):
-            print('I found a firing data frame.')
-            spatial_firing = pd.read_pickle(data_frame_path)
-            if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'firing_times', 'position_x', 'position_y', 'hd', 'speed', 'firing_maps', 'hd_spike_histogram']].copy()
-
-                # print(spatial_firing.head())
-                spatial_firing_data = spatial_firing_data.append(spatial_firing)
-
-            print(spatial_firing_data.head())
-    spatial_firing_data = OverallAnalysis.analyze_hd_from_whole_session.add_combined_id_to_df(spatial_firing_data)
-    spatial_firing_data = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing_data)
-    spatial_firing_data.to_pickle(output_path)
 
 
 # select accepted fields based on list of fields that were correctly identified by field detector
@@ -113,15 +62,8 @@ def tag_accepted_fields(field_data, accepted_fields):
     return field_data
 
 
-# todo: replace this with python implementation
-def read_cell_type_from_accepted_clusters(field_data, accepted_fields):
-    accepted_fields_to_merge = accepted_fields[['unique_id', 'cell type', 'grid score', 'hd score']]
-    field_data_merged = pd.merge(field_data, accepted_fields_to_merge, on='unique_id')
-    return field_data_merged
-
-
 # add cell type tp rat data frame
-def add_cell_types_to_data_frame_rat(field_data):
+def add_cell_types_to_data_frame(field_data):
     cell_type = []
     for index, field in field_data.iterrows():
         if field.hd_score >= 0.5 and field.grid_score >= 0.4:
@@ -279,10 +221,10 @@ def plot_example_polar_histogram(field_data, cell_id):
 
 
 def analyse_mouse_data():
-    field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_grid_vs_conjunctive_fields.pkl')   # for two-sample watson analysis
+    field_data = load_data_frame_field_data(analysis_path + 'all_mice_fields_grid_vs_conjunctive_fields.pkl', server_path_mouse, spike_sorter='/MountainSort')   # for two-sample watson analysis
     accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
     field_data = tag_accepted_fields(field_data, accepted_fields)
-    field_data = read_cell_type_from_accepted_clusters(field_data, accepted_fields)
+    field_data = add_cell_types_to_data_frame(field_data)
     field_data = calculate_population_mean_vector_angle(field_data)
     plot_example_polar_histogram(field_data, 'M12_2018-04-10_14-22-14_of_2_1')
     field_data = rotate_by_population_mean_vector(field_data)
@@ -295,10 +237,10 @@ def analyse_mouse_data():
 
 
 def analyse_rat_data():
-    field_data_rat = load_data_frame_field_data_rat(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl')
+    field_data_rat = load_data_frame_field_data(analysis_path + 'all_rats_fields_grid_vs_conjunctive_fields.pkl', server_path_rat, spike_sorter='')
     accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
     field_data_rat = tag_accepted_fields(field_data_rat, accepted_fields)
-    field_data_rat = add_cell_types_to_data_frame_rat(field_data_rat)
+    field_data_rat = add_cell_types_to_data_frame(field_data_rat)
     field_data_rat = calculate_population_mean_vector_angle(field_data_rat)
     plot_example_polar_histogram(field_data_rat, '11207-06070501+02_2_1')
     field_data = rotate_by_population_mean_vector(field_data_rat)
@@ -309,8 +251,8 @@ def analyse_rat_data():
 
 
 def main():
-    analyse_rat_data()
     analyse_mouse_data()
+    analyse_rat_data()
 
 
 if __name__ == '__main__':
