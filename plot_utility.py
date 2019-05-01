@@ -62,7 +62,7 @@ def style_polar_plot(ax):
     ax.axvline(math.radians(0), color='black', linewidth=1, alpha=0.6)
     ax.set_theta_direction(-1)
     ax.set_theta_offset(np.pi/2.0)
-    ax.xaxis.set_tick_params(labelsize=30)
+    ax.xaxis.set_tick_params(labelsize=25)
     return ax
 
 
@@ -105,8 +105,8 @@ def style_vr_plot(ax, x_max):
 
     #ax.set_aspect('equal')
 
-    ax.axvline(0, linewidth = 2.5, color = 'black') # bold line on the y axis
-    ax.axhline(0, linewidth = 2.5, color = 'black') # bold line on the x axis
+    ax.axvline(0, linewidth=2.5, color='black') # bold line on the y axis
+    ax.axhline(0, linewidth=2.5, color='black') # bold line on the x axis
     plt.ylim(0, x_max)
 
     return ax
