@@ -3,21 +3,20 @@ import pandas as pd
 import matplotlib.pylab as plt
 import numpy as np
 import OverallAnalysis.false_positives
+import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
 import os
-import PostSorting.open_field_grid_cells
 
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 
 
-local_path_mouse = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
-local_path_rat = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_rats_df_2.pkl'
-path_to_data = 'C://Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
-save_output_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/'
-server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
-# local_output_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/watson_two_test_cells/all_mice_df_2.pkl'
+local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df.pkl'
+local_path_rat = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_rats_df.pkl'
+path_to_data = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
+save_output_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 
 # run 2 sample watson test and put it in df
@@ -35,7 +34,10 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
     two_watson_stats = []
     for index, cell in cell_data.iterrows():
         print('two-sample watson test on ' + str(cell.session_id) + str(cell.cluster_id))
-        hd_cluster = (cell.hd + 180) * np.pi / 180
+        if type(cell.hd) == list:
+            hd_cluster = (np.asanyarray(cell.hd) + 180) * np.pi / 180
+        else:
+            hd_cluster = (cell.hd + 180) * np.pi / 180
         hd_session = (position.hd + 180) * np.pi / 180
         two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session)
         two_watson_stats.append(two_watson_stat)
@@ -43,44 +45,7 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
     return cell_data
 
 
-def load_data_frame_spatial_firing_mouse(output_path, server_path, spike_sorter='/MountainSort'):
-    if os.path.exists(output_path):
-        spatial_firing = pd.read_pickle(output_path)
-        return spatial_firing
-    spatial_firing_data = pd.DataFrame()
-    for recording_folder in glob.glob(server_path + '*'):
-        os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        if os.path.exists(data_frame_path):
-            print('I found a firing data frame.')
-            spatial_firing = pd.read_pickle(data_frame_path)
-            '''
-            'session_id' 'cluster_id' 'tetrode' 'primary_channel' 'firing_times'
-             'firing_times_opto' 'number_of_spikes' 'mean_firing_rate' 'isolation'
-             'noise_overlap' 'peak_snr' 'peak_amp' 'random_snippets' 'position_x'
-             'position_x_pixels' 'position_y' 'position_y_pixels' 'hd' 'speed'
-             'hd_spike_histogram' 'max_firing_rate_hd' 'preferred_HD' 'hd_score'
-             'firing_maps' 'max_firing_rate' 'firing_fields' 'field_max_firing_rate'
-             'firing_fields_hd_session' 'firing_fields_hd_cluster' 'field_hd_max_rate'
-             'field_preferred_hd' 'field_hd_score' 'number_of_spikes_in_fields'
-             'time_spent_in_fields_sampling_points' 'spike_times_in_fields'
-             'times_in_session_fields' 'field_corr_r' 'field_corr_p'
-             'hd_correlation_first_vs_second_half'
-             'hd_correlation_first_vs_second_half_p' 'hd_hist_first_half'
-             'hd_hist_second_half'
-
-            '''
-            if ('hd_hist_first_half' in spatial_firing) and ('watson_test_hd' in spatial_firing):
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'number_of_spikes', 'mean_firing_rate', 'isolation', 'noise_overlap', 'peak_snr', 'hd_correlation_first_vs_second_half', 'hd_correlation_first_vs_second_half_p', 'hd_hist_first_half', 'firing_fields_hd_session', 'hd_hist_second_half', 'watson_test_hd', 'hd_score', 'hd', 'kuiper_cluster', 'watson_cluster', 'firing_maps']].copy()
-                spatial_firing_data = spatial_firing_data.append(spatial_firing)
-
-                print(spatial_firing_data.head())
-
-    spatial_firing_data.to_pickle(output_path)
-    return spatial_firing_data
-
-
-def load_spatial_firing_rat(output_path, server_path, spike_sorter=''):
+def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
     if os.path.exists(output_path):
         spatial_firing = pd.read_pickle(output_path)
         return spatial_firing
@@ -93,43 +58,68 @@ def load_spatial_firing_rat(output_path, server_path, spike_sorter=''):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
             position_data = pd.read_pickle(position_data_path)
+            if 'grid_score' in spatial_firing:
+                if animal == 'rat':
+                    spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
+                                                    'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
+                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
+                                                     'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
+                if animal == 'mouse':
+                    spatial_firing = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'firing_times',
+                                                     'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
+                                                     'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
+                                                     'grid_spacing', 'field_size', 'grid_score', 'hd_score',
+                                                     'firing_fields']].copy()
 
-            spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
-                                   'number_of_spikes', 'hd', 'speed', 'mean_firing_rate',
-                                   'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD', 'hd_score',
-                                   'grid_spacing', 'field_size', 'grid_score', 'firing_fields']].copy()
-            if 'watson_test_hd' not in spatial_firing:
                 spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
-            spatial_firing_data = spatial_firing_data.append(spatial_firing)
+                spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
-    # compare first and second halves
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
 
 
-def load_data_and_tag_false_positive_cells():
-    false_positives_path = path_to_data + 'false_positives_all.txt'
-    df_all_mice = load_data_frame_spatial_firing_mouse(local_path_mouse, server_path_mouse)
-    list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
-    df_all_mice = add_combined_id_to_df(df_all_mice)
-    df_all_mice['false_positive'] = df_all_mice['false_positive_id'].isin(list_of_false_positives)
-    return df_all_mice
+def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
+    plt.cla()
+    marker_size = 45
+    good_cluster = df_all_cells.false_positive == False
+    grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
+    hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
+    conjunctive_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score >= 0.5)
 
-
-def plot_hd_vs_watson_stat(df_all_mice, animal='mouse'):
-    good_cluster = df_all_mice.false_positive == False
     fig, ax = plt.subplots()
-    hd_score = df_all_mice[good_cluster].hd_score
-    watson_two_stat = df_all_mice[good_cluster].watson_test_hd
-    plt.scatter(hd_score, watson_two_stat)
+    hd_score = df_all_cells[good_cluster].hd_score
+    watson_two_stat = df_all_cells[good_cluster].watson_test_hd
+    plt.scatter(hd_score, watson_two_stat, color='gray', marker='o', s=marker_size, alpha=0.7, label='Non-spatial')
+
+    hd_score_grid = df_all_cells[good_cluster & grid_cell].hd_score
+    watson_two_stat_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
+
+    hd_score_hd = df_all_cells[good_cluster & hd_cell].hd_score
+    watson_two_stat_hd = df_all_cells[good_cluster & hd_cell].watson_test_hd
+
+    hd_score_conj = df_all_cells[good_cluster & conjunctive_cell].hd_score
+    watson_two_stat_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
+    plt.xlim([10**-1, 10**0])
+    plt.ylim([10**-1, 10**3])
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o', s=marker_size, label='HD')
+    plt.scatter(hd_score_grid, watson_two_stat_grid, color='red', marker='o', s=marker_size, label='Grid')
+    plt.scatter(hd_score_conj, watson_two_stat_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
+    plt.xscale('log')
+    plt.yscale('log')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head-direction score')
-    ax.set_ylabel('Two-sample Watson test stat')
-    plt.axhline(0.268, color='red')
-    plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '.png')
+    ax.set_xlabel('Head-direction score', fontsize=30)
+    ax.set_ylabel('Watson test stat', fontsize=30)
+    plt.axhline(0.386, color='red', alpha=0.8)  # p < 0.001
+    plt.axhline(0.268, color='red', alpha=0.8)  # p < 0.01
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
+    plt.tight_layout()
+    plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
+    plt.close()
 
 
 def add_combined_id_to_df(df_all_mice):
@@ -173,13 +163,6 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory_' + animal + '.png', y_axis_label='Number of cells')
 
 
-def add_grid_score_to_df(df_all_mice):
-    if 'grid_score' not in df_all_mice.columns:
-        df_all_mice = PostSorting.open_field_grid_cells.process_grid_data(df_all_mice)
-        df_all_mice.to_pickle(local_path_mouse)
-    return df_all_mice
-
-
 def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'):
     good_cluster = df_all_animals.false_positive == False
     if cell_type == 'grid':
@@ -195,16 +178,16 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
         not_hd = df_all_animals.hd_score < 0.5
         cells_to_analyze = not_grid & not_hd
 
-    if animal == 'rat':
-        watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
-    else:
-        watson_test_stats = df_all_animals.watson_cluster[good_cluster & cells_to_analyze]
+    watson_test_stats = df_all_animals.watson_test_hd[good_cluster & cells_to_analyze]
+    watson_test_stats = watson_test_stats[~np.isnan(watson_test_stats)]
+
     print('\n' + animal)
     print(cell_type)
     print('all cells: ' + str(len(watson_test_stats)))
     print('significant: ' + str(len(watson_test_stats > 0.268)))
 
     fig, ax = plt.subplots()
+    plt.xscale('log')
     plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
@@ -215,38 +198,89 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Proportion', size=30)
-    # plt.ylim(0, 0.05)
-    # plt.xlim(0, 700)
-    # ax.set_aspect(6000)
-    # plt.yticks([0, 0.05])
     plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
-def process_mouse_data():
+def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
+    good_cluster = df_all_animals.false_positive == False
+    if cell_type == 'grid':
+        grid = df_all_animals.grid_score >= 0.4
+        not_hd = df_all_animals.hd_score < 0.5
+        cells_to_analyze = grid & not_hd
+    elif cell_type == 'hd':
+        not_grid = df_all_animals.grid_score < 0.4
+        hd = df_all_animals.hd_score >= 0.5
+        cells_to_analyze = not_grid & hd
+    else:
+        not_grid = df_all_animals.grid_score < 0.4
+        not_hd = df_all_animals.hd_score < 0.5
+        cells_to_analyze = not_grid & not_hd
+
+    hd_scores = df_all_animals.hd_score[good_cluster & cells_to_analyze]
+    hd_scores = hd_scores[~np.isnan(hd_scores)]
+
+    print('\n' + animal)
+    print(cell_type)
+    print('all cells: ' + str(len(hd_scores)))
+    print('significant: ' + str(len(hd_scores > 0.268)))
+
+    fig, ax = plt.subplots()
+    plt.hist(hd_scores, bins=30, color='navy', normed=True)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.xlim(0, 1)
+    # plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Head-direction score', size=30)
+    ax.set_ylabel('Proportion', size=30)
+    plt.savefig(save_output_path + animal + '_head_direction_histogram_' + cell_type + '_cells.png', bbox_inches="tight")
+
+
+def make_descriptive_plots(all_cells, animal):
+    plot_hd_vs_watson_stat(all_cells, animal)
+    plot_results_of_watson_test(all_cells, cell_type='grid', animal=animal)
+    plot_results_of_watson_test(all_cells, cell_type='hd', animal=animal)
+    plot_results_of_watson_test(all_cells, cell_type='nc')
+    plot_hd_histograms(all_cells, cell_type='grid', animal=animal)
+    plot_hd_histograms(all_cells, cell_type='hd', animal=animal)
+    plot_hd_histograms(all_cells, cell_type='nc', animal=animal)
+
+
+def tag_false_positives(all_cells, animal):
+    if animal == 'mouse':
+        false_positives_path = path_to_data + 'false_positives_all.txt'
+        list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
+        all_cells = add_combined_id_to_df(all_cells)
+        all_cells['false_positive'] = all_cells['false_positive_id'].isin(list_of_false_positives)
+    else:
+        all_cells['false_positive'] = np.full(len(all_cells), False)
+    return all_cells
+
+
+def process_data(animal):
     print('-------------------------------------------------------------')
-    df_all_mice = load_data_and_tag_false_positive_cells()
+    if animal == 'mouse':
+        spike_sorter = '/MountainSort'
+        local_path_animal = local_path_mouse
+        server_path_animal = server_path_mouse
+    else:
+        spike_sorter = ''
+        local_path_animal = local_path_rat
+        server_path_animal = server_path_rat
+
+    all_cells = load_spatial_firing(local_path_animal, server_path_animal, animal, spike_sorter)
+    all_cells = tag_false_positives(all_cells, animal)
+
     # correlation_between_first_and_second_halves_of_session(df_all_mice)
-    plot_hd_vs_watson_stat(df_all_mice)
-    add_grid_score_to_df(df_all_mice)
-    plot_results_of_watson_test(df_all_mice, cell_type='grid')
-    plot_results_of_watson_test(df_all_mice, cell_type='hd')
-    plot_results_of_watson_test(df_all_mice, cell_type='nc')
-
-
-def process_rat_data():
-    all_rats = load_spatial_firing_rat(local_path_rat, server_path_rat, spike_sorter='')
-    all_rats['false_positive'] = np.full(len(all_rats), False)
-    plot_hd_vs_watson_stat(all_rats, animal='rat')
-    plot_results_of_watson_test(all_rats, cell_type='grid', animal='rat')
-    plot_results_of_watson_test(all_rats, cell_type='hd', animal='rat')
-    plot_results_of_watson_test(all_rats, cell_type='nc', animal='rat')
-    # todo this needs to be added to the df
-    # correlation_between_first_and_second_halves_of_session(all_rats, animal='rat')
+    make_descriptive_plots(all_cells, animal)
 
 
 def main():
-    process_mouse_data()
-    process_rat_data()
+    process_data('mouse')
+    process_data('rat')
 
 
 if __name__ == '__main__':

@@ -3,6 +3,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import OverallAnalysis.false_positives
+import OverallAnalysis.folder_path_settings
 import pandas as pd
 import PostSorting.open_field_grid_cells
 import scipy
@@ -10,12 +11,12 @@ from scipy import stats
 import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
 
-local_path = '/Users/s1466507/Dropbox/Edinburgh/grid_fields/analysis/shuffled_analysis_cell/'
+local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis_cell/'
 local_path_mouse = local_path + 'all_mice_df.pkl'
 local_path_rat = local_path + 'all_rats_df.pkl'
 
-server_path_mouse = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/'
-server_path_rat = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/moser_data/Sargolini/all_data/'
+server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
+server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 
 def format_bar_chart(ax):
@@ -25,8 +26,8 @@ def format_bar_chart(ax):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head direction [deg]', fontsize=30)
-    ax.set_ylabel('Frequency [Hz]', fontsize=30)
+    ax.set_xlabel('Head direction (deg)', fontsize=30)
+    ax.set_ylabel('Frequency (Hz)', fontsize=30)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     return ax
@@ -92,29 +93,28 @@ def add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins=2
     shuffled_stdevs = []
     real_data_hz_all = []
     time_spent_in_bins_all = []
-    histograms_hz_all = []
+    histograms_hz_all_shuffled = []
     for index, cell in spatial_firing.iterrows():
-        cell_histograms = cell['shuffled_data']
+        shuffled_histograms = cell['shuffled_data']
         cell_spikes_hd = np.asanyarray(cell['hd'])
         cell_spikes_hd = cell_spikes_hd[~np.isnan(cell_spikes_hd)]  # real hd when the cell fired
         cell_session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session in field
         cell_session_hd = cell_session_hd[~np.isnan(cell_session_hd)]
         time_spent_in_bins = np.histogram(cell_session_hd, bins=number_of_bins)[0]
         time_spent_in_bins_all.append(time_spent_in_bins)
-        cell_histograms_hz = cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
-        histograms_hz_all.append(cell_histograms_hz)
-        mean_shuffled = np.mean(cell_histograms_hz, axis=0)
+        shuffled_histograms_hz = shuffled_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        histograms_hz_all_shuffled.append(shuffled_histograms_hz)
+        mean_shuffled = np.mean(shuffled_histograms_hz, axis=0)
         shuffled_means.append(mean_shuffled)
-        std_shuffled = np.std(cell_histograms_hz, axis=0)
+        std_shuffled = np.std(shuffled_histograms_hz, axis=0)
         shuffled_stdevs.append(std_shuffled)
-
         real_data_hz = np.histogram(cell_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
         real_data_hz_all.append(real_data_hz)
     spatial_firing['shuffled_means'] = shuffled_means
     spatial_firing['shuffled_std'] = shuffled_stdevs
-    spatial_firing['hd_histogram_real_data'] = real_data_hz_all
+    spatial_firing['hd_histogram_real_data_hz'] = real_data_hz_all
     spatial_firing['time_spent_in_bins'] = time_spent_in_bins_all
-    spatial_firing['cell_histograms_hz'] = histograms_hz_all
+    spatial_firing['shuffled_histograms_hz'] = histograms_hz_all_shuffled
     return spatial_firing
 
 
@@ -125,13 +125,11 @@ def add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_b
     error_bar_down_all = []
     for index, cell in spatial_firing.iterrows():
         shuffled_cell_histograms = cell['shuffled_data']
-        session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session
-        session_hd = session_hd[~np.isnan(session_hd)]
-        time_spent_in_bins = np.histogram(session_hd, bins=number_of_bins)[0]
-        cell_histograms_hz = shuffled_cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
-        percentile_value_shuffled_95 = np.percentile(cell_histograms_hz, 95, axis=0)
+        time_spent_in_bins = cell.time_spent_in_bins  # based on trajectory
+        shuffled_histograms_hz = shuffled_cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        percentile_value_shuffled_95 = np.percentile(shuffled_histograms_hz, 95, axis=0)
         percentile_values_95_all.append(percentile_value_shuffled_95)
-        percentile_value_shuffled_5 = np.percentile(cell_histograms_hz, 5, axis=0)
+        percentile_value_shuffled_5 = np.percentile(shuffled_histograms_hz, 5, axis=0)
         percentile_values_5_all.append(percentile_value_shuffled_5)
         error_bar_up = percentile_value_shuffled_95 - cell.shuffled_means
         error_bar_down = cell.shuffled_means - percentile_value_shuffled_5
@@ -150,7 +148,7 @@ def test_if_real_hd_differs_from_shuffled(spatial_firing):
     number_of_diff_bins = []
     for index, cell in spatial_firing.iterrows():
         # diff_field = np.abs(field.shuffled_means - field.hd_histogram_real_data) > field.shuffled_std * 2
-        diff_cell = (cell.shuffled_percentile_threshold_95 < cell.hd_histogram_real_data) + (cell.shuffled_percentile_threshold_5 > cell.hd_histogram_real_data)  # this is a pairwise OR on the binary arrays
+        diff_cell = (cell.shuffled_percentile_threshold_95 < cell.hd_histogram_real_data_hz) + (cell.shuffled_percentile_threshold_5 > cell.hd_histogram_real_data_hz)  # this is a pairwise OR on the binary arrays
         number_of_diffs = diff_cell.sum()
         real_and_shuffled_data_differ_bin.append(diff_cell)
         number_of_diff_bins.append(number_of_diffs)
@@ -184,7 +182,7 @@ def test_if_shuffle_differs_from_other_shuffles(spatial_firing):
         rejects_cell = np.empty(number_of_shuffles)
         rejects_cell[:] = np.nan
         for shuffle in range(number_of_shuffles):
-            diff_cell = (cell.shuffled_percentile_threshold_95 < cell.cell_histograms_hz[shuffle]) + (cell.shuffled_percentile_threshold_5 > cell.cell_histograms_hz[shuffle])  # this is a pairwise OR on the binary arrays
+            diff_cell = (cell.shuffled_percentile_threshold_95 < cell.shuffled_histograms_hz[shuffle]) + (cell.shuffled_percentile_threshold_5 > cell.shuffled_histograms_hz[shuffle])  # this is a pairwise OR on the binary arrays
             number_of_diffs = diff_cell.sum()
             rejects_cell[shuffle] = number_of_diffs
         rejected_bins_all_shuffles.append(rejects_cell)
@@ -198,11 +196,9 @@ def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firin
     number_of_shuffles = len(spatial_firing.shuffled_data.iloc[0])
     rejected_bins_all_shuffles = []
     for index, cell in spatial_firing.iterrows():
-        cell_histograms = cell['shuffled_data']
-        cell_session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session in field
-        cell_session_hd = cell_session_hd[~np.isnan(cell_session_hd)]
-        time_spent_in_bins = np.histogram(cell_session_hd, bins=number_of_bars)[0]
-        shuffled_data_normalized = cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        shuffled_histograms = cell['shuffled_data']
+        time_spent_in_bins = cell.time_spent_in_bins
+        shuffled_data_normalized = shuffled_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         rejects_cell = np.empty(number_of_shuffles)
         rejects_cell[:] = np.nan
         percentile_observed_data_bars = []
@@ -231,15 +227,13 @@ def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firin
 def calculate_percentile_of_observed_data(spatial_firing, sampling_rate_video, number_of_bars=20):
     percentile_observed_data_bars = []
     for index, cell in spatial_firing.iterrows():
-        cell_histograms = cell['shuffled_data']
-        cell_session_hd = np.asanyarray(cell['trajectory_hd'])  # hd from the whole session in field
-        cell_session_hd = cell_session_hd[~np.isnan(cell_session_hd)]
-        time_spent_in_bins = np.histogram(cell_session_hd, bins=number_of_bars)[0]
-        shuffled_data_normalized = cell_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
+        shuffled_histograms = cell['shuffled_data']
+        time_spent_in_bins = cell.time_spent_in_bins
+        shuffled_data_normalized = shuffled_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentiles_of_observed_bars = np.empty(number_of_bars)
         percentiles_of_observed_bars[:] = np.nan
         for bar in range(number_of_bars):
-            observed_data = cell.hd_histogram_real_data[bar]
+            observed_data = cell.hd_histogram_real_data_hz[bar]
             shuffled_data = shuffled_data_normalized[:, bar]
             percentile_of_observed_data = stats.percentileofscore(shuffled_data, observed_data)
             percentiles_of_observed_bars[bar] = percentile_of_observed_data
@@ -276,45 +270,37 @@ def calculate_corrected_p_values(spatial_firing, type='bh'):
     return spatial_firing
 
 
-def plot_bar_chart_for_cells(spatial_firing, path, sampling_rate_video, animal):
+def plot_bar_chart_for_cells(spatial_firing, path, animal):
     for index, cell in spatial_firing.iterrows():
         mean = cell['shuffled_means']
         std = cell['shuffled_std']
         cell_spikes_hd = np.array(cell['hd'])
-        cell_spikes_hd = cell_spikes_hd[~np.isnan(cell_spikes_hd)]
-        time_spent_in_bins = cell['time_spent_in_bins']
-        cell_histograms_hz = cell['cell_histograms_hz']
-        x_pos = np.arange(cell_histograms_hz.shape[1])
+        shuffled_histograms_hz = cell['shuffled_histograms_hz']
+        x_pos = np.arange(shuffled_histograms_hz.shape[1])
         fig, ax = plt.subplots()
         ax = format_bar_chart(ax)
         ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
-        real_data_hz = np.histogram(cell_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
-        plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
+        plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='red', s=40)
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
         plt.close()
 
 
-def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, sampling_rate_video, animal):
+def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
     for index, cell in spatial_firing.iterrows():
         mean = cell['shuffled_means']
         percentile_95 = cell['error_bar_95']
         percentile_5 = cell['error_bar_5']
-        cell_spikes_hd = np.array(cell['hd'])
-        cell_spikes_hd = cell_spikes_hd[~np.isnan(cell_spikes_hd)]
-        time_spent_in_bins = cell['time_spent_in_bins']
-        cell_histograms_hz = cell['cell_histograms_hz']
-        x_pos = np.arange(cell_histograms_hz.shape[1])
+        shuffled_histograms_hz = cell['shuffled_histograms_hz']
+        x_pos = np.arange(shuffled_histograms_hz.shape[1])
         fig, ax = plt.subplots()
         ax = format_bar_chart(ax)
         ax.errorbar(x_pos, mean, yerr=[percentile_5, percentile_95], alpha=0.7, color='black', ecolor='grey', capsize=10, fmt='o', markersize=10)
-        # ax.bar(x_pos, mean, yerr=[percentile_5, percentile_95], align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
-        real_data_hz = np.histogram(cell_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
-        plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
+        plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
 
 
@@ -330,9 +316,9 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
     if 'shuffled_data' in spatial_firing:
         return spatial_firing
 
-    if os.path.exists(local_path + 'shuffle_analysis') is True:
-        shutil.rmtree(local_path + 'shuffle_analysis')
-    os.makedirs(local_path + 'shuffle_analysis')
+    if os.path.exists(local_path + 'shuffle_analysis_' + animal) is True:
+        shutil.rmtree(local_path + 'shuffle_analysis_' + animal)
+    os.makedirs(local_path + 'shuffle_analysis_' + animal)
 
     shuffled_histograms_all = []
     for index, cell in spatial_firing.iterrows():
@@ -341,6 +327,7 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
         shuffle_indices = get_random_indices_for_shuffle(cell, number_of_times_to_shuffle)
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = cell['trajectory_hd'][shuffle_indices[shuffle]]
+            shuffled_hd = (shuffled_hd + 180) * np.pi / 180
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             shuffled_histograms[shuffle, :] = hist
         shuffled_histograms_all.append(shuffled_histograms)
@@ -357,6 +344,7 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
 def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal, number_of_bins=20):
     if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
         return spatial_firing
+    print('Analyze shuffled data.')
     spatial_firing = add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins)
     spatial_firing = add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_bins=20)
     spatial_firing = test_if_real_hd_differs_from_shuffled(spatial_firing)  # is the observed data within 95th percentile of the shuffled?
@@ -370,8 +358,8 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
     spatial_firing = count_number_of_significantly_different_bars_per_field(spatial_firing, significance_level=95, type='bh')
     spatial_firing = count_number_of_significantly_different_bars_per_field(spatial_firing, significance_level=95, type='holm')
     spatial_firing = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firing, sampling_rate_video, number_of_bars=20)
-    plot_bar_chart_for_cells(spatial_firing, save_path, sampling_rate_video, animal)
-    plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, save_path, sampling_rate_video, animal)
+    plot_bar_chart_for_cells(spatial_firing, save_path, animal)
+    plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, save_path, animal)
     if animal == 'mouse':
         spatial_firing.to_pickle(local_path_mouse)
     if animal == 'rat':
@@ -475,7 +463,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_xlabel('Significant bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20.5)
@@ -521,15 +509,18 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     print('I finished the shuffled analysis on ' + animal + ' data.')
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
-    print('I will plot histograms now.')
+    else:
+        spatial_firing['false_positive'] = False
+
+    good_cell = spatial_firing.false_positive == False
     grid = spatial_firing.grid_score >= 0.4
     hd = spatial_firing.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
     hd_cells = np.logical_and(np.logical_not(grid), hd)
     grid_cells = np.logical_and(grid, np.logical_not(hd))
 
-    shuffled_spatial_firing_grid = spatial_firing[grid_cells]
-    shuffled_spatial_firing_not_classified = spatial_firing[not_classified]
+    shuffled_spatial_firing_grid = spatial_firing[grid_cells & good_cell]
+    shuffled_spatial_firing_not_classified = spatial_firing[not_classified & good_cell]
 
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal)
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal)
