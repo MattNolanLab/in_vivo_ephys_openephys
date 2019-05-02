@@ -93,12 +93,37 @@ def clean_data(coefs):
     return [x for x in flat_coefs if str(x) != 'nan']
 
 
-def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive):
+def format_bar_chart(ax, x_label, y_label):
+    plt.gcf().subplots_adjust(bottom=0.2)
+    plt.gcf().subplots_adjust(left=0.2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel(x_label, fontsize=30)
+    ax.set_ylabel(y_label, fontsize=30)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    return ax
+
+
+def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal):
     grid_coefs = clean_data(coefs_grid)
     conj_coefs = clean_data(coefs_conjunctive)
-    plt.hist(grid_coefs, color='navy', alpha=0.7)
-    plt.hist(conj_coefs, coor='red', alpha=0.7)
-    pass
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plt.hist(grid_coefs, color='navy', alpha=0.7, normed=True)
+    if len(conj_coefs) > 0:
+        plt.hist(conj_coefs, color='red', alpha=0.7, normed='True')
+    plt.savefig(local_path + animal + '_correlation_of_field_histograms.png')
+
+
+def remove_nans(field1, field2):
+    not_nans_in_field1 = ~np.isnan(field1)
+    not_nans_in_field2 = ~np.isnan(field2)
+    field1 = field1[not_nans_in_field1 & not_nans_in_field2]
+    field2 = field2[not_nans_in_field1 & not_nans_in_field2]
+    return field1, field2
 
 
 def compare_hd_histograms(field_data):
@@ -113,7 +138,8 @@ def compare_hd_histograms(field_data):
         for index1, field1 in enumerate(field_histograms):
             for index2, field2 in enumerate(field_histograms):
                 if index1 != index2:
-                    pearson_coef = scipy.stats.pearsonr(field1, field2)[0]
+                    field1_clean, field2 = remove_nans(field1, field2)
+                    pearson_coef = scipy.stats.pearsonr(field1_clean, field2)[0]
                     pearson_coefs_cell.append(pearson_coef)
         pearson_coefs_all.append([pearson_coefs_cell])
         pearson_coefs_avg.append([np.mean(pearson_coefs_cell)])
@@ -130,13 +156,16 @@ def process_circular_data(animal):
         field_data = add_cell_types_to_data_frame(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
-
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
 
     if animal == 'rat':
         field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
+        grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
+        conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
 
 
 def main():
