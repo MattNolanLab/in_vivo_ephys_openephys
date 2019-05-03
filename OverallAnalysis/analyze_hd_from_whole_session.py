@@ -187,8 +187,9 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     print('significant: ' + str(len(watson_test_stats > 0.268)))
 
     fig, ax = plt.subplots()
-    plt.xscale('log')
-    plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
+    # plt.xscale('log')
+    plt.xlim(0, 5)
+    plt.hist(watson_test_stats, bins=30, color='navy', normed=True, alpha=0.7)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
