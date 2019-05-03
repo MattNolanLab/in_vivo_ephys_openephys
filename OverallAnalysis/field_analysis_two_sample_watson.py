@@ -137,7 +137,7 @@ def compare_hd_when_the_cell_fired_to_heading(field_data):
     return field_data
 
 
-def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse'):
+def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse', xlim=False):
     if type == 'grid':
         grid_cells = field_data['cell type'] == 'grid'
         watson_stats_accepted_fields = field_data.watson_two_stat[field_data.accepted_field & grid_cells]
@@ -151,11 +151,13 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse'):
         watson_shuffled = field_data.watson_stat_shuffled[field_data.accepted_field]
 
     fig, ax = plt.subplots()
+    if xlim == True:
+        plt.xlim(0, 0.5)
     plt.hist(watson_stats_accepted_fields, bins=20, color='navy', alpha=0.7, normed=True)
     plt.hist(watson_shuffled.values.flatten()[0], bins=20, color='grey', alpha=0.7, normed=True)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xscale('log')
+    # ax.set_xscale('log')
     ax.set_yscale('log')
     print('Number of ' + type + ' fields in ' + animal + ': ' + str(len(watson_stats_accepted_fields)))
     print('p < 0.01 for ' + str((watson_stats_accepted_fields > 0.268).sum()))
@@ -168,7 +170,10 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse'):
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Frequency', size=30)
-    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '.png', bbox_inches="tight")
+    if xlim == True:
+        plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '_zoom.png', bbox_inches="tight")
+    else:
+        plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '.png', bbox_inches="tight")
 
 
 def analyze_data(animal):
@@ -196,6 +201,9 @@ def analyze_data(animal):
     plot_histogram_of_watson_stat(field_data, animal=animal)
     plot_histogram_of_watson_stat(field_data, type='grid', animal=animal)
     plot_histogram_of_watson_stat(field_data, type='nc', animal=animal)
+    plot_histogram_of_watson_stat(field_data, animal=animal, xlim=True)
+    plot_histogram_of_watson_stat(field_data, type='grid', animal=animal, xlim=True)
+    plot_histogram_of_watson_stat(field_data, type='nc', animal=animal, xlim=True)
 
 
 def main():
