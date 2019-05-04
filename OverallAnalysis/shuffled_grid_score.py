@@ -45,17 +45,17 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
 
-
+# generate shuffled data by shifting spikes in time (20s - recording length - 20s) * 200
 def shuffle_data(cell, sampling_rate):
     firing_times = cell.firing_times
     times_to_shift_by = np.random.uniform(20*sampling_rate, firing_times[-1] * sampling_rate, 200) / sampling_rate
-    firing_times = firing_times.reshape(1, len(firing_times)) / 30000
-    shuffled_times = np.repeat(firing_times, 200, axis=0).T + times_to_shift_by % firing_times[-1]
+    firing_times_reshaped = firing_times.reshape(1, len(firing_times)) / 30000
+    shuffled_times = np.repeat(firing_times_reshaped, 200, axis=0).T + times_to_shift_by % firing_times[-1]
     return shuffled_times
 
 
 def get_position_for_shuffled_times(shuffled_times):
-    position_x= []
+    position_x = []
     position_y = []
     return position_x, position_y
 
@@ -73,7 +73,7 @@ def process_data(animal):
             shuffled_times_seconds = shuffle_data(cell, sampling_rate)
 
 
-# generate shuffled data by shifting spikes in time (20s - recording length - 20s) * 200
+
 # calculate grid score for each shuffle
 # find 95th percentile of shuffled grid scores
 # check if read grid score is >= to decide if it's a grid cell
