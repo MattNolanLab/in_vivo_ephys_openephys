@@ -163,7 +163,7 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory_' + animal + '.png', y_axis_label='Number of cells')
 
 
-def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'):
+def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse', xlim=False):
     good_cluster = df_all_animals.false_positive == False
     if cell_type == 'grid':
         grid = df_all_animals.grid_score >= 0.4
@@ -187,8 +187,9 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     print('significant: ' + str(len(watson_test_stats > 0.268)))
 
     fig, ax = plt.subplots()
-    plt.xscale('log')
-    plt.hist(watson_test_stats, bins=30, color='navy', normed=True)
+    if xlim == True:
+        plt.xlim(0, 1)
+    plt.hist(watson_test_stats, bins=30, color='navy', normed=True, alpha=0.7)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
@@ -198,7 +199,11 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
+    if xlim == True:
+        plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells_zoom.png',
+                    bbox_inches="tight")
+    else:
+        plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
 
 
 def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
@@ -244,6 +249,9 @@ def make_descriptive_plots(all_cells, animal):
     plot_results_of_watson_test(all_cells, cell_type='grid', animal=animal)
     plot_results_of_watson_test(all_cells, cell_type='hd', animal=animal)
     plot_results_of_watson_test(all_cells, cell_type='nc')
+    plot_results_of_watson_test(all_cells, cell_type='grid', animal=animal, xlim=True)
+    plot_results_of_watson_test(all_cells, cell_type='hd', animal=animal, xlim=True)
+    plot_results_of_watson_test(all_cells, cell_type='nc', xlim=True)
     plot_hd_histograms(all_cells, cell_type='grid', animal=animal)
     plot_hd_histograms(all_cells, cell_type='hd', animal=animal)
     plot_hd_histograms(all_cells, cell_type='nc', animal=animal)
