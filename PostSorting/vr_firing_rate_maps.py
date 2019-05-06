@@ -19,7 +19,6 @@ def get_bin_size(spatial_data):
     return bin_size_cm,number_of_bins
 
 
-@jit
 def gaussian_kernel(kernx):
     kerny = np.exp(np.power(kernx, 2)/2 * (-1))
     return kerny

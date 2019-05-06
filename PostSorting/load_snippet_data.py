@@ -23,8 +23,11 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
     return snippets
 
 
-def add_snippets_to_data_frame(firing_data, prm, firing_times_column_name, column_to_create):
+def get_snippets(firing_data, prm):
+    print('I will get some random snippets now for each cluster.')
     file_path = prm.get_local_recording_folder_path()
+    filtered_data_path = []
+
     filtered_data_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/filt.mda'
 
     snippets_all_clusters = []
@@ -32,19 +35,10 @@ def add_snippets_to_data_frame(firing_data, prm, firing_times_column_name, colum
         filtered_data = mdaio.readmda(filtered_data_path)
         for cluster in range(len(firing_data)):
             cluster = firing_data.cluster_id.values[cluster] - 1
-            firing_times = firing_data[firing_times_column_name][cluster]
+            firing_times = firing_data.firing_times[cluster]
 
             snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50, prm)
             snippets_all_clusters.append(snippets)
-    firing_data[column_to_create] = snippets_all_clusters
-    return firing_data
-
-
-def get_snippets(firing_data, prm):
-    print('I will get some random snippets now for each cluster.')
-    firing_data = add_snippets_to_data_frame(firing_data, prm, 'firing_times', 'random_snippets')
-
-    if 'firing_times_opto' in firing_data:
-        firing_data = add_snippets_to_data_frame(firing_data, prm, 'firing_times_opto', 'random_snippets_opto')
+    firing_data['random_snippets'] = snippets_all_clusters
     #plt.plot(firing_data.random_snippets[4][3,:,:])
     return firing_data
