@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 import matplotlib.pylab as plt
 import scipy.stats
-
+import gc
 
 def nextpow2(x):
     """ Return the smallest integral power of 2 that >= x """
@@ -50,13 +50,11 @@ def fftkernel(x, w):
 
 def generate_time_bins(spike_times):
     time_bins = np.arange(0,np.max(spike_times),7500)
-    number_of_bins = time_bins.shape[0]
     return time_bins
 
 
 def generate_time_bins_for_speed(speed):
-    time_bins = np.arange(0, (speed.shape[0]), 7500)
-    #round down???
+    time_bins = np.arange(0, (speed.shape[0])-1, 7500)
     return time_bins
 
 
@@ -66,7 +64,8 @@ def bin_spike_times(spike_times, number_of_bins):
 
 
 def create_histogram(spike_times, number_of_bins):
-    posrange = np.linspace(number_of_bins.min(), number_of_bins.max(),  num=max(number_of_bins)+1)
+    bin_number = int(number_of_bins.max() / 7500)
+    posrange = np.linspace(number_of_bins.min(), number_of_bins.max(),  num=bin_number)
     values = np.array([[posrange[0], posrange[-1]]])
     H, bins = np.histogram(spike_times, bins=(posrange), range=values)
     return H
@@ -86,12 +85,12 @@ def bin_speed(speed, speed_bins):
     return binned_speed
 
 
-def convolve_spikes_in_time(spike_data):
+def convolve_spikes_in_time(spike_data, number_of_bins):
     print('I am convolving spikes in time...')
     for cluster in range(len(spike_data)):
+        gc.collect()
         cluster_index = spike_data.cluster_id.values[cluster] - 1
         spike_times = np.array(spike_data.at[cluster_index, "firing_times"])
-        number_of_bins = generate_time_bins(spike_times)
         binned_spike_times = bin_spike_times(spike_times, number_of_bins)
         convolved_spikes = convolve_binned_spikes(binned_spike_times)
         spike_data.at[cluster_index, "spike_rate_in_time"] = convolved_spikes
@@ -107,7 +106,7 @@ def convolve_speed_in_time(spike_data, raw_spatial_data):
         binned_speed = bin_speed(speed, number_of_bins)
         convolved_speed = convolve_binned_spikes(binned_speed)
         spike_data.at[cluster_index, "speed_rate_in_time"] = convolved_speed
-    return spike_data
+    return spike_data, number_of_bins
 
 
 
@@ -128,7 +127,7 @@ def control_convolution_in_time(spike_data, raw_spatial_data):
     spike_data["speed_rate_in_time"] = ""
     spike_data["position_rate_in_time"] = ""
 
-    spike_data = convolve_spikes_in_time(spike_data)
-    spike_data = convolve_speed_in_time(spike_data, raw_spatial_data)
+    spike_data, number_of_bins = convolve_speed_in_time(spike_data, raw_spatial_data)
+    spike_data = convolve_spikes_in_time(spike_data, number_of_bins)
     spike_data = convolve_position_in_time(spike_data, raw_spatial_data)
     return spike_data
