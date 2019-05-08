@@ -26,8 +26,6 @@ def get_raw_location(recording_folder, prm):
     file_path = recording_folder + '/' + prm.get_movement_channel()
     if os.path.exists(file_path):
         location = open_ephys_IO.get_data_continuous(prm, file_path)
-        if location.shape[0] > 99999999:
-            location = location[:99999999]
     else:
         print('Movement data was not found.')
     location=correct_for_restart(location)
