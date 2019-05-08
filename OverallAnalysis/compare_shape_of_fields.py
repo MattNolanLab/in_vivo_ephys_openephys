@@ -11,6 +11,7 @@ from rpy2 import robjects as robj
 from scipy.stats import circstd
 from rpy2.robjects import pandas2ri
 import scipy.stats
+import seaborn
 
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/'
@@ -146,6 +147,47 @@ def compare_hd_histograms(field_data):
     return pearson_coefs_avg
 
 
+def save_correlation_plot(corr, histograms, animal, cell_type):
+    # Generate a mask for the upper triangle
+    mask = np.zeros_like(corr, dtype=np.bool)
+    mask[np.triu_indices_from(mask)] = True
+
+    # Set up the matplotlib figure
+    plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
+
+    # Generate a custom diverging colormap
+    # cmap = seaborn.diverging_palette(len(histograms.columns), len(histograms), as_cmap=True)
+    cmap = seaborn.color_palette("RdBu_r", 10)
+
+    # Draw the heatmap with the mask and correct aspect ratio
+    seaborn.heatmap(corr, mask=mask, cmap=cmap, vmin=-1, vmax=1, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    plt.savefig(local_path + animal + '_' + cell_type + '_correlation_heatmap.png')
+
+
+def get_field_df_to_correlate(histograms):
+    histograms_df = pd.DataFrame()
+    field_number = 0
+    for index, cell in histograms.iterrows():
+        field_number += 1
+        histograms_df[str(field_number)] = cell.normalized_hd_hist
+    return histograms_df
+
+
+def plot_correlation_matrix(field_data, animal):
+    grid_histograms = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score < 0.5) & (field_data.accepted_field == True)]
+    grid_histograms_df = get_field_df_to_correlate(grid_histograms)
+    # Compute the correlation matrix
+    corr = grid_histograms_df.corr()
+    save_correlation_plot(corr, grid_histograms_df, animal, 'grid')
+
+    conjunctive_histograms = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score >= 0.5) & (field_data.accepted_field == True)]
+    conjunctive_histograms_df = get_field_df_to_correlate(conjunctive_histograms)
+    # Compute the correlation matrix
+    corr = conjunctive_histograms_df.corr()
+    save_correlation_plot(corr, conjunctive_histograms_df, animal, 'conjunctive')
+
+
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -157,6 +199,7 @@ def process_circular_data(animal):
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
+        plot_correlation_matrix(field_data, 'mouse')
 
     if animal == 'rat':
         field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
@@ -166,6 +209,7 @@ def process_circular_data(animal):
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
+        plot_correlation_matrix(field_data, 'rat')
 
 
 def main():
