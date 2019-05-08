@@ -54,7 +54,7 @@ def generate_time_bins(spike_times):
 
 
 def generate_time_bins_for_speed(speed):
-    time_bins = np.arange(0, (speed.shape[0])-1, 7500)
+    time_bins = np.arange(0, (speed.shape[0]), 7500)
     return time_bins
 
 
@@ -64,8 +64,7 @@ def bin_spike_times(spike_times, number_of_bins):
 
 
 def create_histogram(spike_times, number_of_bins):
-    bin_number = int(number_of_bins.max() / 7500)
-    posrange = np.linspace(number_of_bins.min(), number_of_bins.max(),  num=bin_number)
+    posrange = np.linspace(number_of_bins.min(), number_of_bins.max(),  num=number_of_bins.shape[0])
     values = np.array([[posrange[0], posrange[-1]]])
     H, bins = np.histogram(spike_times, bins=(posrange), range=values)
     return H
@@ -77,12 +76,15 @@ def convolve_binned_spikes(binned_spike_times):
     return convolved_spikes
 
 
-def bin_speed(speed, speed_bins):
-    binned_speed=[]
-    for bcount, bin in enumerate(speed_bins):
-        mean_speed = np.nanmean(speed[bin:(bin+7500)])
-        binned_speed = np.append(binned_speed, mean_speed)
-    return binned_speed
+def bin_spatial_array(array, bins):
+    binned_array=[]
+    bin_len = int(bins.shape[0])-1
+    for bcount, bin in enumerate(bins[:bin_len]):
+        mean = np.nanmean(array[bin:(bin+7500)])
+        if mean == "inf":
+            print("inf")
+        binned_array = np.append(binned_array, mean)
+    return binned_array
 
 
 def convolve_spikes_in_time(spike_data, number_of_bins):
@@ -103,22 +105,20 @@ def convolve_speed_in_time(spike_data, raw_spatial_data):
         cluster_index = spike_data.cluster_id.values[cluster] - 1
         speed = np.array(raw_spatial_data["speed_per200ms"])
         number_of_bins = generate_time_bins_for_speed(speed)
-        binned_speed = bin_speed(speed, number_of_bins)
+        binned_speed = bin_spatial_array(speed, number_of_bins)
         convolved_speed = convolve_binned_spikes(binned_speed)
         spike_data.at[cluster_index, "speed_rate_in_time"] = convolved_speed
     return spike_data, number_of_bins
 
 
 
-def convolve_position_in_time(spike_data, raw_spatial_data):
+def convolve_position_in_time(spike_data, raw_spatial_data, number_of_bins):
     print('I am convolving location in time...')
     for cluster in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster] - 1
-        speed = np.array(raw_spatial_data["x_position_cm"])
-        number_of_bins = generate_time_bins_for_speed(speed)
-        binned_speed = bin_speed(speed, number_of_bins)
-        convolved_speed = convolve_binned_spikes(binned_speed)
-        spike_data.at[cluster_index, "position_rate_in_time"] = convolved_speed
+        location = np.array(raw_spatial_data["x_position_cm"])
+        binned_position = bin_spatial_array(location, number_of_bins)
+        spike_data.at[cluster_index, "position_rate_in_time"] = binned_position
     return spike_data
 
 
@@ -129,5 +129,5 @@ def control_convolution_in_time(spike_data, raw_spatial_data):
 
     spike_data, number_of_bins = convolve_speed_in_time(spike_data, raw_spatial_data)
     spike_data = convolve_spikes_in_time(spike_data, number_of_bins)
-    spike_data = convolve_position_in_time(spike_data, raw_spatial_data)
+    spike_data = convolve_position_in_time(spike_data, raw_spatial_data, number_of_bins)
     return spike_data
