@@ -218,6 +218,14 @@ def plot_correlation_matrix_individual_cells(field_data, animal):
         corr = field_df.corr()  # correlation matrix
         save_correlation_plot(corr, animal, '', tag=cell_id)
 
+    field_data_centre = field_data[(field_data.accepted_field == True) & (field_data.border_field == False)]
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        field_histograms = field_data_centre.loc[field_data_centre['unique_cell_id'] == cell_id]
+        field_df = get_field_df_to_correlate(field_histograms)
+        corr = field_df.corr()  # correlation matrix
+        save_correlation_plot(corr, animal, '', tag=cell_id + '_centre')
+
 
 # if it touches the border it's a border field
 def tag_border_and_middle_fields(field_data):
