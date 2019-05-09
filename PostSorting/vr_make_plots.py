@@ -87,7 +87,7 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
 
 def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
+    save_path = prm.output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
@@ -104,13 +104,13 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     x_max = max(processed_position_data.average_stops)+0.1
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
 
 def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     print('plotting speed histogram...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
+    save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
@@ -127,7 +127,7 @@ def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
 
 
