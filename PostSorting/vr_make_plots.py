@@ -108,7 +108,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     plt.close()
 
 
-def plot_speed_histogram(processed_position_data, prm):
+def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     print('plotting speed histogram...')
     save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
