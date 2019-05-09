@@ -80,7 +80,8 @@ def bin_spatial_array(array, bins):
     binned_array=[]
     bin_len = int(bins.shape[0])-1
     for bcount, bin in enumerate(bins[:bin_len]):
-        mean = np.nanmean(array[bin:(bin+7500)])
+        next_bin=bin+7500
+        mean = np.nanmean(np.array(array[bin:next_bin]), dtype=np.float)
         if mean == "inf":
             print("inf")
         binned_array = np.append(binned_array, mean)
@@ -120,6 +121,7 @@ def convolve_position_in_time(spike_data, raw_spatial_data, number_of_bins):
         binned_position = bin_spatial_array(location, number_of_bins)
         spike_data.at[cluster_index, "position_rate_in_time"] = binned_position
     return spike_data
+
 
 
 def control_convolution_in_time(spike_data, raw_spatial_data):
