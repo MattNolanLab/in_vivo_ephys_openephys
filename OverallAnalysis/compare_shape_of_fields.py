@@ -188,6 +188,18 @@ def plot_correlation_matrix(field_data, animal):
     corr = grid_histograms_df.corr()
     save_correlation_plot(corr, animal, 'grid')
 
+    grid_histograms_centre = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score < 0.5) & (field_data.accepted_field == True) & (field_data.border_field == False)]
+    grid_histograms_df_centre = get_field_df_to_correlate(grid_histograms_centre)
+    # Compute the correlation matrix
+    corr = grid_histograms_df_centre.corr()
+    save_correlation_plot(corr, animal, 'grid', 'centre_fields')
+
+    grid_histograms_border = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score < 0.5) & (field_data.accepted_field == True) & (field_data.border_field == True)]
+    grid_histograms_df_border = get_field_df_to_correlate(grid_histograms_border)
+    # Compute the correlation matrix
+    corr = grid_histograms_df_border.corr()
+    save_correlation_plot(corr, animal, 'grid', 'border_fields')
+
     conjunctive_histograms = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score >= 0.5) & (field_data.accepted_field == True)]
     conjunctive_histograms_df = get_field_df_to_correlate(conjunctive_histograms)
     # Compute the correlation matrix
@@ -207,6 +219,26 @@ def plot_correlation_matrix_individual_cells(field_data, animal):
         save_correlation_plot(corr, animal, '', tag=cell_id)
 
 
+# if it touches the border it's a border field
+def tag_border_and_middle_fields(field_data):
+    border_tag = []
+    for index, field in field_data.iterrows():
+        rate_map = field.rate_map.iloc[0]
+        field_indices = field.indices_rate_map
+        y_max = len(rate_map)
+        x_max = len(rate_map[0])
+        print(rate_map)
+        border = False
+        if (field_indices[:, 0] < 1).sum() + (field_indices[:, 0] == x_max).sum() > 0:
+            border = True
+        if (field_indices[:, 1] < 1).sum() + (field_indices[:, 1] == y_max).sum() > 0:
+            border = True
+        border_tag.append(border)
+
+    field_data['border_field'] = border_tag
+    return field_data
+
+
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -215,6 +247,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
+        field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
@@ -226,6 +259,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
+        field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
