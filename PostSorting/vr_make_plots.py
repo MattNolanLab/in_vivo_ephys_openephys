@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
-# import PostSorting.vr_extract_data
+import PostSorting.vr_extract_data
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
@@ -243,7 +243,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_firing_rate_data(spike_data, cluster_index)
+        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index)
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(avg_beaconed_spike_rate, '-', color='Black')
