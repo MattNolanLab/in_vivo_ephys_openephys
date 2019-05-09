@@ -87,7 +87,6 @@ def bin_spatial_array(array, bins):
 
 
 def convolve_spikes_in_time(spike_data, cluster_index, number_of_bins):
-    print('I am convolving spikes in time...')
     gc.collect()
     spike_times = np.array(spike_data.at[cluster_index, "firing_times"])
     binned_spike_times = bin_spike_times(spike_times, number_of_bins)
@@ -97,7 +96,6 @@ def convolve_spikes_in_time(spike_data, cluster_index, number_of_bins):
 
 
 def convolve_speed_in_time(spike_data, cluster_index,raw_spatial_data):
-    print('I am convolving speed in time...')
     speed = np.array(raw_spatial_data["speed_per200ms"])
     number_of_bins = generate_time_bins_for_speed(speed)
     binned_speed = bin_spatial_array(speed, number_of_bins)
@@ -108,7 +106,6 @@ def convolve_speed_in_time(spike_data, cluster_index,raw_spatial_data):
 
 
 def convolve_position_in_time(spike_data, cluster_index,raw_spatial_data, number_of_bins):
-    print('I am convolving location in time...')
     location = np.array(raw_spatial_data["x_position_cm"])
     binned_position = bin_spatial_array(location, number_of_bins)
     spike_data.at[cluster_index, "position_rate_in_time"] = binned_position
