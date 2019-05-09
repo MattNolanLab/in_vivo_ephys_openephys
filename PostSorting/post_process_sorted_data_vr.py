@@ -45,6 +45,8 @@ def process_firing_properties(recording_to_process, session_type, prm):
 
 def make_plots(spike_data, raw_position_data, processed_position_data):
     PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, prm)
+    PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
+    PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
     PostSorting.make_plots.plot_waveforms(spike_data, prm)
     PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
