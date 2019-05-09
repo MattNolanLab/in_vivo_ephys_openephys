@@ -227,7 +227,6 @@ def tag_border_and_middle_fields(field_data):
         field_indices = field.indices_rate_map
         y_max = len(rate_map)
         x_max = len(rate_map[0])
-        print(rate_map)
         border = False
         if (field_indices[:, 0] < 1).sum() + (field_indices[:, 0] == x_max).sum() > 0:
             border = True
