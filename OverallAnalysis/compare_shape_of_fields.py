@@ -27,18 +27,24 @@ def load_field_data(output_path, server_path, spike_sorter):
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
         data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+        spatial_firing_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
         if os.path.exists(data_frame_path):
             print('I found a field data frame.')
             field_data = pd.read_pickle(data_frame_path)
+            spatial_firing = pd.read_pickle(spatial_firing_path)
             if 'shuffled_data' in field_data:
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id',
-                                                    'field_histograms_hz']].copy()
+                                                    'field_histograms_hz', 'indices_rate_map']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
                 if 'hd_score' in field_data:
                     field_data_to_combine['hd_score'] = field_data.hd_score
                 if 'grid_score' in field_data:
                     field_data_to_combine['grid_score'] = field_data.grid_score
-
+                rate_maps = []
+                for cluster in range(len(field_data.cluster_id)):
+                    rate_map = spatial_firing[field_data.cluster_id.iloc[cluster] == spatial_firing.cluster_id].firing_maps
+                    rate_maps.append(rate_map)
+                field_data_to_combine['rate_map'] = rate_maps
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
     field_data_combined.to_pickle(output_path)
