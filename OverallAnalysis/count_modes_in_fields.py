@@ -166,7 +166,7 @@ def plot_modes_python(real_cell, hd_field_session, estimated_density, theta, fie
     for mode in range(number_of_modes):
         ax.plot((0, angles[mode]), (0, lengths[mode]*scale_for_lines), color='red', linewidth=3)
     scale_for_density = max(real_cell) / max(estimated_density)
-    ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', alpha=0.2, linewidth=5)
+    ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', alpha=0.1, linewidth=5)
     colors = generate_colors(field_id + 1)
     ax.plot(theta_real[:-1], list(real_cell), color=colors[field_id], linewidth=2)
     scale_for_occupancy = max(real_cell) / max(hd_field_session)
