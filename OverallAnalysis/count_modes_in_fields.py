@@ -146,13 +146,13 @@ def find_angles_and_lengths(theta):
     angles = []
     number_of_modes = int(len(theta)/2)
     for mode in range(number_of_modes):
-        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
+        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode], np.asanyarray(theta)[mode])
         lengths.append(length)
         angles.append(angle)
     return angles, lengths
 
 
-def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
+def plot_modes_python(real_cell, hd_field_session, estimated_density, theta, field_id, path):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -166,9 +166,10 @@ def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
     for mode in range(number_of_modes):
         ax.plot((0, angles[mode]), (0, lengths[mode]*scale_for_lines), color='red', linewidth=3)
     scale_for_density = max(real_cell) / max(estimated_density)
-    ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', linewidth=2)
+    ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', alpha=0.4, linewidth=5)
     colors = generate_colors(field_id + 1)
     ax.plot(theta_real[:-1], list(real_cell), color=colors[field_id], linewidth=2)
+    ax.plot(theta_real[:-1], list(hd_field_session), color='black', linewidth=2)
     plt.tight_layout()
     plt.savefig(path)
     plt.close()
@@ -187,7 +188,8 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
     # plot_modes_in_r(fit)
     # concentration = np.asanyarray(theta)[0]
     path = local_path + 'estimated_modes/' + field.session_id + str(field.cluster_id) + str(field.field_id)
-    plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
+    if type(theta) == list:
+        plot_modes_python(hd_histogram_field, field.hd_hist_session, fitted_density, theta, field.field_id, path)
 
 
 def analyze_histograms(field_data, output_path):
@@ -210,14 +212,21 @@ def analyze_histograms(field_data, output_path):
             theta = get_model_fit_theta_value(fit)
             angles = get_mode_angles_degrees(theta)
             fitted_density = get_estimated_density_function(fit)
-            if len(angles) > 0:
-                plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
     field_data['fitted_density'] = fitted_densities
     field_data['mode_angles'] = mode_angles
     field_data.to_pickle(output_path)
     return field_data
+
+
+def plot_fitted_field_results_with_occupancy(field_data):
+    for index, field in field_data.iterrows():
+        hd_histogram_field = field.normalized_hd_hist
+        fitted_density = field.fitted_density
+        theta = field.mode_angles
+
+        plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
 
 
 def format_bar_chart(ax, x_label, y_label):
@@ -376,6 +385,7 @@ def process_circular_data(animal):
         plot_std_of_modes(field_data, 'mouse')
         plot_histogram_of_number_of_modes(field_data, 'mouse')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
+        plot_fitted_field_results_with_occupancy(field_data)
 
     if animal == 'rat':
         rat_path = local_path + 'field_data_modes_rat.pkl'
@@ -388,6 +398,7 @@ def process_circular_data(animal):
         plot_std_of_modes(field_data, 'rat')
         plot_histogram_of_number_of_modes(field_data, 'rat')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'rat')
+        plot_fitted_field_results_with_occupancy(field_data)
 
 
 def main():
