@@ -87,7 +87,7 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
 
 def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
-    save_path = prm.output_path() + '/Figures/behaviour'
+    save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
