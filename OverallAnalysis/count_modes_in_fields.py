@@ -326,7 +326,7 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     grid_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Number of modes', 'Proportion')
+    ax = format_bar_chart(ax, 'Number of modes / cell', 'Proportion')
     plt.hist(grid_number_of_modes_cell, color='navy', normed=True, alpha=0.7)
     plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, alpha=0.7)
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
