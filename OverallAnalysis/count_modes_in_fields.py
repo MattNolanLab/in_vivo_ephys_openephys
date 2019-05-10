@@ -146,7 +146,7 @@ def find_angles_and_lengths(theta):
     angles = []
     number_of_modes = int(len(theta)/2)
     for mode in range(number_of_modes):
-        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode], np.asanyarray(theta)[mode])
+        length, angle = math_utility.cart2pol(np.asanyarray(theta)[mode][0], np.asanyarray(theta)[mode][1])
         lengths.append(length)
         angles.append(angle)
     return angles, lengths
@@ -189,7 +189,9 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
     # plot_modes_in_r(fit)
     # concentration = np.asanyarray(theta)[0]
     path = local_path + 'estimated_modes/' + field.session_id + str(field.cluster_id) + str(field.field_id)
-    if type(theta) == list:
+    if type(theta) == float:
+        return
+    else:
         plot_modes_python(hd_histogram_field, field.hd_hist_session, fitted_density, theta, field.field_id, path)
 
 
