@@ -194,17 +194,19 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
 
 
 def analyze_histograms(field_data, output_path):
-    if 'mode_angles' in field_data:
-        return field_data
+    #if 'mode_angles' in field_data:
+     #   return field_data
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
     fitted_densities = []
+    thetas = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
         if np.isnan(hd_histogram_field).sum() > 0:
             print('skipping this field, it has nans')
             fitted_density = np.nan
             angles = np.nan
+            theta = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
@@ -215,8 +217,10 @@ def analyze_histograms(field_data, output_path):
             fitted_density = get_estimated_density_function(fit)
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
+        thetas.append(theta)
     field_data['fitted_density'] = fitted_densities
     field_data['mode_angles'] = mode_angles
+    field_data['theta'] = thetas
     field_data.to_pickle(output_path)
     return field_data
 
@@ -225,7 +229,7 @@ def plot_fitted_field_results_with_occupancy(field_data):
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
         fitted_density = field.fitted_density
-        theta = field.mode_angles
+        theta = field.theta
 
         plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
 
