@@ -283,7 +283,7 @@ def plot_std_of_modes(field_data, animal):
     grid_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Standard dev of modes', 'Proportion')
+    ax = format_bar_chart(ax, 'Standard dev of modes / cell', 'Proportion')
     plt.hist(grid_modes_std_cell, color='navy', weights=get_weights_normalized_hist(grid_modes_std_cell), bins=range(0, 180, 15), alpha=0.7)
     plt.hist(conjunctive_modes_std_cell, color='red', weights=get_weights_normalized_hist(conjunctive_modes_std_cell), bins=range(0, 180, 15), alpha=0.7)
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
