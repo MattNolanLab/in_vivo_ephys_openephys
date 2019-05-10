@@ -284,8 +284,8 @@ def plot_std_of_modes(field_data, animal):
     conjunctive_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Standard dev of modes', 'Proportion')
-    plt.hist(grid_modes_std_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
-    plt.hist(conjunctive_modes_std_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(grid_modes_std_cell, color='navy', weights=get_weights_normalized_hist(grid_modes_std_cell), bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(conjunctive_modes_std_cell, color='red', weights=get_weights_normalized_hist(conjunctive_modes_std_cell), bins=range(0, 180, 15), alpha=0.7)
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
 
@@ -319,6 +319,11 @@ def get_number_of_modes_for_cell(field_data):
     return number_of_modes_cells
 
 
+def get_weights_normalized_hist(array_in):
+    weights = np.ones_like(array_in) / float(len(array_in))
+    return weights
+
+
 def plot_histogram_of_number_of_modes(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
@@ -327,8 +332,8 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     conjunctive_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Number of modes / cell', 'Proportion')
-    plt.hist(grid_number_of_modes_cell, color='navy', normed=True, alpha=0.7)
-    plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, alpha=0.7)
+    plt.hist(grid_number_of_modes_cell, color='navy', weights=get_weights_normalized_hist(grid_number_of_modes_cell), alpha=0.7)
+    plt.hist(conjunctive_number_of_modes_cell, color='red', weights=get_weights_normalized_hist(conjunctive_number_of_modes_cell), alpha=0.7)
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
     plt.close()
 
