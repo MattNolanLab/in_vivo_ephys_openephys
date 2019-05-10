@@ -194,8 +194,8 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
 
 
 def analyze_histograms(field_data, output_path):
-    #if 'mode_angles' in field_data:
-     #   return field_data
+    if 'mode_angles' in field_data:
+        return field_data
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
     fitted_densities = []
