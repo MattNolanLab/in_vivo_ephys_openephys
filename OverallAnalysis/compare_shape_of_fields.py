@@ -183,6 +183,19 @@ def get_field_df_to_correlate(histograms):
     return histograms_df
 
 
+def get_field_df_to_correlate_halves(histograms):
+    histograms_df = pd.DataFrame()
+    field_number = 0
+    for index, cell in histograms.iterrows():
+        field_number += 1
+        histograms_df[str(field_number)] = cell.hd_hist_first_half
+
+    for index, cell in histograms.iterrows():
+        field_number += 1
+        histograms_df[str(field_number + len(histograms))] = cell.hd_hist_second_half
+    return histograms_df
+
+
 def plot_correlation_matrix(field_data, animal):
     grid_histograms = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score < 0.5) & (field_data.accepted_field == True)]
     grid_histograms_df = get_field_df_to_correlate(grid_histograms)
@@ -208,6 +221,12 @@ def plot_correlation_matrix(field_data, animal):
     corr = conjunctive_histograms_df.corr()
     save_correlation_plot(corr, animal, 'conjunctive')
 
+    grid_histograms = field_data.loc[(field_data.grid_score >= 0.4) & (field_data.hd_score < 0.5) & (field_data.accepted_field == True)]
+    grid_histograms_df_halves = get_field_df_to_correlate_halves(grid_histograms)
+    # Compute the correlation matrix
+    corr = grid_histograms_df_halves.corr()
+    save_correlation_plot(corr, animal, 'grid_halves')
+
 
 def plot_correlation_matrix_individual_cells(field_data, animal):
     field_data = field_data[field_data.accepted_field == True]
@@ -227,6 +246,13 @@ def plot_correlation_matrix_individual_cells(field_data, animal):
         field_df = get_field_df_to_correlate(field_histograms)
         corr = field_df.corr()  # correlation matrix
         save_correlation_plot(corr, animal, '', tag=cell_id + '_centre')
+
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        field_histograms = field_data_centre.loc[field_data_centre['unique_cell_id'] == cell_id]
+        field_df = get_field_df_to_correlate_halves(field_histograms)
+        corr = field_df.corr()  # correlation matrix
+        save_correlation_plot(corr, animal, '', tag=cell_id + '_halves')
 
 
 # if it touches the border it's a border field
