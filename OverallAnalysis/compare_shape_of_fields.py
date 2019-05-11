@@ -274,7 +274,9 @@ def tag_border_and_middle_fields(field_data):
     return field_data
 
 
-def add_histograms_for_half_recordings(field_data, sampling_rate):
+def add_histograms_for_half_recordings(field_data, sampling_rate, output_path):
+    if 'hd_hist_first_half' in field_data:
+        return field_data
     first_halves = []
     second_halves = []
     for field_index, field in field_data.iterrows():
@@ -296,6 +298,7 @@ def add_histograms_for_half_recordings(field_data, sampling_rate):
         second_halves.append(hd_hist_norm_second)
     field_data['hd_hist_first_half'] = first_halves
     field_data['hd_hist_second_half'] = second_halves
+    field_data.to_pickle(output_path)
     return field_data
 
 
@@ -307,7 +310,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
-        field_data = add_histograms_for_half_recordings(field_data, 30000)
+        field_data = add_histograms_for_half_recordings(field_data, 30000, mouse_path)
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
@@ -320,11 +323,12 @@ def process_circular_data(animal):
         plot_correlation_matrix_individual_cells(field_data, 'mouse')
 
     if animal == 'rat':
-        field_data = load_field_data(local_path + 'field_data_modes_rat.pkl', server_path_rat, '')
+        rat_path = local_path + 'field_data_modes_rat.pkl'
+        field_data = load_field_data(rat_path, server_path_rat, '')
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
-        field_data = add_histograms_for_half_recordings(field_data, 30000)
+        field_data = add_histograms_for_half_recordings(field_data, 50000, rat_path)
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
