@@ -34,7 +34,8 @@ def load_field_data(output_path, server_path, spike_sorter):
             spatial_firing = pd.read_pickle(spatial_firing_path)
             if 'shuffled_data' in field_data:
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id',
-                                                    'field_histograms_hz', 'indices_rate_map']].copy()
+                                                    'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
+                                                    'hd_in_field_session', 'spike_times', 'times_session']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
                 if 'hd_score' in field_data:
                     field_data_to_combine['hd_score'] = field_data.hd_score
@@ -246,6 +247,21 @@ def tag_border_and_middle_fields(field_data):
     return field_data
 
 
+def add_histograms_for_half_recordings(field_data):
+    print('separate first and second half')
+    field = 0
+    length_session = len(field_data.hd_in_field_session.iloc[field])
+    session_first_half = field_data.hd_in_field_session.iloc[field][:(int(length_session / 2))]
+    session_second_half = field_data.hd_in_field_session.iloc[field][int(length_session/2):]
+    print('')
+
+    # find half of recording
+    # split hd for session and firing times
+    # make histograms
+    # calculate cross-correlation
+    return field_data
+
+
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -254,6 +270,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
+        field_data = add_histograms_for_half_recordings(field_data)
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
@@ -270,6 +287,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
+        field_data = add_histograms_for_half_recordings(field_data)
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
