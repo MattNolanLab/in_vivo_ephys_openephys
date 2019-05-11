@@ -152,7 +152,7 @@ def find_angles_and_lengths(theta):
     return angles, lengths
 
 
-def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
+def plot_modes_python(real_cell, hd_field_session, estimated_density, theta, field_id, path):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -166,9 +166,11 @@ def plot_modes_python(real_cell, estimated_density, theta, field_id, path):
     for mode in range(number_of_modes):
         ax.plot((0, angles[mode]), (0, lengths[mode]*scale_for_lines), color='red', linewidth=3)
     scale_for_density = max(real_cell) / max(estimated_density)
-    ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', linewidth=2)
+    ax.plot(theta_estimate[:-1], estimated_density*scale_for_density, color='black', alpha=0.2, linewidth=5)
     colors = generate_colors(field_id + 1)
     ax.plot(theta_real[:-1], list(real_cell), color=colors[field_id], linewidth=2)
+    scale_for_occupancy = max(real_cell) / max(hd_field_session)
+    ax.plot(theta_real[:-1], hd_field_session*scale_for_occupancy, color='black', linewidth=2)
     plt.tight_layout()
     plt.savefig(path)
     plt.close()
@@ -187,7 +189,10 @@ def plot_modes_in_field(field, hd_histogram_field, fitted_density, theta):
     # plot_modes_in_r(fit)
     # concentration = np.asanyarray(theta)[0]
     path = local_path + 'estimated_modes/' + field.session_id + str(field.cluster_id) + str(field.field_id)
-    plot_modes_python(hd_histogram_field, fitted_density, theta, field.field_id, path)
+    if type(theta) == float:
+        return
+    else:
+        plot_modes_python(hd_histogram_field, field.hd_hist_session, fitted_density, theta, field.field_id, path)
 
 
 def analyze_histograms(field_data, output_path):
@@ -196,12 +201,14 @@ def analyze_histograms(field_data, output_path):
     robj.r.source('count_modes_circular_histogram.R')
     mode_angles = []
     fitted_densities = []
+    thetas = []
     for index, field in field_data.iterrows():
         hd_histogram_field = field.normalized_hd_hist
         if np.isnan(hd_histogram_field).sum() > 0:
             print('skipping this field, it has nans')
             fitted_density = np.nan
             angles = np.nan
+            theta = np.nan
         else:
             print('I will analyze ' + field.session_id)
             resampled_distribution = resample_histogram(hd_histogram_field)
@@ -210,14 +217,23 @@ def analyze_histograms(field_data, output_path):
             theta = get_model_fit_theta_value(fit)
             angles = get_mode_angles_degrees(theta)
             fitted_density = get_estimated_density_function(fit)
-            if len(angles) > 0:
-                plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
         mode_angles.append(angles)
         fitted_densities.append(fitted_density)
+        thetas.append(theta)
     field_data['fitted_density'] = fitted_densities
     field_data['mode_angles'] = mode_angles
+    field_data['theta'] = thetas
     field_data.to_pickle(output_path)
     return field_data
+
+
+def plot_fitted_field_results_with_occupancy(field_data):
+    for index, field in field_data.iterrows():
+        hd_histogram_field = field.normalized_hd_hist
+        fitted_density = field.fitted_density
+        theta = field.theta
+
+        plot_modes_in_field(field, hd_histogram_field, fitted_density, theta)
 
 
 def format_bar_chart(ax, x_label, y_label):
@@ -283,9 +299,9 @@ def plot_std_of_modes(field_data, animal):
     grid_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_modes_std_cell = get_mode_std_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Standard dev of modes', 'Proportion')
-    plt.hist(grid_modes_std_cell, color='navy', normed=True, bins=range(0, 180, 15), alpha=0.7)
-    plt.hist(conjunctive_modes_std_cell, color='red', normed=True, bins=range(0, 180, 15), alpha=0.7)
+    ax = format_bar_chart(ax, 'Standard dev of modes / cell', 'Proportion')
+    plt.hist(grid_modes_std_cell, color='navy', weights=get_weights_normalized_hist(grid_modes_std_cell), bins=range(0, 180, 15), alpha=0.7)
+    plt.hist(conjunctive_modes_std_cell, color='red', weights=get_weights_normalized_hist(conjunctive_modes_std_cell), bins=range(0, 180, 15), alpha=0.7)
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
 
@@ -319,6 +335,11 @@ def get_number_of_modes_for_cell(field_data):
     return number_of_modes_cells
 
 
+def get_weights_normalized_hist(array_in):
+    weights = np.ones_like(array_in) / float(len(array_in))
+    return weights
+
+
 def plot_histogram_of_number_of_modes(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'
     conjunctive_cells = field_data['cell type'] == 'conjunctive'
@@ -326,9 +347,9 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     grid_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & grid_cells])
     conjunctive_number_of_modes_cell = get_number_of_modes_for_cell(field_data[accepted_field & conjunctive_cells])
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Number of modes', 'Proportion')
-    plt.hist(grid_number_of_modes_cell, color='navy', normed=True, alpha=0.7)
-    plt.hist(conjunctive_number_of_modes_cell, color='red', normed=True, alpha=0.7)
+    ax = format_bar_chart(ax, 'Number of modes / cell', 'Proportion')
+    plt.hist(grid_number_of_modes_cell, color='navy', weights=get_weights_normalized_hist(grid_number_of_modes_cell), alpha=0.7)
+    plt.hist(conjunctive_number_of_modes_cell, color='red', weights=get_weights_normalized_hist(conjunctive_number_of_modes_cell), alpha=0.7)
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
     plt.close()
 
@@ -371,6 +392,7 @@ def process_circular_data(animal):
         plot_std_of_modes(field_data, 'mouse')
         plot_histogram_of_number_of_modes(field_data, 'mouse')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'mouse')
+        plot_fitted_field_results_with_occupancy(field_data)
 
     if animal == 'rat':
         rat_path = local_path + 'field_data_modes_rat.pkl'
@@ -383,6 +405,7 @@ def process_circular_data(animal):
         plot_std_of_modes(field_data, 'rat')
         plot_histogram_of_number_of_modes(field_data, 'rat')
         compare_mode_distributions_of_grid_and_conj_cells(field_data, 'rat')
+        plot_fitted_field_results_with_occupancy(field_data)
 
 
 def main():
