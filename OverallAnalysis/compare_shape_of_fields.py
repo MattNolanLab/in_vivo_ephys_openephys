@@ -125,6 +125,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     if len(conj_coefs) > 0:
         plt.hist(conj_coefs, color='red', alpha=0.7, normed='True')
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms.png')
+    plt.close()
 
 
 def remove_nans(field1, field2):
@@ -274,20 +275,19 @@ def tag_border_and_middle_fields(field_data):
     return field_data
 
 
-def add_histograms_for_half_recordings(field_data, sampling_rate, output_path):
-    if 'hd_hist_first_half' in field_data:
-        return field_data
+def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling_rate_movement, output_path):
+    #if 'hd_hist_first_half' in field_data:
+        #return field_data
     first_halves = []
     second_halves = []
     for field_index, field in field_data.iterrows():
-        length_session = len(field.hd_in_field_session)
-        session_first_half = field.hd_in_field_session[:(int(length_session / 2))]
-        hd_hist_first_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_first_half)
-        session_second_half = field.hd_in_field_session[int(length_session/2):]
-        hd_hist_second_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_second_half)
         half_time_sec = max(field_data.times_session.iloc[field_index]) / 2
-        spikes_first_half = field.spike_times < half_time_sec * sampling_rate
-        spikes_second_half = field.spike_times < half_time_sec * sampling_rate
+        session_first_half = field.hd_in_field_session < half_time_sec * sampling_rate_movement
+        hd_hist_first_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_first_half)
+        session_second_half = field.hd_in_field_session >= half_time_sec * sampling_rate_movement
+        hd_hist_second_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_second_half)
+        spikes_first_half = field.spike_times < half_time_sec * sampling_rate_ephys
+        spikes_second_half = field.spike_times >= half_time_sec * sampling_rate_ephys
         hd_first_half_spikes = field.hd_in_field_spikes[spikes_first_half]
         hd_second_half_spikes = field.hd_in_field_spikes[spikes_second_half]
         hd_hist_first_half = PostSorting.open_field_head_direction.get_hd_histogram(hd_first_half_spikes)
@@ -302,6 +302,17 @@ def add_histograms_for_half_recordings(field_data, sampling_rate, output_path):
     return field_data
 
 
+def compare_within_field_with_other_fields(field_data):
+    first_halves = field_data.hd_hist_first_half
+    second_halves = field_data.hd_hist_second_half
+    correlation_values = []
+    for index, field in enumerate(first_halves):
+        pearson_coef = scipy.stats.pearsonr(field, second_halves.iloc[index])[0]
+        correlation_values.append(pearson_coef)
+
+    print(correlation_values)
+
+
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -310,13 +321,14 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
-        field_data = add_histograms_for_half_recordings(field_data, 30000, mouse_path)
+        field_data = add_histograms_for_half_recordings(field_data, 30000, 30, mouse_path)
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
         plot_correlation_matrix(field_data, 'mouse')
@@ -328,12 +340,14 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
-        field_data = add_histograms_for_half_recordings(field_data, 50000, rat_path)
+        field_data = add_histograms_for_half_recordings(field_data, 50000, 50, rat_path)
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
+
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
         plot_correlation_matrix(field_data, 'rat')
