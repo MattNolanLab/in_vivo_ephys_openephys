@@ -313,18 +313,33 @@ def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling
     return field_data
 
 
-def compare_within_field_with_other_fields(field_data):
+def compare_within_field_with_other_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half
     second_halves = field_data.hd_hist_second_half
     correlation_values = []
+    correlation_p = []
+    count_f1 = 0
+    count_f2 = 0
     for index, field1 in enumerate(first_halves):
-        for index, field2 in enumerate(second_halves):
-            pearson_coef = scipy.stats.pearsonr(field, second_halves.iloc[index])[0]
-            correlation_values.append(pearson_coef)
+        for index2, field2 in enumerate(second_halves):
+            if count_f1 != count_f2:
+                pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
+                correlation_values.append(pearson_coef)
+                correlation_p.append(corr_p)
+            count_f2 += 1
+        count_f1 += 1
 
-    correlation_values_within_field = np.array(correlation_values)
+    correlation_values_in_between = np.array(correlation_values)
+    correlation_p = np.array(correlation_p)
     significant = field_data.hd_in_first_and_second_halves_p < 0.001
     within_field = field_data.hd_in_first_and_second_halves_corr[significant]
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    in_between_fields = correlation_values_in_between[correlation_p < 0.001]
+    plt.hist(in_between_fields, weights=plot_utility.get_weights_normalized_hist(in_between_fields), color='gray', alpha=0.5)
+    plt.hist(within_field, weights=plot_utility.get_weights_normalized_hist(within_field), color='blue', alpha=0.4)
+    plt.savefig(local_path + animal + 'half_session_correlations.png')
+    plt.close()
 
 
 def process_circular_data(animal):
@@ -342,8 +357,8 @@ def process_circular_data(animal):
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
-        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
-        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')], 'conj_mouse')
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
@@ -362,7 +377,7 @@ def process_circular_data(animal):
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
-        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'rat')
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
