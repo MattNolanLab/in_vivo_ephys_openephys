@@ -338,6 +338,7 @@ def compare_within_field_with_other_fields(field_data, animal):
     in_between_fields = correlation_values_in_between[correlation_p < 0.001]
     plt.hist(in_between_fields, weights=plot_utility.get_weights_normalized_hist(in_between_fields), color='gray', alpha=0.5)
     plt.hist(within_field, weights=plot_utility.get_weights_normalized_hist(within_field), color='blue', alpha=0.4)
+    plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations.png')
     plt.close()
 
