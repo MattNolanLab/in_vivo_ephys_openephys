@@ -193,7 +193,7 @@ def get_field_df_to_correlate_halves(histograms):
 
     for index, cell in histograms.iterrows():
         field_number += 1
-        histograms_df[str(field_number + len(histograms))] = cell.hd_hist_second_half
+        histograms_df[str(field_number + int(len(histograms)/2))] = cell.hd_hist_second_half
     return histograms_df
 
 
@@ -276,15 +276,19 @@ def tag_border_and_middle_fields(field_data):
 
 
 def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling_rate_movement, output_path):
-    #if 'hd_hist_first_half' in field_data:
-        #return field_data
+    if 'hd_hist_first_half' in field_data:
+        return field_data
     first_halves = []
     second_halves = []
+    pearson_coefs = []
+    pearson_ps = []
     for field_index, field in field_data.iterrows():
-        half_time_sec = max(field_data.times_session.iloc[field_index]) / 2
-        session_first_half = field.hd_in_field_session < half_time_sec * sampling_rate_movement
+        half_time_sec = (max(field.times_session) - min(field.times_session)) / 2
+        session_first_half_indices = field.times_session < half_time_sec
+        session_first_half = field.hd_in_field_session[session_first_half_indices]
         hd_hist_first_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_first_half)
-        session_second_half = field.hd_in_field_session >= half_time_sec * sampling_rate_movement
+        session_second_half_indices = field.times_session >= half_time_sec
+        session_second_half = field.hd_in_field_session[session_second_half_indices]
         hd_hist_second_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_second_half)
         spikes_first_half = field.spike_times < half_time_sec * sampling_rate_ephys
         spikes_second_half = field.spike_times >= half_time_sec * sampling_rate_ephys
@@ -292,12 +296,19 @@ def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling
         hd_second_half_spikes = field.hd_in_field_spikes[spikes_second_half]
         hd_hist_first_half = PostSorting.open_field_head_direction.get_hd_histogram(hd_first_half_spikes)
         hd_hist_second_half = PostSorting.open_field_head_direction.get_hd_histogram(hd_second_half_spikes)
-        hd_hist_norm_first = hd_hist_first_half / hd_hist_first_half_session
+        hd_hist_norm_first = np.divide(hd_hist_first_half, hd_hist_first_half_session, out=np.zeros_like(hd_hist_first_half), where=hd_hist_first_half_session != 0)
         first_halves.append(hd_hist_norm_first)
-        hd_hist_norm_second = hd_hist_second_half / hd_hist_second_half_session
+        hd_hist_norm_second = np.divide(hd_hist_second_half, hd_hist_second_half_session, out=np.zeros_like(hd_hist_second_half), where=hd_hist_second_half_session != 0)
         second_halves.append(hd_hist_norm_second)
+        pearson_coef = scipy.stats.pearsonr(hd_hist_norm_first, hd_hist_norm_second)[0]
+        pearson_p = scipy.stats.pearsonr(hd_hist_norm_first, hd_hist_norm_second)[1]
+        pearson_coefs.append(pearson_coef)
+        pearson_ps.append(pearson_p)
+
     field_data['hd_hist_first_half'] = first_halves
     field_data['hd_hist_second_half'] = second_halves
+    field_data['hd_in_first_and_second_halves_corr'] = pearson_coefs
+    field_data['hd_in_first_and_second_halves_p'] = pearson_ps
     field_data.to_pickle(output_path)
     return field_data
 
@@ -306,11 +317,14 @@ def compare_within_field_with_other_fields(field_data):
     first_halves = field_data.hd_hist_first_half
     second_halves = field_data.hd_hist_second_half
     correlation_values = []
-    for index, field in enumerate(first_halves):
-        pearson_coef = scipy.stats.pearsonr(field, second_halves.iloc[index])[0]
-        correlation_values.append(pearson_coef)
+    for index, field1 in enumerate(first_halves):
+        for index, field2 in enumerate(second_halves):
+            pearson_coef = scipy.stats.pearsonr(field, second_halves.iloc[index])[0]
+            correlation_values.append(pearson_coef)
 
-    print(correlation_values)
+    correlation_values_within_field = np.array(correlation_values)
+    significant = field_data.hd_in_first_and_second_halves_p < 0.001
+    within_field = field_data.hd_in_first_and_second_halves_corr[significant]
 
 
 def process_circular_data(animal):
@@ -329,6 +343,8 @@ def process_circular_data(animal):
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
         plot_correlation_matrix(field_data, 'mouse')
@@ -340,7 +356,7 @@ def process_circular_data(animal):
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
-        field_data = add_histograms_for_half_recordings(field_data, 50000, 50, rat_path)
+        field_data = add_histograms_for_half_recordings(field_data, 1, 50, rat_path)  # firing times are in seconds
         field_data = tag_border_and_middle_fields(field_data)
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
@@ -355,8 +371,8 @@ def process_circular_data(animal):
 
 
 def main():
-    process_circular_data('mouse')
     process_circular_data('rat')
+    process_circular_data('mouse')
 
 
 if __name__ == '__main__':
