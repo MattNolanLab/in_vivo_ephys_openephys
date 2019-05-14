@@ -29,10 +29,12 @@ def load_field_data(output_path, server_path, spike_sorter):
         os.path.isdir(recording_folder)
         data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
         spatial_firing_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
+        position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
         if os.path.exists(data_frame_path):
             print('I found a field data frame.')
             field_data = pd.read_pickle(data_frame_path)
             spatial_firing = pd.read_pickle(spatial_firing_path)
+            position = pd.read_pickle(position_path)
             if 'shuffled_data' in field_data:
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
@@ -43,10 +45,15 @@ def load_field_data(output_path, server_path, spike_sorter):
                 if 'grid_score' in field_data:
                     field_data_to_combine['grid_score'] = field_data.grid_score
                 rate_maps = []
+                length_recording = []
                 for cluster in range(len(field_data.cluster_id)):
                     rate_map = spatial_firing[field_data.cluster_id.iloc[cluster] == spatial_firing.cluster_id].firing_maps
                     rate_maps.append(rate_map)
+                    length_of_recording = position.synced_time.values[-1]
+                    length_recording.append(length_of_recording)
+
                 field_data_to_combine['rate_map'] = rate_maps
+                field_data_to_combine['recording_length'] = length_recording
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
     field_data_combined.to_pickle(output_path)
@@ -283,15 +290,16 @@ def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling
     pearson_coefs = []
     pearson_ps = []
     for field_index, field in field_data.iterrows():
-        half_time_sec = (max(field.times_session) - min(field.times_session)) / 2
-        session_first_half_indices = field.times_session < half_time_sec
+        # half_time_sec = (max(field.times_session) - min(field.times_session)) / 2
+        half_time = field.recording_length / 2
+        session_first_half_indices = np.array(field.times_session) < half_time
         session_first_half = field.hd_in_field_session[session_first_half_indices]
         hd_hist_first_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_first_half)
-        session_second_half_indices = field.times_session >= half_time_sec
+        session_second_half_indices = np.array(field.times_session) >= half_time
         session_second_half = field.hd_in_field_session[session_second_half_indices]
         hd_hist_second_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_second_half)
-        spikes_first_half = field.spike_times < half_time_sec * sampling_rate_ephys
-        spikes_second_half = field.spike_times >= half_time_sec * sampling_rate_ephys
+        spikes_first_half = np.array(field.spike_times) < half_time * sampling_rate_ephys
+        spikes_second_half = np.array(field.spike_times) >= half_time * sampling_rate_ephys
         hd_first_half_spikes = field.hd_in_field_spikes[spikes_first_half]
         hd_second_half_spikes = field.hd_in_field_spikes[spikes_second_half]
         hd_hist_first_half = PostSorting.open_field_head_direction.get_hd_histogram(hd_first_half_spikes)
@@ -387,8 +395,8 @@ def process_circular_data(animal):
 
 
 def main():
-    process_circular_data('rat')
     process_circular_data('mouse')
+    process_circular_data('rat')
 
 
 if __name__ == '__main__':
