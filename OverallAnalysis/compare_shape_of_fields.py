@@ -291,8 +291,8 @@ def tag_border_and_middle_fields(field_data):
 
 
 def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling_rate_movement, output_path):
-    #if 'hd_hist_first_half' in field_data:
-     #   return field_data
+    if 'hd_hist_first_half' in field_data:
+        return field_data
     first_halves = []
     second_halves = []
     pearson_coefs = []
@@ -366,10 +366,45 @@ def compare_within_field_with_other_fields(field_data, animal):
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
     in_between_fields = correlation_values_in_between
-    plt.hist(in_between_fields, weights=plot_utility.get_weights_normalized_hist(in_between_fields), color='gray', alpha=0.5)
-    plt.hist(within_field, weights=plot_utility.get_weights_normalized_hist(within_field), color='blue', alpha=0.4)
+    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', alpha=0.5)
+    plt.hist(within_field[~np.isnan(within_field)], weights=plot_utility.get_weights_normalized_hist(within_field[~np.isnan(within_field)]), color='blue', alpha=0.4)
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations.png')
+    plt.close()
+
+
+def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
+    first_halves = field_data.hd_hist_first_half.values
+    second_halves = field_data.hd_hist_second_half.values
+    correlation_within = field_data.hd_in_first_and_second_halves_corr.values
+    correlation_values = []
+    correlation_p = []
+    count_f1 = 0
+    count_f2 = 0
+
+    for index, field1 in enumerate(first_halves):
+        for index2, field2 in enumerate(second_halves):
+            if count_f1 != count_f2:
+                if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.5):
+                    pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
+                    correlation_values.append(pearson_coef)
+                    correlation_p.append(corr_p)
+            count_f2 += 1
+        count_f1 += 1
+
+    correlation_values_in_between = np.array(correlation_values)
+    correlation_p = np.array(correlation_p)
+    # significant = field_data.hd_in_first_and_second_halves_p < 0.001
+    within_field = field_data.hd_in_first_and_second_halves_corr.values
+    within_field = within_field[within_field >= 0.4]
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
+    in_between_fields = correlation_values_in_between
+    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', alpha=0.5)
+    plt.hist(within_field[~np.isnan(within_field)], weights=plot_utility.get_weights_normalized_hist(within_field[~np.isnan(within_field)]), color='blue', alpha=0.4)
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04.png')
     plt.close()
 
 
@@ -408,14 +443,15 @@ def process_circular_data(animal):
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
+        compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')], 'conj_mouse')
 
-        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
-        plot_correlation_matrix(field_data, 'mouse')
-        plot_correlation_matrix_individual_cells(field_data, 'mouse')
-        plot_half_fields(field_data, 'mouse')
+        # plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
+        # plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
+        # plot_correlation_matrix(field_data, 'mouse')
+        # plot_correlation_matrix_individual_cells(field_data, 'mouse')
+        # plot_half_fields(field_data, 'mouse')
 
     if animal == 'rat':
         rat_path = local_path + 'field_data_modes_rat.pkl'
@@ -429,17 +465,19 @@ def process_circular_data(animal):
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+
+        compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'rat')
 
-        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
-        plot_correlation_matrix(field_data, 'rat')
-        plot_correlation_matrix_individual_cells(field_data, 'rat')
-        plot_half_fields(field_data, 'rat')
+        # plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
+        # plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
+        # plot_correlation_matrix(field_data, 'rat')
+        # plot_correlation_matrix_individual_cells(field_data, 'rat')
+        # plot_half_fields(field_data, 'rat')
 
 
 def main():
-    #process_circular_data('mouse')
+    process_circular_data('mouse')
     process_circular_data('rat')
 
 
