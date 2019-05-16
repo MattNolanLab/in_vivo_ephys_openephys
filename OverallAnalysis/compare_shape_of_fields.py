@@ -7,12 +7,18 @@ import os
 import OverallAnalysis.folder_path_settings
 import pandas as pd
 import PostSorting.open_field_head_direction
+import PostSorting.open_field_make_plots
 import plot_utility
 from rpy2 import robjects as robj
 from scipy.stats import circstd
 from rpy2.robjects import pandas2ri
 import scipy.stats
 import seaborn
+import PostSorting.compare_first_and_second_half
+import PostSorting.parameters
+
+prm = PostSorting.parameters.Parameters()
+prm.set_sorter_name('MountainSort')
 
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/'
@@ -35,6 +41,8 @@ def load_field_data(output_path, server_path, spike_sorter):
             field_data = pd.read_pickle(data_frame_path)
             spatial_firing = pd.read_pickle(spatial_firing_path)
             position = pd.read_pickle(position_path)
+            prm.set_file_path(recording_folder)
+            # spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, position, spatial_firing)
             if 'shuffled_data' in field_data:
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
@@ -49,7 +57,7 @@ def load_field_data(output_path, server_path, spike_sorter):
                 for cluster in range(len(field_data.cluster_id)):
                     rate_map = spatial_firing[field_data.cluster_id.iloc[cluster] == spatial_firing.cluster_id].firing_maps
                     rate_maps.append(rate_map)
-                    length_of_recording = position.synced_time.values[-1]
+                    length_of_recording = (position.synced_time.max() - position.synced_time.min())
                     length_recording.append(length_of_recording)
 
                 field_data_to_combine['rate_map'] = rate_maps
@@ -283,12 +291,16 @@ def tag_border_and_middle_fields(field_data):
 
 
 def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling_rate_movement, output_path):
-    if 'hd_hist_first_half' in field_data:
-        return field_data
+    #if 'hd_hist_first_half' in field_data:
+     #   return field_data
     first_halves = []
     second_halves = []
     pearson_coefs = []
     pearson_ps = []
+    number_of_spikes_first_half = []
+    number_of_spikes_second_half = []
+    time_spent_first_half = []
+    time_spent_second_half = []
     for field_index, field in field_data.iterrows():
         # half_time_sec = (max(field.times_session) - min(field.times_session)) / 2
         half_time = field.recording_length / 2
@@ -312,11 +324,20 @@ def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling
         pearson_p = scipy.stats.pearsonr(hd_hist_norm_first, hd_hist_norm_second)[1]
         pearson_coefs.append(pearson_coef)
         pearson_ps.append(pearson_p)
+        number_of_spikes_first_half.append(spikes_first_half.sum())
+        number_of_spikes_second_half.append(spikes_second_half.sum())
+        time_spent_first_half.append(session_first_half_indices.sum())
+        time_spent_second_half.append(session_second_half_indices.sum())
 
     field_data['hd_hist_first_half'] = first_halves
     field_data['hd_hist_second_half'] = second_halves
     field_data['hd_in_first_and_second_halves_corr'] = pearson_coefs
     field_data['hd_in_first_and_second_halves_p'] = pearson_ps
+    field_data['number_of_spikes_first_half'] = number_of_spikes_first_half
+    field_data['number_of_spikes_second_half'] = number_of_spikes_second_half
+    field_data['time_spent_first_half'] = time_spent_first_half
+    field_data['time_spent_second_half'] = time_spent_second_half
+
     field_data.to_pickle(output_path)
     return field_data
 
@@ -339,16 +360,37 @@ def compare_within_field_with_other_fields(field_data, animal):
 
     correlation_values_in_between = np.array(correlation_values)
     correlation_p = np.array(correlation_p)
-    significant = field_data.hd_in_first_and_second_halves_p < 0.001
-    within_field = field_data.hd_in_first_and_second_halves_corr[significant]
+    # significant = field_data.hd_in_first_and_second_halves_p < 0.001
+    within_field = field_data.hd_in_first_and_second_halves_corr
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    in_between_fields = correlation_values_in_between[correlation_p < 0.001]
+    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
+    in_between_fields = correlation_values_in_between
     plt.hist(in_between_fields, weights=plot_utility.get_weights_normalized_hist(in_between_fields), color='gray', alpha=0.5)
     plt.hist(within_field, weights=plot_utility.get_weights_normalized_hist(within_field), color='blue', alpha=0.4)
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations.png')
     plt.close()
+
+
+def plot_half_fields(field_data, animal):
+    for index, field in field_data.iterrows():
+        plt.cla()
+        fig, ax = plt.subplots()
+        corr = str(round(field.hd_in_first_and_second_halves_corr, 4))
+        p = str(round(field.hd_in_first_and_second_halves_p, 4))
+        cell_type = field['cell type']
+        number_of_spikes_first_half = field['number_of_spikes_first_half']
+        number_of_spikes_second_half = field['number_of_spikes_second_half']
+        time_spent_first_half = field['time_spent_first_half']
+        time_spent_second_half = field['time_spent_second_half']
+
+        # title = ('r= ' + corr + ' p=' + p + ' cell type: ' + cell_type + 'first half: ' + str(number_of_spikes_first_half) + ' ' + str(time_spent_first_half) + ' second half: ' + str(number_of_spikes_second_half) + ' ' + str(time_spent_second_half))
+        title = ('r= ' + corr + ' p=' + p )
+        save_path = local_path + '/first_vs_second_fields/' + animal + field.session_id + str(field.cluster_id) + str(field.field_id)
+        PostSorting.open_field_make_plots.plot_polar_hd_hist(field.hd_hist_first_half, field.hd_hist_second_half, field.cluster_id, save_path, color1='lime', color2='navy', title=title)
+
+        plt.close()
 
 
 def process_circular_data(animal):
@@ -373,6 +415,7 @@ def process_circular_data(animal):
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
         plot_correlation_matrix(field_data, 'mouse')
         plot_correlation_matrix_individual_cells(field_data, 'mouse')
+        plot_half_fields(field_data, 'mouse')
 
     if animal == 'rat':
         rat_path = local_path + 'field_data_modes_rat.pkl'
@@ -392,10 +435,11 @@ def process_circular_data(animal):
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
         plot_correlation_matrix(field_data, 'rat')
         plot_correlation_matrix_individual_cells(field_data, 'rat')
+        plot_half_fields(field_data, 'rat')
 
 
 def main():
-    process_circular_data('mouse')
+    #process_circular_data('mouse')
     process_circular_data('rat')
 
 
