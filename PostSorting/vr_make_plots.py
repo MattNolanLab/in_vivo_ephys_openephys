@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
-# import PostSorting.vr_extract_data
+import PostSorting.vr_extract_data
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
@@ -87,7 +87,7 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
 
 def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
+    save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
@@ -104,13 +104,13 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     x_max = max(processed_position_data.average_stops)+0.1
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
 
-def plot_speed_histogram(processed_position_data, prm):
+def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     print('plotting speed histogram...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
+    save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
@@ -127,7 +127,7 @@ def plot_speed_histogram(processed_position_data, prm):
     x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
 
 
@@ -230,7 +230,7 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(prm.get_output_path() + '/Figures/spike_trajectories/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -243,7 +243,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_firing_rate_data(spike_data, cluster_index)
+        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index)
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(avg_beaconed_spike_rate, '-', color='Black')
@@ -266,7 +266,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-        plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
 
@@ -302,9 +302,62 @@ def plot_gc_firing_rate_maps(spike_data, prm, prefix):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-        plt.savefig(prm.get_output_path() + '/Figures/spike_rate/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + str(prefix) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
+
+
+'''
+plot gaussian convolved firing rate in time against similarly convolved speed and location. 
+'''
+
+def plot_convolved_rates_in_time(spike_data, prm):
+    print('plotting spike rastas...')
+    save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        spikes_on_track = plt.figure(figsize=(4,5))
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        firing_rate = spike_data.loc[cluster_index].spike_rate_in_time
+        speed = spike_data.loc[cluster_index].speed_rate_in_time
+        x_max= np.max(firing_rate)
+        ax.plot(firing_rate, speed, '|', color='Black', markersize=4)
+        plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
+        plt.xlabel('Speed (cm/sec)', fontsize=12, labelpad = 10)
+        plt.xlim(0,200)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plot_utility.style_track_plot(ax, 200)
+        plot_utility.style_vr_plot(ax, x_max)
+        plt.locator_params(axis = 'y', nbins  = 4)
+        try:
+            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        except ValueError:
+            continue
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_SPEED_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.close()
+
+        spikes_on_track = plt.figure(figsize=(4,5))
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        position = spike_data.loc[cluster_index].location_rate_in_time
+        ax.plot(firing_rate, position, '|', color='Black', markersize=4)
+        plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
+        plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+        plt.xlim(0,200)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plot_utility.style_track_plot(ax, 200)
+        plot_utility.style_vr_plot(ax, x_max)
+        plt.locator_params(axis = 'y', nbins  = 4)
+        try:
+            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        except ValueError:
+            continue
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.close()
 
 
 # unused code but might use in future
