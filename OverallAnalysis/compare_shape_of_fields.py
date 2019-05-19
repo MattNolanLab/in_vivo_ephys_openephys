@@ -405,7 +405,7 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
     return field_data
 
 
-def compare_within_field_with_other_fields(field_data, animal):
+def get_correlation_values_in_between_fields(field_data):
     first_halves = field_data.hd_hist_first_half
     second_halves = field_data.hd_hist_second_half
     correlation_values = []
@@ -422,15 +422,37 @@ def compare_within_field_with_other_fields(field_data, animal):
         count_f1 += 1
 
     correlation_values_in_between = np.array(correlation_values)
+    return correlation_values_in_between, correlation_p
+
+
+def get_correlation_values_within_fields(field_data):
+    first_halves = field_data.hd_hist_first_half
+    second_halves = field_data.hd_hist_second_half
+    correlation_values = []
+    correlation_p = []
+    for field in range(len(field_data)):
+        first = first_halves.iloc[field]
+        second = second_halves.iloc[field]
+
+        pearson_coef, corr_p = scipy.stats.pearsonr(first, second)
+        correlation_values.append(pearson_coef)
+        correlation_p.append(corr_p)
+
+    correlation_values_within = np.array(correlation_values)
+    return correlation_values_within, correlation_p
+
+
+def compare_within_field_with_other_fields(field_data, animal):
+    correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
     correlation_p = np.array(correlation_p)
     # significant = field_data.hd_in_first_and_second_halves_p < 0.001
-    within_field = field_data.hd_in_first_and_second_halves_corr
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
     in_between_fields = correlation_values_in_between
     plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', alpha=0.5)
-    plt.hist(within_field[~np.isnan(within_field)], weights=plot_utility.get_weights_normalized_hist(within_field[~np.isnan(within_field)]), color='blue', alpha=0.4)
+    plt.hist(within_field_corr[~np.isnan(within_field_corr)], weights=plot_utility.get_weights_normalized_hist(within_field_corr[~np.isnan(within_field_corr)]), color='blue', alpha=0.4)
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations.png')
     plt.close()
@@ -439,7 +461,7 @@ def compare_within_field_with_other_fields(field_data, animal):
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half.values
     second_halves = field_data.hd_hist_second_half.values
-    correlation_within = field_data.hd_in_first_and_second_halves_corr.values
+    correlation_within, p = get_correlation_values_within_fields(field_data)
     correlation_values = []
     correlation_p = []
     count_f1 = 0
@@ -458,7 +480,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     correlation_values_in_between = np.array(correlation_values)
     correlation_p = np.array(correlation_p)
     # significant = field_data.hd_in_first_and_second_halves_p < 0.001
-    within_field = field_data.hd_in_first_and_second_halves_corr.values
+    within_field, p = get_correlation_values_within_fields(field_data)
     within_field = within_field[within_field >= 0.4]
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
@@ -509,11 +531,11 @@ def process_circular_data(animal):
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')], 'conj_mouse')
 
-        # plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
-        # plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
-        # plot_correlation_matrix(field_data, 'mouse')
-        # plot_correlation_matrix_individual_cells(field_data, 'mouse')
-        # plot_half_fields(field_data, 'mouse')
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
+        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
+        plot_correlation_matrix(field_data, 'mouse')
+        plot_correlation_matrix_individual_cells(field_data, 'mouse')
+        plot_half_fields(field_data, 'mouse')
 
     if animal == 'rat':
         rat_path = local_path + 'field_data_modes_rat.pkl'
@@ -530,11 +552,11 @@ def process_circular_data(animal):
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'rat')
 
-        # plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
-        # plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
-        # plot_correlation_matrix(field_data, 'rat')
-        # plot_correlation_matrix_individual_cells(field_data, 'rat')
-        # plot_half_fields(field_data, 'rat')
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
+        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
+        plot_correlation_matrix(field_data, 'rat')
+        plot_correlation_matrix_individual_cells(field_data, 'rat')
+        plot_half_fields(field_data, 'rat')
 
 
 def main():
