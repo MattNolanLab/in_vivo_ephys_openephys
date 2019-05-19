@@ -501,7 +501,7 @@ def plot_half_fields(field_data, animal):
         plt.cla()
         fig, ax = plt.subplots()
         corr = str(round(correlation[field_num], 4))
-        p = str(round(p[field_num], 4))
+        # p = str(p[field_num])
         cell_type = field['cell type']
         #number_of_spikes_first_half = field['number_of_spikes_first_half']
         #number_of_spikes_second_half = field['number_of_spikes_second_half']
@@ -509,7 +509,7 @@ def plot_half_fields(field_data, animal):
         #time_spent_second_half = field['time_spent_second_half']
 
         # title = ('r= ' + corr + ' p=' + p + ' cell type: ' + cell_type + 'first half: ' + str(number_of_spikes_first_half) + ' ' + str(time_spent_first_half) + ' second half: ' + str(number_of_spikes_second_half) + ' ' + str(time_spent_second_half))
-        title = ('r= ' + corr + ' p=' + p )
+        title = ('r= ' + corr)
         save_path = local_path + '/first_vs_second_fields/' + animal + field.session_id + str(field.cluster_id) + str(field.field_id)
         PostSorting.open_field_make_plots.plot_polar_hd_hist(field.hd_hist_first_half, field.hd_hist_second_half, field.cluster_id, save_path, color1='lime', color2='navy', title=title)
 
