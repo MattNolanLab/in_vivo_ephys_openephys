@@ -153,3 +153,8 @@ def adjust_spines(ax,spines):
     else:
         # no xaxis ticks
         ax.xaxis.set_ticks([])
+
+
+def get_weights_normalized_hist(array_in):
+    weights = np.ones_like(array_in) / float(len(array_in))
+    return weights

@@ -136,7 +136,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
 
 
 # plot polar hd histograms without needing the whole df as an input
-def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path, color1='lime', color2='navy'):
+def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path, color1='lime', color2='navy', title=''):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -145,6 +145,7 @@ def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path, color1='lime', color2
     ax = plot_utility.style_polar_plot(ax)
     ax.plot(theta[:-1], hist_1, color=color1, linewidth=2)
     ax.plot(theta[:-1], hist_2, color=color2, linewidth=2)
+    plt.title(title)
     # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
     plt.tight_layout()
     plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
