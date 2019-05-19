@@ -44,7 +44,8 @@ def load_field_data(output_path, server_path, spike_sorter):
             prm.set_file_path(recording_folder)
             # spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, position, spatial_firing)
             if 'shuffled_data' in field_data:
-                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id',
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'position_x_spikes',
+                                                    'position_y_spikes', 'position_x_session', 'position_y_session',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
                                                     'hd_in_field_session', 'spike_times', 'times_session']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
@@ -62,6 +63,7 @@ def load_field_data(output_path, server_path, spike_sorter):
 
                 field_data_to_combine['rate_map'] = rate_maps
                 field_data_to_combine['recording_length'] = length_recording
+                add_histograms_for_half_recordings(field_data_to_combine, )
                 field_data_combined = field_data_combined.append(field_data_to_combine)
                 print(field_data_combined.head())
     field_data_combined.to_pickle(output_path)
@@ -291,8 +293,8 @@ def tag_border_and_middle_fields(field_data):
 
 
 def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling_rate_movement, output_path):
-    if 'hd_hist_first_half' in field_data:
-        return field_data
+    #if 'hd_hist_first_half' in field_data:
+        #return field_data
     first_halves = []
     second_halves = []
     pearson_coefs = []
@@ -310,8 +312,8 @@ def add_histograms_for_half_recordings(field_data, sampling_rate_ephys, sampling
         session_second_half_indices = np.array(field.times_session) >= half_time
         session_second_half = field.hd_in_field_session[session_second_half_indices]
         hd_hist_second_half_session = PostSorting.open_field_head_direction.get_hd_histogram(session_second_half)
-        spikes_first_half = np.array(field.spike_times) < half_time * sampling_rate_ephys
-        spikes_second_half = np.array(field.spike_times) >= half_time * sampling_rate_ephys
+        spikes_first_half = np.array(field.spike_times) < (half_time * sampling_rate_ephys)
+        spikes_second_half = np.array(field.spike_times) >= (half_time * sampling_rate_ephys)
         hd_first_half_spikes = field.hd_in_field_spikes[spikes_first_half]
         hd_second_half_spikes = field.hd_in_field_spikes[spikes_second_half]
         hd_hist_first_half = PostSorting.open_field_head_direction.get_hd_histogram(hd_first_half_spikes)
