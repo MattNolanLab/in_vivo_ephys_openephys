@@ -439,6 +439,7 @@ def get_correlation_values_within_fields(field_data):
         correlation_p.append(corr_p)
 
     correlation_values_within = np.array(correlation_values)
+    correlation_p = np.array(correlation_p)
     return correlation_values_within, correlation_p
 
 
@@ -494,16 +495,18 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
 
 
 def plot_half_fields(field_data, animal):
+    correlation, p = get_correlation_values_within_fields(field_data)
+    field_num = 0
     for index, field in field_data.iterrows():
         plt.cla()
         fig, ax = plt.subplots()
-        corr = str(round(field.hd_in_first_and_second_halves_corr, 4))
-        p = str(round(field.hd_in_first_and_second_halves_p, 4))
+        corr = str(round(correlation[field_num], 4))
+        p = str(round(p[field_num], 4))
         cell_type = field['cell type']
-        number_of_spikes_first_half = field['number_of_spikes_first_half']
-        number_of_spikes_second_half = field['number_of_spikes_second_half']
-        time_spent_first_half = field['time_spent_first_half']
-        time_spent_second_half = field['time_spent_second_half']
+        #number_of_spikes_first_half = field['number_of_spikes_first_half']
+        #number_of_spikes_second_half = field['number_of_spikes_second_half']
+        #time_spent_first_half = field['time_spent_first_half']
+        #time_spent_second_half = field['time_spent_second_half']
 
         # title = ('r= ' + corr + ' p=' + p + ' cell type: ' + cell_type + 'first half: ' + str(number_of_spikes_first_half) + ' ' + str(time_spent_first_half) + ' second half: ' + str(number_of_spikes_second_half) + ' ' + str(time_spent_second_half))
         title = ('r= ' + corr + ' p=' + p )
@@ -511,6 +514,7 @@ def plot_half_fields(field_data, animal):
         PostSorting.open_field_make_plots.plot_polar_hd_hist(field.hd_hist_first_half, field.hd_hist_second_half, field.cluster_id, save_path, color1='lime', color2='navy', title=title)
 
         plt.close()
+        field_num += 1
 
 
 def process_circular_data(animal):
