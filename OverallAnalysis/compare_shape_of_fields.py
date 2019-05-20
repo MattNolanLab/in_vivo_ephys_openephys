@@ -579,7 +579,7 @@ def process_circular_data(animal):
 
 
 def main():
-    # process_circular_data('mouse')
+    process_circular_data('mouse')
     process_circular_data('rat')
 
 
