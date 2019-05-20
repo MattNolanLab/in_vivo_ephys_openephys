@@ -484,6 +484,15 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.close()
 
 
+def compare_within_field_with_other_fields_stat(field_data, animal):
+    correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
+    stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field_corr)
+    print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
+    print(stat)
+    print(p)
+
+
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half.values
     second_halves = field_data.hd_hist_second_half.values
@@ -559,7 +568,7 @@ def process_circular_data(animal):
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')], 'conj_mouse')
-
+        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
         plot_correlation_matrix(field_data, 'mouse')
@@ -580,6 +589,7 @@ def process_circular_data(animal):
 
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
+        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
