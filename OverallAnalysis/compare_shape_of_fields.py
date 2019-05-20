@@ -30,7 +30,7 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
     if animal == 'mouse':
         ephys_sampling_rate = 30000
     else:
-        ephys_sampling_rate = 50000
+        ephys_sampling_rate = 1  # this is because the rat data is already in seconds
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
@@ -359,40 +359,55 @@ def plot_half_spikes(spatial_firing, position, field, half_time, firing_times_cl
     plt.plot(x_field_second_half, y_field_second_half, color='lime', alpha=0.5)
 
 
-# todo clean
+def get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys):
+    half_time = length_of_recording / 2
+    firing_times_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].firing_times
+    firing_times_cluster_first_half = firing_times_cluster.values[0][
+        firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
+    firing_times_cluster_second_half = firing_times_cluster.values[0][
+        firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
+    hd_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].hd
+    hd_cluster_first_half = np.array(hd_cluster.values[0])[
+        firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
+    hd_cluster_second_half = np.array(hd_cluster.values[0])[
+        firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
+    mask_firing_times_in_field_first = np.in1d(firing_times_cluster_first_half, field.spike_times)
+    mask_firing_times_in_field_second = np.in1d(firing_times_cluster_second_half, field.spike_times)
+    hd_field_first_half_spikes = hd_cluster_first_half[mask_firing_times_in_field_first]
+    hd_field_first_half_spikes_rad = (hd_field_first_half_spikes + 180) * np.pi / 180
+    hd_field_hist_first_spikes = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_spikes_rad)
+    hd_field_second_half_spikes = hd_cluster_second_half[mask_firing_times_in_field_second]
+    hd_field_second_half_spikes_rad = (hd_field_second_half_spikes + 180) * np.pi / 180
+    hd_field_hist_second_spikes = PostSorting.open_field_head_direction.get_hd_histogram(
+        hd_field_second_half_spikes_rad)
+    return hd_field_hist_first_spikes, hd_field_hist_second_spikes
+
+
+def get_halves_for_session_data(position, field, length_of_recording):
+    half_time = length_of_recording / 2
+    times_field_first_half = np.take(field.times_session, np.where(field.times_session < half_time))
+    mask_times_in_field_first_half = np.in1d(position.synced_time, times_field_first_half)
+    hd_field_first_half = position.hd[mask_times_in_field_first_half]
+    hd_field_first_half_rad = (hd_field_first_half + 180) * np.pi / 180
+    hd_field_hist_first_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_rad)
+
+    times_field_second_half = np.take(field.times_session, np.where(field.times_session >= half_time))
+    mask_times_in_field_second_half = np.in1d(position.synced_time, times_field_second_half)
+    hd_field_second_half = position.hd[mask_times_in_field_second_half]
+    hd_field_second_half_rad = (hd_field_second_half + 180) * np.pi / 180
+    hd_field_hist_second_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_rad)
+    return hd_field_hist_first_session, hd_field_hist_second_session
+
+
 def add_histograms_for_half_recordings(field_data, position, spatial_firing, length_of_recording, sampling_rate_ephys):
     first_halves = []
     second_halves = []
     for field_index, field in field_data.iterrows():
         # get half of spike data
-        half_time = length_of_recording / 2
-        firing_times_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].firing_times
-        firing_times_cluster_first_half = firing_times_cluster.values[0][firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
-        firing_times_cluster_second_half = firing_times_cluster.values[0][firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
-        hd_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].hd
-        hd_cluster_first_half = np.array(hd_cluster.values[0])[firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
-        hd_cluster_second_half = np.array(hd_cluster.values[0])[firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
-        mask_firing_times_in_field_first = np.in1d(firing_times_cluster_first_half, field.spike_times)
-        mask_firing_times_in_field_second = np.in1d(firing_times_cluster_second_half, field.spike_times)
-        hd_field_first_half_spikes = hd_cluster_first_half[mask_firing_times_in_field_first]
-        hd_field_first_half_spikes_rad = (hd_field_first_half_spikes + 180) * np.pi / 180
-        hd_field_hist_first_spikes = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_spikes_rad)
-        hd_field_second_half_spikes = hd_cluster_second_half[mask_firing_times_in_field_second]
-        hd_field_second_half_spikes_rad = (hd_field_second_half_spikes + 180) * np.pi / 180
-        hd_field_hist_second_spikes = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_spikes_rad)
+        hd_field_hist_first_spikes, hd_field_hist_second_spikes = get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys)
 
         # get half of session data
-        times_field_first_half = np.take(field.times_session, np.where(field.times_session < half_time))
-        mask_times_in_field_first_half = np.in1d(position.synced_time, times_field_first_half)
-        hd_field_first_half = position.hd[mask_times_in_field_first_half]
-        hd_field_first_half_rad = (hd_field_first_half + 180) * np.pi / 180
-        hd_field_hist_first_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_rad)
-
-        times_field_second_half = np.take(field.times_session, np.where(field.times_session >= half_time))
-        mask_times_in_field_second_half = np.in1d(position.synced_time, times_field_second_half)
-        hd_field_second_half = position.hd[mask_times_in_field_second_half]
-        hd_field_second_half_rad = (hd_field_second_half + 180) * np.pi / 180
-        hd_field_hist_second_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_rad)
+        hd_field_hist_first_session, hd_field_hist_second_session = get_halves_for_session_data(position, field, length_of_recording)
 
         hd_hist_first_half = np.divide(hd_field_hist_first_spikes, hd_field_hist_first_session, out=np.zeros_like(hd_field_hist_first_spikes), where=hd_field_hist_first_session != 0)
         hd_hist_second_half = np.divide(hd_field_hist_second_spikes, hd_field_hist_second_session, out=np.zeros_like(hd_field_hist_second_spikes), where=hd_field_hist_second_session != 0)
@@ -564,7 +579,7 @@ def process_circular_data(animal):
 
 
 def main():
-    process_circular_data('mouse')
+    # process_circular_data('mouse')
     process_circular_data('rat')
 
 
