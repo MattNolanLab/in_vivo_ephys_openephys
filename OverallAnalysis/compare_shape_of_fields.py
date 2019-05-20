@@ -473,6 +473,16 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.savefig(local_path + animal + 'half_session_correlations.png')
     plt.close()
 
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
+    in_between_fields = correlation_values_in_between
+    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', cumulative=True, histtype='step')
+    plt.hist(within_field_corr[~np.isnan(within_field_corr)], weights=plot_utility.get_weights_normalized_hist(within_field_corr[~np.isnan(within_field_corr)]), color='blue', cumulative=True, histtype='step')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_cumulative.png')
+    plt.close()
+
 
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half.values
