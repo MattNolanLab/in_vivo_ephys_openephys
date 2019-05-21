@@ -52,7 +52,7 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
                                                     'position_y_spikes', 'position_x_session', 'position_y_session',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
                                                     'hd_in_field_session', 'spike_times', 'times_session',
-                                                    'time_spent_in_fields_sampling_points', 'number_of_spikes_in_fields']].copy()
+                                                    'time_spent_in_field', 'number_of_spikes_in_field']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
                 if 'hd_score' in field_data:
                     field_data_to_combine['hd_score'] = field_data.hd_score
