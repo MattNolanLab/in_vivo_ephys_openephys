@@ -413,7 +413,7 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
 
         hd_hist_first_half = np.divide(hd_field_hist_first_spikes, hd_field_hist_first_session, out=np.zeros_like(hd_field_hist_first_spikes), where=hd_field_hist_first_session != 0)
         hd_hist_second_half = np.divide(hd_field_hist_second_spikes, hd_field_hist_second_session, out=np.zeros_like(hd_field_hist_second_spikes), where=hd_field_hist_second_session != 0)
-        pearson_coef, pearson_p = scipy.stats.pearsonr(hd_hist_first_half, hd_hist_second_half)[0]
+        pearson_coef, pearson_p = scipy.stats.pearsonr(hd_hist_first_half, hd_hist_second_half)
         first_halves.append(hd_hist_first_half)
         second_halves.append(hd_hist_second_half)
         pearson_coefs.append(pearson_coef)
