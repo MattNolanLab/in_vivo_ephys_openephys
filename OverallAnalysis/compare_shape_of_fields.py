@@ -424,7 +424,6 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
     field_data['pearson_coef_halves'] = pearson_coefs
     field_data['pearson_p_halves'] = pearson_ps
 
-
     return field_data
 
 
