@@ -635,8 +635,8 @@ def get_half_fields_large_bins(field_data):
 def correlation_analysis_with_bigger_bins(field_data, animal):
     field_data = get_half_fields_large_bins(field_data)
 
-    first_halves = field_data.hd_first_large_bins.values
-    second_halves = field_data.hd_second_large_bins.values
+    first_halves = field_data.hd_first_large_bins
+    second_halves = field_data.hd_second_large_bins
     correlation_in_between = []
     correlation_p = []
     count_f1 = 0
@@ -645,14 +645,14 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
     for index, field1 in enumerate(first_halves):
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
-                field1, field2 = remove_nans_from_both(field1, field2)
-                pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
+                field1_to_corr, field2_to_corr = remove_nans_from_both(field1, field2)
+                pearson_coef, corr_p = scipy.stats.pearsonr(field1_to_corr, field2_to_corr)
                 correlation_in_between.append(pearson_coef)
                 correlation_p.append(corr_p)
             count_f2 += 1
         count_f1 += 1
 
-    correlations_within = field_data.hd_first_large_bins
+    correlations_within = field_data.pearson_coef_halves_large_bins
     plt.figure()
 
     plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6)
