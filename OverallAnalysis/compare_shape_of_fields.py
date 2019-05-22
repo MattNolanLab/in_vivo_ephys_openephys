@@ -575,7 +575,7 @@ def plot_sampling_vs_correlation(field_data, animal):
     plt.close()
     plt.figure()
     plt.scatter(time_spent_in_field, pearson_r)
-    plt.xlabel('Amount of time spent in field')
+    plt.xlabel('Amount of time spent in field (sec)')
     plt.ylabel('Pearson r')
     plt.savefig(local_path + animal + '_time_spent_in_field_vs_pearson_r.png')
 
