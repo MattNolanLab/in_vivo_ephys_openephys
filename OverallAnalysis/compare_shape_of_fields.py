@@ -601,9 +601,11 @@ def remove_nans_from_both(first, second):
     return first_out, second_out
 
 
-def correlation_analysis_with_bigger_bins(field_data, animal):
+def get_half_fields_large_bins(field_data):
     correlations = []
     ps = []
+    hd_first_large_bins = []
+    hd_second_large_bins = []
     for index, field in field_data.iterrows():
         hd_spikes_first = field.hd_first_half_spikes
         hd_spikes_first_hist, edges = np.histogram(hd_spikes_first, bins=20)
@@ -615,6 +617,8 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
         hd_session_second = field.hd_second_half_session
         hd_session_second_hist, edges = np.histogram(hd_session_second, bins=20)
         hd_second = hd_spikes_second_hist / hd_session_second_hist
+        hd_first_large_bins.append(hd_first)
+        hd_second_large_bins.append(hd_second)
 
         first, second = remove_nans_from_both(hd_first, hd_second)
         corr, p = scipy.stats.pearsonr(first, second)
@@ -623,12 +627,38 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
 
     field_data['pearson_coef_halves_large_bins'] = correlations
     field_data['pearson_p_halves_large_bins'] = ps
+    field_data['hd_first_large_bins'] = hd_first_large_bins
+    field_data['hd_second_large_bins'] = hd_second_large_bins
+    return field_data
 
+
+def correlation_analysis_with_bigger_bins(field_data, animal):
+    field_data = get_half_fields_large_bins(field_data)
+
+    first_halves = field_data.hd_first_large_bins.values
+    second_halves = field_data.hd_second_large_bins.values
+    correlation_in_between = []
+    correlation_p = []
+    count_f1 = 0
+    count_f2 = 0
+
+    for index, field1 in enumerate(first_halves):
+        for index2, field2 in enumerate(second_halves):
+            if count_f1 != count_f2:
+                field1, field2 = remove_nans_from_both(field1, field2)
+                pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
+                correlation_in_between.append(pearson_coef)
+                correlation_p.append(corr_p)
+            count_f2 += 1
+        count_f1 += 1
+
+    correlations_within = field_data.hd_first_large_bins
     plt.figure()
-    plt.hist(np.array(correlations)[~np.isnan(correlations)])
+
+    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6)
+    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.8)
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
-
     return field_data
 
 
