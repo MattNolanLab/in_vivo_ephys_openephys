@@ -655,10 +655,11 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
     correlations_within = field_data.pearson_coef_halves_large_bins
     plt.figure()
 
-    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6)
-    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.8)
+    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6, normed=True)
+    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.5, normed=True)
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
+    plt.close()
     return field_data
 
 
