@@ -592,10 +592,44 @@ def plot_sampling_vs_correlation(field_data, animal):
     plt.savefig(local_path + animal + '_time_spent_in_field_vs_pearson_r.png')
 
 
-def correlation_analysis_with_bigger_bins(field_data):
+def remove_nans_from_both(first, second):
+    nans_in_first_indices = np.isnan(first)
+    nans_in_second_indices = np.isnan(second)
+    nans_combined = nans_in_first_indices + nans_in_second_indices
+    first_out = first[~nans_combined]
+    second_out = second[~nans_combined]
+    return first_out, second_out
+
+
+def correlation_analysis_with_bigger_bins(field_data, animal):
+    correlations = []
+    ps = []
     for index, field in field_data.iterrows():
-        hd_spikes = field.hd_in_field_spikes
-        hd_session = field.hd_in_field_session
+        hd_spikes_first = field.hd_first_half_spikes
+        hd_spikes_first_hist, edges = np.histogram(hd_spikes_first, bins=20)
+        hd_session_first = field.hd_first_half_session
+        hd_session_first_hist, edges = np.histogram(hd_session_first, bins=20)
+        hd_first = hd_spikes_first_hist / hd_session_first_hist
+        hd_spikes_second = field.hd_second_half_spikes
+        hd_spikes_second_hist, edges = np.histogram(hd_spikes_second, bins=20)
+        hd_session_second = field.hd_second_half_session
+        hd_session_second_hist, edges = np.histogram(hd_session_second, bins=20)
+        hd_second = hd_spikes_second_hist / hd_session_second_hist
+
+        first, second = remove_nans_from_both(hd_first, hd_second)
+        corr, p = scipy.stats.pearsonr(first, second)
+        correlations.append(corr)
+        ps.append(p)
+
+    field_data['pearson_coef_halves_large_bins'] = correlations
+    field_data['pearson_p_halves_large_bins'] = ps
+
+    plt.figure()
+    plt.hist(np.array(correlations)[~np.isnan(correlations)])
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
+
+    return field_data
 
 
 def process_circular_data(animal):
@@ -607,6 +641,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
+        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
@@ -632,6 +667,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
+        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
