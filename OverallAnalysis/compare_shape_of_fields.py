@@ -560,17 +560,21 @@ def plot_half_fields(field_data, animal):
 
 
 def plot_sampling_vs_correlation(field_data, animal):
+    if animal == 'mouse':
+        sampling = 30
+    else:
+        sampling = 50
     pearson_r = field_data.pearson_coef_halves
-    time_spent_in_field = field_data.time_spent_in_field
+    time_spent_in_field = field_data.time_spent_in_field / sampling
     number_of_spikes_in_field = field_data.number_of_spikes_in_field
     plt.figure()
-    plt.plot(number_of_spikes_in_field, pearson_r)
+    plt.scatter(number_of_spikes_in_field, pearson_r)
     plt.xlabel('Number of spikes')
     plt.ylabel('Pearson r')
     plt.savefig(local_path + animal + '_number_of_spikes_vs_pearson_r.png')
     plt.close()
     plt.figure()
-    plt.plot(time_spent_in_field, pearson_r)
+    plt.scatter(time_spent_in_field, pearson_r)
     plt.xlabel('Amount of time spent in field')
     plt.ylabel('Pearson r')
     plt.savefig(local_path + animal + '_time_spent_in_field_vs_pearson_r.png')
@@ -585,7 +589,8 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        plot_sampling_vs_correlation(field_data, animal)
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
@@ -609,7 +614,8 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        plot_sampling_vs_correlation(field_data, animal)
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
