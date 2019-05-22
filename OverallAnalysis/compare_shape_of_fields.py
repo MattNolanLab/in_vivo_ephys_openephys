@@ -381,7 +381,7 @@ def get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampli
     hd_field_second_half_spikes_rad = (hd_field_second_half_spikes + 180) * np.pi / 180
     hd_field_hist_second_spikes = PostSorting.open_field_head_direction.get_hd_histogram(
         hd_field_second_half_spikes_rad)
-    return hd_field_hist_first_spikes, hd_field_hist_second_spikes
+    return hd_field_hist_first_spikes, hd_field_hist_second_spikes, hd_field_first_half_spikes, hd_field_second_half_spikes
 
 
 def get_halves_for_session_data(position, field, length_of_recording):
@@ -397,20 +397,24 @@ def get_halves_for_session_data(position, field, length_of_recording):
     hd_field_second_half = position.hd[mask_times_in_field_second_half]
     hd_field_second_half_rad = (hd_field_second_half + 180) * np.pi / 180
     hd_field_hist_second_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_rad)
-    return hd_field_hist_first_session, hd_field_hist_second_session
+    return hd_field_hist_first_session, hd_field_hist_second_session, hd_field_first_half, hd_field_second_half
 
 
 def add_histograms_for_half_recordings(field_data, position, spatial_firing, length_of_recording, sampling_rate_ephys):
     first_halves = []
+    hd_first_spikes = []
+    hd_first_session = []
     second_halves = []
+    hd_second_spikes = []
+    hd_second_session = []
     pearson_coefs = []
     pearson_ps = []
     for field_index, field in field_data.iterrows():
         # get half of spike data
-        hd_field_hist_first_spikes, hd_field_hist_second_spikes = get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys)
+        hd_field_hist_first_spikes, hd_field_hist_second_spikes, hd_field_first_half_spikes, hd_field_second_half_spikes = get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys)
 
         # get half of session data
-        hd_field_hist_first_session, hd_field_hist_second_session = get_halves_for_session_data(position, field, length_of_recording)
+        hd_field_hist_first_session, hd_field_hist_second_session, hd_field_first_half, hd_field_second_half = get_halves_for_session_data(position, field, length_of_recording)
 
         hd_hist_first_half = np.divide(hd_field_hist_first_spikes, hd_field_hist_first_session, out=np.zeros_like(hd_field_hist_first_spikes), where=hd_field_hist_first_session != 0)
         hd_hist_second_half = np.divide(hd_field_hist_second_spikes, hd_field_hist_second_session, out=np.zeros_like(hd_field_hist_second_spikes), where=hd_field_hist_second_session != 0)
@@ -419,11 +423,19 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
         second_halves.append(hd_hist_second_half)
         pearson_coefs.append(pearson_coef)
         pearson_ps.append(pearson_p)
+        hd_first_spikes.append(hd_field_first_half_spikes)
+        hd_second_spikes.append(hd_field_second_half_spikes)
+        hd_first_session.append(hd_field_first_half)
+        hd_second_session.append(hd_field_second_half)
 
     field_data['hd_hist_first_half'] = first_halves
     field_data['hd_hist_second_half'] = second_halves
     field_data['pearson_coef_halves'] = pearson_coefs
     field_data['pearson_p_halves'] = pearson_ps
+    field_data['hd_first_half_session'] = hd_first_session
+    field_data['hd_second_half_session'] = hd_second_session
+    field_data['hd_first_half_spikes'] = hd_first_spikes
+    field_data['hd_second_half_spikes'] = hd_second_spikes
 
     return field_data
 
@@ -578,6 +590,12 @@ def plot_sampling_vs_correlation(field_data, animal):
     plt.xlabel('Amount of time spent in field (sec)')
     plt.ylabel('Pearson r')
     plt.savefig(local_path + animal + '_time_spent_in_field_vs_pearson_r.png')
+
+
+def correlation_analysis_with_bigger_bins(field_data):
+    for index, field in field_data.iterrows():
+        hd_spikes = field.hd_in_field_spikes
+        hd_session = field.hd_in_field_session
 
 
 def process_circular_data(animal):
