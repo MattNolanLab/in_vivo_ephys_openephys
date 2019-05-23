@@ -165,16 +165,18 @@ def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, a
 
     fig, ax = plt.subplots()
     plt.xlim(-1, 1)
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    values, base = np.histogram(centre_coefs, bins=20)
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    print(str(len(centre_coefs)) + ' number of centre coefs')
+    values, base = np.histogram(centre_coefs, bins=40)
     # evaluate the cumulative
-    cumulative = np.cumsum(values)
+    cumulative = np.cumsum(values / len(centre_coefs))
     # plot the cumulative function
     plt.plot(base[:-1], cumulative, c='black')
 
-    values, base = np.histogram(border_coefs, bins=20)
+    values, base = np.histogram(border_coefs, bins=40)
     # evaluate the cumulative
-    cumulative = np.cumsum(values)
+    print(str(len(border_coefs)) + ' number of border coefs')
+    cumulative = np.cumsum(values / len(border_coefs))
     # plot the cumulative function
     plt.plot(base[:-1], cumulative, c='gray')
     # plt.hist(centre_coefs, color='black', alpha=0.7, normed=True, cumulative=True, histtype='step')
