@@ -703,7 +703,7 @@ def process_circular_data(animal):
         compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, grid_pearson_border, 'mouse', tag='_centre_vs_border')
+        plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'mouse', tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'mouse')
         plot_correlation_matrix_individual_cells(field_data, 'mouse')
         plot_half_fields(field_data, 'mouse')
@@ -732,7 +732,7 @@ def process_circular_data(animal):
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, grid_pearson_border, 'rat', tag='_centre_vs_border')
+        plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'rat', tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'rat')
         plot_correlation_matrix_individual_cells(field_data, 'rat')
         plot_half_fields(field_data, 'rat')
