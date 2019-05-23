@@ -156,11 +156,30 @@ def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, a
     centre_coefs = clean_data(coefs_centre)
     border_coefs = clean_data(coefs_border)
     fig, ax = plt.subplots()
+    plt.xlim(-1, 1)
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     plt.hist(centre_coefs, color='black', alpha=0.7, normed=True)
-    if len(border_coefs) > 0:
-        plt.hist(border_coefs, color='gray', alpha=0.7, normed='True')
+    plt.hist(border_coefs, color='gray', alpha=0.4, normed=True)
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms.png')
+    plt.close()
+
+    fig, ax = plt.subplots()
+    plt.xlim(-1, 1)
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    values, base = np.histogram(centre_coefs, bins=20)
+    # evaluate the cumulative
+    cumulative = np.cumsum(values)
+    # plot the cumulative function
+    plt.plot(base[:-1], cumulative, c='black')
+
+    values, base = np.histogram(border_coefs, bins=20)
+    # evaluate the cumulative
+    cumulative = np.cumsum(values)
+    # plot the cumulative function
+    plt.plot(base[:-1], cumulative, c='gray')
+    # plt.hist(centre_coefs, color='black', alpha=0.7, normed=True, cumulative=True, histtype='step')
+    # plt.hist(border_coefs, color='gray', alpha=0.4, normed=True, cumulative=True, histtype='step')
+    plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
     plt.close()
 
 
