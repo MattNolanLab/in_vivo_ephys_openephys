@@ -152,6 +152,18 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.close()
 
 
+def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, animal, tag=''):
+    centre_coefs = clean_data(coefs_centre)
+    border_coefs = clean_data(coefs_border)
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plt.hist(centre_coefs, color='black', alpha=0.7, normed=True)
+    if len(border_coefs) > 0:
+        plt.hist(border_coefs, color='gray', alpha=0.7, normed='True')
+    plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms.png')
+    plt.close()
+
+
 def remove_nans(field1, field2):
     not_nans_in_field1 = ~np.isnan(field1)
     not_nans_in_field2 = ~np.isnan(field2)
@@ -680,6 +692,8 @@ def process_circular_data(animal):
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
+        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
+
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
@@ -689,6 +703,7 @@ def process_circular_data(animal):
         compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
+        plot_pearson_coefs_of_field_hist(grid_pearson_centre, grid_pearson_border, 'mouse', tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'mouse')
         plot_correlation_matrix_individual_cells(field_data, 'mouse')
         plot_half_fields(field_data, 'mouse')
@@ -706,6 +721,8 @@ def process_circular_data(animal):
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
+        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
+
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
@@ -715,6 +732,7 @@ def process_circular_data(animal):
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
+        plot_pearson_coefs_of_field_hist(grid_pearson_centre, grid_pearson_border, 'rat', tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'rat')
         plot_correlation_matrix_individual_cells(field_data, 'rat')
         plot_half_fields(field_data, 'rat')
