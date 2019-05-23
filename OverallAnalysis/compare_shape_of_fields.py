@@ -30,7 +30,7 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
     if animal == 'mouse':
         ephys_sampling_rate = 30000
     else:
-        ephys_sampling_rate = 50000
+        ephys_sampling_rate = 1  # this is because the rat data is already in seconds
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
@@ -51,7 +51,8 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'position_x_spikes',
                                                     'position_y_spikes', 'position_x_session', 'position_y_session',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
-                                                    'hd_in_field_session', 'spike_times', 'times_session']].copy()
+                                                    'hd_in_field_session', 'spike_times', 'times_session',
+                                                    'time_spent_in_field', 'number_of_spikes_in_field']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
                 if 'hd_score' in field_data:
                     field_data_to_combine['hd_score'] = field_data.hd_score
@@ -359,48 +360,82 @@ def plot_half_spikes(spatial_firing, position, field, half_time, firing_times_cl
     plt.plot(x_field_second_half, y_field_second_half, color='lime', alpha=0.5)
 
 
-# todo clean
+def get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys):
+    half_time = length_of_recording / 2
+    firing_times_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].firing_times
+    firing_times_cluster_first_half = firing_times_cluster.values[0][
+        firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
+    firing_times_cluster_second_half = firing_times_cluster.values[0][
+        firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
+    hd_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].hd
+    hd_cluster_first_half = np.array(hd_cluster.values[0])[
+        firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
+    hd_cluster_second_half = np.array(hd_cluster.values[0])[
+        firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
+    mask_firing_times_in_field_first = np.in1d(firing_times_cluster_first_half, field.spike_times)
+    mask_firing_times_in_field_second = np.in1d(firing_times_cluster_second_half, field.spike_times)
+    hd_field_first_half_spikes = hd_cluster_first_half[mask_firing_times_in_field_first]
+    hd_field_first_half_spikes_rad = (hd_field_first_half_spikes + 180) * np.pi / 180
+    hd_field_hist_first_spikes = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_spikes_rad)
+    hd_field_second_half_spikes = hd_cluster_second_half[mask_firing_times_in_field_second]
+    hd_field_second_half_spikes_rad = (hd_field_second_half_spikes + 180) * np.pi / 180
+    hd_field_hist_second_spikes = PostSorting.open_field_head_direction.get_hd_histogram(
+        hd_field_second_half_spikes_rad)
+    return hd_field_hist_first_spikes, hd_field_hist_second_spikes, hd_field_first_half_spikes, hd_field_second_half_spikes
+
+
+def get_halves_for_session_data(position, field, length_of_recording):
+    half_time = length_of_recording / 2
+    times_field_first_half = np.take(field.times_session, np.where(field.times_session < half_time))
+    mask_times_in_field_first_half = np.in1d(position.synced_time, times_field_first_half)
+    hd_field_first_half = position.hd[mask_times_in_field_first_half]
+    hd_field_first_half_rad = (hd_field_first_half + 180) * np.pi / 180
+    hd_field_hist_first_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_rad)
+
+    times_field_second_half = np.take(field.times_session, np.where(field.times_session >= half_time))
+    mask_times_in_field_second_half = np.in1d(position.synced_time, times_field_second_half)
+    hd_field_second_half = position.hd[mask_times_in_field_second_half]
+    hd_field_second_half_rad = (hd_field_second_half + 180) * np.pi / 180
+    hd_field_hist_second_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_rad)
+    return hd_field_hist_first_session, hd_field_hist_second_session, hd_field_first_half, hd_field_second_half
+
+
 def add_histograms_for_half_recordings(field_data, position, spatial_firing, length_of_recording, sampling_rate_ephys):
     first_halves = []
+    hd_first_spikes = []
+    hd_first_session = []
     second_halves = []
+    hd_second_spikes = []
+    hd_second_session = []
+    pearson_coefs = []
+    pearson_ps = []
     for field_index, field in field_data.iterrows():
         # get half of spike data
-        half_time = length_of_recording / 2
-        firing_times_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].firing_times
-        firing_times_cluster_first_half = firing_times_cluster.values[0][firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
-        firing_times_cluster_second_half = firing_times_cluster.values[0][firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
-        hd_cluster = spatial_firing[field.cluster_id == spatial_firing.cluster_id].hd
-        hd_cluster_first_half = np.array(hd_cluster.values[0])[firing_times_cluster.values[0] < (half_time * sampling_rate_ephys)]
-        hd_cluster_second_half = np.array(hd_cluster.values[0])[firing_times_cluster.values[0] >= (half_time * sampling_rate_ephys)]
-        mask_firing_times_in_field_first = np.in1d(firing_times_cluster_first_half, field.spike_times)
-        mask_firing_times_in_field_second = np.in1d(firing_times_cluster_second_half, field.spike_times)
-        hd_field_first_half_spikes = hd_cluster_first_half[mask_firing_times_in_field_first]
-        hd_field_first_half_spikes_rad = (hd_field_first_half_spikes + 180) * np.pi / 180
-        hd_field_hist_first_spikes = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_spikes_rad)
-        hd_field_second_half_spikes = hd_cluster_second_half[mask_firing_times_in_field_second]
-        hd_field_second_half_spikes_rad = (hd_field_second_half_spikes + 180) * np.pi / 180
-        hd_field_hist_second_spikes = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_spikes_rad)
+        hd_field_hist_first_spikes, hd_field_hist_second_spikes, hd_field_first_half_spikes, hd_field_second_half_spikes = get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys)
 
         # get half of session data
-        times_field_first_half = np.take(field.times_session, np.where(field.times_session < half_time))
-        mask_times_in_field_first_half = np.in1d(position.synced_time, times_field_first_half)
-        hd_field_first_half = position.hd[mask_times_in_field_first_half]
-        hd_field_first_half_rad = (hd_field_first_half + 180) * np.pi / 180
-        hd_field_hist_first_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_first_half_rad)
-
-        times_field_second_half = np.take(field.times_session, np.where(field.times_session >= half_time))
-        mask_times_in_field_second_half = np.in1d(position.synced_time, times_field_second_half)
-        hd_field_second_half = position.hd[mask_times_in_field_second_half]
-        hd_field_second_half_rad = (hd_field_second_half + 180) * np.pi / 180
-        hd_field_hist_second_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_field_second_half_rad)
+        hd_field_hist_first_session, hd_field_hist_second_session, hd_field_first_half, hd_field_second_half = get_halves_for_session_data(position, field, length_of_recording)
 
         hd_hist_first_half = np.divide(hd_field_hist_first_spikes, hd_field_hist_first_session, out=np.zeros_like(hd_field_hist_first_spikes), where=hd_field_hist_first_session != 0)
         hd_hist_second_half = np.divide(hd_field_hist_second_spikes, hd_field_hist_second_session, out=np.zeros_like(hd_field_hist_second_spikes), where=hd_field_hist_second_session != 0)
+        pearson_coef, pearson_p = scipy.stats.pearsonr(hd_hist_first_half, hd_hist_second_half)
         first_halves.append(hd_hist_first_half)
         second_halves.append(hd_hist_second_half)
+        pearson_coefs.append(pearson_coef)
+        pearson_ps.append(pearson_p)
+        hd_first_spikes.append(hd_field_first_half_spikes)
+        hd_second_spikes.append(hd_field_second_half_spikes)
+        hd_first_session.append(hd_field_first_half)
+        hd_second_session.append(hd_field_second_half)
 
     field_data['hd_hist_first_half'] = first_halves
     field_data['hd_hist_second_half'] = second_halves
+    field_data['pearson_coef_halves'] = pearson_coefs
+    field_data['pearson_p_halves'] = pearson_ps
+    field_data['hd_first_half_session'] = hd_first_session
+    field_data['hd_second_half_session'] = hd_second_session
+    field_data['hd_first_half_spikes'] = hd_first_spikes
+    field_data['hd_second_half_spikes'] = hd_second_spikes
 
     return field_data
 
@@ -457,6 +492,25 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations.png')
     plt.close()
+
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
+    in_between_fields = correlation_values_in_between
+    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', cumulative=True, histtype='step')
+    plt.hist(within_field_corr[~np.isnan(within_field_corr)], weights=plot_utility.get_weights_normalized_hist(within_field_corr[~np.isnan(within_field_corr)]), color='blue', cumulative=True, histtype='step')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_cumulative.png')
+    plt.close()
+
+
+def compare_within_field_with_other_fields_stat(field_data, animal):
+    correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
+    stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field_corr)
+    print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
+    print(stat)
+    print(p)
 
 
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
@@ -517,6 +571,100 @@ def plot_half_fields(field_data, animal):
         field_num += 1
 
 
+def plot_sampling_vs_correlation(field_data, animal):
+    if animal == 'mouse':
+        sampling = 30
+    else:
+        sampling = 50
+    pearson_r = field_data.pearson_coef_halves
+    time_spent_in_field = field_data.time_spent_in_field / sampling
+    number_of_spikes_in_field = field_data.number_of_spikes_in_field
+    plt.figure()
+    plt.scatter(number_of_spikes_in_field, pearson_r)
+    plt.xlabel('Number of spikes')
+    plt.ylabel('Pearson r')
+    plt.savefig(local_path + animal + '_number_of_spikes_vs_pearson_r.png')
+    plt.close()
+    plt.figure()
+    plt.scatter(time_spent_in_field, pearson_r)
+    plt.xlabel('Amount of time spent in field (sec)')
+    plt.ylabel('Pearson r')
+    plt.savefig(local_path + animal + '_time_spent_in_field_vs_pearson_r.png')
+
+
+def remove_nans_from_both(first, second):
+    nans_in_first_indices = np.isnan(first)
+    nans_in_second_indices = np.isnan(second)
+    nans_combined = nans_in_first_indices + nans_in_second_indices
+    first_out = first[~nans_combined]
+    second_out = second[~nans_combined]
+    return first_out, second_out
+
+
+def get_half_fields_large_bins(field_data):
+    correlations = []
+    ps = []
+    hd_first_large_bins = []
+    hd_second_large_bins = []
+    for index, field in field_data.iterrows():
+        hd_spikes_first = field.hd_first_half_spikes
+        hd_spikes_first_hist, edges = np.histogram(hd_spikes_first, bins=20)
+        hd_session_first = field.hd_first_half_session
+        hd_session_first_hist, edges = np.histogram(hd_session_first, bins=20)
+        hd_first = hd_spikes_first_hist / hd_session_first_hist
+        hd_spikes_second = field.hd_second_half_spikes
+        hd_spikes_second_hist, edges = np.histogram(hd_spikes_second, bins=20)
+        hd_session_second = field.hd_second_half_session
+        hd_session_second_hist, edges = np.histogram(hd_session_second, bins=20)
+        hd_second = hd_spikes_second_hist / hd_session_second_hist
+        hd_first_large_bins.append(hd_first)
+        hd_second_large_bins.append(hd_second)
+
+        first, second = remove_nans_from_both(hd_first, hd_second)
+        corr, p = scipy.stats.pearsonr(first, second)
+        correlations.append(corr)
+        ps.append(p)
+
+    field_data['pearson_coef_halves_large_bins'] = correlations
+    field_data['pearson_p_halves_large_bins'] = ps
+    field_data['hd_first_large_bins'] = hd_first_large_bins
+    field_data['hd_second_large_bins'] = hd_second_large_bins
+    return field_data
+
+
+def correlation_analysis_with_bigger_bins(field_data, animal):
+    field_data = get_half_fields_large_bins(field_data)
+
+    first_halves = field_data.hd_first_large_bins
+    second_halves = field_data.hd_second_large_bins
+    correlation_in_between = []
+    correlation_p = []
+    count_f1 = 0
+    count_f2 = 0
+
+    for index, field1 in enumerate(first_halves):
+        for index2, field2 in enumerate(second_halves):
+            if count_f1 != count_f2:
+                field1_to_corr, field2_to_corr = remove_nans_from_both(field1, field2)
+                pearson_coef, corr_p = scipy.stats.pearsonr(field1_to_corr, field2_to_corr)
+                correlation_in_between.append(pearson_coef)
+                correlation_p.append(corr_p)
+            count_f2 += 1
+        count_f1 += 1
+
+    correlations_within = field_data.pearson_coef_halves_large_bins
+    kstat, p = scipy.stats.ks_2samp(correlations_within, correlation_in_between)
+    print('KS comparison between within field and in between field correlations for 20 bins: ' + str(p) + ' ' + str(kstat))
+
+    plt.figure()
+    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6, normed=True)
+    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.5, normed=True)
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
+    plt.close()
+    return field_data
+
+
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -526,6 +674,10 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
+        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
+
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
@@ -534,7 +686,7 @@ def process_circular_data(animal):
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')], 'conj_mouse')
-
+        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
         plot_correlation_matrix(field_data, 'mouse')
@@ -548,13 +700,18 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
+        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
+
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
-        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'rat')
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
+        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
