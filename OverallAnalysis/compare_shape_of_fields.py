@@ -700,7 +700,6 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
     plt.close()
-    return field_data
 
 
 def process_circular_data(animal):
@@ -712,7 +711,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
@@ -741,7 +740,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
