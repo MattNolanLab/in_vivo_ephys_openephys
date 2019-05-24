@@ -56,7 +56,7 @@ def save_trajectory_field_data_for_cell_spikes(spatial_firing):
             for field in range(len(cluster.firing_fields)):
                 spike_times_field = cluster.spike_times_in_fields[field]
                 mask_for_occupancy = np.in1d(all_spike_times, spike_times_field)
-                field_id[mask_for_occupancy] = field + 1
+                field_id[mask_for_occupancy] = int(field + 1)
 
             spike_df_to_save = pd.DataFrame()
             spike_df_to_save['hd'] = hd
