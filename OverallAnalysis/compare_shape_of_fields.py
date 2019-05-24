@@ -151,6 +151,15 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms.png')
     plt.close()
 
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plt.hist(grid_coefs, color='navy', alpha=0.7, normed=True)
+    plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='navy')
+    if len(conj_coefs) > 0:
+        plot_utility.plot_cumulative_histogram(conj_coefs, ax, color='red')
+    plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
+    plt.close()
+
 
 def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, animal, tag=''):
     centre_coefs = clean_data(coefs_centre)
