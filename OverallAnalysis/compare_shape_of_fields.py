@@ -164,26 +164,14 @@ def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, a
     plt.close()
 
     fig, ax = plt.subplots()
-    plt.xlim(-1, 1)
-    plt.yticks([0, 1])
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
-    print(str(len(centre_coefs)) + ' number of centre coefs')
-    values, base = np.histogram(centre_coefs, bins=40)
-    # evaluate the cumulative
-    cumulative = np.cumsum(values / len(centre_coefs))
-    # plot the cumulative function
-    plt.plot(base[:-1], cumulative, c='black', linewidth=5)
-
-    values, base = np.histogram(border_coefs, bins=40)
-    # evaluate the cumulative
-    print(str(len(border_coefs)) + ' number of border coefs')
-    cumulative = np.cumsum(values / len(border_coefs))
-    # plot the cumulative function
-    plt.plot(base[:-1], cumulative, c='lightgray', linewidth=5)
-    # plt.hist(centre_coefs, color='black', alpha=0.7, normed=True, cumulative=True, histtype='step')
-    # plt.hist(border_coefs, color='gray', alpha=0.4, normed=True, cumulative=True, histtype='step')
+    plot_utility.plot_cumulative_histogram(centre_coefs, ax, color='black')
+    plot_utility.plot_cumulative_histogram(coefs_border, ax, color='gray')
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
     plt.close()
+
+    print(animal + '' + tag)
+    print(str(len(centre_coefs)) + ' number of centre coefs')
+    print(str(len(border_coefs)) + ' number of border coefs')
 
 
 def remove_nans(field1, field2):
