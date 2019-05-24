@@ -569,6 +569,14 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04.png')
     plt.close()
 
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
+    plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04_cumulative.png')
+    plt.close()
+
 
 def plot_half_fields(field_data, animal):
     correlation, p = get_correlation_values_within_fields(field_data)
