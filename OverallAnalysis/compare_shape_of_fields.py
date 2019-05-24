@@ -153,7 +153,6 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
 
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    plt.hist(grid_coefs, color='navy', alpha=0.7, normed=True)
     plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='navy')
     if len(conj_coefs) > 0:
         plot_utility.plot_cumulative_histogram(conj_coefs, ax, color='red')
