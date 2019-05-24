@@ -18,11 +18,12 @@ import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/data_for_modeling/density_ratio/'
+false_positive_path = OverallAnalysis.folder_path_settings.get_local_path() + '/data_for_modeling/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 
-def save_trajectory_field_data_for_cell(position, spatial_firing):
+def save_trajectory_field_data_for_cell(position, spatial_firing, accepted_fields):
     for index, cluster in spatial_firing.iterrows():
         cluster_id = spatial_firing.cluster_id[index]
         session_id = spatial_firing.session_id[index]
@@ -31,10 +32,15 @@ def save_trajectory_field_data_for_cell(position, spatial_firing):
             hd = position.hd
             times_position = position.synced_time
             field_id = np.zeros(len(hd))
+            accepted_field_ids = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].astype(str) + '_' + accepted_fields['field'].astype(str)
             for field in range(len(cluster.firing_fields)):
-                occupancy_times = cluster.times_in_session_fields[field]
-                mask_for_occupancy = np.in1d(times_position, occupancy_times)
-                field_id[mask_for_occupancy] = field + 1
+                field_name = cluster.session_id + '_' + str(cluster.cluster_id) + '_' + str(field + 1)
+                if any(field_name in s for s in accepted_field_ids):
+                    occupancy_times = cluster.times_in_session_fields[field]
+                    mask_for_occupancy = np.in1d(times_position, occupancy_times)
+                    field_id[mask_for_occupancy] = field + 1
+                else:
+                    print('excluded field: ' + field_name)
 
             trajectory_df_to_save = pd.DataFrame()
             trajectory_df_to_save['hd'] = hd
@@ -44,7 +50,7 @@ def save_trajectory_field_data_for_cell(position, spatial_firing):
             trajectory_df_to_save.to_csv(local_path + session_id + str(cluster_id) + '.csv')
 
 
-def save_trajectory_field_data_for_cell_spikes(spatial_firing):
+def save_trajectory_field_data_for_cell_spikes(spatial_firing, accepted_fields):
     for index, cluster in spatial_firing.iterrows():
         cluster_id = spatial_firing.cluster_id[index]
         session_id = spatial_firing.session_id[index]
@@ -54,9 +60,14 @@ def save_trajectory_field_data_for_cell_spikes(spatial_firing):
             all_spike_times = spatial_firing.firing_times[cluster_id - 1]
             field_id = np.zeros(len(hd))
             for field in range(len(cluster.firing_fields)):
-                spike_times_field = cluster.spike_times_in_fields[field]
-                mask_for_occupancy = np.in1d(all_spike_times, spike_times_field)
-                field_id[mask_for_occupancy] = int(field + 1)
+                accepted_field_ids = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].astype(str) + '_' + accepted_fields['field'].astype(str)
+                field_name = cluster.session_id + '_' + str(cluster.cluster_id) + '_' + str(field + 1)
+                if any(field_name in s for s in accepted_field_ids):
+                    spike_times_field = cluster.spike_times_in_fields[field]
+                    mask_for_occupancy = np.in1d(all_spike_times, spike_times_field)
+                    field_id[mask_for_occupancy] = int(field + 1)
+                else:
+                    print('excluded field: ' + field_name)
 
             spike_df_to_save = pd.DataFrame()
             spike_df_to_save['hd'] = hd
@@ -71,12 +82,13 @@ def load_data_frame_spatial_firing_modeling(output_path, server_path, spike_sort
         os.path.isdir(recording_folder)
         firing_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
         position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        accepted_fields = pd.read_excel(false_positive_path + 'list_of_accepted_fields.xlsx')
         if os.path.exists(firing_data_frame_path):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(firing_data_frame_path)
             position = pd.read_pickle(position_path)
-            save_trajectory_field_data_for_cell_spikes(spatial_firing)
-            save_trajectory_field_data_for_cell(position, spatial_firing)
+            save_trajectory_field_data_for_cell_spikes(spatial_firing, accepted_fields)
+            save_trajectory_field_data_for_cell(position, spatial_firing, accepted_fields)
 
 
 def process_data():
