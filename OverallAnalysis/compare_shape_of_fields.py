@@ -598,6 +598,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
     print(stat)
     print(p)
+    print('number of fields ' + str(len(within_field)))
 
 
 def plot_half_fields(field_data, animal):
