@@ -593,6 +593,12 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04_cumulative.png')
     plt.close()
 
+    stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field)
+    print('for Pearson r >= 0.4')
+    print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
+    print(stat)
+    print(p)
+
 
 def plot_half_fields(field_data, animal):
     correlation, p = get_correlation_values_within_fields(field_data)
