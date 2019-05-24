@@ -158,3 +158,29 @@ def adjust_spines(ax,spines):
 def get_weights_normalized_hist(array_in):
     weights = np.ones_like(array_in) / float(len(array_in))
     return weights
+
+
+def format_bar_chart(ax, x_label, y_label):
+    plt.gcf().subplots_adjust(bottom=0.2)
+    plt.gcf().subplots_adjust(left=0.2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel(x_label, fontsize=30)
+    ax.set_ylabel(y_label, fontsize=30)
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    return ax
+
+
+def plot_cumulative_histogram(corr_values, ax, color='black'):
+    plt.xlim(-1, 1)
+    plt.yticks([0, 1])
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    values, base = np.histogram(corr_values, bins=40)
+    # evaluate the cumulative
+    cumulative = np.cumsum(values / len(corr_values))
+    # plot the cumulative function
+    plt.plot(base[:-1], cumulative, c=color, linewidth=5)
+    return ax
