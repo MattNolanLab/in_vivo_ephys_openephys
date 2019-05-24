@@ -79,10 +79,8 @@ def load_data_frame_spatial_firing_modeling(output_path, server_path, spike_sort
             save_trajectory_field_data_for_cell(position, spatial_firing)
 
 
-
 def process_data():
     load_data_frame_spatial_firing_modeling(local_path, server_path_mouse, spike_sorter='/MountainSort')
-
 
 
 def main():
