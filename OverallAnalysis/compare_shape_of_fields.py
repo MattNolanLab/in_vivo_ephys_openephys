@@ -165,7 +165,7 @@ def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, a
 
     fig, ax = plt.subplots()
     plot_utility.plot_cumulative_histogram(centre_coefs, ax, color='black')
-    plot_utility.plot_cumulative_histogram(coefs_border, ax, color='gray')
+    plot_utility.plot_cumulative_histogram(border_coefs, ax, color='gray')
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
     plt.close()
 
