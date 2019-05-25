@@ -199,7 +199,6 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse', xlim=F
     plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + tag + 'cumulative.png', bbox_inches="tight")
 
 
-
 def analyze_data(animal):
     if animal == 'mouse':
         server_path = server_path_mouse
