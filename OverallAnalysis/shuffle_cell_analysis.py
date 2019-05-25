@@ -513,7 +513,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.set_xlim(0, 20.5)
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Cumulative probability', size=30)
-    plt.savefig(local_path + 'distribution_of_rejects_signigicant_p' + type + '_cumulative.png', bbox_inches="tight")
+    plt.savefig(local_path + 'distribution_of_rejects_signigicant_p' + type + '_cumulative.png')
     plt.close()
 
 
