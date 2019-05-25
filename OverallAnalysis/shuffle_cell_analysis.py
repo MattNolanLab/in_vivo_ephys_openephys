@@ -5,6 +5,7 @@ import os
 import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import pandas as pd
+import plot_utility
 import PostSorting.open_field_grid_cells
 import scipy
 from scipy import stats
@@ -444,6 +445,28 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
     plt.savefig(local_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches="tight")
     plt.close()
 
+    fig, ax = plt.subplots()
+    plt.yticks([0, 1])
+    ax = plot_utility.format_bar_chart(ax, 'Rejected bars / cell', 'Cumulative probability')
+    values, base = np.histogram(flat_shuffled, bins=40)
+    cumulative = np.cumsum(values / len(flat_shuffled))
+    plt.plot(base[:-1], cumulative, c='gray', linewidth=5)
+
+    values, base = np.histogram(number_of_rejects_real, bins=40)
+    cumulative = np.cumsum(values / len(number_of_rejects_real))
+    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlim(0, 20.5)
+    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_ylabel('Cumulative probability', size=30)
+    plt.savefig(local_path + 'distribution_of_rejects_' + tag + '_cumulative.png', bbox_inches="tight")
+    plt.close()
+
 
 def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     if type == 'bh':
@@ -468,6 +491,28 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20.5)
     plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
+    plt.close()
+
+    fig, ax = plt.subplots()
+    plt.yticks([0, 1])
+    ax = plot_utility.format_bar_chart(ax, 'Rejected bars / cell', 'Cumulative probability')
+    values, base = np.histogram(flat_shuffled, bins=40)
+    cumulative = np.cumsum(values / len(flat_shuffled))
+    plt.plot(base[:-1], cumulative, c='gray', linewidth=5)
+
+    values, base = np.histogram(number_of_significant_p_values, bins=40)
+    cumulative = np.cumsum(values / len(number_of_significant_p_values))
+    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xlim(0, 20.5)
+    ax.set_xlabel('Rejected bars / cell', size=30)
+    ax.set_ylabel('Cumulative probability', size=30)
+    plt.savefig(local_path + 'distribution_of_rejects_signigicant_p' + type + '_cumulative.png', bbox_inches="tight")
     plt.close()
 
 
