@@ -494,6 +494,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     plt.close()
 
     fig, ax = plt.subplots()
+    plt.xscale('log')
     plt.yticks([0, 1])
     ax = plot_utility.format_bar_chart(ax, 'Rejected bars / cell', 'Cumulative probability')
     values, base = np.histogram(flat_shuffled, bins=40)
