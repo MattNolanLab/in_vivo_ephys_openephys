@@ -188,7 +188,7 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse', xlim=F
 
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    # ax.set_xscale('log')
+    ax.set_xscale('log')
     plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
