@@ -208,7 +208,8 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
 
     plt.close()
     fig, ax = plt.subplots()
-    ax = plot_utility.format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    ax = plot_utility.format_bar_chart(ax, 'Watson test statistic', 'Cumulative probability')
+    plt.xscale('log')
     plt.yticks([0, 1])
     plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
     values, base = np.histogram(watson_test_stats, bins=40)
