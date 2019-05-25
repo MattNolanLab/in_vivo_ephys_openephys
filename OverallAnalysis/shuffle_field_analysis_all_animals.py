@@ -216,7 +216,12 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     cumulative = np.cumsum(values / len(number_of_significant_p_values))
     # plot the cumulative function
     plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
-
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Significant bars / field', size=30)
     ax.set_ylabel('Cumulative probability', size=30)
     plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_' + type + '_cumulative.png', bbox_inches="tight")
