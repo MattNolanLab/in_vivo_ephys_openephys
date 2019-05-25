@@ -151,8 +151,11 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse', xlim=F
         watson_shuffled = field_data.watson_stat_shuffled[field_data.accepted_field]
 
     fig, ax = plt.subplots()
-    if xlim == True:
+    if xlim is True:
         plt.xlim(0, 0.5)
+        tag = 'zoom'
+    else:
+        tag = ''
     plt.hist(watson_stats_accepted_fields, bins=20, color='navy', alpha=0.7, normed=True)
     plt.hist(watson_shuffled.values.flatten()[0], bins=20, color='grey', alpha=0.7, normed=True)
     ax.xaxis.set_tick_params(labelsize=20)
@@ -170,10 +173,30 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse', xlim=F
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Frequency', size=30)
-    if xlim == True:
-        plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '_zoom.png', bbox_inches="tight")
-    else:
-        plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + '.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + tag + '.png', bbox_inches="tight")
+    plt.close()
+
+    fig, ax = plt.subplots()
+    plt.yticks([0, 1])
+    values, base = np.histogram(watson_stats_accepted_fields, bins=40)
+    cumulative = np.cumsum(values / len(watson_stats_accepted_fields))
+    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+
+    values, base = np.histogram(watson_shuffled.values.flatten()[0], bins=40)
+    cumulative = np.cumsum(values / len(watson_shuffled.values.flatten()[0]))
+    plt.plot(base[:-1], cumulative, c='gray', linewidth=5)
+
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    ax.set_xscale('log')
+    plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Watson test statistic', size=30)
+    ax.set_ylabel('Cumulative probability', size=30)
+    plt.savefig(analysis_path + 'two_sample_watson_stats_hist_' + type + '_' + animal + tag + 'cumulative.png', bbox_inches="tight")
 
 
 def analyze_data(animal):

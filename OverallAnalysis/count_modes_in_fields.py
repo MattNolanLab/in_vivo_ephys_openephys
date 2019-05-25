@@ -305,6 +305,21 @@ def plot_std_of_modes(field_data, animal):
     plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells')
     plt.close()
 
+    fig, ax = plt.subplots()
+
+    plt.yticks([0, 1])
+    ax = format_bar_chart(ax, 'Standard dev of modes / cell', 'Cumulative probability')
+    values, base = np.histogram(grid_modes_std_cell, bins=40)
+    cumulative = np.cumsum(values / len(grid_modes_std_cell))
+    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+
+    values, base = np.histogram(conjunctive_modes_std_cell, bins=40)
+    cumulative = np.cumsum(values / len(conjunctive_modes_std_cell))
+    plt.plot(base[:-1], cumulative, c='red', linewidth=5)
+
+    plt.savefig(local_path + animal + '_std_of_modes_of_grid_and_conj_cells_cumulative')
+    plt.close()
+
 
 def get_number_of_modes_for_cell(field_data):
     number_of_modes_cells = []
@@ -351,6 +366,21 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     plt.hist(grid_number_of_modes_cell, color='navy', weights=get_weights_normalized_hist(grid_number_of_modes_cell), alpha=0.7)
     plt.hist(conjunctive_number_of_modes_cell, color='red', weights=get_weights_normalized_hist(conjunctive_number_of_modes_cell), alpha=0.7)
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells')
+    plt.close()
+
+    fig, ax = plt.subplots()
+
+    plt.yticks([0, 1])
+    ax = format_bar_chart(ax, 'Number of modes / cell', 'Cumulative probability')
+    values, base = np.histogram(grid_number_of_modes_cell, bins=40)
+    cumulative = np.cumsum(values / len(grid_number_of_modes_cell))
+    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+
+    values, base = np.histogram(conjunctive_number_of_modes_cell, bins=40)
+    cumulative = np.cumsum(values / len(conjunctive_number_of_modes_cell))
+    plt.plot(base[:-1], cumulative, c='red', linewidth=5)
+
+    plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells_cumulative')
     plt.close()
 
 

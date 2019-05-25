@@ -151,6 +151,14 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms.png')
     plt.close()
 
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='navy')
+    if len(conj_coefs) > 0:
+        plot_utility.plot_cumulative_histogram(conj_coefs, ax, color='red')
+    plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
+    plt.close()
+
 
 def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, animal, tag=''):
     centre_coefs = clean_data(coefs_centre)
@@ -165,7 +173,7 @@ def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, a
 
     fig, ax = plt.subplots()
     plot_utility.plot_cumulative_histogram(centre_coefs, ax, color='black')
-    plot_utility.plot_cumulative_histogram(coefs_border, ax, color='gray')
+    plot_utility.plot_cumulative_histogram(border_coefs, ax, color='gray')
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
     plt.close()
 
@@ -525,6 +533,14 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative.png')
     plt.close()
 
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
+    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_cumulative2.png')
+    plt.close()
+
 
 def compare_within_field_with_other_fields_stat(field_data, animal):
     correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
@@ -568,6 +584,21 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04.png')
     plt.close()
+
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
+    plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04_cumulative.png')
+    plt.close()
+
+    stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field)
+    print('for Pearson r >= 0.4')
+    print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
+    print(stat)
+    print(p)
+    print('number of fields ' + str(len(within_field)))
 
 
 def plot_half_fields(field_data, animal):
@@ -684,7 +715,6 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
     plt.close()
-    return field_data
 
 
 def process_circular_data(animal):
@@ -696,7 +726,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
@@ -725,7 +755,7 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        field_data = correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
