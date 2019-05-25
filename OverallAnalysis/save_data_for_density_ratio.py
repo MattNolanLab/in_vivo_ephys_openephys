@@ -18,6 +18,7 @@ import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/data_for_modeling/density_ratio/'
+local_path_fields = OverallAnalysis.folder_path_settings.get_local_path() + '/data_for_modeling/density_ratio_fields/'
 false_positive_path = OverallAnalysis.folder_path_settings.get_local_path() + '/data_for_modeling/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
@@ -91,7 +92,45 @@ def load_data_frame_spatial_firing_modeling(output_path, server_path, spike_sort
             save_trajectory_field_data_for_cell(position, spatial_firing, accepted_fields)
 
 
+def load_field_data_for_r(output_path, server_path):
+    field_data_combined = pd.DataFrame()
+    for recording_folder in glob.glob(server_path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/MountainSort/DataFrames/shuffled_fields.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a field data frame.')
+            field_data = pd.read_pickle(data_frame_path)
+
+            if 'shuffled_data' in field_data:
+                field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'indices_rate_map',
+                                                    'spike_times', 'number_of_spikes_in_field', 'position_x_spikes',
+                                                    'position_y_spikes', 'hd_in_field_spikes', 'hd_hist_spikes',
+                                                    'times_session', 'time_spent_in_field', 'position_x_session',
+                                                    'position_y_session', 'hd_in_field_session', 'hd_hist_session',
+                                                    'shuffled_means', 'shuffled_std',
+                                                    'hd_histogram_real_data', 'time_spent_in_bins',
+                                                    'field_histograms_hz',
+                                                    'real_and_shuffled_data_differ_bin', 'number_of_different_bins',
+                                                    'number_of_different_bins_shuffled', 'number_of_different_bins_bh',
+                                                    'number_of_different_bins_holm',
+                                                    'number_of_different_bins_shuffled_corrected_p']].copy()
+                field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
+
+                save_combined = pd.DataFrame()
+                for field in range(len(field_data)):
+                    to_save = pd.DataFrame()
+                    to_save['degrees'] = np.arange(0, 360)
+                    to_save['rate_hist'] = field_data_to_combine.normalized_hd_hist[field]
+                    to_save['session_id'] = field_data_to_combine.session_id[field]
+                    to_save['cluster_id'] = field_data_to_combine.cluster_id[field]
+                    to_save['field_id'] = field_data_to_combine.field_id[field] + 1
+                    save_combined = save_combined.append(to_save)
+
+                save_combined.to_csv(local_path_fields + to_save.session_id.iloc[0] + str(to_save.cluster_id.iloc[0]) + '.csv')
+
+
 def process_data():
+    load_field_data_for_r(local_path_fields, server_path_mouse)
     load_data_frame_spatial_firing_modeling(local_path, server_path_mouse, spike_sorter='/MountainSort')
 
 
