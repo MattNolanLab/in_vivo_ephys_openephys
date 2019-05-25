@@ -1,5 +1,6 @@
 import glob
 import pandas as pd
+import plot_utility
 import matplotlib.pylab as plt
 import numpy as np
 import OverallAnalysis.false_positives
@@ -164,6 +165,10 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
 
 
 def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse', xlim=False):
+    if xlim is True:
+        tag = 'zoomed'
+    else:
+        tag = ''
     good_cluster = df_all_animals.false_positive == False
     if cell_type == 'grid':
         grid = df_all_animals.grid_score >= 0.4
@@ -199,11 +204,20 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Watson test statistic', size=30)
     ax.set_ylabel('Proportion', size=30)
-    if xlim == True:
-        plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells_zoom.png',
-                    bbox_inches="tight")
-    else:
-        plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells.png', bbox_inches="tight")
+    plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells_' + tag + '.png', bbox_inches="tight")
+
+    plt.close()
+    fig, ax = plt.subplots()
+    ax = plot_utility.format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    plt.yticks([0, 1])
+    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
+    values, base = np.histogram(watson_test_stats, bins=40)
+    # evaluate the cumulative
+    cumulative = np.cumsum(values / len(watson_test_stats))
+    # plot the cumulative function
+    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+    plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells_cumulative' + tag + '.png', bbox_inches="tight")
+    plt.close()
 
 
 def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
