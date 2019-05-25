@@ -184,7 +184,7 @@ def plot_histogram_of_watson_stat(field_data, type='all', animal='mouse', xlim=F
 
     values, base = np.histogram(watson_shuffled.values.flatten()[0], bins=40)
     cumulative = np.cumsum(values / len(watson_shuffled.values.flatten()[0]))
-    plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+    plt.plot(base[:-1], cumulative, c='gray', linewidth=5)
 
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
