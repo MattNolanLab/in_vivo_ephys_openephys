@@ -33,15 +33,15 @@ def save_trajectory_field_data_for_cell(position, spatial_firing, accepted_field
             hd = position.hd
             times_position = position.synced_time
             field_id = np.zeros(len(hd))
-            accepted_field_ids = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].astype(str) + '_' + accepted_fields['field'].astype(str)
+            # accepted_field_ids = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].astype(str) + '_' + accepted_fields['field'].astype(str)
             for field in range(len(cluster.firing_fields)):
                 field_name = cluster.session_id + '_' + str(cluster.cluster_id) + '_' + str(field + 1)
-                if any(field_name in s for s in accepted_field_ids):
-                    occupancy_times = cluster.times_in_session_fields[field]
-                    mask_for_occupancy = np.in1d(times_position, occupancy_times)
-                    field_id[mask_for_occupancy] = field + 1
-                else:
-                    print('excluded field: ' + field_name)
+                # if any(field_name in s for s in accepted_field_ids):
+                occupancy_times = cluster.times_in_session_fields[field]
+                mask_for_occupancy = np.in1d(times_position, occupancy_times)
+                field_id[mask_for_occupancy] = field + 1
+                #else:
+                    #print('excluded field: ' + field_name)
 
             trajectory_df_to_save = pd.DataFrame()
             trajectory_df_to_save['hd'] = hd
@@ -61,14 +61,14 @@ def save_trajectory_field_data_for_cell_spikes(spatial_firing, accepted_fields):
             all_spike_times = spatial_firing.firing_times[cluster_id - 1]
             field_id = np.zeros(len(hd))
             for field in range(len(cluster.firing_fields)):
-                accepted_field_ids = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].astype(str) + '_' + accepted_fields['field'].astype(str)
+                # accepted_field_ids = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].astype(str) + '_' + accepted_fields['field'].astype(str)
                 field_name = cluster.session_id + '_' + str(cluster.cluster_id) + '_' + str(field + 1)
-                if any(field_name in s for s in accepted_field_ids):
-                    spike_times_field = cluster.spike_times_in_fields[field]
-                    mask_for_occupancy = np.in1d(all_spike_times, spike_times_field)
-                    field_id[mask_for_occupancy] = int(field + 1)
-                else:
-                    print('excluded field: ' + field_name)
+                # if any(field_name in s for s in accepted_field_ids):
+                spike_times_field = cluster.spike_times_in_fields[field]
+                mask_for_occupancy = np.in1d(all_spike_times, spike_times_field)
+                field_id[mask_for_occupancy] = int(field + 1)
+                # else:
+                    # print('excluded field: ' + field_name)
 
             spike_df_to_save = pd.DataFrame()
             spike_df_to_save['hd'] = hd
@@ -114,16 +114,20 @@ def load_field_data_for_r(output_path, server_path):
                                                     'number_of_different_bins_shuffled', 'number_of_different_bins_bh',
                                                     'number_of_different_bins_holm',
                                                     'number_of_different_bins_shuffled_corrected_p']].copy()
-                field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
+                norm_hist = field_data.hd_hist_spikes / field_data.hd_hist_session
+                normalized_hist = field_data.hd_hist_spikes / field_data.hd_hist_session
 
                 save_combined = pd.DataFrame()
                 for field in range(len(field_data)):
+                    norm_hist[field][:norm_hist[field].size // 2] = normalized_hist[field][norm_hist[field].size // 2:]
+                    norm_hist[field][norm_hist[0].size // 2:] = normalized_hist[field][:norm_hist[field].size // 2]
+
                     to_save = pd.DataFrame()
-                    to_save['degrees'] = np.arange(0, 360)
-                    to_save['rate_hist'] = field_data_to_combine.normalized_hd_hist[field]
+                    to_save['degrees'] = np.arange(-180, 180)
                     to_save['session_id'] = field_data_to_combine.session_id[field]
                     to_save['cluster_id'] = field_data_to_combine.cluster_id[field]
                     to_save['field_id'] = field_data_to_combine.field_id[field] + 1
+                    to_save['rate_hist'] = norm_hist[field]
                     save_combined = save_combined.append(to_save)
 
                 save_combined.to_csv(local_path_fields + to_save.session_id.iloc[0] + str(to_save.cluster_id.iloc[0]) + '.csv')
