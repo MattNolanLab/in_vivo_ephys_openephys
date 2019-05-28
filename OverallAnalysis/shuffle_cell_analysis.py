@@ -446,6 +446,7 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
     plt.close()
 
     fig, ax = plt.subplots()
+    plt.ylim(0, 1.01)
     plt.yticks([0, 1])
     ax = plot_utility.format_bar_chart(ax, 'Rejected bars / cell', 'Cumulative probability')
     values, base = np.histogram(flat_shuffled, bins=40)
