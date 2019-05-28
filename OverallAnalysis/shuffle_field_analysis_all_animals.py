@@ -154,6 +154,7 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
 
     fig, ax = plt.subplots()
     plt.yticks([0, 1])
+    plt.ylim(0, 1.01)
     ax = plot_utility.format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
     values, base = np.histogram(flat_shuffled, bins=40)
     # evaluate the cumulative
