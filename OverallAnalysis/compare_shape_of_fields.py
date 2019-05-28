@@ -584,6 +584,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     within_field, p = get_correlation_values_within_fields(field_data)
     within_field = within_field[within_field >= 0.4]
     fig, ax = plt.subplots()
+    plt.axvline(x=0, linewidth=3, color='red')
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
     in_between_fields = correlation_values_in_between
@@ -594,6 +595,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     plt.close()
 
     fig, ax = plt.subplots()
+    plt.axvline(x=0, linewidth=3, color='red')
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
     plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='navy')
