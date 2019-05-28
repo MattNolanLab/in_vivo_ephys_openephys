@@ -51,6 +51,21 @@ def get_rate_maps(position_data, firing_data):
     return position_heat_map, spatial_firing
 
 
+def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
+    # PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
+    PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
+    # PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
+    PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
+    PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
+    PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
+    # PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
+    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
+
+
 def process_data():
     organize_data()
     for name in glob.glob(analysis_path + '*'):
@@ -64,13 +79,13 @@ def process_data():
 
                 hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position, prm)
 
+                # if 'firing_maps' not in spatial_firing:
                 position_heat_map, spatial_firing = get_rate_maps(position, spatial_firing)
                 spatial_firing.to_pickle(name + '/spatial_firing.pkl')
                 spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                 spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position, prm)
-                # save_data_frames(spatial_firing, position_data)
-                # make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
+                make_plots(position, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
 def main():
