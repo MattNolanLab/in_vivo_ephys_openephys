@@ -495,7 +495,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     plt.close()
 
     fig, ax = plt.subplots()
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.yticks([0, 1])
     plt.ylim(0, 1.01)
     ax = plot_utility.format_bar_chart(ax, 'Significant bars / cell', 'Cumulative probability')
