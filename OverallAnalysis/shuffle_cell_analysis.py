@@ -279,6 +279,7 @@ def calculate_corrected_p_values(spatial_firing, type='bh'):
 
 
 def plot_bar_chart_for_cells(spatial_firing, path, animal):
+    counter = 0
     for index, cell in spatial_firing.iterrows():
         mean = cell['shuffled_means']
         std = cell['shuffled_std']
@@ -291,11 +292,13 @@ def plot_bar_chart_for_cells(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(index) + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
         plt.close()
+        counter += 1
 
 
 def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
+    counter = 0
     for index, cell in spatial_firing.iterrows():
         mean = cell['shuffled_means']
         percentile_95 = cell['error_bar_95']
@@ -308,8 +311,9 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
-        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(index) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
+        counter += 1
 
 
 def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle):
@@ -498,7 +502,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20.5)
-    plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
+    plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches="tight")
     plt.close()
 
     fig, ax = plt.subplots()
