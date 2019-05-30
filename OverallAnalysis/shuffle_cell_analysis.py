@@ -15,9 +15,11 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis_cell/'
 local_path_mouse = local_path + 'all_mice_df.pkl'
 local_path_rat = local_path + 'all_rats_df.pkl'
+local_path_simulated = local_path + 'all_simulated_df.pkl'
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 
 def format_bar_chart(ax):
@@ -34,23 +36,28 @@ def format_bar_chart(ax):
     return ax
 
 
-def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/MountainSort'):
+def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/MountainSort', df_path='/DataFrames'):
     if os.path.exists(output_path):
         spatial_firing = pd.read_pickle(output_path)
         return spatial_firing
     spatial_firing_data = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        firing_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        firing_data_frame_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
+        position_path = recording_folder + spike_sorter + df_path + '/position.pkl'
         if os.path.exists(firing_data_frame_path):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(firing_data_frame_path)
             position = pd.read_pickle(position_path)
 
             if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps']].copy()
                 spatial_firing['trajectory_hd'] = [position.hd] * len(spatial_firing)
+                number_spikes = []
+                for index, cell in spatial_firing.iterrows():
+                    num_spikes = len(cell.position_x)
+                    number_spikes.append(num_spikes)
+                spatial_firing['number_of_spikes'] = number_spikes
                 spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
                 print(spatial_firing_data.head())
@@ -570,7 +577,8 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     shuffled_spatial_firing_not_classified = spatial_firing[not_classified & good_cell]
 
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal)
-    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal)
+    if len(shuffled_spatial_firing_not_classified) > 0:
+        plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal)
 
     print(animal + ' data:')
     print('Grid cells:')
@@ -584,6 +592,8 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
 def main():
     spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated, spike_sorter='', df_path='')
+    process_data(spatial_firing_all_simulated, 1000, animal='simulated')
     process_data(spatial_firing_all_mice, 30, animal='mouse')
     process_data(spatial_firing_all_rats, 50, animal='rat')
 
