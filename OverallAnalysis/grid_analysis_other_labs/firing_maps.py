@@ -73,7 +73,7 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     num_cores = multiprocessing.cpu_count()
     clusters = range(len(firing_data_spatial))
     time_start = time.time()
-    firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x.values, spatial_data.position_y.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+    firing_rate_maps = Parallel(n_jobs=num_cores, max_nbytes=None)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x.values, spatial_data.position_y.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
     time_end = time.time()
     print('Making the rate maps took:')
     time_diff = time_end - time_start

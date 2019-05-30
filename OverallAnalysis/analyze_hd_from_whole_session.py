@@ -114,9 +114,9 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.set_xlabel('Head-direction score', fontsize=30)
-    ax.set_ylabel('Watson test stat', fontsize=30)
-    plt.axhline(0.386, color='red', alpha=0.8)  # p < 0.001
-    plt.axhline(0.268, color='red', alpha=0.8)  # p < 0.01
+    ax.set_ylabel('Watson $U^2$', fontsize=30)
+    plt.axhline(0.386, color='red', alpha=0.8, linewidth=3, linestyle='--')  # p < 0.001
+    plt.axhline(0.268, color='red', alpha=0.8, linewidth=3)  # p < 0.01
     plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
     plt.tight_layout()
     plt.savefig(save_output_path + 'hd_vs_watson_stat_all_cells_' + animal + '_log.png')
@@ -197,21 +197,21 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     plt.hist(watson_test_stats, bins=30, color='navy', normed=True, alpha=0.7)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
+    plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Watson test statistic', size=30)
+    ax.set_xlabel('Watson $U^2$', size=30)
     ax.set_ylabel('Proportion', size=30)
     plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells_' + tag + '.png', bbox_inches="tight")
 
     plt.close()
     fig, ax = plt.subplots()
-    ax = plot_utility.format_bar_chart(ax, 'Watson test statistic', 'Cumulative probability')
+    ax = plot_utility.format_bar_chart(ax, 'Watson $U^2$', 'Cumulative probability')
     plt.xscale('log')
     plt.yticks([0, 1])
-    plt.axvline(x=0.268, linewidth=5, color='red')  # p < 0.01 based on r docs for watson two test
+    plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
     values, base = np.histogram(watson_test_stats, bins=40)
     # evaluate the cumulative
     cumulative = np.cumsum(values / len(watson_test_stats))
