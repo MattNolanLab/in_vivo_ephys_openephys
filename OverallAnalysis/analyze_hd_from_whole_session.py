@@ -23,8 +23,10 @@ server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_sim
 
 
 # run 2 sample watson test and put it in df
-def run_two_sample_watson_test(hd_cluster, hd_session):
+def run_two_sample_watson_test(hd_cluster, hd_session, downsample=False):
     circular = importr("circular")
+    if downsample:
+        hd_session = hd_session[::20]
     watson_two_test = circular.watson_two_test
     hd_cluster = ro.FloatVector(hd_cluster)
     hd_session = ro.FloatVector(hd_session)
@@ -33,7 +35,7 @@ def run_two_sample_watson_test(hd_cluster, hd_session):
 
 
 # call R to tun two sample watson test on HD from firing field when the cell fired vs HD when the mouse was in the field
-def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
+def compare_hd_when_the_cell_fired_to_heading(cell_data, position, downsample=False):
     two_watson_stats = []
     for index, cell in cell_data.iterrows():
         print('two-sample watson test on ' + str(cell.session_id) + str(cell.cluster_id))
@@ -42,7 +44,7 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
         else:
             hd_cluster = (cell.hd + 180) * np.pi / 180
         hd_session = (position.hd + 180) * np.pi / 180
-        two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session)
+        two_watson_stat = run_two_sample_watson_test(hd_cluster, hd_session, downsample)
         two_watson_stats.append(two_watson_stat)
     cell_data['watson_test_hd'] = two_watson_stats
     return cell_data
@@ -61,6 +63,7 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter='', df_pa
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
             position_data = pd.read_pickle(position_data_path)
+            downsample = False
             if 'grid_score' in spatial_firing:
                 if animal == 'rat':
                     spatial_firing = spatial_firing[['session_id', 'cell_id', 'cluster_id', 'firing_times',
@@ -77,8 +80,9 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter='', df_pa
                     spatial_firing = spatial_firing[['session_id', 'cluster_id', 'firing_times',
                                                     'hd', 'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
                                                      'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
+                    downsample = True
 
-                spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
+                spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data, downsample)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
 
     spatial_firing_data.to_pickle(output_path)
@@ -106,8 +110,12 @@ def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
 
     hd_score_conj = df_all_cells[good_cluster & conjunctive_cell].hd_score
     watson_two_stat_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
-    plt.xlim([10**-1, 10**0])
-    plt.ylim([10**-1, 10**3])
+    if animal == 'mouse':
+        plt.xlim([10**-1, 10**0])
+        plt.ylim([10**-1, 10**3])
+    if animal == 'rat':
+        plt.xlim([10**-1, 10**0])
+        plt.ylim([10**-1, 10**3])
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     plt.scatter(hd_score_hd, watson_two_stat_hd, color='navy', marker='o', s=marker_size, label='HD')
