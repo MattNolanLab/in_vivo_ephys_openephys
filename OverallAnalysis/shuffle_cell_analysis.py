@@ -308,7 +308,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
-        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(index) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
 
 
