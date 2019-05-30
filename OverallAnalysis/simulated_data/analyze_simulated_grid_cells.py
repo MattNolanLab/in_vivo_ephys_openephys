@@ -1,4 +1,5 @@
 import glob
+import numpy as np
 import os
 import pandas as pd
 import PostSorting.make_plots
@@ -16,7 +17,7 @@ import matplotlib.pylab as plt
 analysis_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/simulated_data/'
 
 prm = PostSorting.parameters.Parameters()
-prm.set_pixel_ratio(1)  # data is in cm already
+prm.set_pixel_ratio(100)  # data is in cm already
 prm.set_sampling_rate(1000)
 
 
@@ -53,7 +54,7 @@ def get_rate_maps(position_data, firing_data):
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
     # PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
-    PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
+    # PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     # PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
@@ -72,19 +73,25 @@ def process_data():
         if os.path.isdir(name):
             if os.path.exists(name + '/position.pkl'):
                 prm.set_file_path(name)
+                prm.set_output_path(name)
                 position = pd.read_pickle(name + '/position.pkl')
                 # process position data - add hd etc
                 spatial_firing = pd.read_pickle(name + '/spatial_firing.pkl')
-                spatial_firing['hd'] = spatial_firing.hd - 180
+                spatial_firing['hd'] = spatial_firing.hd
+                hd = [item for sublist in spatial_firing.hd[0] for item in sublist]
+                spatial_firing['hd'] = [np.array(hd) - 180]
+                spatial_firing['position_x_pixels'] = spatial_firing.position_x
+                spatial_firing['position_y_pixels'] = spatial_firing.position_y
 
+                prm.set_sampling_rate(1000000)  # this is to make the histograms similar to the real data
                 hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position, prm)
 
                 # if 'firing_maps' not in spatial_firing:
                 position_heat_map, spatial_firing = get_rate_maps(position, spatial_firing)
-                spatial_firing.to_pickle(name + '/spatial_firing.pkl')
+
                 spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                 spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position, prm)
-
+                spatial_firing.to_pickle(name + '/spatial_firing.pkl')
                 make_plots(position, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
