@@ -14,10 +14,12 @@ from rpy2.robjects.packages import importr
 
 local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df.pkl'
 local_path_rat = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_rats_df.pkl'
+local_path_simulated = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_simulated_df.pkl'
 path_to_data = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
 save_output_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 
 # run 2 sample watson test and put it in df
@@ -27,7 +29,7 @@ def run_two_sample_watson_test(hd_cluster, hd_session):
     hd_cluster = ro.FloatVector(hd_cluster)
     hd_session = ro.FloatVector(hd_session)
     stat = watson_two_test(hd_cluster, hd_session)
-    return stat[0][0]  # this is the part of the return r object that is the stat
+    return stat[0][0]  # this is the part of the return r object that is the U^2 stat
 
 
 # call R to tun two sample watson test on HD from firing field when the cell fired vs HD when the mouse was in the field
@@ -46,15 +48,15 @@ def compare_hd_when_the_cell_fired_to_heading(cell_data, position):
     return cell_data
 
 
-def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
+def load_spatial_firing(output_path, server_path, animal, spike_sorter='', df_path='/DataFrames'):
     if os.path.exists(output_path):
         spatial_firing = pd.read_pickle(output_path)
         return spatial_firing
     spatial_firing_data = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        position_data_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        data_frame_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
+        position_data_path = recording_folder + spike_sorter + df_path + '/position.pkl'
         if os.path.exists(data_frame_path):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
@@ -71,6 +73,10 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter=''):
                                                      'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
                                                      'grid_spacing', 'field_size', 'grid_score', 'hd_score',
                                                      'firing_fields']].copy()
+                if animal == 'simulated':
+                    spatial_firing = spatial_firing[['session_id', 'cluster_id', 'firing_times',
+                                                    'hd', 'hd_spike_histogram', 'max_firing_rate_hd', 'preferred_HD',
+                                                     'grid_spacing', 'field_size', 'grid_score', 'hd_score', 'firing_fields']].copy()
 
                 spatial_firing = compare_hd_when_the_cell_fired_to_heading(spatial_firing, position_data)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
@@ -289,12 +295,19 @@ def process_data(animal):
         spike_sorter = '/MountainSort'
         local_path_animal = local_path_mouse
         server_path_animal = server_path_mouse
-    else:
+        df_path = '/DataFrames'
+    elif animal == 'rat':
         spike_sorter = ''
         local_path_animal = local_path_rat
         server_path_animal = server_path_rat
+        df_path = '/DataFrames'
+    else:
+        spike_sorter = ''
+        local_path_animal = local_path_simulated
+        server_path_animal = server_path_simulated
+        df_path = ''
 
-    all_cells = load_spatial_firing(local_path_animal, server_path_animal, animal, spike_sorter)
+    all_cells = load_spatial_firing(local_path_animal, server_path_animal, animal, spike_sorter, df_path=df_path)
     all_cells = tag_false_positives(all_cells, animal)
 
     # correlation_between_first_and_second_halves_of_session(df_all_mice)
@@ -302,6 +315,7 @@ def process_data(animal):
 
 
 def main():
+    process_data('simulated')
     process_data('mouse')
     process_data('rat')
 
