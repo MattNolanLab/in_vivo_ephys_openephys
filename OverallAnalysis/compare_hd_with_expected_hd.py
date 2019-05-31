@@ -119,19 +119,28 @@ def get_estimated_hd(field):
     return weighed_hist_sum_smooth
 
 
-def plot_real_vs_estimated(field, norm_hist_real, estimate, animal):
+def plot_real_vs_estimated(field, norm_hist_real, estimate, animal, color='red'):
     plt.cla()
     fig, ax = plt.subplots()
-    ax.plot(norm_hist_real, color='red', alpha=0.4, label='real', linewidth=5)
-    ax.plot(estimate, color='black', alpha=0.4, label='estimate', linewidth=5)
+    ax.plot(norm_hist_real, color=color, alpha=0.4, linewidth=5)
+    ax.plot(estimate, color='black', alpha=0.4, linewidth=5)
     plt.title('hd ' + str(round(field.hd_score, 1)) + ' grid ' + str(round(field.grid_score, 1)))
-    legend = plt.legend()
-    legend.get_frame().set_facecolor('none')
+    # legend = plt.legend()
+    # legend.get_frame().set_facecolor('none')
     plt.savefig(local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real.png')
     plt.close()
 
     save_path = local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real'
-    PostSorting.open_field_make_plots.plot_polar_hd_hist(norm_hist_real, estimate, field.cluster_id, save_path, color1='red', color2='black', title='')
+    PostSorting.open_field_make_plots.plot_polar_hd_hist(norm_hist_real, estimate, field.cluster_id, save_path, color1=color, color2='black', title='')
+
+
+# generate more random colors if necessary
+def generate_colors(number_of_firing_fields):
+    colors = [[0, 1, 0], [1, 0.6, 0.3], [0, 1, 1], [1, 0, 1], [0.7, 0.3, 1], [0.6, 0.5, 0.4], [0.6, 0, 0]]  # green, orange, cyan, pink, purple, grey, dark red
+    if number_of_firing_fields > len(colors):
+        for i in range(number_of_firing_fields):
+            colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
+    return colors
 
 
 def process_data(animal):
@@ -146,13 +155,14 @@ def process_data(animal):
         output_path = local_path + 'rat_data.pkl'
         prm.set_pixel_ratio(1)
     field_data = load_field_data(output_path, server_path, spike_sorter, animal)
+    colors = generate_colors(20)
     for index, field in field_data.iterrows():
         weighed_hist_sum_smooth = get_estimated_hd(field)
         hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
         estimate = weighed_hist_sum_smooth / hd_session_real_hist
         hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
         norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
-        plot_real_vs_estimated(field, norm_hist_real, estimate, animal)
+        plot_real_vs_estimated(field, norm_hist_real, estimate, animal, colors[field.field_id])
 
 
 def main():
