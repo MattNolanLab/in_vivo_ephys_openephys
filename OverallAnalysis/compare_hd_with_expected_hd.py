@@ -104,6 +104,36 @@ def get_rate_map_values_for_bins(rate_map_indices, rate_map):
     return rates
 
 
+def get_estimated_hd(field):
+    spatial_data_field = pd.DataFrame()
+    spatial_data_field['x'] = field.position_x_pixels
+    spatial_data_field['y'] = field.position_y_pixels
+    spatial_data_field['hd'] = field.hd
+    spatial_data_field['synced_time'] = field.synced_time
+    rate_map_indices = field.indices_rate_map
+    hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field, prm)
+    rates_for_bins = get_rate_map_values_for_bins(rate_map_indices, field.rate_map.iloc[0])
+    weighed_hists = hd_in_field_histograms * rates_for_bins
+    weighed_hist_sum = np.sum(weighed_hists, axis=0)
+    weighed_hist_sum_smooth = PostSorting.open_field_head_direction.get_rolling_sum(weighed_hist_sum, window=23) / 23
+    return weighed_hist_sum_smooth
+
+
+def plot_real_vs_estimated(field, norm_hist_real, estimate, animal):
+    plt.cla()
+    fig, ax = plt.subplots()
+    ax.plot(norm_hist_real, color='red', alpha=0.4, label='real', linewidth=5)
+    ax.plot(estimate, color='black', alpha=0.4, label='estimate', linewidth=5)
+    plt.title('hd ' + str(round(field.hd_score, 1)) + ' grid ' + str(round(field.grid_score, 1)))
+    legend = plt.legend()
+    legend.get_frame().set_facecolor('none')
+    plt.savefig(local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real.png')
+    plt.close()
+
+    save_path = local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real'
+    PostSorting.open_field_make_plots.plot_polar_hd_hist(norm_hist_real, estimate, field.cluster_id, save_path, color1='red', color2='black', title='')
+
+
 def process_data(animal):
     if animal == 'mouse':
         output_path = local_path + 'mouse_data.pkl'
@@ -117,38 +147,12 @@ def process_data(animal):
         prm.set_pixel_ratio(1)
     field_data = load_field_data(output_path, server_path, spike_sorter, animal)
     for index, field in field_data.iterrows():
-        spatial_data_field = pd.DataFrame()
-        spatial_data_field['x'] = field.position_x_pixels
-        spatial_data_field['y'] = field.position_y_pixels
-        spatial_data_field['hd'] = field.hd
-        spatial_data_field['synced_time'] = field.synced_time
-        rate_map_indices = field.indices_rate_map
-        hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field, prm)
-        rates_for_bins = get_rate_map_values_for_bins(rate_map_indices, field.rate_map.iloc[0])
-        weighed_hists = hd_in_field_histograms * rates_for_bins
-        weighed_hist_sum = np.sum(weighed_hists, axis=0)
-        hd_dist_session = (field.hd_in_field_session * 180 / np.pi)
-        hd_hist_session = np.histogram(hd_dist_session, bins=360, range=(0, 360))[0]
-        hd_hist_normed_estimate = np.nan_to_num(weighed_hist_sum / hd_hist_session)
-        estimate_smooth = PostSorting.open_field_head_direction.get_rolling_sum(hd_hist_normed_estimate, window=23)
-        estimate_smooth /= 23
-
-        hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
+        weighed_hist_sum_smooth = get_estimated_hd(field)
         hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
+        estimate = weighed_hist_sum_smooth / hd_session_real_hist
+        hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
         norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
-        plt.cla()
-        # plt.scatter(range(0, 360), hd_hist_normed_estimate, color='red', alpha=0.3, normed=True)
-        # plt.plot(hd_hist_normed_estimate, color='red')
-        max_est = max(hd_hist_normed_estimate)
-        max_real = max(norm_hist_real)
-        scale = max_real / max_est
-        fig, ax = plt.subplots()
-        ax.plot(norm_hist_real, color='red', alpha=0.4, label='real', linewidth=5)
-        ax.plot(estimate_smooth * scale, color='black', alpha=0.4, label='estimate', linewidth=5)
-        plt.title('hd ' + str(round(field.hd_score, 1)) + ' grid ' + str(round(field.grid_score, 1)))
-        legend = plt.legend()
-        legend.get_frame().set_facecolor('none')
-        plt.savefig(local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real.png')
+        plot_real_vs_estimated(field, norm_hist_real, estimate, animal)
 
 
 def main():
