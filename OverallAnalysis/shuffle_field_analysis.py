@@ -14,6 +14,7 @@ import matplotlib.pylab as plt
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 
 def add_combined_id_to_df(df_all_mice):
@@ -320,14 +321,14 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
 
 
 # perform shuffle analysis for all animals and save data frames on server. this will later be loaded and combined
-def process_recordings(server_path, sampling_rate_video, spike_sorter='/MountainSort', redo_existing=True):
+def process_recordings(server_path, sampling_rate_video, spike_sorter='/MountainSort', df_path='/DataFrames', redo_existing=True):
     if os.path.exists(server_path):
         print('I see the server.')
     for recording_folder in glob.glob(server_path + '*'):
         if os.path.isdir(recording_folder):
-            spike_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-            position_data_frame_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
-            shuffled_data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+            spike_data_frame_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
+            position_data_frame_path = recording_folder + spike_sorter + df_path + '/position.pkl'
+            shuffled_data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl'
             if os.path.exists(spike_data_frame_path):
                 print('I found a firing data frame.')
                 if redo_existing is False:
@@ -341,10 +342,10 @@ def process_recordings(server_path, sampling_rate_video, spike_sorter='/Mountain
                 position_data = pd.read_pickle(position_data_frame_path)
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
                 if not field_df.empty:
-                    field_df = shuffle_field_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20, number_of_times_to_shuffle=1000)
-                    field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', sampling_rate_video, number_of_bins=20)
+                    field_df = shuffle_field_data(field_df, recording_folder + spike_sorter + '/', number_of_bins=20, number_of_times_to_shuffle=1000)
+                    field_df = analyze_shuffled_data(field_df, recording_folder + spike_sorter + '/', sampling_rate_video, number_of_bins=20)
                     try:
-                        field_df.to_pickle(recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl')
+                        field_df.to_pickle(recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl')
                         print('I finished analyzing ' + recording_folder)
                     except OSError as error:
                         print('ERROR I failed to analyze ' + recording_folder)
@@ -369,6 +370,7 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
+    process_recordings(server_path_simulated, 1000, df_path='', spike_sorter='', redo_existing=True)
     process_recordings(server_path_mouse, 30, redo_existing=True)
     process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True)
     # local_data_test()
