@@ -10,14 +10,15 @@ from rpy2.robjects.packages import importr
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_fields/'
 
 
-def calculate_watson_results_for_shuffled_data(server_path, spike_sorter):
+def calculate_watson_results_for_shuffled_data(server_path, spike_sorter, df_path='/DataFrames'):
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
-        data_frame_out = recording_folder + spike_sorter + '/DataFrames/shuffled_fields_watson.pkl'
+        data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl'
+        data_frame_out = recording_folder + spike_sorter + df_path + '/shuffled_fields_watson.pkl'
         if os.path.exists(data_frame_path):
             if os.path.exists(data_frame_out):
                 continue
@@ -43,7 +44,7 @@ def calculate_watson_results_for_shuffled_data(server_path, spike_sorter):
 
 
 # load field data from server - must include hd in fields
-def load_data_frame_field_data(output_path, server_path, spike_sorter='/MountainSort'):
+def load_data_frame_field_data(output_path, server_path, spike_sorter='/MountainSort', df_path='/DataFrames'):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
@@ -51,7 +52,7 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter='/Mountain
         field_data_combined = pd.DataFrame()
         for recording_folder in glob.glob(server_path + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields_watson.pkl'
+            data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields_watson.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
@@ -205,20 +206,31 @@ def analyze_data(animal):
         false_positive_file_name = 'list_of_accepted_fields.xlsx'
         data_frame_name = 'all_mice_fields_watson_test.pkl'
         spike_sorter = '/MountainSort'
-    else:
+        df_path = '/DataFrames'
+
+    elif animal == 'rat':
         server_path = server_path_rat
         false_positive_file_name = 'included_fields_detector2_sargolini.xlsx'
         data_frame_name = 'all_rats_fields_watson_test.pkl'
         spike_sorter = ''
+        df_path = '/DataFrames'
+    else:
+        server_path = server_path_simulated
+        data_frame_name = 'all_simulated_fields_watson_test.pkl'
+        spike_sorter = ''
+        df_path = ''
 
-    calculate_watson_results_for_shuffled_data(server_path, spike_sorter)
+    calculate_watson_results_for_shuffled_data(server_path, spike_sorter, df_path=df_path)
 
-    field_data = load_data_frame_field_data(analysis_path + data_frame_name, server_path, spike_sorter=spike_sorter)   # for two-sample watson analysis
-    accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
+    field_data = load_data_frame_field_data(analysis_path + data_frame_name, server_path, spike_sorter=spike_sorter, df_path=df_path)   # for two-sample watson analysis
     if animal == 'mouse':
+        accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
     if animal == 'rat':
+        accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+    else:
+        field_data['accepted_field'] = True
     field_data = add_cell_types_to_data_frame(field_data)
     field_data = compare_hd_when_the_cell_fired_to_heading(field_data)
     plot_histogram_of_watson_stat(field_data, animal=animal)
@@ -230,6 +242,7 @@ def analyze_data(animal):
 
 
 def main():
+    analyze_data('simulated')
     analyze_data('mouse')
     analyze_data('rat')
 
