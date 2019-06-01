@@ -10,13 +10,15 @@ import glob
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
 local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_all_rats.pkl'
+local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_data_all_simulated.pkl'
 
 
 # loads shuffle analysis results for field data
-def load_data_frame_field_data(output_path, server_path, spike_sorter):
+def load_data_frame_field_data(output_path, server_path, spike_sorter, df_path='/DataFrames'):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
@@ -25,7 +27,7 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter):
         field_data_combined = pd.DataFrame()
         for recording_folder in glob.glob(server_path + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+            data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
@@ -266,17 +268,29 @@ def analyze_data(animal):
         server_path = server_path_mouse
         spike_sorter = '/MountainSort'
         accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
-    else:
+        df_path = '/DataFrames'
+    elif animal == 'rat':
         local_path_to_field_data = local_path_to_shuffled_field_data_rats
         server_path = server_path_rat
         spike_sorter = ''
         accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
+        df_path = '/DataFrames'
 
-    shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter)
+    else:
+        local_path_to_field_data = local_path_to_shuffled_field_data_simulated
+        server_path = server_path_simulated
+        spike_sorter = '/'
+        df_path = ''
+
+    shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter, df_path=df_path)
     if animal == 'mouse':
         tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
-    else:
+    if animal == 'rat':
         shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
+    else:
+        shuffled_field_data['accepted_field'] = True
+        unique_cell_id = shuffled_field_data.session_id + '_' + shuffled_field_data.cluster_id.apply(str)
+        shuffled_field_data['unique_cell_id'] = unique_cell_id
     grid = shuffled_field_data.grid_score >= 0.4
     hd = shuffled_field_data.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
@@ -288,7 +302,8 @@ def analyze_data(animal):
     shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
 
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal)
-    plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal)
+    if len(shuffled_field_data_not_classified) > 0:
+        plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal)
 
     print(animal + ' data:')
     print('Grid cells:')
@@ -306,6 +321,7 @@ def analyze_data(animal):
 
 
 def main():
+    analyze_data('simulated')
     analyze_data('mouse')
     analyze_data('rat')
 
