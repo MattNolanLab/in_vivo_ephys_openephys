@@ -242,7 +242,7 @@ def analyze_data(animal):
 
 
 def main():
-    analyze_data('simulated')
+    # analyze_data('simulated')  # todo downsample
     analyze_data('mouse')
     analyze_data('rat')
 
