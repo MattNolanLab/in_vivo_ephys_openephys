@@ -262,8 +262,7 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
         number_of_significant_bins = field_data.number_of_different_bins.sum()
         total_number_of_bins = len(field_data.number_of_different_bins) * num_bins
         print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
-        print(str(np.mean(field_data.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(field_data.number_of_different_bins_bh)) + ' SD')
-
+        print(str(np.mean(field_data.number_of_different_bins)) + ' number of bins per cell +/- ' + str(np.std(field_data.number_of_different_bins)) + ' SD')
 
         return p_percentile
 
