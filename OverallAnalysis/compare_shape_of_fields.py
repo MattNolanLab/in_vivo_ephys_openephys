@@ -162,6 +162,11 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
     plt.close()
 
+    print(animal + ' ' + tag + 'median correlation coefs in between fields [grid cells]')
+    print(str(np.median(coefs_grid)))
+    print(str(np.std(coefs_grid)))
+
+
 
 def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, animal, tag=''):
     centre_coefs = clean_data(coefs_centre)
