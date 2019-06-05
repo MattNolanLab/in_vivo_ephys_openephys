@@ -540,26 +540,27 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
         flat_shuffled = []
         for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(cell)
-            p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
-            print('Number of cells: ' + str(len(spatial_firing)))
-            print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
-            number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
-            total_number_of_bins = len(spatial_firing.number_of_different_bins_bh) * num_bins
-            print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
-            print(str(np.mean(spatial_firing.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(spatial_firing.number_of_different_bins_bh)) + ' SD')
-
-            return p_bh
+        p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
+        print('Number of cells: ' + str(len(spatial_firing)))
+        print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+        number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
+        total_number_of_bins = len(spatial_firing.number_of_different_bins_bh) * num_bins
+        print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
+        print(str(np.mean(spatial_firing.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(spatial_firing.number_of_different_bins_bh)) + ' SD')
+        print('shuffled: ')
+        print(str(np.mean(flat_shuffled)) + ' number of bins per cell +/- ' + str(np.std(flat_shuffled)) + ' SD')
+        return p_bh
 
     if analysis_type == 'percentile':
         flat_shuffled = []
         for cell in spatial_firing.number_of_different_bins_shuffled:
             flat_shuffled.extend(cell)
-            p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
-            print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
-            number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
-            total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
-            print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
-            return p_percentile
+        p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
+        print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+        number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
+        total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
+        print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
+        return p_percentile
 
 
 def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, tag='grid', animal='mouse'):
