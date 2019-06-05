@@ -559,7 +559,7 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
             number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
             total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
             print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
-            print(str(np.mean(number_of_significant_bins)) + ' number of bins per cell +/- ' + np.std(number_of_significant_bins) + ' SD')
+            print(str(np.mean(number_of_significant_bins)) + ' number of bins per cell +/- ' + str(np.std(number_of_significant_bins)) + ' SD')
             return p_percentile
 
 
