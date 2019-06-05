@@ -234,10 +234,6 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     plt.savefig(save_output_path + animal + '_two_sample_watson_stats_hist_all_spikes_' + cell_type + '_cells_cumulative' + tag + '.png', bbox_inches="tight")
     plt.close()
 
-    print(animal + ' ' + cell_type + ':')
-    print(len(watson_test_stats))
-    print(len(watson_test_stats[watson_test_stats > 0.268]))
-
 
 def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
     good_cluster = df_all_animals.false_positive == False
