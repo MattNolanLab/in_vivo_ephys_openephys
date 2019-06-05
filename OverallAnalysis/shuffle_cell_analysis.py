@@ -612,6 +612,5 @@ def main():
     process_data(spatial_firing_all_simulated, 1000, animal='simulated')
 
 
-
 if __name__ == '__main__':
     main()
