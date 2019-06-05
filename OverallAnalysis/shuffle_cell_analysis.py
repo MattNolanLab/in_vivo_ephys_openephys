@@ -541,7 +541,6 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
         for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(cell)
             p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
-            print('\n')
             print('Number of cells: ' + str(len(spatial_firing)))
             print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
             number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
@@ -554,7 +553,6 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
         for cell in spatial_firing.number_of_different_bins_shuffled:
             flat_shuffled.extend(cell)
             p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
-            print('\n')
             print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
             number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
             total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
@@ -574,7 +572,7 @@ def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, 
 def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
-    print('I finished the shuffled analysis on ' + animal + ' data.')
+    print('I finished the shuffled analysis on ' + animal + ' data.\n')
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
     else:
