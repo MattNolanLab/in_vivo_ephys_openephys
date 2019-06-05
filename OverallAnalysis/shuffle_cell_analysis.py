@@ -535,16 +535,18 @@ def compare_distributions(x, y):
 
 
 def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
+    num_bins = 20
     if analysis_type == 'bh':
         flat_shuffled = []
         for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(cell)
             p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
+            print('\n')
             print('Number of cells: ' + str(len(spatial_firing)))
             print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
             number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
-            number_of_bins = len(spatial_firing.number_of_different_bins_bh) * 20
-            print(str(number_of_significant_bins) + ' out of ' + str(number_of_bins) + ' are significant')
+            total_number_of_bins = len(spatial_firing.number_of_different_bins_bh) * num_bins
+            print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
             return p_bh
 
     if analysis_type == 'percentile':
@@ -552,10 +554,12 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
         for cell in spatial_firing.number_of_different_bins_shuffled:
             flat_shuffled.extend(cell)
             p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
+            print('\n')
             print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
             number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
-            number_of_bins = len(spatial_firing.number_of_different_bins) * 20
-            print(str(number_of_significant_bins) + ' out of ' + str(number_of_bins) + ' are different')
+            total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
+            print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
+            print(str(np.mean(number_of_significant_bins)) + ' number of bins per cell +/- ' + np.std(number_of_significant_bins) + ' SD')
             return p_percentile
 
 
