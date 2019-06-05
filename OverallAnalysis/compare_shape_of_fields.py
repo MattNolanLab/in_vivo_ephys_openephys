@@ -166,6 +166,9 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     print(str(np.median(coefs_grid)))
     print(str(np.std(coefs_grid)))
 
+    print(animal + ' ' + tag + 'median correlation coefs in between fields [conjunctive cells]')
+    print(str(np.median(conj_coefs)))
+    print(str(np.std(conj_coefs)))
 
 
 def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, animal, tag=''):
