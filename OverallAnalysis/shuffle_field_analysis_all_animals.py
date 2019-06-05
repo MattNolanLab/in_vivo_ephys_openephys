@@ -237,21 +237,35 @@ def compare_distributions(x, y):
 
 
 def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
+    num_bins = 20
     if analysis_type == 'bh':
         flat_shuffled = []
         for field in field_data.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(field)
-            p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
-            print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
-            return p_bh
+        p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+        print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+        print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+        number_of_significant_bins = field_data.number_of_different_bins_bh.sum()
+        total_number_of_bins = len(field_data.number_of_different_bins_bh) * num_bins
+        print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
+        print(str(np.mean(field_data.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(field_data.number_of_different_bins_bh)) + ' SD')
+        print('shuffled: ')
+        print(str(np.mean(flat_shuffled)) + ' number of bins per cell +/- ' + str(np.std(flat_shuffled)) + ' SD')
+        return p_bh
 
     if analysis_type == 'percentile':
         flat_shuffled = []
         for field in field_data.number_of_different_bins_shuffled:
             flat_shuffled.extend(field)
-            p_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
-            print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
-            return p_percentile
+        p_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
+        print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+        number_of_significant_bins = field_data.number_of_different_bins.sum()
+        total_number_of_bins = len(field_data.number_of_different_bins) * num_bins
+        print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
+        print(str(np.mean(field_data.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(field_data.number_of_different_bins_bh)) + ' SD')
+
+
+        return p_percentile
 
 
 def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse'):
