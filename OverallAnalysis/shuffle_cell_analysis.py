@@ -542,6 +542,9 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
             p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
             print('Number of cells: ' + str(len(spatial_firing)))
             print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+            number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
+            number_of_bins = len(spatial_firing.number_of_different_bins_bh) * 20
+            print(str(number_of_significant_bins) + 'out of' + str(number_of_bins) + 'are significant')
             return p_bh
 
     if analysis_type == 'percentile':
@@ -550,6 +553,9 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
             flat_shuffled.extend(cell)
             p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
             print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+            number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
+            number_of_bins = len(spatial_firing.number_of_different_bins) * 20
+            print(str(number_of_significant_bins) + 'out of' + str(number_of_bins) + 'are different')
             return p_percentile
 
 
