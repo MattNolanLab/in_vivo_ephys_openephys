@@ -144,7 +144,7 @@ def generate_colors(number_of_firing_fields):
 
 
 def calculate_ratio(observed, predicted):
-    ratio = np.nanmean(np.abs(np.log10((1 + observed) / (1 + predicted))))
+    ratio = np.nanmean(np.abs(np.log((1 + observed) / (1 + predicted))))
     print(ratio)
     return ratio
 
@@ -162,6 +162,7 @@ def process_data(animal):
         prm.set_pixel_ratio(1)
     field_data = load_field_data(output_path, server_path, spike_sorter, animal)
     colors = generate_colors(20)
+    ratios = []
     for index, field in field_data.iterrows():
         weighed_hist_sum_smooth = get_estimated_hd(field)
         hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
@@ -169,7 +170,9 @@ def process_data(animal):
         hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
         norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
         ratio = calculate_ratio(norm_hist_real, estimate)
+        ratios.append(ratio)
         plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, colors[field.field_id])
+    field_data['ratio_measure'] = ratios
 
 
 def main():
