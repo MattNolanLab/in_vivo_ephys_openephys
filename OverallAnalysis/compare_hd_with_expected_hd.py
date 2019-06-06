@@ -119,12 +119,12 @@ def get_estimated_hd(field):
     return weighed_hist_sum_smooth
 
 
-def plot_real_vs_estimated(field, norm_hist_real, estimate, animal, color='red'):
+def plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, color='red'):
     plt.cla()
     fig, ax = plt.subplots()
     ax.plot(norm_hist_real, color=color, alpha=0.4, linewidth=5)
     ax.plot(estimate, color='black', alpha=0.4, linewidth=5)
-    plt.title('hd ' + str(round(field.hd_score, 1)) + ' grid ' + str(round(field.grid_score, 1)))
+    plt.title('hd ' + str(round(field.hd_score, 1)) + ' grid ' + str(round(field.grid_score, 1)) + ' ratio ' + str(round(ratio, 4)))
     # legend = plt.legend()
     # legend.get_frame().set_facecolor('none')
     plt.savefig(local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real.png')
@@ -141,6 +141,12 @@ def generate_colors(number_of_firing_fields):
         for i in range(number_of_firing_fields):
             colors.append(plot_utility.generate_new_color(colors, pastel_factor=0.9))
     return colors
+
+
+def calculate_ratio(observed, predicted):
+    ratio = np.nanmean(np.abs(np.log10((1 + observed) / (1 + predicted))))
+    print(ratio)
+    return ratio
 
 
 def process_data(animal):
@@ -162,7 +168,8 @@ def process_data(animal):
         estimate = weighed_hist_sum_smooth / hd_session_real_hist
         hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
         norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
-        plot_real_vs_estimated(field, norm_hist_real, estimate, animal, colors[field.field_id])
+        ratio = calculate_ratio(norm_hist_real, estimate)
+        plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, colors[field.field_id])
 
 
 def main():
