@@ -226,7 +226,7 @@ def analyze_data(animal):
     if animal == 'mouse':
         accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-    if animal == 'rat':
+    elif animal == 'rat':
         accepted_fields = pd.read_excel(analysis_path + false_positive_file_name)
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
     else:
