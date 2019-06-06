@@ -298,7 +298,7 @@ def analyze_data(animal):
     shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter, df_path=df_path)
     if animal == 'mouse':
         tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
-    if animal == 'rat':
+    elif animal == 'rat':
         shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
     else:
         shuffled_field_data['accepted_field'] = True
@@ -334,9 +334,9 @@ def analyze_data(animal):
 
 
 def main():
-    analyze_data('simulated')
     analyze_data('mouse')
     analyze_data('rat')
+    analyze_data('simulated')
 
 
 if __name__ == '__main__':
