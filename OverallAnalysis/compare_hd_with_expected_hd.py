@@ -84,6 +84,50 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
     return field_data_combined
 
 
+# select accepted fields based on list of fields that were correctly identified by field detector
+def tag_accepted_fields_mouse(field_data, accepted_fields):
+    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    field_data['unique_id'] = unique_id
+    unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    accepted_fields['unique_id'] = unique_id
+    field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
+
+
+# select accepted fields based on list of fields that were correctly identified by field detector
+def tag_accepted_fields_rat(field_data, accepted_fields):
+    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    unique_cell_id = field_data.session_id + '_' + field_data.cluster_id.apply(str)
+    field_data['unique_id'] = unique_id
+    field_data['unique_cell_id'] = unique_cell_id
+    if 'Session ID' in accepted_fields:
+        unique_id = accepted_fields['Session ID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+    else:
+        unique_id = accepted_fields['SessionID'] + '_' + accepted_fields['Cell'].apply(str) + '_' + accepted_fields['field'].apply(str)
+
+    accepted_fields['unique_id'] = unique_id
+    field_data['accepted_field'] = field_data.unique_id.isin(accepted_fields.unique_id)
+    return field_data
+
+
+# add cell type tp rat data frame
+def add_cell_types_to_data_frame(field_data):
+    cell_type = []
+    for index, field in field_data.iterrows():
+        if field.hd_score >= 0.5 and field.grid_score >= 0.4:
+            cell_type.append('conjunctive')
+        elif field.hd_score >= 0.5:
+            cell_type.append('hd')
+        elif field.grid_score >= 0.4:
+            cell_type.append('grid')
+        else:
+            cell_type.append('na')
+
+    field_data['cell type'] = cell_type
+
+    return field_data
+
+
 # get head-direction hist from bins of field
 def get_hd_in_field_spikes(rate_map_indices, spatial_data, prm):
     hd_in_field_hist = np.zeros((len(rate_map_indices), 360))
@@ -149,18 +193,39 @@ def calculate_ratio(observed, predicted):
     return ratio
 
 
+def plot_histograms_of_ratios(animal, field_data):
+    grid_cells = field_data['cell type'] == 'grid'
+    conjunctive_cells = field_data['cell type'] == 'conjunctive'
+    accepted_fields = field_data.accepted_field == True
+
+    ratio_scores_grid = field_data[grid_cells & accepted_fields].ratio_measure
+    ratio_scores_conjunctive = field_data[conjunctive_cells & accepted_fields].ratio_measure
+    plt.hist(ratio_scores_grid, color='navy')
+    plt.hist(ratio_scores_conjunctive, color='red')
+
+    plt.savefig(local_path + animal + '_ratio_measure_estimate.png')
+    plt.close()
+
+
 def process_data(animal):
     if animal == 'mouse':
         output_path = local_path + 'mouse_data.pkl'
         server_path = server_path_mouse
         spike_sorter = '/MountainSort'
         prm.set_pixel_ratio(440)
+        accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
     else:
         server_path = server_path_rat
         spike_sorter = ''
         output_path = local_path + 'rat_data.pkl'
-        prm.set_pixel_ratio(1)
+        prm.set_pixel_ratio(100)
+        accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
     field_data = load_field_data(output_path, server_path, spike_sorter, animal)
+    field_data = add_cell_types_to_data_frame(field_data)
+    if animal == 'mouse':
+        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    if animal == 'rat':
+        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
     colors = generate_colors(20)
     ratios = []
     for index, field in field_data.iterrows():
@@ -174,10 +239,12 @@ def process_data(animal):
         plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, colors[field.field_id])
     field_data['ratio_measure'] = ratios
 
+    plot_histograms_of_ratios(animal, field_data)
+
 
 def main():
+    process_data('rat')
     process_data('mouse')
-    # process_data('rat')
 
 
 if __name__ == '__main__':
