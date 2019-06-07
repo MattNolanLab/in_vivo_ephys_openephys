@@ -207,6 +207,26 @@ def plot_histograms_of_ratios(animal, field_data):
     plt.close()
 
 
+def distributive_hypothesis_analysis_observed(field_data, animal, output_path):
+    if 'ratio_measure' in field_data:
+        return field_data
+    colors = generate_colors(20)
+    ratios = []
+    for index, field in field_data.iterrows():
+        weighed_hist_sum_smooth = get_estimated_hd(field)
+        hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
+        estimate = weighed_hist_sum_smooth / hd_session_real_hist
+        hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
+        norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
+        ratio = calculate_ratio(norm_hist_real, estimate)
+        ratios.append(ratio)
+        plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, colors[field.field_id])
+    field_data['ratio_measure'] = ratios
+    field_data.to_pickle(output_path)
+    plot_histograms_of_ratios(animal, field_data)
+    return field_data
+
+
 def process_data(animal):
     if animal == 'mouse':
         output_path = local_path + 'mouse_data.pkl'
@@ -226,21 +246,8 @@ def process_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
     if animal == 'rat':
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
-    colors = generate_colors(20)
-    ratios = []
-    for index, field in field_data.iterrows():
-        weighed_hist_sum_smooth = get_estimated_hd(field)
-        hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
-        estimate = weighed_hist_sum_smooth / hd_session_real_hist
-        hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
-        norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
-        ratio = calculate_ratio(norm_hist_real, estimate)
-        ratios.append(ratio)
-        plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, colors[field.field_id])
-    field_data['ratio_measure'] = ratios
 
-    plot_histograms_of_ratios(animal, field_data)
-
+    field_data = distributive_hypothesis_analysis_observed(field_data, animal, output_path)
 
 def main():
     process_data('rat')
