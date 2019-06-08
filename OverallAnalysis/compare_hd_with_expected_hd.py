@@ -47,7 +47,7 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
             if 'shuffled_data' in field_data:
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'position_x_spikes',
                                                     'position_y_spikes', 'position_x_session', 'position_y_session',
-                                                    'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
+                                                    'indices_rate_map', 'hd_in_field_spikes',
                                                     'hd_in_field_session', 'spike_times', 'times_session',
                                                     'time_spent_in_field', 'number_of_spikes_in_field']].copy()
                 field_data_to_combine['normalized_hd_hist'] = field_data.hd_hist_spikes / field_data.hd_hist_session
@@ -130,11 +130,11 @@ def add_cell_types_to_data_frame(field_data):
 
 # get head-direction hist from bins of field
 def get_hd_in_field_spikes(rate_map_indices, spatial_data, prm):
-    hd_in_field_hist = np.zeros((len(rate_map_indices), 360))
+    hd_in_field_hist = np.zeros((len(rate_map_indices), 40))
     for index, bin_in_field in enumerate(rate_map_indices):
         inside_bin = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spatial_data, prm)
         hd = inside_bin.hd.values + 180
-        hd_hist = np.histogram(hd, bins=360, range=(0, 360))[0]
+        hd_hist = np.histogram(hd, bins=40, range=(0, 360))[0]
         # hd_hist = PostSorting.open_field_head_direction.get_hd_histogram(hd)
         hd_in_field_hist[index] = hd_hist
     return hd_in_field_hist
@@ -148,19 +148,80 @@ def get_rate_map_values_for_bins(rate_map_indices, rate_map):
     return rates
 
 
+def get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data, spike_data, prm):
+    rates = np.zeros((len(rate_map_indices), 1))
+    for index, bin_in_field in enumerate(rate_map_indices):
+        inside_bin = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spatial_data, prm)
+        inside_bin_spikes = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spike_data, prm)
+
+        if len(inside_bin) == 0:
+            rate = 0
+        else:
+            rate = len(inside_bin_spikes.hd) / len(inside_bin.hd)
+        rates[index] = rate
+    return rates
+
+
 def get_estimated_hd(field):
     spatial_data_field = pd.DataFrame()
     spatial_data_field['x'] = field.position_x_pixels
     spatial_data_field['y'] = field.position_y_pixels
     spatial_data_field['hd'] = field.hd
     spatial_data_field['synced_time'] = field.synced_time
+
+    spike_data_field = pd.DataFrame()
+    spike_data_field['x'] = field.position_x_spikes
+    spike_data_field['y'] = field.position_y_spikes
+    spike_data_field['hd'] = field.hd_in_field_spikes
+    spike_data_field['synced_time'] = field.spike_times
+
     rate_map_indices = field.indices_rate_map
     hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field, prm)
-    rates_for_bins = get_rate_map_values_for_bins(rate_map_indices, field.rate_map.iloc[0])
+    rates_for_bins = get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data_field, spike_data_field, prm)
     weighed_hists = hd_in_field_histograms * rates_for_bins
     weighed_hist_sum = np.sum(weighed_hists, axis=0)
-    weighed_hist_sum_smooth = PostSorting.open_field_head_direction.get_rolling_sum(weighed_hist_sum, window=23) / 23
-    return weighed_hist_sum_smooth
+    # weighed_hist_sum_smooth = PostSorting.open_field_head_direction.get_rolling_sum(weighed_hist_sum, window=23) / 23
+    return weighed_hist_sum
+
+
+def get_estimated_hd_shuffled(field):
+    spatial_data_field = pd.DataFrame()
+    spatial_data_field['x'] = field.position_x_pixels[0]
+    spatial_data_field['y'] = field.position_y_pixels[0]
+    spatial_data_field['hd'] = field.hd[0]
+    spatial_data_field['synced_time'] = field.synced_time[0]
+
+    spike_data_field = pd.DataFrame()
+    spike_data_field['x'] = field.position_x_spikes[0]
+    spike_data_field['y'] = field.position_y_spikes[0]
+    spike_data_field['hd'] = field.hd_in_field_spikes[0]
+    spike_data_field['synced_time'] = field.spike_times[0]
+
+    rate_map_indices = field.indices_rate_map[0]
+    hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field, prm)
+    rates_for_bins = get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data_field, spike_data_field, prm)
+    weighed_hists = hd_in_field_histograms * rates_for_bins
+    weighed_hist_sum = np.sum(weighed_hists, axis=0)
+    # weighed_hist_sum_smooth = PostSorting.open_field_head_direction.get_rolling_sum(weighed_hist_sum, window=23) / 23
+    return weighed_hist_sum
+
+
+# plot polar hd histograms without needing the whole df as an input
+def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path, color1='lime', color2='navy', title=''):
+    hd_polar_fig = plt.figure()
+    hd_polar_fig.set_size_inches(5, 5, forward=True)
+    ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    theta = np.linspace(0, 2*np.pi, 41)  # x axis
+    ax = plt.subplot(1, 1, 1, polar=True)
+    ax = plot_utility.style_polar_plot(ax)
+    ax.plot(theta[:-1], hist_1, color=color1, linewidth=2)
+    ax.plot(theta[:-1], hist_2, color=color2, linewidth=2)
+    plt.title(title)
+    # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
+    plt.tight_layout()
+    plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+    # plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
+    plt.close()
 
 
 def plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, color='red'):
@@ -175,7 +236,7 @@ def plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, color
     plt.close()
 
     save_path = local_path + animal + field.session_id + str(field.cluster_id) + str(field.field_id) + 'estimated_hd_rate_vs_real'
-    PostSorting.open_field_make_plots.plot_polar_hd_hist(norm_hist_real, estimate, field.cluster_id, save_path, color1=color, color2='black', title='')
+    plot_polar_hd_hist(norm_hist_real, estimate, field.cluster_id, save_path, color1=color, color2='black', title='')
 
 
 # generate more random colors if necessary
@@ -188,8 +249,9 @@ def generate_colors(number_of_firing_fields):
 
 
 def calculate_ratio(observed, predicted):
-    ratio = np.nanmean(np.abs(np.log((1 + observed) / (1 + predicted))))
-    print(ratio)
+    small_number = 0.00001
+    ratio = np.nanmean(np.abs(np.log((small_number + observed) / (small_number + predicted))))
+    # print(ratio)
     return ratio
 
 
@@ -208,15 +270,18 @@ def plot_histograms_of_ratios(animal, field_data):
 
 
 def distributive_hypothesis_analysis_observed(field_data, animal, output_path):
-    if 'ratio_measure' in field_data:
-        return field_data
+    print('analyzing observed ' + animal)
+    # if 'ratio_measure' in field_data:
+        # return field_data
     colors = generate_colors(20)
     ratios = []
     for index, field in field_data.iterrows():
-        weighed_hist_sum_smooth = get_estimated_hd(field)
-        hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
-        estimate = weighed_hist_sum_smooth / hd_session_real_hist
-        hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
+        weighed_hist_sum = get_estimated_hd(field)
+        # hd_session_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
+        hd_session_real_hist = np.histogram(field.hd_in_field_session * 180 / np.pi, bins=40, range=(0, 360))[0]
+        estimate = weighed_hist_sum / hd_session_real_hist
+        # hd_spikes_real_hist = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_spikes)
+        hd_spikes_real_hist = np.histogram(field.hd_in_field_spikes * 180 / np.pi, bins=40, range=(0, 360))[0]
         norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
         ratio = calculate_ratio(norm_hist_real, estimate)
         ratios.append(ratio)
@@ -224,6 +289,51 @@ def distributive_hypothesis_analysis_observed(field_data, animal, output_path):
     field_data['ratio_measure'] = ratios
     field_data.to_pickle(output_path)
     plot_histograms_of_ratios(animal, field_data)
+    return field_data
+
+
+def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
+    number_of_spikes_in_field = field['number_of_spikes_in_field']
+    time_spent_in_field = field['time_spent_in_field']
+    shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    return shuffle_indices
+
+
+def distributive_hypothesis_analysis_shuffled(field_data, animal, output_path, number_of_shuffles=100):
+    print('analyzing shuffled ' + animal)
+    ratios_all = []
+    #if 'ratio_measure_shuffle' in field_data:
+        #return field_data
+
+    for index, field in field_data.iterrows():
+        ratios = []
+        shuffle_indices = get_random_indices_for_shuffle(field, number_of_shuffles)
+        for shuffle in range(number_of_shuffles):
+            shuffled_data = pd.DataFrame()
+            shuffled_data['index_shuffle'] = [0]
+            shuffled_data['hd'] = [list(field['hd'])]
+            shuffled_data['position_x_pixels'] = [list(field['position_x_pixels'])]
+            shuffled_data['position_y_pixels'] = [list(field['position_y_pixels'])]
+            shuffled_data['synced_time'] = [list(field['synced_time'])]
+
+            shuffled_data['position_x_spikes'] = [list(field['position_x_session'][shuffle_indices[shuffle]])]
+            shuffled_data['position_y_spikes'] = [list(field['position_y_session'][shuffle_indices[shuffle]])]
+            shuffled_data['hd_in_field_spikes'] = [list(field['hd_in_field_session'][shuffle_indices[shuffle]])]
+            shuffled_data['spike_times'] = [list(np.array(field['times_session'])[shuffle_indices[shuffle]])]
+            shuffled_data['indices_rate_map'] = [field.indices_rate_map]
+
+            weighed_hist_sum = get_estimated_hd_shuffled(shuffled_data)
+            hd_session_real_hist = np.histogram(field.hd_in_field_session * 180 / np.pi, bins=40, range=(0, 360))[0]
+            estimate = weighed_hist_sum / hd_session_real_hist
+            hd_spikes_real_hist = np.histogram(np.array(shuffled_data.hd_in_field_spikes[0]) * 180 / np.pi, bins=40, range=(0, 360))[0]
+            norm_hist_real = np.nan_to_num(hd_spikes_real_hist / hd_session_real_hist)
+            ratio = calculate_ratio(norm_hist_real, estimate)
+            ratios.append(ratio)
+
+        ratios_all.append(ratios)
+
+    field_data['ratio_measure_shuffle'] = ratios_all
+    field_data.to_pickle(output_path)
     return field_data
 
 
@@ -247,11 +357,15 @@ def process_data(animal):
     if animal == 'rat':
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
 
-    field_data = distributive_hypothesis_analysis_observed(field_data, animal, output_path)
+    good_fields = field_data.accepted_field == True
+
+    field_data = distributive_hypothesis_analysis_observed(field_data[good_fields], animal, output_path)
+    field_data = distributive_hypothesis_analysis_shuffled(field_data[good_fields], animal, output_path)
+
 
 def main():
-    process_data('rat')
     process_data('mouse')
+    process_data('rat')
 
 
 if __name__ == '__main__':
