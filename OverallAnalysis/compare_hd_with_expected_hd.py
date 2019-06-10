@@ -262,8 +262,16 @@ def plot_histograms_of_ratios(animal, field_data):
 
     ratio_scores_grid = field_data[grid_cells & accepted_fields].ratio_measure
     ratio_scores_conjunctive = field_data[conjunctive_cells & accepted_fields].ratio_measure
-    plt.hist(ratio_scores_grid, color='navy')
-    plt.hist(ratio_scores_conjunctive, color='red')
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    if 'ratio_measure_shuffle' in field_data:
+        shuffled_scores_grid = field_data[grid_cells & accepted_fields].ratio_measure_shuffle
+        shuffled_scores_grid_flat = [item for sublist in shuffled_scores_grid for item in sublist]
+        plt.hist(shuffled_scores_grid_flat, color='gray', alpha=0.4)
+
+    ax.set_yscale('log')
+    plt.hist(ratio_scores_grid, color='navy', alpha=0.6)
+    plt.hist(ratio_scores_conjunctive, color='red', alpha=0.6)
 
     plt.savefig(local_path + animal + '_ratio_measure_estimate.png')
     plt.close()
@@ -271,8 +279,9 @@ def plot_histograms_of_ratios(animal, field_data):
 
 def distributive_hypothesis_analysis_observed(field_data, animal, output_path):
     print('analyzing observed ' + animal)
-    # if 'ratio_measure' in field_data:
-        # return field_data
+    if 'ratio_measure' in field_data:
+        plot_histograms_of_ratios(animal, field_data)
+        return field_data
     colors = generate_colors(20)
     ratios = []
     for index, field in field_data.iterrows():
@@ -286,7 +295,7 @@ def distributive_hypothesis_analysis_observed(field_data, animal, output_path):
         ratio = calculate_ratio(norm_hist_real, estimate)
         ratios.append(ratio)
         plot_real_vs_estimated(field, norm_hist_real, estimate, animal, ratio, colors[field.field_id])
-    field_data['ratio_measure'] = ratios
+    field_data['ratio_measure'] = np.array(ratios)
     field_data.to_pickle(output_path)
     plot_histograms_of_ratios(animal, field_data)
     return field_data
@@ -302,8 +311,9 @@ def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
 def distributive_hypothesis_analysis_shuffled(field_data, animal, output_path, number_of_shuffles=100):
     print('analyzing shuffled ' + animal)
     ratios_all = []
-    #if 'ratio_measure_shuffle' in field_data:
-        #return field_data
+    if 'ratio_measure_shuffle' in field_data:
+        plot_histograms_of_ratios(animal, field_data)
+        return field_data
 
     for index, field in field_data.iterrows():
         ratios = []
@@ -333,6 +343,7 @@ def distributive_hypothesis_analysis_shuffled(field_data, animal, output_path, n
         ratios_all.append(ratios)
 
     field_data['ratio_measure_shuffle'] = ratios_all
+    plot_histograms_of_ratios(animal, field_data)
     field_data.to_pickle(output_path)
     return field_data
 
@@ -361,6 +372,7 @@ def process_data(animal):
 
     field_data = distributive_hypothesis_analysis_observed(field_data[good_fields], animal, output_path)
     field_data = distributive_hypothesis_analysis_shuffled(field_data[good_fields], animal, output_path)
+
 
 
 def main():
