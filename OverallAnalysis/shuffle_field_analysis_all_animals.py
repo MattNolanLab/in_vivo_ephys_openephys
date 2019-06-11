@@ -18,7 +18,7 @@ local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_da
 
 
 # loads shuffle analysis results for field data
-def load_data_frame_field_data(output_path, server_path, spike_sorter, df_path='/DataFrames'):
+def load_data_frame_field_data(output_path, server_path, spike_sorter, df_path='/DataFrames', shuffle_type='occupancy'):
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
@@ -27,7 +27,10 @@ def load_data_frame_field_data(output_path, server_path, spike_sorter, df_path='
         field_data_combined = pd.DataFrame()
         for recording_folder in glob.glob(server_path + '*'):
             os.path.isdir(recording_folder)
-            data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl'
+            if shuffle_type == 'occupancy':
+                data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl'
+            else:
+                data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields_distributive.pkl'
             if os.path.exists(data_frame_path):
                 print('I found a field data frame.')
                 field_data = pd.read_pickle(data_frame_path)
@@ -88,7 +91,7 @@ def find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data):
     return tail, percentile_95, percentile_99
 
 
-def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse'):
+def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse', shuffle_type='occupancy'):
     number_of_rejects = shuffled_field_data.number_of_different_bins
     fig, ax = plt.subplots()
     plt.hist(number_of_rejects)
@@ -101,11 +104,11 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse
     ax.set_xlim(0, 20)
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.savefig(analysis_path + 'distribution_of_rejects_' + animal + '.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'distribution_of_rejects_' + shuffle_type + animal + '.png', bbox_inches="tight")
     plt.close()
 
 
-def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal='mouse'):
+def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal='mouse', shuffle_type='occupancy'):
     number_of_rejects = shuffled_field_data.number_of_different_bins_shuffled
     flat_shuffled = []
     for field in number_of_rejects:
@@ -121,11 +124,11 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, anim
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_xlim(0, 20)
-    plt.savefig(analysis_path + '/distribution_of_rejects_shuffled' + animal + '.png', bbox_inches="tight")
+    plt.savefig(analysis_path + '/distribution_of_rejects_shuffled' + shuffle_type + animal + '.png', bbox_inches="tight")
     plt.close()
 
 
-def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
+def make_combined_plot_of_distributions(shuffled_field_data, tag='grid', shuffle_type='occupancy'):
     tail, percentile_95, percentile_99 = find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data)
 
     number_of_rejects_shuffled = shuffled_field_data.number_of_different_bins_shuffled
@@ -151,7 +154,7 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_xlim(0, 20)
-    plt.savefig(analysis_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'distribution_of_rejects_combined_all_' + shuffle_type + tag + '.png', bbox_inches="tight")
     plt.close()
 
     fig, ax = plt.subplots()
@@ -176,11 +179,11 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid'):
 
     ax.set_xlabel('Rejected bars / field', size=30)
     ax.set_ylabel('Cumulative probability', size=30)
-    plt.savefig(analysis_path + 'distribution_of_rejects_combined_all_' + tag + '_cumulative.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'distribution_of_rejects_combined_all_' + shuffle_type + tag + '_cumulative.png', bbox_inches="tight")
     plt.close()
 
 
-def plot_number_of_significant_p_values(field_data, type='bh'):
+def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occupancy'):
     if type == 'bh':
         number_of_significant_p_values = field_data.number_of_different_bins_bh
     else:
@@ -202,7 +205,7 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20)
-    plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_ ' + shuffle_type + type + '.png', bbox_inches="tight")
     plt.close()
 
     fig, ax = plt.subplots()
@@ -227,7 +230,7 @@ def plot_number_of_significant_p_values(field_data, type='bh'):
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlabel('Significant bars / field', size=30)
     ax.set_ylabel('Cumulative probability', size=30)
-    plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_' + type + '_cumulative.png', bbox_inches="tight")
+    plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_' + shuffle_type + type + '_cumulative.png', bbox_inches="tight")
     plt.close()
 
 
@@ -236,13 +239,14 @@ def compare_distributions(x, y):
     return p
 
 
-def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
+def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh', shuffle_type='occupancy'):
     num_bins = 20
     if analysis_type == 'bh':
         flat_shuffled = []
         for field in field_data.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(field)
         p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+        print(shuffle_type)
         print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
         print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
         number_of_significant_bins = field_data.number_of_different_bins_bh.sum()
@@ -267,15 +271,15 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh'):
         return p_percentile
 
 
-def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse'):
-    plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal)
-    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal)
-    plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag + '_' + animal)
-    plot_number_of_significant_p_values(shuffled_field_data, type='holm_' + tag + '_' + animal)
-    make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal)
+def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse', shuffle_type='occupancy'):
+    plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal, shuffle_type=shuffle_type)
+    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal, shuffle_type=shuffle_type)
+    plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag + '_' + animal, shuffle_type=shuffle_type)
+    plot_number_of_significant_p_values(shuffled_field_data, type='holm_' + tag + '_' + animal, shuffle_type=shuffle_type)
+    make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal, shuffle_type=shuffle_type)
 
 
-def analyze_data(animal):
+def analyze_data(animal, shuffle_type='occupancy'):
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
         server_path = server_path_mouse
@@ -295,7 +299,7 @@ def analyze_data(animal):
         spike_sorter = '/'
         df_path = ''
 
-    shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter, df_path=df_path)
+    shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter, df_path=df_path, shuffle_type=shuffle_type)
     if animal == 'mouse':
         tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
     elif animal == 'rat':
@@ -314,28 +318,29 @@ def analyze_data(animal):
     shuffled_field_data_grid = shuffled_field_data[grid_cells & accepted_field]
     shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
 
-    plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal)
+    plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
     if len(shuffled_field_data_not_classified) > 0:
-        plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal)
+        plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
     print(animal + ' data:')
+    print(shuffle_type)
     print('Grid cells:')
     print('Number of grid fields: ' + str(len(shuffled_field_data_grid)))
     print('Number of grid cells: ' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh', shuffle_type=shuffle_type)
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile', shuffle_type=shuffle_type)
     print('__________________________________')
     print('Not classified cells: ')
     print('Number of not classified fields: ' + str(len(shuffled_field_data_not_classified)))
     print('Number of not classified cells: ' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh')
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile')
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh', shuffle_type=shuffle_type)
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile', shuffle_type=shuffle_type)
     print('__________________________________')
 
 
 def main():
-    analyze_data('mouse')
-    analyze_data('rat')
+    analyze_data('mouse', shuffle_type='distributive')
+    analyze_data('rat', shuffle_type='distributive')
     analyze_data('simulated')
 
 
