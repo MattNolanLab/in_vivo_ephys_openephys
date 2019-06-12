@@ -236,7 +236,7 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
 
 def compare_distributions(x, y):
     stat, p = scipy.stats.mannwhitneyu(x, y)
-    return p
+    return p, stat
 
 
 def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh', shuffle_type='occupancy'):
@@ -245,10 +245,10 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh', shuffl
         flat_shuffled = []
         for field in field_data.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(field)
-        p_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
+        p_bh, stat_bh = compare_distributions(field_data.number_of_different_bins_bh, flat_shuffled)
         print(shuffle_type)
         print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
-        print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+        print('stat value for comparing shuffled distribution to B-H corrected p values: ' + str(stat_bh))
         number_of_significant_bins = field_data.number_of_different_bins_bh.sum()
         total_number_of_bins = len(field_data.number_of_different_bins_bh) * num_bins
         print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
@@ -261,8 +261,9 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh', shuffl
         flat_shuffled = []
         for field in field_data.number_of_different_bins_shuffled:
             flat_shuffled.extend(field)
-        p_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
+        p_percentile, stat_percentile = compare_distributions(field_data.number_of_different_bins, flat_shuffled)
         print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+        print('stat value for comparing shuffled distribution to percentile thresholded p values: ' + str(stat_percentile))
         number_of_significant_bins = field_data.number_of_different_bins.sum()
         total_number_of_bins = len(field_data.number_of_different_bins) * num_bins
         print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
@@ -322,6 +323,7 @@ def analyze_data(animal, shuffle_type='occupancy'):
     if len(shuffled_field_data_not_classified) > 0:
         plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
+    print('*****')
     print(animal + ' data:')
     print(shuffle_type)
     print('Grid cells:')
