@@ -208,6 +208,7 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     fig, ax = plt.subplots()
     if xlim == True:
         plt.xlim(0, 1)
+        plt.ylim(0, 100)
     plt.hist(watson_test_stats, bins=30, color='navy', normed=True, alpha=0.7)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
@@ -225,6 +226,7 @@ def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse'
     ax = plot_utility.format_bar_chart(ax, 'Watson $U^2$', 'Cumulative probability')
     plt.xscale('log')
     plt.yticks([0, 1])
+    plt.ylim(0, 100)
     plt.axvline(x=0.268, linewidth=3, color='red')  # p < 0.01 based on r docs for watson two test
     values, base = np.histogram(watson_test_stats, bins=40)
     # evaluate the cumulative
