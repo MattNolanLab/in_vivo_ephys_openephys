@@ -14,7 +14,9 @@ import OverallAnalysis.grid_analysis_other_labs.firing_maps
 
 import matplotlib.pylab as plt
 
-analysis_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/simulated_data/'
+# analysis_path = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/grid_field_analysis/simulated_data/'
+# analysis_path = '/run/user/1001/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/ventral/'
+
 
 prm = PostSorting.parameters.Parameters()
 prm.set_pixel_ratio(100)  # data is in cm already
@@ -22,8 +24,8 @@ prm.set_sampling_rate(1000)
 
 
 # load data frames and reorganize to be similar to real data to make it easier to rerun analyses
-def organize_data():
-    spatial_data_path = analysis_path + 'traj2_spatial_data'
+def organize_data(analysis_path):
+    spatial_data_path = analysis_path + 'traj2grids_spatial_data'
     spatial_data = pd.read_pickle(spatial_data_path)
     position_data = pd.DataFrame()
     position_data['synced_time'] = spatial_data.synced_time.iloc[0]
@@ -67,7 +69,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
-def process_data():
+def process_data(analysis_path):
     organize_data()
     for name in glob.glob(analysis_path + '*'):
         if os.path.isdir(name):
@@ -96,7 +98,10 @@ def process_data():
 
 
 def main():
-    process_data()
+    analysis_path = '/home/nolanlab/simulated_data/ventral/'
+    process_data(analysis_path)
+    analysis_path = '/home/nolanlab/simulated_data/control/'
+    process_data(analysis_path)
 
 
 if __name__ == '__main__':
