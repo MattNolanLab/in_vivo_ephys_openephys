@@ -66,7 +66,10 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     # PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
-    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
+    try:
+        PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
+    except:
+        print('I did not manage to make combined plots.')
 
 
 def process_data(analysis_path):
@@ -74,14 +77,20 @@ def process_data(analysis_path):
     for name in glob.glob(analysis_path + '*'):
         if os.path.isdir(name):
             if os.path.exists(name + '/position.pkl'):
+                if os.path.exists(name + '/Figures/combined/simulated_1.png'):
+                    print(name)
+                    continue
                 prm.set_file_path(name)
                 prm.set_output_path(name)
                 position = pd.read_pickle(name + '/position.pkl')
                 # process position data - add hd etc
                 spatial_firing = pd.read_pickle(name + '/spatial_firing.pkl')
                 spatial_firing['hd'] = spatial_firing.hd
-                hd = [item for sublist in spatial_firing.hd[0] for item in sublist]
-                spatial_firing['hd'] = [np.array(hd) - 180]
+                if len(spatial_firing.hd) > 1:
+                    hd = [item for sublist in spatial_firing.hd[0] for item in sublist]
+                    spatial_firing['hd'] = [np.array(hd) - 180]
+                if len(spatial_firing.hd) == 1:
+                    spatial_firing['hd'] = np.array(spatial_firing.hd)
                 spatial_firing['position_x_pixels'] = spatial_firing.position_x
                 spatial_firing['position_y_pixels'] = spatial_firing.position_y
 
