@@ -359,17 +359,11 @@ def add_rate_map_values(spatial_firing, cell):
     spike_data['rate_map_y'] = (spike_data.y // bin_size_pixels).astype(int)
     rates = np.zeros(len(spike_data))
     cluster = spatial_firing.cluster_id == cell.cluster_id
-    rate_map = spatial_firing.firing_maps[cluster].iloc[0]
-    # plt.cla()
-    # plt.imshow(rate_map)
+    rate_map = cell.firing_maps
     for sample in range(len(spike_data)):
-        try:
-            rate = rate_map[spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample]]
-            rates[sample] = rate
-        except IndexError:  # this is if it's outside the outermost bin due to interpolation
-            print('index error')
-            rates[sample] = 0
-
+        rate = rate_map[spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample]]
+        rates[sample] = rate
+        plt.scatter(spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample], color='red', s=50)
         # plt.scatter(spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample], color='red',s=50)
     all_rates = np.round(rates, 2)
     return all_rates
@@ -398,8 +392,8 @@ def plot_example_shuffle(cell, shuffle, shuffle_indices):
 
 # add shuffled data to data frame as a new column for each cell
 def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy'):
-    if 'shuffled_data' in spatial_firing:
-        return spatial_firing
+    # if 'shuffled_data' in spatial_firing:  # todo put back to code when finished debugging
+        # return spatial_firing
 
     if os.path.exists(local_path + 'shuffle_analysis_' + animal + shuffle_type) is True:
         shutil.rmtree(local_path + 'shuffle_analysis_' + animal + shuffle_type)
@@ -432,8 +426,8 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
 
 
 def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal, number_of_bins=20):
-    if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
-        return spatial_firing
+    #if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
+        #return spatial_firing
     print('Analyze shuffled data.')
     spatial_firing = add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins)
     spatial_firing = add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_bins=20)
@@ -686,11 +680,10 @@ def main():
     spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
     # spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated, spike_sorter='', df_path='')
-
-    prm.set_pixel_ratio(440)
-    process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
     prm.set_pixel_ratio(100)
     process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    prm.set_pixel_ratio(440)
+    process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
     # process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
 
 
