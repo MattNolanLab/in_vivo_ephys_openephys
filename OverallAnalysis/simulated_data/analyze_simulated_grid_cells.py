@@ -70,7 +70,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
 
 
 def process_data(analysis_path):
-    organize_data()
+    organize_data(analysis_path)
     for name in glob.glob(analysis_path + '*'):
         if os.path.isdir(name):
             if os.path.exists(name + '/position.pkl'):
