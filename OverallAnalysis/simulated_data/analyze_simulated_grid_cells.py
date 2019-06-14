@@ -62,7 +62,10 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_coverage(position_heat_map, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing, prm)
-    PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
+    try:
+        PostSorting.open_field_make_plots.plot_hd(spatial_firing, position_data, prm)
+    except:
+        print('I did not manage to plot 2d hd scatter.')
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     # PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
