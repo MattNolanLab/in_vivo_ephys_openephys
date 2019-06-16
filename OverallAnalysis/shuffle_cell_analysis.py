@@ -392,8 +392,8 @@ def plot_example_shuffle(cell, shuffle, shuffle_indices):
 
 # add shuffled data to data frame as a new column for each cell
 def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy'):
-    # if 'shuffled_data' in spatial_firing:  # todo put back to code when finished debugging
-        # return spatial_firing
+    if 'shuffled_data' in spatial_firing:  # todo put back to code when finished debugging
+        return spatial_firing
 
     if os.path.exists(local_path + 'shuffle_analysis_' + animal + shuffle_type) is True:
         shutil.rmtree(local_path + 'shuffle_analysis_' + animal + shuffle_type)
@@ -426,8 +426,8 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
 
 
 def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal, number_of_bins=20):
-    #if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
-        #return spatial_firing
+    if 'number_of_different_bins_shuffled_corrected_p' in spatial_firing:
+        return spatial_firing
     print('Analyze shuffled data.')
     spatial_firing = add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins)
     spatial_firing = add_percentile_values_to_df(spatial_firing, sampling_rate_video, number_of_bins=20)
