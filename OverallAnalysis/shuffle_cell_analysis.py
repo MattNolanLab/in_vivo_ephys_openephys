@@ -602,7 +602,8 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh', shuffle_type=
 
 
 def compare_distributions(x, y):
-    stat, p = scipy.stats.mannwhitneyu(x, y)
+    # stat, p = scipy.stats.mannwhitneyu(x, y)
+    stat, p = scipy.stats.ranksums(x, y)
     return p
 
 
