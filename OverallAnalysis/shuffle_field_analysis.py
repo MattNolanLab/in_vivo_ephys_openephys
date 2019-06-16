@@ -376,7 +376,7 @@ def add_rate_map_values_to_field_df_session(spatial_firing, fields):
         spike_data_field['rate_map_y'] = (field.position_y_session // bin_size_pixels).astype(int)
         rates = []
         cluster = spatial_firing.cluster_id == field.cluster_id
-        rate_map = spatial_firing.firing_maps[cluster].iloc[0]  # todo change this to field rate map and rerun
+        rate_map = spatial_firing.firing_maps[cluster].iloc[0]
         for sample in range(len(spike_data_field)):
             rate = rate_map[spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample]]
             rates.append(rate)
