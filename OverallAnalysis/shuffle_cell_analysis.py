@@ -375,7 +375,7 @@ def plot_example_shuffle(cell, shuffle, shuffle_indices):
     plt.plot(cell.trajectory_x, cell.trajectory_y, color='gray', alpha=0.6)
     plt.scatter(cell['trajectory_x'][shuffle_indices[shuffle]], cell['trajectory_y'][shuffle_indices[shuffle]], s=10)
     shuffled_spikes.set_size_inches(5, 5, forward=True)
-    plt.savefig(local_path + 'example_shuffles_mouse/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
+    plt.savefig(local_path + 'example_shuffles/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
     plt.close()
 
     plt.cla()
@@ -384,7 +384,7 @@ def plot_example_shuffle(cell, shuffle, shuffle_indices):
     plt.scatter(cell.position_x, cell. position_y, color='red', s=10)
     real_spikes.set_size_inches(5, 5, forward=True)
     real_spikes.set_size_inches(5, 5, forward=True)
-    plt.savefig(local_path + 'example_shuffles_mouse/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
+    plt.savefig(local_path + 'example_shuffles/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
     plt.close()
 
     hd_shuffle = cell['trajectory_hd'][shuffle_indices[shuffle]]
@@ -677,14 +677,24 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
 
 
 def main():
-    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
-    spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
-    # spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated, spike_sorter='', df_path='')
+    #spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
+    #spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
+
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral/', spike_sorter='', df_path='')
     prm.set_pixel_ratio(100)
-    process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
-    prm.set_pixel_ratio(440)
-    process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
-    # process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
+    #process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    #prm.set_pixel_ratio(440)
+    #process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
+
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'control/', spike_sorter='', df_path='')
+    prm.set_pixel_ratio(100)
+    # process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    # prm.set_pixel_ratio(440)
+    # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive_control')
+
+
 
 
 if __name__ == '__main__':
