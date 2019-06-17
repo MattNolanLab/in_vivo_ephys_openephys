@@ -649,6 +649,19 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
         spatial_firing = tag_false_positives(spatial_firing)
     else:
         spatial_firing['false_positive'] = False
+    if animal == 'simulated':
+        print('Simulated data is downsampled')
+        xs = []
+        ys = []
+        hds = []
+        for index, cell in spatial_firing.iterrows():
+            xs.append(cell.trajectory_x[::20])
+            ys.append(cell.trajectory_y[::20])
+            hds.append(cell.trajectory_hd[::20])
+        spatial_firing['trajectory_x'] = xs
+        spatial_firing['trajectory_y'] = ys
+        spatial_firing['trajectory_hd'] = hds
+
     good_cell = spatial_firing.false_positive == False
     spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
