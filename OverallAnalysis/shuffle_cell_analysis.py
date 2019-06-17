@@ -363,7 +363,7 @@ def add_rate_map_values(spatial_firing, cell):
     for sample in range(len(spike_data)):
         rate = rate_map[spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample]]
         rates[sample] = rate
-        plt.scatter(spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample], color='red', s=50)
+        # plt.scatter(spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample], color='red', s=50)
         # plt.scatter(spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample], color='red',s=50)
     all_rates = np.round(rates, 2)
     return all_rates
