@@ -766,7 +766,7 @@ def correlation_analysis_with_bigger_bins_thresholded(field_data, animal):
 
     correlations_within = field_data.pearson_coef_halves_large_bins
     kstat, p = scipy.stats.ks_2samp(correlations_within, correlation_in_between)
-    print('KS comparison between within field and in between field correlations for 20 bins: ' + str(p) + ' ' + str(kstat))
+    print('KS comparison between within field and in between field correlations for 20 bins (corr >= 0.4): ' + str(p) + ' ' + str(kstat))
 
     plt.figure()
     plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6, normed=True)
