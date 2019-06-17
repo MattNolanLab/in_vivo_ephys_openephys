@@ -298,6 +298,37 @@ def tag_false_positives(all_cells, animal):
     return all_cells
 
 
+def calculate_watson_from_half_session(all_cells, server_path, sampling_rate):
+    watson_results = []
+    for index, cell in all_cells.iterrows():
+        if ~np.isnan(cell.watson_test_hd):
+            watson_results.append(cell.watson_test_hd)
+        else:
+            position = pd.read_pickle(server_path + cell.session_id + '/MountainSort/DataFrames/position.pkl')
+            hd_session = (position.hd.dropna() + 180) * np.pi / 180
+            hd_spikes = (np.array(cell.hd)[~np.isnan(cell.hd)] + 180) * np.pi / 180
+            stat = run_two_sample_watson_test(hd_session, hd_spikes, downsample=True)
+            print(stat)
+
+            '''
+            half_time = len(position.synced_time) / 2     # seconds
+            last_index_first_half_spikes = len(cell.firing_times[cell.firing_times < half_time * sampling_rate])
+            first_half_session = position.hd[:int(half_time)]
+            second_half_session = position.hd[int(half_time):]
+
+            first_half_spikes = cell.hd[:last_index_first_half_spikes]
+            second_half_spikes = cell.hd[last_index_first_half_spikes:]
+
+            watson_first_halves = run_two_sample_watson_test(first_half_spikes, first_half_session)
+            watson_second_halves = run_two_sample_watson_test(second_half_spikes, second_half_session)
+            avg_watson = (watson_first_halves + watson_second_halves) / 2
+            '''
+            watson_results.append(stat)
+
+    all_cells['watson_test_hd'] = watson_results
+    return all_cells
+
+
 def process_data(animal):
     print('-------------------------------------------------------------')
     if animal == 'mouse':
@@ -317,6 +348,8 @@ def process_data(animal):
         df_path = ''
 
     all_cells = load_spatial_firing(local_path_animal, server_path_animal, animal, spike_sorter, df_path=df_path)
+    if animal == 'mouse':
+        all_cells = calculate_watson_from_half_session(all_cells, server_path_animal, sampling_rate=30000)
     all_cells = tag_false_positives(all_cells, animal)
 
     # correlation_between_first_and_second_halves_of_session(df_all_mice)
@@ -324,9 +357,9 @@ def process_data(animal):
 
 
 def main():
-    process_data('simulated')
     process_data('mouse')
     process_data('rat')
+    process_data('simulated')
 
 
 if __name__ == '__main__':
