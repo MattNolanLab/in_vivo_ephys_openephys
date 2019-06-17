@@ -446,12 +446,15 @@ def main():
     print('-------------------------------------------------------------')
 
     # local_data_test()
+
+    prm.set_pixel_ratio(100)
+    process_recordings(server_path_simulated + 'ventral/', 1000, df_path='', spike_sorter='', redo_existing=True, shuffle_type='distributive')
+    process_recordings(server_path_simulated + 'control/', 1000, df_path='', spike_sorter='', redo_existing=True, shuffle_type='distributive')
+
     prm.set_pixel_ratio(440)
-    process_recordings(server_path_mouse, 30, redo_existing=True, shuffle_type='distributive')
+    #process_recordings(server_path_mouse, 30, redo_existing=True, shuffle_type='distributive')
     prm.set_pixel_ratio(100)
-    process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True, shuffle_type='distributive')
-    prm.set_pixel_ratio(100)
-    process_recordings(server_path_simulated, 1000, df_path='', spike_sorter='', redo_existing=True, shuffle_type='distributive')
+    #process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True, shuffle_type='distributive')
 
 
 if __name__ == '__main__':
