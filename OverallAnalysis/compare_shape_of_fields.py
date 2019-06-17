@@ -512,6 +512,7 @@ def get_correlation_values_within_fields(field_data):
     for field in range(len(field_data)):
         first = first_halves.iloc[field]
         second = second_halves.iloc[field]
+        first, second = remove_zeros(first, second)
 
         pearson_coef, corr_p = scipy.stats.pearsonr(first, second)
         correlation_values.append(pearson_coef)
@@ -567,6 +568,15 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
     print(p)
 
 
+def remove_zeros(first, second):
+    zeros_in_first_indices = first == 0
+    zeros_in_second_indices = second == 0
+    combined = zeros_in_first_indices + zeros_in_second_indices
+    first_out = first[~combined]
+    second_out = second[~combined]
+    return first_out, second_out
+
+
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half.values
     second_halves = field_data.hd_hist_second_half.values
@@ -579,7 +589,8 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     for index, field1 in enumerate(first_halves):
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
-                if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.5):
+                if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
+                    field_1, field_2 = remove_zeros(field1, field2)
                     pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
                     correlation_values.append(pearson_coef)
                     correlation_p.append(corr_p)
