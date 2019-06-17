@@ -363,19 +363,19 @@ def add_rate_map_values(spatial_firing, cell):
     for sample in range(len(spike_data)):
         rate = rate_map[spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample]]
         rates[sample] = rate
-        plt.scatter(spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample], color='red', s=50)
+        # plt.scatter(spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample], color='red', s=50)
         # plt.scatter(spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample], color='red',s=50)
     all_rates = np.round(rates, 2)
     return all_rates
 
 
-def plot_example_shuffle(cell, shuffle, shuffle_indices):
+def plot_example_shuffle(cell, shuffle, shuffle_indices, iteration_num):
     plt.cla()
     shuffled_spikes = plt.figure()
     plt.plot(cell.trajectory_x, cell.trajectory_y, color='gray', alpha=0.6)
     plt.scatter(cell['trajectory_x'][shuffle_indices[shuffle]], cell['trajectory_y'][shuffle_indices[shuffle]], s=10)
     shuffled_spikes.set_size_inches(5, 5, forward=True)
-    plt.savefig(local_path + 'example_shuffles_mouse/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
+    plt.savefig(local_path + 'example_shuffles/' + str(iteration_num) + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
     plt.close()
 
     plt.cla()
@@ -384,7 +384,7 @@ def plot_example_shuffle(cell, shuffle, shuffle_indices):
     plt.scatter(cell.position_x, cell. position_y, color='red', s=10)
     real_spikes.set_size_inches(5, 5, forward=True)
     real_spikes.set_size_inches(5, 5, forward=True)
-    plt.savefig(local_path + 'example_shuffles_mouse/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
+    plt.savefig(local_path + 'example_shuffles/' + str(iteration_num) + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
     plt.close()
 
     hd_shuffle = cell['trajectory_hd'][shuffle_indices[shuffle]]
@@ -400,7 +400,9 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
     os.makedirs(local_path + 'shuffle_analysis_' + animal + shuffle_type)
 
     shuffled_histograms_all = []
+    iteration_num = 0
     for index, cell in spatial_firing.iterrows():
+        iteration_num += 1
         print('I will shuffle data.')
         field_rates = add_rate_map_values(spatial_firing, cell)
         cell['rate_map_values_session'] = field_rates
@@ -412,7 +414,7 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             shuffled_histograms[shuffle, :] = hist
             if shuffle == 0:
-                plot_example_shuffle(cell, shuffle, shuffle_indices)
+                plot_example_shuffle(cell, shuffle, shuffle_indices, iteration_num)
         shuffled_histograms_all.append(shuffled_histograms)
     spatial_firing['shuffled_data'] = shuffled_histograms_all
 
@@ -649,6 +651,22 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
         spatial_firing = tag_false_positives(spatial_firing)
     else:
         spatial_firing['false_positive'] = False
+    if animal == 'simulated':
+        print('Simulated data is downsampled')
+        xs = []
+        ys = []
+        hds = []
+        times = []
+        for index, cell in spatial_firing.iterrows():
+            xs.append(cell.trajectory_x[::33].values)
+            ys.append(cell.trajectory_y[::33].values)
+            hds.append(cell.trajectory_hd[::33].values)
+            times.append(cell.trajectory_times[::33].values)
+        spatial_firing['trajectory_x'] = xs
+        spatial_firing['trajectory_y'] = ys
+        spatial_firing['trajectory_hd'] = hds
+        spatial_firing['trajectory_times'] = times
+
     good_cell = spatial_firing.false_positive == False
     spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
@@ -678,14 +696,24 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
 
 
 def main():
-    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
-    spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
-    # spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated, spike_sorter='', df_path='')
+    #spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
+    #spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
+
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral/', spike_sorter='', df_path='')
     prm.set_pixel_ratio(100)
-    process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
-    prm.set_pixel_ratio(440)
-    process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
-    # process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
+    #process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    #prm.set_pixel_ratio(440)
+    #process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
+
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'control/', spike_sorter='', df_path='')
+    prm.set_pixel_ratio(100)
+    # process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    # prm.set_pixel_ratio(440)
+    # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive_control')
+
+
 
 
 if __name__ == '__main__':
