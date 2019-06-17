@@ -369,13 +369,13 @@ def add_rate_map_values(spatial_firing, cell):
     return all_rates
 
 
-def plot_example_shuffle(cell, shuffle, shuffle_indices):
+def plot_example_shuffle(cell, shuffle, shuffle_indices, iteration_num):
     plt.cla()
     shuffled_spikes = plt.figure()
     plt.plot(cell.trajectory_x, cell.trajectory_y, color='gray', alpha=0.6)
     plt.scatter(cell['trajectory_x'][shuffle_indices[shuffle]], cell['trajectory_y'][shuffle_indices[shuffle]], s=10)
     shuffled_spikes.set_size_inches(5, 5, forward=True)
-    plt.savefig(local_path + 'example_shuffles/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
+    plt.savefig(local_path + 'example_shuffles/' + str(iteration_num) + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
     plt.close()
 
     plt.cla()
@@ -384,7 +384,7 @@ def plot_example_shuffle(cell, shuffle, shuffle_indices):
     plt.scatter(cell.position_x, cell. position_y, color='red', s=10)
     real_spikes.set_size_inches(5, 5, forward=True)
     real_spikes.set_size_inches(5, 5, forward=True)
-    plt.savefig(local_path + 'example_shuffles/' + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
+    plt.savefig(local_path + 'example_shuffles/' + str(iteration_num) + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
     plt.close()
 
     hd_shuffle = cell['trajectory_hd'][shuffle_indices[shuffle]]
@@ -400,7 +400,9 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
     os.makedirs(local_path + 'shuffle_analysis_' + animal + shuffle_type)
 
     shuffled_histograms_all = []
+    iteration_num = 0
     for index, cell in spatial_firing.iterrows():
+        iteration_num += 1
         print('I will shuffle data.')
         field_rates = add_rate_map_values(spatial_firing, cell)
         cell['rate_map_values_session'] = field_rates
@@ -412,7 +414,7 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             shuffled_histograms[shuffle, :] = hist
             if shuffle == 0:
-                plot_example_shuffle(cell, shuffle, shuffle_indices)
+                plot_example_shuffle(cell, shuffle, shuffle_indices, iteration_num)
         shuffled_histograms_all.append(shuffled_histograms)
     spatial_firing['shuffled_data'] = shuffled_histograms_all
 
