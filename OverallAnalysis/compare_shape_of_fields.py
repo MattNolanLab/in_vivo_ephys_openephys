@@ -734,6 +734,55 @@ def correlation_analysis_with_bigger_bins(field_data, animal):
     plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
     plt.close()
 
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], ax, color='gray')
+    plot_utility.plot_cumulative_histogram(np.array(correlations_within)[~np.isnan(correlations_within)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins_cumulative.png')
+    plt.close()
+
+
+def correlation_analysis_with_bigger_bins_thresholded(field_data, animal):
+    field_data = get_half_fields_large_bins(field_data)
+
+    first_halves = field_data[field_data.pearson_coef_halves_large_bins >= 0.4].hd_first_large_bins
+    second_halves = field_data[field_data.pearson_coef_halves_large_bins >= 0.4].hd_second_large_bins
+    correlation_in_between = []
+    correlation_p = []
+    count_f1 = 0
+    count_f2 = 0
+
+    for index, field1 in enumerate(first_halves):
+        for index2, field2 in enumerate(second_halves):
+            if count_f1 != count_f2:
+                field1_to_corr, field2_to_corr = remove_nans_from_both(field1, field2)
+                pearson_coef, corr_p = scipy.stats.pearsonr(field1_to_corr, field2_to_corr)
+
+                correlation_in_between.append(pearson_coef)
+                correlation_p.append(corr_p)
+            count_f2 += 1
+        count_f1 += 1
+
+    correlations_within = field_data.pearson_coef_halves_large_bins
+    kstat, p = scipy.stats.ks_2samp(correlations_within, correlation_in_between)
+    print('KS comparison between within field and in between field correlations for 20 bins: ' + str(p) + ' ' + str(kstat))
+
+    plt.figure()
+    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6, normed=True)
+    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.5, normed=True)
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins_04.png')
+    plt.close()
+
+    fig, ax = plt.subplots()
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], ax, color='gray')
+    plot_utility.plot_cumulative_histogram(np.array(correlations_within)[~np.isnan(correlations_within)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins_cumulative_04.png')
+    plt.close()
+
 
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
@@ -745,6 +794,7 @@ def process_circular_data(animal):
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
         correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
+        correlation_analysis_with_bigger_bins_thresholded(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
         plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
