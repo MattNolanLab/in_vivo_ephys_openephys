@@ -656,13 +656,16 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
         xs = []
         ys = []
         hds = []
+        times = []
         for index, cell in spatial_firing.iterrows():
-            xs.append(cell.trajectory_x[::33])
-            ys.append(cell.trajectory_y[::33])
-            hds.append(cell.trajectory_hd[::33])
+            xs.append(cell.trajectory_x[::33].values)
+            ys.append(cell.trajectory_y[::33].values)
+            hds.append(cell.trajectory_hd[::33].values)
+            times.append(cell.trajectory_times[::33].values)
         spatial_firing['trajectory_x'] = xs
         spatial_firing['trajectory_y'] = ys
         spatial_firing['trajectory_hd'] = hds
+        spatial_firing['trajectory_times'] = times
 
     good_cell = spatial_firing.false_positive == False
     spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
