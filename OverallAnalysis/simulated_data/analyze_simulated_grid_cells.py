@@ -80,9 +80,7 @@ def process_data(analysis_path):
     for name in glob.glob(analysis_path + '*'):
         if os.path.isdir(name):
             if os.path.exists(name + '/spatial_firing.pkl'):
-                if os.path.exists(name + '/Figures/combined/simulated_1.png'):
-                    print(name)
-                    # continue
+                print(name)
                 prm.set_file_path(name)
                 prm.set_output_path(name)
                 position = pd.read_pickle(name + '/position.pkl')
