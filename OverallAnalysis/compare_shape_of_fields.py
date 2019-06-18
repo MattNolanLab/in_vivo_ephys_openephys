@@ -1,7 +1,5 @@
 import glob
 import matplotlib.pylab as plt
-import math_utility
-import math
 import numpy as np
 import os
 import OverallAnalysis.folder_path_settings
@@ -9,9 +7,7 @@ import pandas as pd
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
 import plot_utility
-from rpy2 import robjects as robj
 from scipy.stats import circstd
-from rpy2.robjects import pandas2ri
 import scipy.stats
 import seaborn
 import PostSorting.compare_first_and_second_half
@@ -24,6 +20,15 @@ prm.set_sorter_name('MountainSort')
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+
+
+def remove_zeros(first, second):
+    zeros_in_first_indices = first == 0
+    zeros_in_second_indices = second == 0
+    combined = zeros_in_first_indices + zeros_in_second_indices
+    first_out = first[~combined]
+    second_out = second[~combined]
+    return first_out, second_out
 
 
 def load_field_data(output_path, server_path, spike_sorter, animal):
@@ -568,15 +573,6 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
     print(p)
 
 
-def remove_zeros(first, second):
-    zeros_in_first_indices = first == 0
-    zeros_in_second_indices = second == 0
-    combined = zeros_in_first_indices + zeros_in_second_indices
-    first_out = first[~combined]
-    second_out = second[~combined]
-    return first_out, second_out
-
-
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half.values
     second_halves = field_data.hd_hist_second_half.values
@@ -637,41 +633,12 @@ def plot_half_fields(field_data, animal):
         plt.cla()
         fig, ax = plt.subplots()
         corr = str(round(correlation[field_num], 4))
-        # p = str(p[field_num])
-        cell_type = field['cell type']
-        #number_of_spikes_first_half = field['number_of_spikes_first_half']
-        #number_of_spikes_second_half = field['number_of_spikes_second_half']
-        #time_spent_first_half = field['time_spent_first_half']
-        #time_spent_second_half = field['time_spent_second_half']
-
-        # title = ('r= ' + corr + ' p=' + p + ' cell type: ' + cell_type + 'first half: ' + str(number_of_spikes_first_half) + ' ' + str(time_spent_first_half) + ' second half: ' + str(number_of_spikes_second_half) + ' ' + str(time_spent_second_half))
         title = ('r= ' + corr)
         save_path = local_path + '/first_vs_second_fields/' + animal + field.session_id + str(field.cluster_id) + str(field.field_id)
         PostSorting.open_field_make_plots.plot_polar_hd_hist(field.hd_hist_first_half, field.hd_hist_second_half, field.cluster_id, save_path, color1='lime', color2='navy', title=title)
 
         plt.close()
         field_num += 1
-
-
-def plot_sampling_vs_correlation(field_data, animal):
-    if animal == 'mouse':
-        sampling = 30
-    else:
-        sampling = 50
-    pearson_r = field_data.pearson_coef_halves
-    time_spent_in_field = field_data.time_spent_in_field / sampling
-    number_of_spikes_in_field = field_data.number_of_spikes_in_field
-    plt.figure()
-    plt.scatter(number_of_spikes_in_field, pearson_r)
-    plt.xlabel('Number of spikes')
-    plt.ylabel('Pearson r')
-    plt.savefig(local_path + animal + '_number_of_spikes_vs_pearson_r.png')
-    plt.close()
-    plt.figure()
-    plt.scatter(time_spent_in_field, pearson_r)
-    plt.xlabel('Amount of time spent in field (sec)')
-    plt.ylabel('Pearson r')
-    plt.savefig(local_path + animal + '_time_spent_in_field_vs_pearson_r.png')
 
 
 def remove_nans_from_both(first, second):
@@ -683,118 +650,6 @@ def remove_nans_from_both(first, second):
     return first_out, second_out
 
 
-def get_half_fields_large_bins(field_data):
-    correlations = []
-    ps = []
-    hd_first_large_bins = []
-    hd_second_large_bins = []
-    for index, field in field_data.iterrows():
-        hd_spikes_first = field.hd_first_half_spikes
-        hd_spikes_first_hist, edges = np.histogram(hd_spikes_first, bins=20)
-        hd_session_first = field.hd_first_half_session
-        hd_session_first_hist, edges = np.histogram(hd_session_first, bins=20)
-        hd_first = hd_spikes_first_hist / hd_session_first_hist
-        hd_spikes_second = field.hd_second_half_spikes
-        hd_spikes_second_hist, edges = np.histogram(hd_spikes_second, bins=20)
-        hd_session_second = field.hd_second_half_session
-        hd_session_second_hist, edges = np.histogram(hd_session_second, bins=20)
-        hd_second = hd_spikes_second_hist / hd_session_second_hist
-        hd_first_large_bins.append(hd_first)
-        hd_second_large_bins.append(hd_second)
-
-        first, second = remove_nans_from_both(hd_first, hd_second)
-        corr, p = scipy.stats.pearsonr(first, second)
-        correlations.append(corr)
-        ps.append(p)
-
-    field_data['pearson_coef_halves_large_bins'] = correlations
-    field_data['pearson_p_halves_large_bins'] = ps
-    field_data['hd_first_large_bins'] = hd_first_large_bins
-    field_data['hd_second_large_bins'] = hd_second_large_bins
-    return field_data
-
-
-def correlation_analysis_with_bigger_bins(field_data, animal):
-    field_data = get_half_fields_large_bins(field_data)
-
-    first_halves = field_data.hd_first_large_bins
-    second_halves = field_data.hd_second_large_bins
-    correlation_in_between = []
-    correlation_p = []
-    count_f1 = 0
-    count_f2 = 0
-
-    for index, field1 in enumerate(first_halves):
-        for index2, field2 in enumerate(second_halves):
-            if count_f1 != count_f2:
-                field1_to_corr, field2_to_corr = remove_nans_from_both(field1, field2)
-                pearson_coef, corr_p = scipy.stats.pearsonr(field1_to_corr, field2_to_corr)
-                correlation_in_between.append(pearson_coef)
-                correlation_p.append(corr_p)
-            count_f2 += 1
-        count_f1 += 1
-
-    correlations_within = field_data.pearson_coef_halves_large_bins
-    kstat, p = scipy.stats.ks_2samp(correlations_within, correlation_in_between)
-    print('KS comparison between within field and in between field correlations for 20 bins: ' + str(p) + ' ' + str(kstat))
-
-    plt.figure()
-    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6, normed=True)
-    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.5, normed=True)
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins.png')
-    plt.close()
-
-    fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    plot_utility.plot_cumulative_histogram(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], ax, color='gray')
-    plot_utility.plot_cumulative_histogram(np.array(correlations_within)[~np.isnan(correlations_within)], ax, color='navy')
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins_cumulative.png')
-    plt.close()
-
-
-def correlation_analysis_with_bigger_bins_thresholded(field_data, animal):
-    field_data = get_half_fields_large_bins(field_data)
-
-    first_halves = field_data[field_data.pearson_coef_halves_large_bins >= 0.4].hd_first_large_bins
-    second_halves = field_data[field_data.pearson_coef_halves_large_bins >= 0.4].hd_second_large_bins
-    correlation_in_between = []
-    correlation_p = []
-    count_f1 = 0
-    count_f2 = 0
-
-    for index, field1 in enumerate(first_halves):
-        for index2, field2 in enumerate(second_halves):
-            if count_f1 != count_f2:
-                field1_to_corr, field2_to_corr = remove_nans_from_both(field1, field2)
-                pearson_coef, corr_p = scipy.stats.pearsonr(field1_to_corr, field2_to_corr)
-
-                correlation_in_between.append(pearson_coef)
-                correlation_p.append(corr_p)
-            count_f2 += 1
-        count_f1 += 1
-
-    correlations_within = field_data.pearson_coef_halves_large_bins
-    kstat, p = scipy.stats.ks_2samp(correlations_within, correlation_in_between)
-    print('KS comparison between within field and in between field correlations for 20 bins (corr >= 0.4): ' + str(p) + ' ' + str(kstat))
-
-    plt.figure()
-    plt.hist(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], color='gray', alpha=0.6, normed=True)
-    plt.hist(np.array(correlations_within)[~np.isnan(correlations_within)], color='navy', alpha=0.5, normed=True)
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins_04.png')
-    plt.close()
-
-    fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    plot_utility.plot_cumulative_histogram(np.array(correlation_in_between)[~np.isnan(correlation_in_between)], ax, color='gray')
-    plot_utility.plot_cumulative_histogram(np.array(correlations_within)[~np.isnan(correlations_within)], ax, color='navy')
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + '_correlation_between_half_fields_large_bins_cumulative_04.png')
-    plt.close()
-
-
 def process_circular_data(animal):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
@@ -804,10 +659,6 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
-        correlation_analysis_with_bigger_bins_thresholded(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
-        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
-        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
@@ -834,9 +685,6 @@ def process_circular_data(animal):
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
-        correlation_analysis_with_bigger_bins(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
-        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], animal + '_grid')
-        plot_sampling_vs_correlation(field_data[(field_data.accepted_field == True)], animal + '_all')
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
