@@ -221,8 +221,9 @@ def compare_hd_histograms(field_data):
         for index1, field1 in enumerate(field_histograms):
             for index2, field2 in enumerate(field_histograms):
                 if index1 != index2:
-                    field1_clean, field2 = remove_nans(field1, field2)
-                    pearson_coef = scipy.stats.pearsonr(field1_clean, field2)[0]
+                    field1_clean, field2_clean = remove_nans(field1, field2)
+                    field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                    pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
                     pearson_coefs_cell.append(pearson_coef)
         pearson_coefs_all.append([pearson_coefs_cell])
         pearson_coefs_avg.append([np.mean(pearson_coefs_cell)])
@@ -499,7 +500,8 @@ def get_correlation_values_in_between_fields(field_data):
     for index, field1 in enumerate(first_halves):
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
-                pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
+                field1_clean, field2_clean = remove_zeros(field1, field2)
+                pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
                 correlation_values.append(pearson_coef)
                 correlation_p.append(corr_p)
             count_f2 += 1
@@ -529,30 +531,8 @@ def get_correlation_values_within_fields(field_data):
 
 
 def compare_within_field_with_other_fields(field_data, animal):
-    correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    in_between_fields, correlation_p = get_correlation_values_in_between_fields(field_data)
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
-    correlation_p = np.array(correlation_p)
-    # significant = field_data.hd_in_first_and_second_halves_p < 0.001
-    fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
-    in_between_fields = correlation_values_in_between
-    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', alpha=0.5)
-    plt.hist(within_field_corr[~np.isnan(within_field_corr)], weights=plot_utility.get_weights_normalized_hist(within_field_corr[~np.isnan(within_field_corr)]), color='blue', alpha=0.4)
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + 'half_session_correlations.png')
-    plt.close()
-
-    fig, ax = plt.subplots()
-    plt.axvline(x=0, linewidth=3, color='red')
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
-    in_between_fields = correlation_values_in_between
-    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', cumulative=True, histtype='step')
-    plt.hist(within_field_corr[~np.isnan(within_field_corr)], weights=plot_utility.get_weights_normalized_hist(within_field_corr[~np.isnan(within_field_corr)]), color='blue', cumulative=True, histtype='step')
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + 'half_session_correlations_cumulative.png')
-    plt.close()
 
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
@@ -586,28 +566,16 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
                 if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
-                    field_1, field_2 = remove_zeros(field1, field2)
-                    pearson_coef, corr_p = scipy.stats.pearsonr(field1, field2)
+                    field_1_clean, field_2_clean = remove_zeros(field1, field2)
+                    pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
                     correlation_values.append(pearson_coef)
                     correlation_p.append(corr_p)
             count_f2 += 1
         count_f1 += 1
 
-    correlation_values_in_between = np.array(correlation_values)
-    correlation_p = np.array(correlation_p)
-    # significant = field_data.hd_in_first_and_second_halves_p < 0.001
+    in_between_fields = np.array(correlation_values)
     within_field, p = get_correlation_values_within_fields(field_data)
     within_field = within_field[within_field >= 0.4]
-    fig, ax = plt.subplots()
-    plt.axvline(x=0, linewidth=3, color='red')
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    # in_between_fields = correlation_values_in_between[correlation_p < 0.001]
-    in_between_fields = correlation_values_in_between
-    plt.hist(in_between_fields[~np.isnan(in_between_fields)], weights=plot_utility.get_weights_normalized_hist(in_between_fields[~np.isnan(in_between_fields)]), color='gray', alpha=0.5)
-    plt.hist(within_field[~np.isnan(within_field)], weights=plot_utility.get_weights_normalized_hist(within_field[~np.isnan(within_field)]), color='blue', alpha=0.4)
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04.png')
-    plt.close()
 
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
@@ -618,7 +586,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04_cumulative.png')
     plt.close()
 
-    stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field)
+    stat, p = scipy.stats.ks_2samp(in_between_fields, within_field)
     print('for Pearson r >= 0.4')
     print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
     print(stat)
