@@ -22,6 +22,23 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 
+def add_cell_types_to_data_frame(cells):
+    cell_type = []
+    for index, field in cells.iterrows():
+        if field.hd_score >= 0.5 and field.grid_score >= 0.4:
+            cell_type.append('conjunctive')
+        elif field.hd_score >= 0.5:
+            cell_type.append('hd')
+        elif field.grid_score >= 0.4:
+            cell_type.append('grid')
+        else:
+            cell_type.append('na')
+
+    cells['cell type'] = cell_type
+
+    return cells
+
+
 # run 2 sample watson test and put it in df
 def run_two_sample_watson_test(hd_cluster, hd_session, downsample=False):
     circular = importr("circular")
@@ -152,30 +169,25 @@ def add_combined_id_to_df(df_all_mice):
 
 
 def correlation_between_first_and_second_halves_of_session(df_all_animals, animal='mouse'):
-    excitatory_neurons = df_all_animals.mean_firing_rate <= 10
-    inhibitory_neurons = df_all_animals.mean_firing_rate > 10
     good_cluster = df_all_animals.false_positive == False
-    significant_corr = df_all_animals.hd_correlation_first_vs_second_half_p < 0.001
+    grid_cell = df_all_animals['cell type'] == 'grid'
+    # significant_corr = df_all_animals.hd_correlation_first_vs_second_half_p < 0.001
     watson_result_exists = df_all_animals.watson_test_hd.notnull()
     is_hd_cell = df_all_animals.hd_score >= 0.5
     print('Number of cells included in two sample watson test for head-direction from the whole session: ' + str(
         watson_result_exists.sum()))
-    print('excitatory: ' + str(len(df_all_animals[excitatory_neurons & watson_result_exists])))
-    print('inhibitory: ' + str(len(df_all_animals[inhibitory_neurons & watson_result_exists])))
+    print('grid: ' + str(len(df_all_animals[grid_cell & watson_result_exists])))
     watson_significant = df_all_animals.watson_test_hd > 0.268  # p < 0.01
     print('Number of cells with significantly different HD distributions: ' + str(watson_significant.sum()))
-    print('Number of excitatory neurons with significantly different HD: ' + str(len(df_all_animals[watson_significant & excitatory_neurons])))
-    print('Number of inhibitory neurons with significantly different HD: ' + str(len(df_all_animals[watson_significant & inhibitory_neurons])))
+    print('Number of excitatory neurons with significantly different HD: ' + str(len(df_all_animals[watson_significant & grid_cell])))
 
-    print('Number of excitatory neurons with significantly different HD that are hd cells: ' + str(len(df_all_animals[watson_significant & excitatory_neurons & is_hd_cell])))
-    print('Number of inhibitory neurons with significantly different HD that are hd cells: ' + str(len(df_all_animals[watson_significant & inhibitory_neurons & is_hd_cell])))
+    print('Number of excitatory neurons with significantly different HD that are hd cells: ' + str(len(df_all_animals[watson_significant & grid_cell & is_hd_cell])))
 
     print('mean pearson r of correlation between first and second half')
-    print(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster].mean())
+    print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster].mean())
 
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant], save_output_path + 'correlation_hd_session_' + animal + '.png', y_axis_label='Number of cells')
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & excitatory_neurons], save_output_path + 'correlation_hd_session_excitatory_' + animal + '.png', y_axis_label='Number of cells')
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[significant_corr & good_cluster & watson_significant & inhibitory_neurons], save_output_path + 'correlation_hd_session_inhibitory_' + animal + '.png', y_axis_label='Number of cells')
+    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & watson_significant], save_output_path + 'correlation_hd_session_' + animal + '.png', y_axis_label='Number of cells')
+    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & watson_significant & grid_cell], save_output_path + 'correlation_hd_session_grid_cell_' + animal + '.png', y_axis_label='Number of cells')
 
 
 def plot_results_of_watson_test(df_all_animals, cell_type='grid', animal='mouse', xlim=False):
@@ -348,11 +360,12 @@ def process_data(animal):
         df_path = ''
 
     all_cells = load_spatial_firing(local_path_animal, server_path_animal, animal, spike_sorter, df_path=df_path)
+    all_cells = tag_false_positives(all_cells, animal)
+    all_cells = add_cell_types_to_data_frame(all_cells)
+    # correlation_between_first_and_second_halves_of_session(all_cells)
     if animal == 'mouse':
         all_cells = calculate_watson_from_half_session(all_cells, server_path_animal, sampling_rate=30000)
-    all_cells = tag_false_positives(all_cells, animal)
 
-    # correlation_between_first_and_second_halves_of_session(df_all_mice)
     make_descriptive_plots(all_cells, animal)
 
 
