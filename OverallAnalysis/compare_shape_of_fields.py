@@ -644,7 +644,7 @@ def process_circular_data(animal):
         plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'mouse', tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'mouse')
         plot_correlation_matrix_individual_cells(field_data, 'mouse')
-        plot_half_fields(field_data, 'mouse')
+        # plot_half_fields(field_data, 'mouse')
 
     if animal == 'rat':
         rat_path = local_path + 'field_data_modes_rat.pkl'
@@ -670,7 +670,7 @@ def process_circular_data(animal):
         plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'rat', tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'rat')
         plot_correlation_matrix_individual_cells(field_data, 'rat')
-        plot_half_fields(field_data, 'rat')
+        # plot_half_fields(field_data, 'rat')
 
 
 def main():
