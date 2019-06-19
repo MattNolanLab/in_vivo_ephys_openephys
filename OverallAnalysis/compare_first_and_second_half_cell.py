@@ -110,7 +110,7 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
 
     print('mean and sd pearson r of correlation between first and second half for grid cells')
     print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].mean())
-    print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].stdev())
+    print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].std())
 
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell], save_output_path + 'correlation_hd_session_' + animal + '.png', y_axis_label='Number of cells')
 
