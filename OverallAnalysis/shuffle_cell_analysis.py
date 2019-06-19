@@ -696,15 +696,15 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
 
 
 def main():
-    #spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
-    #spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
+    # spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
+    # spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
 
-    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral/', spike_sorter='', df_path='')
-    prm.set_pixel_ratio(100)
-    #process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
-    #prm.set_pixel_ratio(440)
-    #process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
-    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
+    # spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral/', spike_sorter='', df_path='')
+    # prm.set_pixel_ratio(100)
+    # process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    # prm.set_pixel_ratio(440)
+    # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    # process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
 
     spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'control/', spike_sorter='', df_path='')
     prm.set_pixel_ratio(100)
@@ -712,8 +712,6 @@ def main():
     # prm.set_pixel_ratio(440)
     # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
     process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive_control')
-
-
 
 
 if __name__ == '__main__':
