@@ -10,7 +10,6 @@ import glob
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
-server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
 local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_all_rats.pkl'
@@ -281,23 +280,20 @@ def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse
     make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal, shuffle_type=shuffle_type)
 
 
-def analyze_data(animal, shuffle_type='occupancy'):
+def analyze_data(animal, server_path, shuffle_type='occupancy'):
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
-        server_path = server_path_mouse
         spike_sorter = '/MountainSort'
         accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
         df_path = '/DataFrames'
     elif animal == 'rat':
         local_path_to_field_data = local_path_to_shuffled_field_data_rats
-        server_path = server_path_rat
         spike_sorter = ''
         accepted_fields = pd.read_excel(analysis_path + 'included_fields_detector2_sargolini.xlsx')
         df_path = '/DataFrames'
 
     else:
         local_path_to_field_data = local_path_to_shuffled_field_data_simulated
-        server_path = server_path_simulated
         spike_sorter = '/'
         df_path = ''
 
@@ -342,9 +338,12 @@ def analyze_data(animal, shuffle_type='occupancy'):
 
 
 def main():
-    analyze_data('mouse', shuffle_type='distributive')
-    analyze_data('rat', shuffle_type='distributive')
-    analyze_data('simulated')
+    #analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
+    #analyze_data('rat', sever_path_rat, shuffle_type='distributive')
+    #server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral/'
+    #analyze_data('simulated', server_path_simulated, shuffle_type='distributive')
+    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control/'
+    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control')
 
 
 if __name__ == '__main__':
