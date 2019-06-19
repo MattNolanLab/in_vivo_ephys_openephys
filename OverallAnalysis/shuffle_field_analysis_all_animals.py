@@ -340,10 +340,10 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
 def main():
     #analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
     #analyze_data('rat', sever_path_rat, shuffle_type='distributive')
-    #server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral/'
-    #analyze_data('simulated', server_path_simulated, shuffle_type='distributive')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control')
+    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral/'
+    analyze_data('simulated', server_path_simulated, shuffle_type='distributive')
+    #server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control/'
+    #analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control')
 
 
 if __name__ == '__main__':
