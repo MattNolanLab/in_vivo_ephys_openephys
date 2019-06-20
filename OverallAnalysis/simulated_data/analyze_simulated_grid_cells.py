@@ -25,7 +25,7 @@ prm.set_sampling_rate(1000)
 
 # load data frames and reorganize to be similar to real data to make it easier to rerun analyses
 def organize_data(analysis_path):
-    spatial_data_path = analysis_path + 'traj2grids_spatial_data'
+    spatial_data_path = analysis_path + 'v_spatial_data'
     spatial_data = pd.read_pickle(spatial_data_path)
     position_data = pd.DataFrame()
     position_data['synced_time'] = spatial_data.synced_time.iloc[0]
@@ -107,9 +107,9 @@ def process_data(analysis_path):
 
 
 def main():
-    analysis_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/ventral/'
+    analysis_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/ventral_5/'
     process_data(analysis_path)
-    analysis_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/control/'
+    analysis_path = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/control_5/'
     process_data(analysis_path)
 
 
