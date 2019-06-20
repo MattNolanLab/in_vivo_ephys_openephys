@@ -11,13 +11,20 @@ import scipy
 from scipy import stats
 import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
+import PostSorting.open_field_firing_maps
+import PostSorting.parameters
+import array_utility
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis_cell/'
 local_path_mouse = local_path + 'all_mice_df.pkl'
 local_path_rat = local_path + 'all_rats_df.pkl'
+local_path_simulated = local_path + 'all_simulated_df.pkl'
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
+
+prm = PostSorting.parameters.Parameters()
 
 
 def format_bar_chart(ax):
@@ -34,23 +41,31 @@ def format_bar_chart(ax):
     return ax
 
 
-def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/MountainSort'):
+def load_data_frame_spatial_firing(output_path, server_path, spike_sorter='/MountainSort', df_path='/DataFrames'):
     if os.path.exists(output_path):
         spatial_firing = pd.read_pickle(output_path)
         return spatial_firing
     spatial_firing_data = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        firing_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        firing_data_frame_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
+        position_path = recording_folder + spike_sorter + df_path + '/position.pkl'
         if os.path.exists(firing_data_frame_path):
             print('I found a firing data frame.')
             spatial_firing = pd.read_pickle(firing_data_frame_path)
             position = pd.read_pickle(position_path)
 
             if 'position_x' in spatial_firing:
-                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'number_of_spikes', 'mean_firing_rate', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps']].copy()
+                spatial_firing = spatial_firing[['session_id', 'cluster_id', 'hd_score', 'position_x', 'position_y', 'hd', 'firing_maps']].copy()
                 spatial_firing['trajectory_hd'] = [position.hd] * len(spatial_firing)
+                spatial_firing['trajectory_x'] = [position.position_x] * len(spatial_firing)
+                spatial_firing['trajectory_y'] = [position.position_y] * len(spatial_firing)
+                spatial_firing['trajectory_times'] = [position.synced_time] * len(spatial_firing)
+                number_spikes = []
+                for index, cell in spatial_firing.iterrows():
+                    num_spikes = len(cell.position_x)
+                    number_spikes.append(num_spikes)
+                spatial_firing['number_of_spikes'] = number_spikes
                 spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
                 print(spatial_firing_data.head())
@@ -271,7 +286,8 @@ def calculate_corrected_p_values(spatial_firing, type='bh'):
     return spatial_firing
 
 
-def plot_bar_chart_for_cells(spatial_firing, path, animal):
+def plot_bar_chart_for_cells(spatial_firing, path, animal, shuffle_type='occupancy'):
+    counter = 0
     for index, cell in spatial_firing.iterrows():
         mean = cell['shuffled_means']
         std = cell['shuffled_std']
@@ -284,11 +300,13 @@ def plot_bar_chart_for_cells(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + shuffle_type + animal + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + str(index) + '_SD')
         plt.close()
+        counter += 1
 
 
-def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
+def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, shuffle_type='occupancy'):
+    counter = 0
     for index, cell in spatial_firing.iterrows():
         mean = cell['shuffled_means']
         percentile_95 = cell['error_bar_95']
@@ -301,38 +319,105 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal):
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
-        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + animal + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
+        plt.savefig(path + 'shuffle_analysis_' + animal + '/' + shuffle_type + animal + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
+        counter += 1
 
 
-def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle):
+def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle, shuffle_type='occupancy'):
     number_of_spikes_in_field = cell['number_of_spikes']
     length_of_recording = len(cell.trajectory_hd)
-    shuffle_indices = np.random.randint(0, length_of_recording, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    if shuffle_type == 'occupancy':
+        shuffle_indices = np.random.randint(0, length_of_recording, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    else:
+        rates = cell.rate_map_values_session  # normalize to make sure it adds up to 1
+        rates /= sum(rates)
+        shuffle_indices = np.random.choice(range(0, length_of_recording), size=(number_of_times_to_shuffle, number_of_spikes_in_field), p=rates)
     return shuffle_indices
 
 
+def interpolate_nans(array_in):
+    nans, x = array_utility.nan_helper(array_in)
+    array_in[nans] = np.interp(x(nans), x(~nans), array_in[~nans])
+    return array_in
+
+
+# find firing rate on rate map for each sampling point and add to field df
+def add_rate_map_values(spatial_firing, cell):
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    pixel_ratio = prm.get_pixel_ratio()
+    spike_data = pd.DataFrame()
+    spike_data['x'] = cell.trajectory_x * pixel_ratio / 100
+    spike_data['y'] = cell.trajectory_y * pixel_ratio / 100
+    spike_data['hd'] = cell.trajectory_hd
+    spike_data['synced_time'] = cell.trajectory_times
+
+    spike_data.x = interpolate_nans(spike_data.x)
+    spike_data.y = interpolate_nans(spike_data.y)
+
+    spike_data['rate_map_x'] = (spike_data.x // bin_size_pixels).astype(int)
+    spike_data['rate_map_y'] = (spike_data.y // bin_size_pixels).astype(int)
+    rates = np.zeros(len(spike_data))
+    cluster = spatial_firing.cluster_id == cell.cluster_id
+    rate_map = cell.firing_maps
+    for sample in range(len(spike_data)):
+        rate = rate_map[spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample]]
+        rates[sample] = rate
+        # plt.scatter(spike_data.rate_map_x.iloc[sample], spike_data.rate_map_y.iloc[sample], color='red', s=50)
+        # plt.scatter(spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample], color='red',s=50)
+    all_rates = np.round(rates, 2)
+    return all_rates
+
+
+def plot_example_shuffle(cell, shuffle, shuffle_indices, iteration_num):
+    plt.cla()
+    shuffled_spikes = plt.figure()
+    plt.plot(cell.trajectory_x, cell.trajectory_y, color='gray', alpha=0.6)
+    plt.scatter(cell['trajectory_x'][shuffle_indices[shuffle]], cell['trajectory_y'][shuffle_indices[shuffle]], s=10)
+    shuffled_spikes.set_size_inches(5, 5, forward=True)
+    plt.savefig(local_path + 'example_shuffles/' + str(iteration_num) + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'shuffled')
+    plt.close()
+
+    plt.cla()
+    real_spikes = plt.figure()
+    plt.plot(cell.trajectory_x, cell.trajectory_y, color='gray', alpha=0.6)
+    plt.scatter(cell.position_x, cell. position_y, color='red', s=10)
+    real_spikes.set_size_inches(5, 5, forward=True)
+    real_spikes.set_size_inches(5, 5, forward=True)
+    plt.savefig(local_path + 'example_shuffles/' + str(iteration_num) + str(cell.session_id) + str(cell.cluster_id) + str(shuffle) + 'real')
+    plt.close()
+
+    hd_shuffle = cell['trajectory_hd'][shuffle_indices[shuffle]]
+
+
 # add shuffled data to data frame as a new column for each cell
-def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000, animal='mouse'):
-    if 'shuffled_data' in spatial_firing:
+def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy'):
+    if 'shuffled_data' in spatial_firing:  # todo put back to code when finished debugging
         return spatial_firing
 
-    if os.path.exists(local_path + 'shuffle_analysis_' + animal) is True:
-        shutil.rmtree(local_path + 'shuffle_analysis_' + animal)
-    os.makedirs(local_path + 'shuffle_analysis_' + animal)
+    if os.path.exists(local_path + 'shuffle_analysis_' + animal + shuffle_type) is True:
+        shutil.rmtree(local_path + 'shuffle_analysis_' + animal + shuffle_type)
+    os.makedirs(local_path + 'shuffle_analysis_' + animal + shuffle_type)
 
     shuffled_histograms_all = []
+    iteration_num = 0
     for index, cell in spatial_firing.iterrows():
+        iteration_num += 1
         print('I will shuffle data.')
+        field_rates = add_rate_map_values(spatial_firing, cell)
+        cell['rate_map_values_session'] = field_rates
         shuffled_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
-        shuffle_indices = get_random_indices_for_shuffle(cell, number_of_times_to_shuffle)
+        shuffle_indices = get_random_indices_for_shuffle(cell, number_of_times_to_shuffle, shuffle_type='distributive')
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = cell['trajectory_hd'][shuffle_indices[shuffle]]
             shuffled_hd = (shuffled_hd + 180) * np.pi / 180
             hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             shuffled_histograms[shuffle, :] = hist
+            if shuffle == 0:
+                plot_example_shuffle(cell, shuffle, shuffle_indices, iteration_num)
         shuffled_histograms_all.append(shuffled_histograms)
     spatial_firing['shuffled_data'] = shuffled_histograms_all
+
     if animal == 'mouse':
         spatial_firing.to_pickle(local_path_mouse)
 
@@ -379,7 +464,7 @@ def find_tail_of_shuffled_distribution_of_rejects(shuffled_field_data):
     return tail, percentile_95, percentile_99
 
 
-def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse'):
+def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse', shuffle_type='occupancy'):
     number_of_rejects = shuffled_field_data.number_of_different_bins
     fig, ax = plt.subplots()
     plt.hist(number_of_rejects)
@@ -392,11 +477,11 @@ def plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal='mouse
     ax.set_xlim(0, 20.5)
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
-    plt.savefig(local_path + 'distribution_of_rejects_' + animal + '.png', bbox_inches="tight")
+    plt.savefig(local_path + 'distribution_of_rejects_' + animal + shuffle_type + '.png', bbox_inches="tight")
     plt.close()
 
 
-def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_data, animal='mouse'):
+def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_data, animal='mouse', shuffle_type='occupancy'):
     number_of_rejects = shuffled_data.number_of_different_bins_shuffled
     flat_shuffled = []
     for cell in number_of_rejects:
@@ -412,11 +497,11 @@ def plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_data, animal='mo
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_xlim(0, 20.5)
-    plt.savefig(local_path + '/distribution_of_rejects_shuffled' + animal + '.png', bbox_inches="tight")
+    plt.savefig(local_path + '/distribution_of_rejects_shuffled' + animal + shuffle_type + '.png', bbox_inches="tight")
     plt.close()
 
 
-def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
+def make_combined_plot_of_distributions(shuffled_data, tag='grid', shuffle_type = 'occupancy'):
     tail, percentile_95, percentile_99 = find_tail_of_shuffled_distribution_of_rejects(shuffled_data)
 
     number_of_rejects_shuffled = shuffled_data.number_of_different_bins_shuffled
@@ -442,7 +527,7 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Proportion', size=30)
     ax.set_xlim(0, 20.5)
-    plt.savefig(local_path + 'distribution_of_rejects_combined_all_' + tag + '.png', bbox_inches="tight")
+    plt.savefig(local_path + 'distribution_of_rejects_combined_all_' + tag + shuffle_type + '.png', bbox_inches="tight")
     plt.close()
 
     fig, ax = plt.subplots()
@@ -465,11 +550,11 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid'):
     ax.set_xlim(0, 20.5)
     ax.set_xlabel('Rejected bars / cell', size=30)
     ax.set_ylabel('Cumulative probability', size=30)
-    plt.savefig(local_path + 'distribution_of_rejects_' + tag + '_cumulative.png', bbox_inches="tight")
+    plt.savefig(local_path + 'distribution_of_rejects_' + tag + shuffle_type + '_cumulative.png', bbox_inches="tight")
     plt.close()
 
 
-def plot_number_of_significant_p_values(spatial_firing, type='bh'):
+def plot_number_of_significant_p_values(spatial_firing, type='bh', shuffle_type='occupancy'):
     if type == 'bh':
         number_of_significant_p_values = spatial_firing.number_of_different_bins_bh
     else:
@@ -491,11 +576,11 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20.5)
-    plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + '.png', bbox_inches = "tight")
+    plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + shuffle_type + '.png', bbox_inches="tight")
     plt.close()
 
     fig, ax = plt.subplots()
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.yticks([0, 1])
     plt.ylim(0, 1.01)
     ax = plot_utility.format_bar_chart(ax, 'Significant bars / cell', 'Cumulative probability')
@@ -514,52 +599,79 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh'):
     ax.yaxis.set_tick_params(labelsize=20)
     ax.set_xlim(0, 20.5)
     ax.set_ylabel('Cumulative probability', size=30)
-    plt.savefig(local_path + 'distribution_of_rejects_signigicant_p' + type + '_cumulative.png')
+    plt.savefig(local_path + 'distribution_of_rejects_signigicant_p' + type + shuffle_type + '_cumulative.png')
     plt.close()
 
 
 def compare_distributions(x, y):
-    stat, p = scipy.stats.mannwhitneyu(x, y)
+    # stat, p = scipy.stats.mannwhitneyu(x, y)
+    stat, p = scipy.stats.ranksums(x, y)
     return p
 
 
 def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
+    num_bins = 20
     if analysis_type == 'bh':
         flat_shuffled = []
         for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
             flat_shuffled.extend(cell)
-            p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
-            print('Number of cells: ' + str(len(spatial_firing)))
-            print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
-            return p_bh
+        p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
+        print('Number of cells: ' + str(len(spatial_firing)))
+        print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
+        number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
+        total_number_of_bins = len(spatial_firing.number_of_different_bins_bh) * num_bins
+        print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
+        print(str(np.mean(spatial_firing.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(spatial_firing.number_of_different_bins_bh)) + ' SD')
+        print('shuffled: ')
+        print(str(np.mean(flat_shuffled)) + ' number of bins per cell +/- ' + str(np.std(flat_shuffled)) + ' SD')
+        return p_bh
 
     if analysis_type == 'percentile':
         flat_shuffled = []
         for cell in spatial_firing.number_of_different_bins_shuffled:
             flat_shuffled.extend(cell)
-            p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
-            print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
-            return p_percentile
+        p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
+        print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
+        number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
+        total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
+        print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
+        return p_percentile
 
 
-def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, tag='grid', animal='mouse'):
-    plot_histogram_of_number_of_rejected_bars(shuffled_spatial_firing_data, animal)
+def plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_data, tag='grid', animal='mouse', shuffle_type='occupancy'):
+    plot_histogram_of_number_of_rejected_bars(shuffled_spatial_firing_data, animal, shuffle_type=shuffle_type)
     plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_spatial_firing_data, animal)
-    plot_number_of_significant_p_values(shuffled_spatial_firing_data, type='bh_' + tag + '_' + animal)
-    plot_number_of_significant_p_values(shuffled_spatial_firing_data, type='holm_' + tag + '_' + animal)
-    make_combined_plot_of_distributions(shuffled_spatial_firing_data, tag=tag + '_' + animal)
+    plot_number_of_significant_p_values(shuffled_spatial_firing_data, type='bh_' + tag + '_' + animal, shuffle_type=shuffle_type)
+    plot_number_of_significant_p_values(shuffled_spatial_firing_data, type='holm_' + tag + '_' + animal, shuffle_type=shuffle_type)
+    make_combined_plot_of_distributions(shuffled_spatial_firing_data, tag=tag + '_' + animal, shuffle_type=shuffle_type)
 
 
-def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
-    spatial_firing = shuffle_data(spatial_firing, 20, number_of_times_to_shuffle=1000, animal=animal)
-    spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
-    print('I finished the shuffled analysis on ' + animal + ' data.')
+def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_type='occupancy'):
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
     else:
         spatial_firing['false_positive'] = False
+    if animal == 'simulated':
+        print('Simulated data is downsampled')
+        xs = []
+        ys = []
+        hds = []
+        times = []
+        for index, cell in spatial_firing.iterrows():
+            xs.append(cell.trajectory_x[::33].values)
+            ys.append(cell.trajectory_y[::33].values)
+            hds.append(cell.trajectory_hd[::33].values)
+            times.append(cell.trajectory_times[::33].values)
+        spatial_firing['trajectory_x'] = xs
+        spatial_firing['trajectory_y'] = ys
+        spatial_firing['trajectory_hd'] = hds
+        spatial_firing['trajectory_times'] = times
 
     good_cell = spatial_firing.false_positive == False
+    spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
+    spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20)
+    print('I finished the shuffled analysis on ' + animal + ' data.\n')
+
     grid = spatial_firing.grid_score >= 0.4
     hd = spatial_firing.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
@@ -569,11 +681,13 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
     shuffled_spatial_firing_grid = spatial_firing[grid_cells & good_cell]
     shuffled_spatial_firing_not_classified = spatial_firing[not_classified & good_cell]
 
-    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal)
-    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal)
+    plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
+    if len(shuffled_spatial_firing_not_classified) > 0:
+        plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
     print(animal + ' data:')
     print('Grid cells:')
+    print(shuffle_type)
     compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_grid, analysis_type='bh')
     compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_grid, analysis_type='percentile')
     print('Not classified cells:')
@@ -582,10 +696,22 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse'):
 
 
 def main():
-    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
-    spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
-    process_data(spatial_firing_all_mice, 30, animal='mouse')
-    process_data(spatial_firing_all_rats, 50, animal='rat')
+    # spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
+    # spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
+
+    # spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral/', spike_sorter='', df_path='')
+    # prm.set_pixel_ratio(100)
+    # process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    # prm.set_pixel_ratio(440)
+    # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    # process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive')
+
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'control/', spike_sorter='', df_path='')
+    prm.set_pixel_ratio(100)
+    # process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
+    # prm.set_pixel_ratio(440)
+    # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
+    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive_control')
 
 
 if __name__ == '__main__':

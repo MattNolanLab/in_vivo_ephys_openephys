@@ -383,6 +383,9 @@ def plot_histogram_of_number_of_modes(field_data, animal):
     plt.savefig(local_path + animal + '_number_of_modes_per_field_grid_and_conj_cells_cumulative')
     plt.close()
 
+    print(animal)
+    print('Number of modes per grid field: ' + str(np.mean(grid_number_of_modes_cell)) + ' +/-' + str(np.std(grid_number_of_modes_cell)))
+
 
 def compare_mode_distributions_of_grid_and_conj_cells(field_data, animal):
     grid_cells = field_data['cell type'] == 'grid'

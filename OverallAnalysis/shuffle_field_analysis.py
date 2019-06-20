@@ -11,9 +11,16 @@ import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import data_frame_utility
 import matplotlib.pylab as plt
+import PostSorting.open_field_head_direction
+import PostSorting.parameters
+import PostSorting.open_field_firing_maps
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
+
+
+prm = PostSorting.parameters.Parameters()
 
 
 def add_combined_id_to_df(df_all_mice):
@@ -227,7 +234,7 @@ def calculate_corrected_p_values(field_data, type='bh'):
     return field_data
 
 
-def plot_bar_chart_for_fields(field_data, sampling_rate_video, path):
+def plot_bar_chart_for_fields(field_data, sampling_rate_video, path, shuffle_type=''):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
         std = field['shuffled_std']
@@ -242,11 +249,11 @@ def plot_bar_chart_for_fields(field_data, sampling_rate_video, path):
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD')
+        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD.png')
         plt.close()
 
 
-def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, path):
+def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, path, shuffle_type=''):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
         percentile_95 = field['error_bar_95']
@@ -263,12 +270,12 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_vid
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='navy', s=40)
-        plt.savefig(path + 'shuffle_analysis/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile')
+        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile.png')
         plt.close()
 
 
 # the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
-def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20):
+def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20, shuffle_type=''):
     field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins)
     field_data = add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
@@ -282,29 +289,40 @@ def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh')
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='holm')
     field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=20)
-    plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path)
-    plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path)
+    plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
+    plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
     return field_data
 
 
-def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
+def get_random_indices_for_shuffle(field, number_of_times_to_shuffle, shuffle_type='occupancy'):
     number_of_spikes_in_field = field['number_of_spikes_in_field']
     time_spent_in_field = field['time_spent_in_field']
-    shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    if shuffle_type == 'occupancy':
+        shuffle_indices = np.random.randint(0, time_spent_in_field, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
+    else:
+        rates = field.rate_map_values_session  # normalize to make sure it adds up to 1
+        rates /= sum(rates)
+        shuffle_indices = np.random.choice(range(0, time_spent_in_field), size=(number_of_times_to_shuffle, number_of_spikes_in_field), p=rates)
     return shuffle_indices
 
 
 # add shuffled data to data frame as a new column for each field
-def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=1000):
-    if os.path.exists(path + 'shuffle_analysis') is True:
-        shutil.rmtree(path + 'shuffle_analysis')
-    os.makedirs(path + 'shuffle_analysis')
+def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=1000, shuffle_type='occupancy'):
+    if shuffle_type == 'occupancy':
+        if os.path.exists(path + 'shuffle_analysis') is True:
+            shutil.rmtree(path + 'shuffle_analysis')
+        os.makedirs(path + 'shuffle_analysis')
+    else:
+        if os.path.exists(path + 'shuffle_analysis_distributive') is True:
+            shutil.rmtree(path + 'shuffle_analysis_distributive')
+        os.makedirs(path + 'shuffle_analysis_distributive')
+
     field_histograms_all = []
     shuffled_hd_all = []
     for index, field in field_data.iterrows():
         print('I will shuffle data in the fields.')
         field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
-        shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle)
+        shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle, shuffle_type=shuffle_type)
         shuffled_hd_field = []
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
@@ -319,15 +337,66 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
     return field_data
 
 
+# find firing rate on rate map for each spike and add to field df
+def add_rate_map_values_to_field_df(spatial_firing, fields):
+    field_rates = []
+    for index, field in fields.iterrows():
+        spike_data_field = pd.DataFrame()
+        spike_data_field['x'] = field.position_x_spikes
+        spike_data_field['y'] = field.position_y_spikes
+        spike_data_field['hd'] = field.hd_in_field_spikes
+        spike_data_field['synced_time'] = field.spike_times
+
+        bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+        spike_data_field['rate_map_x'] = (field.position_x_spikes // bin_size_pixels).astype(int)
+        spike_data_field['rate_map_y'] = (field.position_y_spikes // bin_size_pixels).astype(int)
+        rates = []
+        cluster = spatial_firing.cluster_id == field.cluster_id
+        rate_map = spatial_firing.firing_maps[cluster].iloc[0]
+        for spike in range(len(spike_data_field)):
+            rate = rate_map[spike_data_field.rate_map_y.iloc[spike], spike_data_field.rate_map_x.iloc[spike]]
+            rates.append(rate)
+        field_rates.append(np.round(rates, 2))
+    fields['rate_map_values_spikes'] = field_rates
+    return fields
+
+
+# find firing rate on rate map for each sampling point and add to field df
+def add_rate_map_values_to_field_df_session(spatial_firing, fields):
+    field_rates = []
+    for index, field in fields.iterrows():
+        spike_data_field = pd.DataFrame()
+        spike_data_field['x'] = field.position_x_session
+        spike_data_field['y'] = field.position_y_session
+        spike_data_field['hd'] = field.hd_in_field_session
+        spike_data_field['synced_time'] = field.times_session
+
+        bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+        spike_data_field['rate_map_x'] = (field.position_x_session // bin_size_pixels).astype(int)
+        spike_data_field['rate_map_y'] = (field.position_y_session // bin_size_pixels).astype(int)
+        rates = []
+        cluster = spatial_firing.cluster_id == field.cluster_id
+        rate_map = spatial_firing.firing_maps[cluster].iloc[0]
+        for sample in range(len(spike_data_field)):
+            rate = rate_map[spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample]]
+            rates.append(rate)
+        field_rates.append(np.round(rates, 2))
+    fields['rate_map_values_session'] = field_rates
+    return fields
+
+
 # perform shuffle analysis for all animals and save data frames on server. this will later be loaded and combined
-def process_recordings(server_path, sampling_rate_video, spike_sorter='/MountainSort', redo_existing=True):
+def process_recordings(server_path, sampling_rate_video, spike_sorter='/MountainSort', df_path='/DataFrames', redo_existing=True, shuffle_type='occupancy'):
     if os.path.exists(server_path):
         print('I see the server.')
     for recording_folder in glob.glob(server_path + '*'):
         if os.path.isdir(recording_folder):
-            spike_data_frame_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-            position_data_frame_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
-            shuffled_data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
+            spike_data_frame_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
+            position_data_frame_path = recording_folder + spike_sorter + df_path + '/position.pkl'
+            if shuffle_type == 'occupancy':
+                shuffled_data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl'
+            else:
+                shuffled_data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields_distributive.pkl'
             if os.path.exists(spike_data_frame_path):
                 print('I found a firing data frame.')
                 if redo_existing is False:
@@ -341,10 +410,17 @@ def process_recordings(server_path, sampling_rate_video, spike_sorter='/Mountain
                 position_data = pd.read_pickle(position_data_frame_path)
                 field_df = data_frame_utility.get_field_data_frame(spatial_firing, position_data)
                 if not field_df.empty:
-                    field_df = shuffle_field_data(field_df, recording_folder + '/MountainSort/', number_of_bins=20, number_of_times_to_shuffle=1000)
-                    field_df = analyze_shuffled_data(field_df, recording_folder + '/MountainSort/', sampling_rate_video, number_of_bins=20)
+                    print(field_df.session_id)
+                    if shuffle_type == 'distributive':
+                        field_df = add_rate_map_values_to_field_df_session(spatial_firing, field_df)
+                    field_df = shuffle_field_data(field_df, recording_folder + spike_sorter + '/', number_of_bins=20, number_of_times_to_shuffle=1000, shuffle_type=shuffle_type)
+                    field_df = analyze_shuffled_data(field_df, recording_folder + spike_sorter + '/', sampling_rate_video, number_of_bins=20, shuffle_type=shuffle_type)
                     try:
-                        field_df.to_pickle(recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl')
+                        if shuffle_type == 'occupancy':
+                            field_df.to_pickle(recording_folder + spike_sorter + df_path + '/shuffled_fields.pkl')
+                        else:
+                            field_df.to_pickle(recording_folder + spike_sorter + df_path + '/shuffled_fields_distributive.pkl')
+
                         print('I finished analyzing ' + recording_folder)
                     except OSError as error:
                         print('ERROR I failed to analyze ' + recording_folder)
@@ -369,9 +445,16 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    process_recordings(server_path_mouse, 30, redo_existing=True)
-    process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True)
     # local_data_test()
+
+    prm.set_pixel_ratio(100)
+    process_recordings(server_path_simulated + 'ventral/', 1000, df_path='', spike_sorter='', redo_existing=True, shuffle_type='distributive')
+    process_recordings(server_path_simulated + 'control/', 1000, df_path='', spike_sorter='', redo_existing=True, shuffle_type='distributive')
+
+    prm.set_pixel_ratio(440)
+    #process_recordings(server_path_mouse, 30, redo_existing=True, shuffle_type='distributive')
+    prm.set_pixel_ratio(100)
+    #process_recordings(server_path_rat, 50, spike_sorter='', redo_existing=True, shuffle_type='distributive')
 
 
 if __name__ == '__main__':
