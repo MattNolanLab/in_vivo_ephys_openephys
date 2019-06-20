@@ -4,18 +4,12 @@ import random
 import math 
 from neuron import h, gui
 from scipy.stats import multivariate_normal
-from mpl_toolkits.mplot3d import Axes3D
-import h5py
-from os import listdir 
-from os.path import isfile
 import csv
 import glob
 import os
 import pandas as pd
 from scipy.misc import electrocardiogram
 from scipy.signal import find_peaks
-from scipy.ndimage import gaussian_filter
-import cmocean
 import pickle
 from skimage import measure
 from skimage.transform import rotate
@@ -79,6 +73,63 @@ def grid_cell(x,y, res, ngrid, grid_period):
             mean=peaks_all[j,:]
             rand2 = np.random.random(1)
             grids[:,:,j] = multivariate_normal(mean, cov).pdf(pos)*rand2
+
+        OG_grid[:,:,i]=np.sum(grids,axis=-1)
+        prob_ad=280*0.001 #0.001s is a ms
+        adjust=prob_ad/np.amax(OG_grid[:,:,i]) #to 10 Hz
+        #for 10 Hz, 10 spikes/minute, probability of firing a spike per ms is 10/1000=0.01
+        OG_grid[:,:,i]=OG_grid[:,:,i]*adjust #probability of firing in 0.001s, with max determined by 10 Hz multiply by 1000 to get HZ
+
+    return x_array.T, y_array.T, OG_grid, ngrid;
+
+def grid_cell_control(x,y, res, ngrid, grid_period):
+    #x=50
+    #y=50
+    x_size=np.arange(0,x,res)
+    y_size=np.arange(0,y,res)
+    x_array, y_array = np.meshgrid(x_size, y_size)
+    pos = np.dstack((x_array.T, y_array.T))
+
+    #ngrid=4 ##how many grid cells
+    #grid_dist=1 ##every x cm there is a grid cell phase
+
+    ##Template: per grid cell: x,y dimension
+    height=(math.sqrt(3)/2)*grid_period
+   
+    rand_x1 = np.arange(0, grid_period, grid_period/4)
+    rand_y1 = np.arange(0, height, height/4)
+    rand_x2, rand_y2 = np.meshgrid(rand_x1, rand_y1)
+    rand_x=np.ndarray.flatten(rand_x2)
+    rand_y=np.ndarray.flatten(rand_y2)
+    
+    shape=(x_size.shape[0],y_size.shape[0], ngrid)
+    OG_grid=np.zeros(shape)
+
+    for i in np.arange(ngrid):
+        x_phase=15
+        y_phase=15
+    
+        peaks_x=np.arange(x_phase-grid_period, x+grid_period, grid_period)
+        peaks2_x=np.arange(x_phase-0.5*grid_period, x+grid_period, grid_period)
+
+        peaks_y=np.arange(y_phase, y+height, 2*height)
+        peaks2_y=np.arange(y_phase-height, y+height, 2*height)
+
+        peaks_x_array, peaks_y_array = np.meshgrid(peaks_x, peaks_y)
+        peaks2_x_array, peaks2_y_array=np.meshgrid(peaks2_x, peaks2_y)
+
+        peak_x=np.append([np.ndarray.flatten(peaks_x_array)],[np.ndarray.flatten(peaks2_x_array)])
+        peak_y=np.append([np.ndarray.flatten(peaks_y_array)],[np.ndarray.flatten(peaks2_y_array)])
+        peaks_all=np.transpose(np.append([peak_x],[peak_y], axis=0))
+
+        shape=(x_size.shape[0],y_size.shape[0],peaks_all.shape[0])
+        grids=np.zeros(shape)
+        cov=[[4*1.8*res*10,0],[0,4*1.8*10*res]] #covariance for width of distribution
+
+        for j in np.arange(peaks_all.shape[0]):
+            mean=peaks_all[j,:]
+            rand2 = np.random.random(1)
+            grids[:,:,j] = multivariate_normal(mean, cov).pdf(pos)
 
         OG_grid[:,:,i]=np.sum(grids,axis=-1)
         prob_ad=280*0.001 #0.001s is a ms
@@ -273,15 +324,82 @@ def worker(i):
         grid_firing=generate_firing(res, res_t, ngrid, n_hd, positions, hd, hd_prob, OG_grid)
         t_vec, soma_v_vec=create_l5b_cells(weight, n_hd, grid_firing)
 
-        f = open('v_grid'+str(n_hd)+'trial'+str(a), 'wb')
-        pickle.dump([t_vec, soma_v_vec], f)
-        f.close()
+        soma_array=soma_v_vec.to_python()
+        peaks, _=find_peaks(soma_array,height=20)
+        peak_times = [t_vec[i] for i in peaks] #ms
+        peak_times=np.round(np.asarray(peak_times)).astype(int)
+        target_firing=positions[peak_times, :]
+        hd_firing=hd[peak_times]
 
+        x_firing=target_firing[:,0]
+        y_firing=target_firing[:,1]
+
+        values_cell1=[(t_array, positions[:,0], positions[:,1], hd)]
+        labels = ['synced_time', 'position_x','position_y', 'hd']
+        spatial_data = pd.DataFrame.from_records(values_cell1, columns=labels)
+        if a==0:
+            spatial_data.to_pickle("./v_spatial_data")
+        
+        values2=[(peak_times, x_firing, y_firing, hd_firing)] #peak times in ms
+        labels=['firing_times','position_x', 'position_y', 'hd'] #where x and y are firing locations
+        firing_data_spatial=pd.DataFrame.from_records(values2, columns=labels)
+        
+        firing_data_spatial.to_pickle("./v_grid"+str(n_hd)+"trials"+str(a))
+
+def control(i):
+    #inp=[3,6,9,12,15,18,21,24,27,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000]
+    #weights=[0.000850, 0.00054, 0.000412, 0.000339, 0.000275, 0.000241, 0.000218, 0.000196, 0.000173,0.000161, 0.000130,0.000107,9.26e-5,8.17e-5,7.29e-5,6.62e-5,5.97e-5, 4.23e-5,3.15e-5, 2.61e-5,2.15e-5,1.91e-5,1.68e-5,1.50e-5,1.32e-5,1.13e-5,9.68e-6,8.41e-6,7.61e-6,6.83e-6]
+    inp=[30]
+    weights=[0.000161]
+    np.random.seed(inp[i])
+    res=1
+    res_t=0.001 #1ms resolution
+    grid_period=50
+    h.cvode.active(1)
+    x=105
+    y=105
+    trial_num=20
+    print('input_number='+str(inp[i]))
+    
+    for a in np.arange(trial_num):
+        print('trial_number='+str(a))
+        n_hd=ngrid=inp[i]
+        weight=weights[i]
+        hd_prob, sel, theta=create_hd(n_hd)
+        x_array, y_array, OG_grid, ngrid=grid_cell_control(x,y,res,ngrid,grid_period)
+        grid_firing=generate_firing(res, res_t, ngrid, n_hd, positions, hd, hd_prob, OG_grid)
+        t_vec, soma_v_vec=create_l5b_cells(weight, n_hd, grid_firing)
+
+        soma_array=soma_v_vec.to_python()
+        peaks, _=find_peaks(soma_array,height=20)
+        peak_times = [t_vec[i] for i in peaks] #ms
+        peak_times=np.round(np.asarray(peak_times)).astype(int)
+        target_firing=positions[peak_times, :]
+        hd_firing=hd[peak_times]
+
+        x_firing=target_firing[:,0]
+        y_firing=target_firing[:,1]
+        
+        values2=[(peak_times, x_firing, y_firing, hd_firing)] #peak times in ms
+        labels=['firing_times','position_x', 'position_y', 'hd'] #where x and y are firing locations
+        firing_data_spatial=pd.DataFrame.from_records(values2, columns=labels)
+        
+        firing_data_spatial.to_pickle("./v_grid_control"+str(n_hd)+"trials"+str(a))
+
+        
 #run in parallel, designed for multiple inputs
 #if __name__ == '__main__':
 #    numbers = np.arange(1) #how many input numbers are being investigated
 #    pool = Pool(processes=1)
 #    a=pool.map(worker, numbers)
 
+
+#Run and save files for analysis
 #run for single input
 worker(0)
+#figure 4b,c based on v_grid30trials19 
+#through PostSorting/open_field_grid_cells.py (b top), open_field_head_direction.py (b bottom) and PostSorting/open_field_firing_fields.py (c)
+
+#run control with uniform conjunctive fields
+control(0)
+
