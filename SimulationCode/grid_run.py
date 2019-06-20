@@ -23,15 +23,13 @@ from multiprocessing import Pool
 ##Morphology
 h.xopen("./nolan/hocfile.hoc")
 #Behavioral data
-f = open('single_positions', 'rb')
-positions=pickle.load(f)
+f = open('behaviour', 'rb')
+dat=pickle.load(f)
 f.close()
-f = open('single_hd', 'rb')
-hd=pickle.load(f)
-f.close()
-f = open('single_t_array', 'rb')
-t_array=pickle.load(f)
-f.close()
+positions=dat[0]
+hd=dat[1]
+t_array=dat[2]
+
 
 def grid_cell(x,y, res, ngrid, grid_period):
     #x=50
@@ -75,7 +73,7 @@ def grid_cell(x,y, res, ngrid, grid_period):
 
         shape=(x_size.shape[0],y_size.shape[0],peaks_all.shape[0])
         grids=np.zeros(shape)
-        cov=[[1.8*res*10,0],[0,1.8*10*res]] #covariance for width of distribution
+        cov=[[4*1.8*res*10,0],[0,4*1.8*10*res]] #covariance for width of distribution
 
         for j in np.arange(peaks_all.shape[0]):
             mean=peaks_all[j,:]
@@ -83,7 +81,7 @@ def grid_cell(x,y, res, ngrid, grid_period):
             grids[:,:,j] = multivariate_normal(mean, cov).pdf(pos)*rand2
 
         OG_grid[:,:,i]=np.sum(grids,axis=-1)
-        prob_ad=290*0.001 #0.001s is a ms
+        prob_ad=280*0.001 #0.001s is a ms
         adjust=prob_ad/np.amax(OG_grid[:,:,i]) #to 10 Hz
         #for 10 Hz, 10 spikes/minute, probability of firing a spike per ms is 10/1000=0.01
         OG_grid[:,:,i]=OG_grid[:,:,i]*adjust #probability of firing in 0.001s, with max determined by 10 Hz multiply by 1000 to get HZ
@@ -109,7 +107,7 @@ def create_hd(n_hd):
         if angle_means[i]>180:
             hd_prob[0:int(angle_means[i]-180),i]=1/(variance * np.sqrt(2 * np.pi)) * np.exp( - (x - (-(360-angle_means[i])))**2 / (2 * variance**2))[0:int(angle_means[i]-180)]    
 
-    prob_ad=200*0.001 #0.001s is a ms
+    prob_ad=120*0.001 #0.001s is a ms
     adjust=prob_ad/np.amax(hd_prob) #to 10 Hz
     #for 12 Hz, 12 spikes/minute, probability of firing a spike per ms is 12/1000=0.012
     hd_prob=hd_prob*adjust   
@@ -252,17 +250,19 @@ def create_l5b_cells(weight, n_hd, grid_firing):
 
 
 def worker(i):
-    inp=[3,6,9,12,15,18,21,24,27,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000]
-    weights=[0.000850, 0.00054, 0.000412, 0.000339, 0.000275, 0.000241, 0.000218, 0.000196, 0.000173,0.000161, 0.000130,0.000107,9.26e-5,8.17e-5,7.29e-5,6.62e-5,5.97e-5, 4.23e-5,3.15e-5, 2.61e-5,2.15e-5,1.91e-5,1.68e-5,1.50e-5,1.32e-5,1.13e-5,9.68e-6,8.41e-6,7.61e-6,6.83e-6]
+    #inp=[3,6,9,12,15,18,21,24,27,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000]
+    #weights=[0.000850, 0.00054, 0.000412, 0.000339, 0.000275, 0.000241, 0.000218, 0.000196, 0.000173,0.000161, 0.000130,0.000107,9.26e-5,8.17e-5,7.29e-5,6.62e-5,5.97e-5, 4.23e-5,3.15e-5, 2.61e-5,2.15e-5,1.91e-5,1.68e-5,1.50e-5,1.32e-5,1.13e-5,9.68e-6,8.41e-6,7.61e-6,6.83e-6]
+    inp=[30]
+    weights=[0.000161]
     np.random.seed(inp[i])
     res=1
     res_t=0.001 #1ms resolution
-    grid_period=30
+    grid_period=50
     h.cvode.active(1)
     x=105
     y=105
     trial_num=20
-    print('input_number='+str(i))
+    print('input_number='+str(inp[i]))
     
     for a in np.arange(trial_num):
         print('trial_number='+str(a))
@@ -273,13 +273,15 @@ def worker(i):
         grid_firing=generate_firing(res, res_t, ngrid, n_hd, positions, hd, hd_prob, OG_grid)
         t_vec, soma_v_vec=create_l5b_cells(weight, n_hd, grid_firing)
 
-        f = open('attempt3grids'+str(n_hd)+'trial'+str(a), 'wb')
+        f = open('v_grid'+str(n_hd)+'trial'+str(a), 'wb')
         pickle.dump([t_vec, soma_v_vec], f)
         f.close()
 
-#run in parallel
-if __name__ == '__main__':
-    numbers = np.arange(30) #how many input numbers are being investigated
-    pool = Pool(processes=6)
-    a=pool.map(worker, numbers)
-    
+#run in parallel, designed for multiple inputs
+#if __name__ == '__main__':
+#    numbers = np.arange(1) #how many input numbers are being investigated
+#    pool = Pool(processes=1)
+#    a=pool.map(worker, numbers)
+
+#run for single input
+worker(0)
