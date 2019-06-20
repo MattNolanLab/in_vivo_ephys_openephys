@@ -1,3 +1,6 @@
+#characterizes non-uniform conjunctive cell fields
+#generates convergent grid cells with and without uniform conjunctive cell fields
+
 import numpy as np
 from matplotlib import pyplot as plt
 import random
@@ -299,6 +302,66 @@ def create_l5b_cells(weight, n_hd, grid_firing):
     
     return t_vec, soma_v_vec
 
+def moving_sum(array, window):
+    ret = np.cumsum(array, dtype=float)
+    ret[window:] = ret[window:] - ret[:-window]
+    return ret[window:]
+
+
+#for analysis of conjunctive cell hd
+def get_rolling_sum(array_in, window):
+    if window > (len(array_in) / 3) - 1:
+        print('Window for head-direction histogram is too big, HD plot cannot be made.')
+    inner_part_result = moving_sum(array_in, window)
+    edges = np.append(array_in[-2 * window:], array_in[: 2 * window])
+    edges_result = moving_sum(edges, window)
+    end = edges_result[window:math.floor(len(edges_result)/2)]
+    beginning = edges_result[math.floor(len(edges_result)/2):-window]
+    array_out = np.hstack((beginning, inner_part_result, end))
+    return array_out
+
+def get_hd_histogram(hd_fr):
+    theta = np.linspace(0, 2*np.pi, 361)  # x axis
+    binned_hd, _, _ = plt.hist(hd_fr, theta)
+    smooth_hd = get_rolling_sum(binned_hd, window=23)
+    return smooth_hd
+
+def get_hd_hist(hd_firing, hd):
+    smooth_hd1=get_hd_histogram(hd_firing* np.pi / 180)
+    smooth_hd2=get_hd_histogram(hd*np.pi/180)/1000
+    
+    smooth_hd=(smooth_hd1/smooth_hd2)
+    preferred_direction =np.where(smooth_hd==max(smooth_hd))
+    max_firing_rate_hd = np.max(smooth_hd)
+    return smooth_hd, preferred_direction, max_firing_rate_hd, smooth_hd2
+
+def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster): #for specific
+    cluster_id = 0
+    #hd_in_field, spike_times = get_hd_in_field_spikes(rate_map_indices, spatial_firing_cluster)
+    hd_in_bin=[]
+    hd_at_fire_in_bin=[]
+    #define area to count spikes and times in, maybe switch away from square?
+    for i in np.arange(rate_map_indices.shape[0]):
+        j=rate_map_indices[i,1]
+        k=rate_map_indices[i,0]
+        y_min=j*bin_size_cm
+        y_max=(j+1)*bin_size_cm
+        x_min=k*bin_size_cm 
+        x_max=(k+1)*bin_size_cm
+
+        #determine head-direction data within this bin
+        hd_in_bin.extend(hd[(positions[:,0]>=x_min) & (positions[:,0]<x_max) & (positions[:,1]>=y_min) & (positions[:,1]<y_max),0]) #head_directions recorded when the animal was in bin
+        hd_at_fire_in_bin.extend(hd_firing[(target_firing[:,0]>=x_min)&(target_firing[:,0]<x_max) & (target_firing[:,1]>=y_min) & (target_firing[:,1]<y_max)]) #what hd are we firing at at this time
+        
+    hd_in_bin=np.asarray(hd_in_bin)
+    hd_at_fire_in_bin=np.asarray(hd_at_fire_in_bin)
+    smooth_hd, preferred_direction, max_firing_rate_hd, smooth_hd2=get_hd_hist(hd_at_fire_in_bin, hd_in_bin)
+        
+    return smooth_hd, preferred_direction, max_firing_rate_hd, smooth_hd2
+
+def gaussian_kernel(kernx):
+    kerny = np.exp(np.power(kernx, 2)/2 * (-1))
+    return kerny
 
 def worker(i):
     #inp=[3,6,9,12,15,18,21,24,27,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000]
@@ -385,14 +448,72 @@ def control(i):
         firing_data_spatial=pd.DataFrame.from_records(values2, columns=labels)
         
         firing_data_spatial.to_pickle("./v_grid_control"+str(n_hd)+"trials"+str(a))
+        
+#Characterize conjunctive cell grid and hd max firing rates
+x=105
+y=105
+res=1
+res_t=0.001
+n_hd=ngrid=100 #100 samples
+np.random.seed(0)
+x_array, y_array, OG_grid, ngrid=grid_cell(x,y,res,ngrid,grid_period=50) #16
+hd_prob, sel, theta=create_hd(n_hd)
+grid_firing=generate_firing(res, res_t, ngrid, n_hd, positions, hd, hd_prob, OG_grid)
 
+max_firing_rate=np.zeros(100)
+max_firing_rate_head=np.zeros(100)
+
+#figure 4a from k=0 and k=50
+for k in np.arange(100):
+    print(k)
+    x=105
+    y=105
+    peak_times=(np.round(t_array[grid_firing[k,:]==1]*1000)).astype(int)
+    target_firing=positions[peak_times, :]
+
+    spike_positions_x=target_firing[:,0]
+    spike_positions_y=target_firing[:,1]
+    hd_firing=hd[peak_times]
+
+    bin_size_cm = 2.5
+    number_of_bins_x = math.ceil(x/ bin_size_cm)
+    number_of_bins_y = math.ceil(y / bin_size_cm)
+    bin_size_pixels = bin_size_cm
+
+    shape=(number_of_bins_x, number_of_bins_y)
+    firing_rate_map=np.zeros(shape)
+    spikes_in_bin=np.zeros(shape)
+    times_in_bin=np.zeros(shape)
+    smooth = 5
+    dt_position_ms = 1
+    positions_x=positions[:,0]
+    positions_y=positions[:,1]
+
+    for x in range(number_of_bins_x):
+        for y in range(number_of_bins_y):
+            px = x * bin_size_pixels + (bin_size_pixels / 2)
+            py = y * bin_size_pixels + (bin_size_pixels / 2)
+            spike_distances = np.sqrt(np.power(px - spike_positions_x, 2) + np.power(py - spike_positions_y, 2))
+            spike_distances = spike_distances[~np.isnan(spike_distances)]
+            occupancy_distances = np.sqrt(np.power((px - positions_x), 2) + np.power((py - positions_y), 2))
+            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
+            firing_rate_map[x, y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (1/1000))
+    
+    max_firing_rate[k]=np.amax(firing_rate_map)
+    
+    smooth_hd, preferred_direction, max_firing_rate_hd, smooth_hd2=get_hd_hist(hd_firing, hd)
+    max_firing_rate_head[k]=max_firing_rate_hd
+    
+print(np.mean(max_firing_rate))
+print(np.std(max_firing_rate))
+print(np.mean(max_firing_rate_head))
+print(np.std(max_firing_rate_head))
         
 #run in parallel, designed for multiple inputs
 #if __name__ == '__main__':
 #    numbers = np.arange(1) #how many input numbers are being investigated
 #    pool = Pool(processes=1)
 #    a=pool.map(worker, numbers)
-
 
 #Run and save files for analysis
 #run for single input
@@ -402,4 +523,3 @@ worker(0)
 
 #run control with uniform conjunctive fields
 control(0)
-
