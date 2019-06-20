@@ -141,13 +141,11 @@ def create_test_cell():
 
 def define_peak_current(n_hd_o): 
 #maximal input current tested is adjusted manually for each input number such that firing rate reaches plateau
-#due to long simulation run times
-#example here for 1000 inputs
-
     h.cvode.active(1)
-    inp=np.linspace(0, 1.32065734480109e-5, 50)
+    inp=np.linspace(0, 0.000322, 50)
     tstop=7000
-    n_hd_o=[1000]
+    np.random.seed(n_hd_o)
+    random.seed(n_hd_o)
 
     shape=(len(n_hd_o),len(inp),20)
     l5b_all=np.zeros(shape)
@@ -169,8 +167,8 @@ def define_peak_current(n_hd_o):
     x=inp
     
     #plot and fit
-    a=30
-    b=40
+    a=19
+    b=28
     plt.errorbar(x[a:b], mean_rates[0][a:b], np.sqrt(variance_rates[0][a:b]))
     z=np.polyfit(x[a:b], mean_rates[0][a:b], 2)
     p = np.poly1d(z)
@@ -179,5 +177,8 @@ def define_peak_current(n_hd_o):
     eqn = Eq(p[0]+p[1]*xfm+p[2]*xfm**2, 12)
     sol=solve(eqn)
     print('peak_current='+str(sol))
-    
+ 
+#run and print peak_current
+n_hd_o=30 #run for 30 input cells
+define_peak_current(n_hd_o)
     
