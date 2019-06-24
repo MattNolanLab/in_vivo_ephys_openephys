@@ -424,6 +424,9 @@ def shuffle_data(spatial_firing, number_of_bins, number_of_times_to_shuffle=1000
     if animal == 'rat':
         spatial_firing.to_pickle(local_path_rat)
 
+    # if animal == 'simulated':
+        # spatial_firing.to_pickle(local_path_simulated)
+
     return spatial_firing
 
 
@@ -450,6 +453,8 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
         spatial_firing.to_pickle(local_path_mouse)
     if animal == 'rat':
         spatial_firing.to_pickle(local_path_rat)
+    if animal == 'simulated':
+        spatial_firing.to_pickle(local_path_simulated)
     return spatial_firing
 
 
@@ -652,20 +657,23 @@ def process_data(spatial_firing, sampling_rate_video, animal='mouse', shuffle_ty
     else:
         spatial_firing['false_positive'] = False
     if animal == 'simulated':
+        downsample_by = 33
         print('Simulated data is downsampled')
         xs = []
         ys = []
         hds = []
         times = []
         for index, cell in spatial_firing.iterrows():
-            xs.append(cell.trajectory_x[::33].values)
-            ys.append(cell.trajectory_y[::33].values)
-            hds.append(cell.trajectory_hd[::33].values)
-            times.append(cell.trajectory_times[::33].values)
+            xs.append(cell.trajectory_x[::downsample_by].values)
+            ys.append(cell.trajectory_y[::downsample_by].values)
+            hds.append(cell.trajectory_hd[::downsample_by].values)
+            times.append(cell.trajectory_times[::downsample_by].values)
         spatial_firing['trajectory_x'] = xs
         spatial_firing['trajectory_y'] = ys
         spatial_firing['trajectory_hd'] = hds
         spatial_firing['trajectory_times'] = times
+
+        sampling_rate_video = sampling_rate_video / downsample_by
 
     good_cell = spatial_firing.false_positive == False
     spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
@@ -699,12 +707,12 @@ def main():
     # spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     # spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
 
-    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral_5/', spike_sorter='', df_path='')
+    # spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'ventral_5/', spike_sorter='', df_path='')
     prm.set_pixel_ratio(100)
     # process_data(spatial_firing_all_rats, 50, animal='rat', shuffle_type='distributive')
     # prm.set_pixel_ratio(440)
     # process_data(spatial_firing_all_mice, 30, animal='mouse', shuffle_type='distributive')
-    process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive_5')
+    # process_data(spatial_firing_all_simulated, 1000, animal='simulated', shuffle_type='distributive_5')
 
     spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_simulated, server_path_simulated + 'control_5/', spike_sorter='', df_path='')
     prm.set_pixel_ratio(100)
