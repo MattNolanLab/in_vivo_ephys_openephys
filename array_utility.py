@@ -60,6 +60,14 @@ def nan_helper(y):
     return np.isnan(y), lambda z: z.nonzero()[0]
 
 
+def remove_nans_from_both_arrays(array1, array2):
+    not_nans_in_array1 = ~np.isnan(array1)
+    not_nans_in_array2 = ~np.isnan(array2)
+    array1 = array1[not_nans_in_array1 & not_nans_in_array2]
+    array2 = array2[not_nans_in_array1 & not_nans_in_array2]
+    return array1, array2
+
+
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
