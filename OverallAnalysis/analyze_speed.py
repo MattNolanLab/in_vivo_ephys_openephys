@@ -95,15 +95,14 @@ def add_cell_types_to_data_frame(cells):
     return cells
 
 
-def plot_speed_dependence(spatial_firing, animal):
-    grid_cells = spatial_firing['cell type'] == 'grid'
-    good_cell = spatial_firing.false_positive == False
+def plot_speed_dependence(spatial_firing, animal, tag, color='navy'):
     # plt.hist(spatial_firing.speed_score, alpha=0.5, normed=True, color='gray')
     plt.cla()
     fig, ax = plt.subplots()
-    ax = plot_utility.format_bar_chart(ax, 'Speed score', 'Number of grid cells')
-    plt.hist(spatial_firing[grid_cells & good_cell].speed_score, alpha=0.8, color='navy')
-    plt.savefig(save_output_path + animal + '_grid_cell_speed_scores.png')
+    ax = plot_utility.format_bar_chart(ax, 'Speed score', 'Number of ' + tag + ' cells')
+    plt.hist(spatial_firing.speed_score, alpha=0.8, color=color)
+    plt.xlim(-1, 1)
+    plt.savefig(save_output_path + animal + '_' + tag + '_cell_speed_scores.png')
     plt.close()
 
 
@@ -111,12 +110,18 @@ def process_data():
     spatial_firing = add_speed_score_to_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', 30, 30000, spike_sorter='/MountainSort', df_path='/DataFrames')
     spatial_firing = tag_false_positives(spatial_firing, 'mouse')
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
-    plot_speed_dependence(spatial_firing, 'mouse')
+    grid_cells = spatial_firing['cell type'] == 'grid'
+    good_cell = spatial_firing.false_positive == False
+    plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'mouse', 'grid')
+    plot_speed_dependence(spatial_firing[good_cell], 'mouse', 'all', color='gray')
 
     spatial_firing = add_speed_score_to_spatial_firing(local_path_rat, server_path_rat, 'rat', 50, 1, spike_sorter='', df_path='/DataFrames')
     spatial_firing['false_positive'] = False
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
-    plot_speed_dependence(spatial_firing, 'rat')
+    grid_cells = spatial_firing['cell type'] == 'grid'
+    good_cell = spatial_firing.false_positive == False
+    plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'rat', 'grid')
+    plot_speed_dependence(spatial_firing[good_cell], 'rat', 'all', color='gray')
 
 
 def main():
