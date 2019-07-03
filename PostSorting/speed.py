@@ -1,8 +1,6 @@
-import matplotlib.pylab as plt
+import array_utility
 import numpy as np
-import pandas as pd
 import scipy.ndimage
-import seaborn as sns
 import scipy.stats
 
 
@@ -14,7 +12,7 @@ def calculate_speed_score(position, spatial_firing, sigma=8, sampling_rate_conve
         firing_times = cell.firing_times
         firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
         smooth_hist = scipy.ndimage.filters.gaussian_filter(firing_hist.astype(float), sigma)
-        # plt.plot(speed)
+        speed, smooth_hist = array_utility.remove_nans_from_both_arrays(speed, smooth_hist)
         speed_score, p = scipy.stats.pearsonr(speed, smooth_hist)
         speed_scores.append(speed_score)
         speed_score_ps.append(p)
@@ -22,5 +20,10 @@ def calculate_speed_score(position, spatial_firing, sigma=8, sampling_rate_conve
     spatial_firing['speed_score_p_values'] = speed_score_ps
 
     return spatial_firing
+
+
+def plot_speed_scores():
+    pass
+
 
 

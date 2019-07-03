@@ -24,7 +24,7 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 
-def add_speed_score_to_spatial_firing(output_path, server_path, animal, spike_sorter='', df_path='/DataFrames'):
+def add_speed_score_to_spatial_firing(output_path, server_path, animal, video_sampling, ephys_sample, spike_sorter='', df_path='/DataFrames'):
     if os.path.exists(output_path):
         spatial_firing = pd.read_pickle(output_path)
         return spatial_firing
@@ -48,7 +48,7 @@ def add_speed_score_to_spatial_firing(output_path, server_path, animal, spike_so
                     spatial_firing = spatial_firing[['session_id', 'cluster_id', 'firing_times',
                                                     'hd', 'hd_spike_histogram', 'speed', 'max_firing_rate_hd', 'grid_score', 'hd_score']].copy()
 
-                spatial_firing = PostSorting.speed.calculate_speed_score(position_data, spatial_firing)
+                spatial_firing = PostSorting.speed.calculate_speed_score(position_data, spatial_firing, sigma=250/video_sampling, sampling_rate_conversion=ephys_sample)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
@@ -108,10 +108,14 @@ def plot_speed_dependence(spatial_firing, animal):
 
 
 def process_data():
-    spatial_firing = add_speed_score_to_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', spike_sorter='/MountainSort', df_path='/DataFrames')
+    spatial_firing = add_speed_score_to_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', 30, 30000, spike_sorter='/MountainSort', df_path='/DataFrames')
     spatial_firing = tag_false_positives(spatial_firing, 'mouse')
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
     plot_speed_dependence(spatial_firing, 'mouse')
+
+    spatial_firing = add_speed_score_to_spatial_firing(local_path_rat, server_path_rat, 'rat', 50, 1, spike_sorter='', df_path='/DataFrames')
+    spatial_firing = add_cell_types_to_data_frame(spatial_firing)
+    plot_speed_dependence(spatial_firing, 'rat')
 
 
 def main():
