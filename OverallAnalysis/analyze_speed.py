@@ -114,6 +114,7 @@ def process_data():
     plot_speed_dependence(spatial_firing, 'mouse')
 
     spatial_firing = add_speed_score_to_spatial_firing(local_path_rat, server_path_rat, 'rat', 50, 1, spike_sorter='', df_path='/DataFrames')
+    spatial_firing['false_positive'] = False
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
     plot_speed_dependence(spatial_firing, 'rat')
 
