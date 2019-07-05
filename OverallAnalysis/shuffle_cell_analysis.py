@@ -702,20 +702,22 @@ def process_data(spatial_firing, sampling_rate_video, local_path, animal='mouse'
 
 
 def main():
+    '''
     spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
     prm.set_pixel_ratio(100)
     process_data(spatial_firing_all_rats, 50, local_path_rat, animal='rat', shuffle_type='distributive')
     prm.set_pixel_ratio(440)
     spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     process_data(spatial_firing_all_mice, 30, local_path_mouse, animal='mouse', shuffle_type='distributive')
+    '''
 
-    local_path_df_ventral_5 = local_path + 'all_simulated_df_ventral_5.pkl'
-    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_df_ventral_5, server_path_simulated + 'ventral_5/', spike_sorter='', df_path='')
+    local_path_df_ventral_narrow = local_path + 'all_simulated_df_ventral_narrow.pkl'
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_df_ventral_narrow, server_path_simulated + 'ventral_narrow/', spike_sorter='', df_path='')
     prm.set_pixel_ratio(100)
-    process_data(spatial_firing_all_simulated, 1000, local_path_df_ventral_5, animal='simulated', shuffle_type='distributive_5')
-    local_path_df_control_5 = local_path + 'all_simulated_df_control_5.pkl'
-    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_df_control_5, server_path_simulated + 'control_5/', spike_sorter='', df_path='')
-    process_data(spatial_firing_all_simulated, 1000, local_path_df_control_5, animal='simulated', shuffle_type='distributive_control_5')
+    process_data(spatial_firing_all_simulated, 1000, local_path_df_ventral_narrow, animal='simulated', shuffle_type='distributive_narrow')
+    local_path_df_control_narrow = local_path + 'all_simulated_df_control_narrow.pkl'
+    spatial_firing_all_simulated = load_data_frame_spatial_firing(local_path_df_control_narrow, server_path_simulated + 'control_narrow/', spike_sorter='', df_path='')
+    process_data(spatial_firing_all_simulated, 1000, local_path_df_control_narrow, animal='simulated', shuffle_type='distributive_control_narrow')
 
 
 if __name__ == '__main__':
