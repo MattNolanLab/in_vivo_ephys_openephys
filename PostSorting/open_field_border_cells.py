@@ -31,10 +31,13 @@ calculates the border scores according to Solstad et al (2008)
   into the recording enclosure, the analysis was restricted to border cells with fields along a 
   single wall, i.e. cells where the border score for the preferred wall was at least twice as 
   high as the score for any of the remaining three walls."
+  
+Corner scores and cue scores are also formalised loosely following the b = (cM - dm) / (cM + dm) structure.
 '''
+
 def process_cue_data(spatial_firing, cue_location=0, open_field_size_cm=80, cue_size_cm=30):
     cue_scores = []
-    threshold = 0.7
+    threshold = 0.3
 
     for index, cluster in spatial_firing.iterrows():
         cluster_id = cluster.cluster_id
@@ -42,10 +45,12 @@ def process_cue_data(spatial_firing, cue_location=0, open_field_size_cm=80, cue_
         firing_rate_map = cluster.firing_maps
         firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
 
+        '''
         fig, ax = plt.subplots()
         im = ax.imshow(firing_rate_map, cmap='jet')
         fig.tight_layout()
         plt.show()
+        '''
 
         firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=threshold)
         firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
@@ -56,7 +61,7 @@ def process_cue_data(spatial_firing, cue_location=0, open_field_size_cm=80, cue_
 
         cue_scores.append(cue_score)
 
-        plot_fields_in_cluster_cue_scores(firing_fields_cluster, cue_score)
+        #plot_fields_in_cluster_cue_scores(firing_fields_cluster, cue_score)
 
     spatial_firing['cue_score'] = cue_scores
     return spatial_firing
@@ -64,7 +69,7 @@ def process_cue_data(spatial_firing, cue_location=0, open_field_size_cm=80, cue_
 
 def process_border_data(spatial_firing):
 
-    threshold = 0.7
+    threshold = 0.3
     border_scores = []
 
     for index, cluster in spatial_firing.iterrows():
@@ -73,10 +78,12 @@ def process_border_data(spatial_firing):
         firing_rate_map = cluster.firing_maps
         firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
 
+        '''
         fig, ax = plt.subplots()
         im = ax.imshow(firing_rate_map, cmap='jet')
         fig.tight_layout()
         plt.show()
+        '''
 
         firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=threshold)
         firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
@@ -87,14 +94,14 @@ def process_border_data(spatial_firing):
 
         border_scores.append(border_score)
 
-        plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
+        #plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
 
     spatial_firing['border_score'] = border_scores
     return spatial_firing
 
 
 def process_corner_data(spatial_firing):
-    threshold = 0.7
+    threshold = 0.3
     corner_scores = []
 
     for index, cluster in spatial_firing.iterrows():
@@ -103,10 +110,12 @@ def process_corner_data(spatial_firing):
         firing_rate_map = cluster.firing_maps
         firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
 
+        '''
         fig, ax = plt.subplots()
         im = ax.imshow(firing_rate_map, cmap='jet')
         fig.tight_layout()
         plt.show()
+        '''
 
         firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=threshold)
         firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
@@ -117,7 +126,7 @@ def process_corner_data(spatial_firing):
 
         corner_scores.append(corner_score)
 
-        plot_fields_in_cluster_corner_scores(firing_fields_cluster, corner_score)
+        #plot_fields_in_cluster_corner_scores(firing_fields_cluster, corner_score)
 
     spatial_firing['corner_score'] = corner_scores
     return spatial_firing
@@ -272,10 +281,12 @@ def calculate_cue_score(firing_fields_cluster, cue_location, open_field_size_cm,
     :param firing_fields_cluster:
     :param bin_size_cm:
     :param cue_location: this indicates which side of the arena has the cue on it either 0 = left side of rate map, 1 = top, 2 = right or 3 = bottom
+    # TODO: change this to north, east, west and south, all relative to access side of open field
     :param open_field_size_cm: tuple dimesions of open field (x, y) in cm
     :param cue_size_cm: length of cue, presumed to be at a central location along one of the sides specified in cue location param
     :return: cue score
     '''
+
 
     # only execute if there are firing fields to analyse
     if len(firing_fields_cluster) > 0:
@@ -327,7 +338,10 @@ def calculate_corner_score(firing_fields_cluster, bin_size_cm, corner_param):
 
     :param firing_fields_cluster:
     :param bin_size_cm:
-    :param corner_param: defines the proportion of the wall that is used to count the percentage coverage about a corner > 0 and < 0.5
+    :param corner_param: defines the proportion of the wall that is used to count the percentage coverage about a corner > 0 and < 0.5.
+    note: this parameter is used as unlike cue and bordeer scores, the corner is defined by a single point (or bin) and thus needs a more dilute measure to accommodate fields
+    that span multiple bins
+    TODO: Discuss best way to get around this
     :return:
     '''
 
@@ -693,7 +707,7 @@ def find_current_maxima_indices(rate_map, threshold):
     max_fr = rate_map[highest_rate_bin]
     if found_new is False:
         return None, found_new, None
-    # plt.imshow(rate_map)
+    #plt.imshow(rate_map)
     # plt.scatter(highest_rate_bin[1], highest_rate_bin[0], marker='o', s=500, color='yellow')
     masked_rate_map = np.full((rate_map.shape[0], rate_map.shape[1]), 0)
     masked_rate_map[highest_rate_bin] = 1
@@ -743,9 +757,11 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    spatial_firing = pd.read_pickle('/home/harry/Downloads/spatial_firing3.pkl')
-    #spatial_firing = process_border_data(spatial_firing)
-    #spatial_firing = process_corner_data(spatial_firing)
+    #spatial_firing = pd.read_pickle('/home/harry/Downloads/spatial_firing3.pkl')
+    #spatial_firing = pd.read_pickle('/home/harry/Downloads/spatial_firing3.pkl')
+    spatial_firing = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseOF/M1_D15cue_2019-07-05_15-29-39/MountainSort/DataFrames/spatial_firing.pkl')
+    spatial_firing = process_border_data(spatial_firing)
+    spatial_firing = process_corner_data(spatial_firing)
     spatial_firing = process_cue_data(spatial_firing)
     print(spatial_firing)
 
