@@ -92,17 +92,19 @@ save_path : path to folder where the plot gets saved
 '''
 
 
-def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sigma: float, sampling_rate_conversion: int, save_path: str) -> None:
+def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, video_sampling_rate: int, save_path: str) -> None:
+    sigma = 250 / video_sampling_rate
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
     for index, cell in spatial_firing.iterrows():
         firing_times = cell.firing_times
         firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
+        firing_hist *= video_sampling_rate
         smooth_hist = scipy.ndimage.filters.gaussian_filter(firing_hist.astype(float), sigma)
         speed, smooth_hist = array_utility.remove_nans_from_both_arrays(speed, smooth_hist)
         median_x, median_y, percentile_25, percentile_75 = calculate_median_for_scatter_binned(speed, smooth_hist)
         plt.cla()
         fig, ax = plt.subplots()
-        ax = plot_utility.format_bar_chart(ax, 'Speed (cm/s)', 'Firing rate (Hz)')  # todo check if it's hz
+        ax = plot_utility.format_bar_chart(ax, 'Speed (cm/s)', 'Firing rate (Hz)')
         plt.scatter(speed[::10], smooth_hist[::10], color='gray', alpha=0.7)
         plt.plot(median_x, percentile_25, color='black', linewidth=5)
         plt.plot(median_x, percentile_75, color='black', linewidth=5)
