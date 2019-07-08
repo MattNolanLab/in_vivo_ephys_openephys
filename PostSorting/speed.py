@@ -58,7 +58,7 @@ def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[
     for bin in range(number_of_bins):
         median_x.append(bin * step_size + bin_size/2)
         data_in_bin = np.take(y, np.where((bin * step_size < x) & (x < bin * step_size + bin_size)))
-        if len(data_in_bin) > 0:
+        if len(data_in_bin[0]) > 0:
             med_y = np.median(data_in_bin)
             median_y.append(med_y)
             percentile_25.append(np.percentile(data_in_bin, 25))
