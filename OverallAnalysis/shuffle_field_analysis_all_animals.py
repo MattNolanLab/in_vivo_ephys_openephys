@@ -13,7 +13,7 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
 local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_all_rats.pkl'
-local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_data_all_simulated.pkl'
+# local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_data_all_simulated.pkl'
 
 
 # loads shuffle analysis results for field data
@@ -160,6 +160,7 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid', shuffle
     plt.yticks([0, 1])
     plt.ylim(0, 1.01)
     ax = plot_utility.format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    ax.set_xlim(0, 20)
     values, base = np.histogram(flat_shuffled, bins=40)
     # evaluate the cumulative
     cumulative = np.cumsum(values / len(flat_shuffled))
@@ -196,6 +197,7 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
     plt.hist(flat_shuffled, normed='True', color='gray', alpha=0.5)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+    ax.set_xlim(0, 20)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
@@ -221,6 +223,7 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
     cumulative = np.cumsum(values / len(number_of_significant_p_values))
     # plot the cumulative function
     plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+    ax.set_xlim(0, 20)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
@@ -293,7 +296,7 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
         df_path = '/DataFrames'
 
     else:
-        local_path_to_field_data = local_path_to_shuffled_field_data_simulated
+        local_path_to_field_data = analysis_path + 'simulated_' + shuffle_type + '.pkl'
         spike_sorter = '/'
         df_path = ''
 
@@ -340,10 +343,10 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
 def main():
     #analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
     #analyze_data('rat', sever_path_rat, shuffle_type='distributive')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_5/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_5')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_5/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control_5')
+    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
+    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
+    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
+    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control_narrow')
 
 
 if __name__ == '__main__':
