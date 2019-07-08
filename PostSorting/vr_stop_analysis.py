@@ -136,6 +136,15 @@ def generate_stop_lists(raw_position_data, processed_position_data):
     return processed_position_data
 
 
+def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory):
+    stop_threshold = check_stop_threshold(recording_directory)
+    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
+    processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
+    processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
+    processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
+    return processed_position_data
+
+
 def find_first_stop_in_series(processed_position_data):
     stop_difference = np.array(processed_position_data['stop_location_cm'].diff())
     first_in_series_indices = np.where(stop_difference > 1)[0]
