@@ -7,6 +7,7 @@ import scipy.ndimage
 import scipy.stats
 
 from typing import Tuple
+import OverallAnalysis.analyze_speed
 
 
 '''
@@ -114,6 +115,33 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.ylim(0, None)
         plt.savefig(save_path + cell.session_id + str(cell.cluster_id) + '_speed.png')
         plt.close()
+
+
+# plot grid cells only
+def plot_speed_vs_firing_rate_grid(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, video_sampling_rate: int, save_path: str) -> None:
+    sigma = 250 / video_sampling_rate
+    speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
+    spatial_firing = OverallAnalysis.analyze_speed.add_cell_types_to_data_frame(spatial_firing)
+    for index, cell in spatial_firing.iterrows():
+        if cell['cell type'] == 'grid':
+            firing_times = cell.firing_times
+            firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
+            firing_hist *= video_sampling_rate
+            smooth_hist = scipy.ndimage.filters.gaussian_filter(firing_hist.astype(float), sigma)
+            speed, smooth_hist = array_utility.remove_nans_from_both_arrays(speed, smooth_hist)
+            median_x, median_y, percentile_25, percentile_75 = calculate_median_for_scatter_binned(speed, smooth_hist)
+            plt.cla()
+            fig, ax = plt.subplots()
+            ax = plot_utility.format_bar_chart(ax, 'Speed (cm/s)', 'Firing rate (Hz)')
+            plt.scatter(speed[::10], smooth_hist[::10], color='gray', alpha=0.7)
+            plt.plot(median_x, percentile_25, color='black', linewidth=5)
+            plt.plot(median_x, percentile_75, color='black', linewidth=5)
+            plt.scatter(median_x, median_y, color='black', s=100)
+            plt.title('speed score: ' + str(np.round(cell.speed_score, 4)))
+            plt.xlim(0, 50)
+            plt.ylim(0, None)
+            plt.savefig(save_path + cell.session_id + str(cell.cluster_id) + '_speed.png')
+            plt.close()
 
 
 
