@@ -1,14 +1,34 @@
 import array_utility
 import matplotlib.pylab as plt
 import numpy as np
-import os
 import pandas as pd
 import plot_utility
 import scipy.ndimage
 import scipy.stats
 
+from typing import Tuple
 
-def calculate_speed_score(position, spatial_firing, sigma=8, sampling_rate_conversion=30000):
+
+'''
+
+The sped score is a measure of the correlation between the firing rate of the neuron and the running speed of the
+animal. The firing times of the neuron are binned at the same sampling rate as the position data (speed). The resulting
+temporal firing histogram is then smoothed with a Gaussian (standard deviation ~250ms). Speed and temporal firing rate
+are correlated (Pearson correlation) to obtain the speed score.
+
+Based on: Gois & Tort, 2018, Cell Reports 25, 1872–1884
+
+
+position : data frame that contains the speed of the animal as a column ('speed').
+spatial_firing : data frame that contains the firing times ('firing_times')
+sigma : standard deviation for Gaussian filter (sigma=250/video_sampling)
+sampling_rate_conversion : sampling rate of ephys data relative to seconds. If the firing times are in seconds then this
+should be 1.
+
+'''
+
+
+def calculate_speed_score(position: pd.DataFrame, spatial_firing: pd.DataFrame, sigma: float, sampling_rate_conversion: int) -> pd.DataFrame:
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
     speed_scores = []
     speed_score_ps = []
@@ -26,16 +46,7 @@ def calculate_speed_score(position, spatial_firing, sigma=8, sampling_rate_conve
     return spatial_firing
 
 
-def calculate_median_for_scatter(x, y):
-    df = pd.DataFrame()
-    df['x'] = x
-    df['y'] = y
-    df_median = df.groupby('x')['y'].median()
-    smooth_median = scipy.ndimage.gaussian_filter1d(df_median, sigma=1000)
-    return smooth_median
-
-
-def calculate_median_for_scatter_binned(x, y):
+def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]':
     bin_size = 6
     step_size = 2
     number_of_bins = int((max(x) - min(x)) / 2)
@@ -47,12 +58,17 @@ def calculate_median_for_scatter_binned(x, y):
     for bin in range(number_of_bins):
         median_x.append(bin * step_size + bin_size/2)
         data_in_bin = np.take(y, np.where((bin * step_size < x) & (x < bin * step_size + bin_size)))
-        med_y = np.median(data_in_bin)
-        median_y.append(med_y)
-        percentile_25.append(np.percentile(data_in_bin, 25))
-        percentile_75.append(np.percentile(data_in_bin, 75))
+        if len(data_in_bin) > 0:
+            med_y = np.median(data_in_bin)
+            median_y.append(med_y)
+            percentile_25.append(np.percentile(data_in_bin, 25))
+            percentile_75.append(np.percentile(data_in_bin, 75))
+        else:
+            median_y.append(0)
+            percentile_25.append(0)
+            percentile_75.append(0)
 
-    return median_x, median_y, percentile_25, percentile_75
+    return np.array(median_x), np.array(median_y), np.array(percentile_25), np.array(percentile_75)
 
 
 def plot_speed_scores(position, spatial_firing, sigma, sampling_rate_conversion, save_path):
