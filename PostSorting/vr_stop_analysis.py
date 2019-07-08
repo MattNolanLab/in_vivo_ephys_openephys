@@ -16,7 +16,7 @@ def check_stop_threshold(recording_directory):
     except Exception as ex:
         print('There is a problem with the parameter file.')
         print(ex)
-    return threshold
+    return np.float(threshold)
 
 
 def keep_first_from_close_series(array, threshold):
