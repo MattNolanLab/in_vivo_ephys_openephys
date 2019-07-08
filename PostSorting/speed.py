@@ -21,7 +21,7 @@ Based on: Gois & Tort, 2018, Cell Reports 25, 1872–1884
 
 position : data frame that contains the speed of the animal as a column ('speed').
 spatial_firing : data frame that contains the firing times ('firing_times')
-sigma : standard deviation for Gaussian filter (sigma=250/video_sampling)
+sigma : standard deviation for Gaussian filter (sigma = 250 / video_sampling)
 sampling_rate_conversion : sampling rate of ephys data relative to seconds. If the firing times are in seconds then this
 should be 1.
 
@@ -46,6 +46,14 @@ def calculate_speed_score(position: pd.DataFrame, spatial_firing: pd.DataFrame, 
     return spatial_firing
 
 
+'''
+Calculate median, 25th and 75th percentile of firing rate (y) at given speed (x) values. Speed is binned into 6 cm/s 
+overlapping bins with a 2 cm/s step size.
+
+Based on: Gois & Tort, 2018, Cell Reports 25, 1872–1884
+'''
+
+
 def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]':
     bin_size = 6
     step_size = 2
@@ -55,9 +63,9 @@ def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[
     median_y = []
     percentile_25 = []
     percentile_75 = []
-    for bin in range(number_of_bins):
-        median_x.append(bin * step_size + bin_size/2)
-        data_in_bin = np.take(y, np.where((bin * step_size < x) & (x < bin * step_size + bin_size)))
+    for x_bin in range(number_of_bins):
+        median_x.append(x_bin * step_size + bin_size/2)
+        data_in_bin = np.take(y, np.where((x_bin * step_size < x) & (x < x_bin * step_size + bin_size)))
         if len(data_in_bin[0]) > 0:
             med_y = np.median(data_in_bin)
             median_y.append(med_y)
@@ -71,15 +79,26 @@ def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[
     return np.array(median_x), np.array(median_y), np.array(percentile_25), np.array(percentile_75)
 
 
-def plot_speed_scores(position, spatial_firing, sigma, sampling_rate_conversion, save_path):
+'''
+Make scatter plot of speed vs firing rate and mark the median and the 25th and 75th percentiles.
+
+position : data frame that contains the speed of the animal as a column ('speed')
+spatial_firing : data frame that contains the firing times ('firing_times') and speed scores ('speed_score')
+sigma : standard deviation for Gaussian filter (sigma = 250 / video_sampling)
+sampling_rate_conversion : sampling rate of ephys data relative to seconds. If the firing times are in seconds then this
+should be 1.
+save_path : path to folder where the plot gets saved
+
+'''
+
+
+def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sigma: float, sampling_rate_conversion: int, save_path: str) -> None:
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
     for index, cell in spatial_firing.iterrows():
         firing_times = cell.firing_times
         firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
         smooth_hist = scipy.ndimage.filters.gaussian_filter(firing_hist.astype(float), sigma)
         speed, smooth_hist = array_utility.remove_nans_from_both_arrays(speed, smooth_hist)
-        # speed = speed[::10]
-        # smooth_hist = smooth_hist[::10]
         median_x, median_y, percentile_25, percentile_75 = calculate_median_for_scatter_binned(speed, smooth_hist)
         plt.cla()
         fig, ax = plt.subplots()
