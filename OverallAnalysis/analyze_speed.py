@@ -53,7 +53,7 @@ def add_speed_score_to_spatial_firing(output_path, server_path, animal, video_sa
                 save_path = save_output_path + animal + '_speed_scatter_plots/'
                 if os.path.exists(save_path) is False:
                     os.makedirs(save_path)
-                PostSorting.speed.plot_speed_scores(position_data, spatial_firing, sigma=250/video_sampling, sampling_rate_conversion=ephys_sample, save_path=save_path)
+                PostSorting.speed.plot_speed_vs_firing_rate(position_data, spatial_firing, ephys_sample, video_sampling, save_path)
                 spatial_firing_data = spatial_firing_data.append(spatial_firing)
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
