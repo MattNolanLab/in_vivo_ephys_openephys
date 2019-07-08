@@ -13,7 +13,7 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
 local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_all_rats.pkl'
-local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_data_all_simulated.pkl'
+# local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_data_all_simulated.pkl'
 
 
 # loads shuffle analysis results for field data
@@ -293,7 +293,7 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
         df_path = '/DataFrames'
 
     else:
-        local_path_to_field_data = local_path_to_shuffled_field_data_simulated
+        local_path_to_field_data = analysis_path + 'simulated_' + shuffle_type + '.pkl'
         spike_sorter = '/'
         df_path = ''
 
