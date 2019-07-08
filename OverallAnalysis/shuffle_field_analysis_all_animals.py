@@ -160,6 +160,7 @@ def make_combined_plot_of_distributions(shuffled_field_data, tag='grid', shuffle
     plt.yticks([0, 1])
     plt.ylim(0, 1.01)
     ax = plot_utility.format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    ax.set_xlim(0, 20)
     values, base = np.histogram(flat_shuffled, bins=40)
     # evaluate the cumulative
     cumulative = np.cumsum(values / len(flat_shuffled))
@@ -196,6 +197,7 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
     plt.hist(flat_shuffled, normed='True', color='gray', alpha=0.5)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+    ax.set_xlim(0, 20)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
@@ -221,6 +223,7 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
     cumulative = np.cumsum(values / len(number_of_significant_p_values))
     # plot the cumulative function
     plt.plot(base[:-1], cumulative, c='navy', linewidth=5)
+    ax.set_xlim(0, 20)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
