@@ -31,27 +31,61 @@ calculates the border scores according to Solstad et al (2008)
   into the recording enclosure, the analysis was restricted to border cells with fields along a 
   single wall, i.e. cells where the border score for the preferred wall was at least twice as 
   high as the score for any of the remaining three walls."
+  
+Corner scores and cue scores are also formalised loosely following the b = (cM - dm) / (cM + dm) structure.
 '''
+
+def process_cue_data(spatial_firing, cue_location=0, open_field_size_cm=80, cue_size_cm=30):
+    cue_scores = []
+    threshold = 0.3
+
+    for index, cluster in spatial_firing.iterrows():
+        cluster_id = cluster.cluster_id
+
+        firing_rate_map = cluster.firing_maps
+        firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
+
+        '''
+        fig, ax = plt.subplots()
+        im = ax.imshow(firing_rate_map, cmap='jet')
+        fig.tight_layout()
+        plt.show()
+        '''
+
+        firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=threshold)
+        firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
+        firing_fields_cluster = clip_fields_by_size(firing_fields_cluster, bin_size_cm=2.5)
+        firing_fields_cluster = put_firing_rates_back(firing_fields_cluster, firing_rate_map)
+
+        cue_score = calculate_cue_score(firing_fields_cluster, cue_location, open_field_size_cm, cue_size_cm, bin_size_cm=2.5)
+
+        cue_scores.append(cue_score)
+
+        #plot_fields_in_cluster_cue_scores(firing_fields_cluster, cue_score)
+
+    spatial_firing['cue_score'] = cue_scores
+    return spatial_firing
+
 
 def process_border_data(spatial_firing):
 
-    # TODO check about bottom left corner of rate maps (why its not interpolated correctly)
-    # TODO raise issue of passing an argument to is_field_big_enough/small enough
-
+    threshold = 0.3
     border_scores = []
 
     for index, cluster in spatial_firing.iterrows():
         cluster_id = cluster.cluster_id
 
         firing_rate_map = cluster.firing_maps
-        firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map)
+        firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
 
+        '''
         fig, ax = plt.subplots()
-        im = ax.imshow(firing_rate_map)
+        im = ax.imshow(firing_rate_map, cmap='jet')
         fig.tight_layout()
         plt.show()
+        '''
 
-        firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=30)
+        firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=threshold)
         firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
         firing_fields_cluster = clip_fields_by_size(firing_fields_cluster, bin_size_cm=2.5)
         firing_fields_cluster = put_firing_rates_back(firing_fields_cluster, firing_rate_map)
@@ -60,10 +94,325 @@ def process_border_data(spatial_firing):
 
         border_scores.append(border_score)
 
-        plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
+        #plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
 
     spatial_firing['border_score'] = border_scores
     return spatial_firing
+
+
+def process_corner_data(spatial_firing):
+    threshold = 0.3
+    corner_scores = []
+
+    for index, cluster in spatial_firing.iterrows():
+        cluster_id = cluster.cluster_id
+
+        firing_rate_map = cluster.firing_maps
+        firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
+
+        '''
+        fig, ax = plt.subplots()
+        im = ax.imshow(firing_rate_map, cmap='jet')
+        fig.tight_layout()
+        plt.show()
+        '''
+
+        firing_fields_cluster, _ = get_firing_field_data(spatial_firing, index, threshold=threshold)
+        firing_fields_cluster = fields2map(firing_fields_cluster, firing_rate_map)
+        firing_fields_cluster = clip_fields_by_size(firing_fields_cluster, bin_size_cm=2.5)
+        firing_fields_cluster = put_firing_rates_back(firing_fields_cluster, firing_rate_map)
+
+        corner_score = calculate_corner_score(firing_fields_cluster, bin_size_cm=2.5, corner_param=0.2)
+
+        corner_scores.append(corner_score)
+
+        #plot_fields_in_cluster_corner_scores(firing_fields_cluster, corner_score)
+
+    spatial_firing['corner_score'] = corner_scores
+    return spatial_firing
+
+def plot_fields_in_cluster_corner_scores(firing_fields_cluster, corner_score):
+    for field in firing_fields_cluster:
+        fig, ax = plt.subplots()
+        im = ax.imshow(field, cmap='jet')
+        fig.tight_layout()
+
+        title = "corner_score: " + str(corner_score)
+        ax.set_title(title)
+        plt.show()
+
+def plot_fields_in_cluster_cue_scores(firing_fields_cluster, cue_score):
+    for field in firing_fields_cluster:
+        fig, ax = plt.subplots()
+        im = ax.imshow(field, cmap='jet')
+        fig.tight_layout()
+
+        title = "cue_score: " + str(cue_score)
+        ax.set_title(title)
+        plt.show()
+
+def distance_matrix_corner(field, bin_size_cm):
+    '''
+        generates a matrix the same size as the rate map with elements
+        corresponding to the mean shortest distance to the edge of the arena
+        :param field: field rate map 2d np.array()
+        :param bin_size_cm: int
+        :return: distance matrix of same dimensions of field (unit cm)
+        '''
+
+    x, y = np.shape(field)
+
+    corner_indices = [[0,0], [0,x-1], [y-1, 0], [y-1, x-1]]
+
+    distance_matrix = np.zeros((x,y))
+
+    for i in range(len(distance_matrix)):
+        for j in range(len(distance_matrix[0])):
+
+            max_to_corner = []
+            for corner in corner_indices:
+                a = i-corner[1]
+                b = j-corner[0]
+
+                if np.round(a) == 0 and np.round(b) == 0:
+                    c = 0
+                else:
+                    c = np.sqrt(((a*a)+(b*b)))
+
+                max_to_corner.append(c)
+
+            distance_matrix[i,j] = min(max_to_corner)
+
+    distance_matrix = distance_matrix + 1
+    distance_matrix = distance_matrix * bin_size_cm
+    distance_matrix = distance_matrix - (bin_size_cm / 2)
+    distance_matrix = distance_matrix/np.max(distance_matrix)
+
+    return distance_matrix
+
+def distance_matrix_cue(field, cue_location, open_field_size_cm, cue_size_cm, bin_size_cm):
+    '''
+    generates a matrix the same size as the rate map with elements
+        corresponding to the mean shortest distance to the cue
+    :param field: field rate map 2d np.array()
+    :param bin_size_cm: int
+    :param cue_location: this indicates which side of the arena has the cue on it either 0 = left side of rate map, 1 = top, 2 = right or 3 = bottom
+    :param open_field_size_cm: tuple dimesions of open field (x, y) in cm
+    :param cue_size_cm: length of cue, presumed to be at a central location along one of the sides specified in cue location param
+    :return: distance matrix of same dimensions of field (unit cm)
+    '''
+
+    x, y = np.shape(field)
+
+    distance_matrix = np.zeros((x, y))
+
+    cue_indices = get_cue_indices(field, cue_location, open_field_size_cm, cue_size_cm, bin_size_cm=2.5)
+
+    for i in range(len(distance_matrix)):
+        for j in range(len(distance_matrix[0])):
+
+            max_to_cue = []
+            for cue_index in cue_indices:
+                a = i-cue_index[0]
+                b = j-cue_index[1]
+
+                if np.round(a) == 0 and np.round(b) == 0:
+                    c = 0
+                else:
+                    c = np.sqrt(((a*a)+(b*b)))
+
+                max_to_cue.append(c)
+
+            distance_matrix[i,j] = min(max_to_cue)
+
+    distance_matrix = distance_matrix + 1
+    distance_matrix = distance_matrix * bin_size_cm
+    distance_matrix = distance_matrix - (bin_size_cm / 2)
+    distance_matrix = distance_matrix/np.max(distance_matrix)
+
+    '''
+    fig, ax = plt.subplots()
+    im = ax.imshow(distance_matrix, cmap='jet')
+    fig.tight_layout()
+    plt.show()
+    '''
+
+    return distance_matrix
+
+def get_cue_indices(field, cue_location, open_field_size_cm, cue_size_cm, bin_size_cm=2.5):
+
+    cue_coverage = float(cue_size_cm) / float(open_field_size_cm)
+
+    x, y = np.shape(field)
+
+    distance_matrix = np.zeros((x, y))
+
+    if cue_location == 0:
+        side_indices = [(i, j) for i in range(x) for j in [0]]
+    elif cue_location == 1:
+        side_indices = [(i, j) for i in [0] for j in range(y)]
+    elif cue_location == 2:
+        side_indices = [(i, j) for i in range(x) for j in [y - 1]]
+    elif cue_location == 3:
+        side_indices = [(i, j) for i in [x - 1] for j in range(y)]
+
+    if cue_coverage < 1:
+        cue_indices = side_indices[int(int(np.floor((len(side_indices)) / 2)) - (len(side_indices) * cue_coverage / 2)):
+                                   int(int(np.ceil((len(side_indices)) / 2)) + (
+                                               len(side_indices) * cue_coverage / 2)) + 1]
+    else:
+        cue_indices = side_indices
+
+    return cue_indices
+
+def length_of_cue_wall(field, cue_location):
+
+    if cue_location == 0:
+        return len(field[:,0])
+    elif cue_location == 1:
+        return len(field[0])
+    elif cue_location == 2:
+        return len(field[:, 0])
+    elif cue_location == 3:
+        return len(field[0])
+
+def calculate_cue_score(firing_fields_cluster, cue_location, open_field_size_cm, cue_size_cm, bin_size_cm=2.5):
+    '''
+    :param firing_fields_cluster:
+    :param bin_size_cm:
+    :param cue_location: this indicates which side of the arena has the cue on it either 0 = left side of rate map, 1 = top, 2 = right or 3 = bottom
+    # TODO: change this to north, east, west and south, all relative to access side of open field
+    :param open_field_size_cm: tuple dimesions of open field (x, y) in cm
+    :param cue_size_cm: length of cue, presumed to be at a central location along one of the sides specified in cue location param
+    :return: cue score
+    '''
+
+
+    # only execute if there are firing fields to analyse
+    if len(firing_fields_cluster) > 0:
+
+        normalised_distance_mat = distance_matrix_cue(firing_fields_cluster[0], cue_location, open_field_size_cm, cue_size_cm, bin_size_cm)
+        cue_indices = get_cue_indices(firing_fields_cluster[0], cue_location, open_field_size_cm, cue_size_cm, bin_size_cm)
+
+        dm = []  # takes on new meaning of mean firing distance to cue
+
+        maxcM = 0
+
+
+        for field in firing_fields_cluster:
+
+            field_on_cue_count = 0
+
+            field_count = field.copy()
+            field_count[field_count > 0] = 1
+
+            for cue_index in cue_indices:
+                if field_count[cue_index]==1:
+                    field_on_cue_count += 1
+
+            cM = field_on_cue_count/length_of_cue_wall(firing_fields_cluster[0], cue_location)
+
+            if cM > maxcM:
+                maxcM = cM
+
+            normalized_field = field / np.sum(field)
+
+            dm_for_field = np.multiply(normalized_field,
+                                       normalised_distance_mat)  # weight by shortest distance to the perimeter
+            dm_for_field = np.sum(dm_for_field)
+
+            dm.append(dm_for_field)
+
+        dm_all_fields = np.mean(dm)
+
+        # final measure of mean firing distance
+        dm = dm_all_fields.copy()
+        final_cM = maxcM
+
+        cue_score = (final_cM - dm) / (final_cM + dm)
+
+        return cue_score
+
+def calculate_corner_score(firing_fields_cluster, bin_size_cm, corner_param):
+    '''
+
+    :param firing_fields_cluster:
+    :param bin_size_cm:
+    :param corner_param: defines the proportion of the wall that is used to count the percentage coverage about a corner > 0 and < 0.5.
+    note: this parameter is used as unlike cue and bordeer scores, the corner is defined by a single point (or bin) and thus needs a more dilute measure to accommodate fields
+    that span multiple bins
+    TODO: Discuss best way to get around this
+    :return:
+    '''
+
+    # only execute if there are firing fields to analyse
+    if len(firing_fields_cluster)>0:
+
+        normalised_distance_mat = distance_matrix_corner(firing_fields_cluster[0], bin_size_cm)
+
+
+        dm = [] # takes on new meaning of mean firing distance to corner
+
+        maxcM = 0
+
+        for field in firing_fields_cluster:
+
+            field_count = field.copy()
+            field_count[field_count > 0] = 1
+
+            corner_bins_wall1 = int(np.ceil(corner_param * len(field_count[0])))
+            corner_bins_wall2 = int(np.ceil(corner_param * len(field_count[:,0])))
+            corner_bins_wall3 = int(np.ceil(corner_param * len(field_count[-1])))
+            corner_bins_wall4 = int(np.ceil(corner_param * len(field_count[:,-1])))
+
+            corner1_cM = np.sum(field_count[0, 0:corner_bins_wall1]) + np.sum(field_count[:,0][0:corner_bins_wall2])
+            if field_count[0,0] == 1:
+                corner1_cM -= 1
+
+            corner2_cM = np.sum(field_count[:,0][-corner_bins_wall2:]) + np.sum(field_count[-1, 0:corner_bins_wall3])
+            if field_count[-1, 0] == 1:
+                corner2_cM -= 1
+
+            corner3_cM = np.sum(field_count[-1, -corner_bins_wall3:]) + np.sum(field_count[:,-1][-corner_bins_wall4:])
+            if field_count[-1, -1] == 1:
+                corner3_cM -= 1
+
+            corner4_cM = np.sum(field_count[:,-1][0:corner_bins_wall4]) + np.sum(field_count[0, -corner_bins_wall1:])
+            if field_count[0, -1] == 1:
+                corner4_cM -= 1
+
+            corner1_cM = corner1_cM / (corner_bins_wall1 + corner_bins_wall2 - 1)
+            corner2_cM = corner2_cM / (corner_bins_wall2 + corner_bins_wall3 - 1)
+            corner3_cM = corner3_cM / (corner_bins_wall3 + corner_bins_wall4 - 1)
+            corner4_cM = corner4_cM / (corner_bins_wall4 + corner_bins_wall1 - 1)
+
+            # reassign max cM if found bigger in a different field or wall
+            if corner1_cM>maxcM:
+                maxcM= corner1_cM
+            elif corner2_cM>maxcM:
+                maxcM= corner2_cM
+            elif corner3_cM > maxcM:
+                maxcM = corner3_cM
+            elif corner4_cM > maxcM:
+                maxcM = corner4_cM
+
+            normalized_field = field/np.sum(field)
+
+            dm_for_field = np.multiply(normalized_field, normalised_distance_mat)  # weight by shortest distance to the perimeter
+            dm_for_field = np.sum(dm_for_field)
+
+            dm.append(dm_for_field)
+
+        dm_all_fields = np.mean(dm)
+
+        # final measure of mean firing distance
+        dm = dm_all_fields.copy()
+        cM = maxcM
+
+        corner_score = (cM - dm) / (cM + dm)
+
+        return corner_score
+
 
 def put_firing_rates_back(firing_fields_cluster, firing_rate_map):
 
@@ -78,7 +427,7 @@ def calculate_border_score(firing_fields_cluster, bin_size_cm):
     # only execute if there are firing fields to analyse
     if len(firing_fields_cluster)>0:
 
-        normalised_distance_mat = distance_matrix(firing_fields_cluster[0], bin_size_cm)
+        normalised_distance_mat = distance_matrix_border(firing_fields_cluster[0], bin_size_cm)
 
         dm = []
 
@@ -129,7 +478,7 @@ def calculate_border_score(firing_fields_cluster, bin_size_cm):
         return border_score
 
 
-def distance_matrix(field, bin_size_cm):
+def distance_matrix_border(field, bin_size_cm):
     '''
     generates a matrix the same size as the rate map with elements
     corresponding to the mean shortest distance to the edge of the arena
@@ -170,14 +519,13 @@ def stack_fields(firing_fields_clusters):
 def plot_fields_in_cluster(firing_fields_cluster):
     for field in firing_fields_cluster:
         fig, ax = plt.subplots()
-        im = ax.imshow(field)
-        fig.tight_layout()
+        im = ax.imshow(field, cmap='jet')
         plt.show()
 
 def plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score):
     for field in firing_fields_cluster:
         fig, ax = plt.subplots()
-        im = ax.imshow(field)
+        im = ax.imshow(field, cmap='jet')
         fig.tight_layout()
 
         title = "border_score: " + str(border_score)
@@ -220,14 +568,15 @@ def clip_fields_by_size(masked_rate_maps, bin_size_cm=2.5):
 
 
 
-def putative_border_fields_clip_by_firing_rate(firing_rate_map):
+def putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold):
     '''
     clips the fields in the firing rate map if the firing rate is below 0.3x max firing rate
     :param firing_rate_map: smoothened firing rate map
     :return: firing_rate_map clipped by 0.3x max firing rate
     '''
+
     max_firing = np.max(firing_rate_map)
-    firing_rate_map[firing_rate_map < 0.3*max_firing] = 0
+    firing_rate_map[firing_rate_map < threshold*max_firing] = 0
     return firing_rate_map
 
 
@@ -358,7 +707,7 @@ def find_current_maxima_indices(rate_map, threshold):
     max_fr = rate_map[highest_rate_bin]
     if found_new is False:
         return None, found_new, None
-    # plt.imshow(rate_map)
+    #plt.imshow(rate_map)
     # plt.scatter(highest_rate_bin[1], highest_rate_bin[0], marker='o', s=500, color='yellow')
     masked_rate_map = np.full((rate_map.shape[0], rate_map.shape[1]), 0)
     masked_rate_map[highest_rate_bin] = 1
@@ -370,9 +719,11 @@ def find_current_maxima_indices(rate_map, threshold):
     found_new = test_if_field_is_big_enough(field_indices)
     if found_new is False:
         return None, found_new, None
-    found_new = test_if_field_is_small_enough(field_indices, rate_map)
-    if found_new is False:
-        return None, found_new, None
+
+    #found_new = test_if_field_is_small_enough(field_indices, rate_map)
+    #if found_new is False:
+    #    return None, found_new, None
+
     found_new = ensure_the_field_does_not_have_a_hole_in_the_middle(field_indices)
     if found_new is False:
         return None, found_new, None
@@ -406,8 +757,12 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    spatial_firing = pd.read_pickle('/home/harry/Downloads/spatial_firing_.pkl')
+    #spatial_firing = pd.read_pickle('/home/harry/Downloads/spatial_firing3.pkl')
+    #spatial_firing = pd.read_pickle('/home/harry/Downloads/spatial_firing3.pkl')
+    spatial_firing = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseOF/M1_D15cue_2019-07-05_15-29-39/MountainSort/DataFrames/spatial_firing.pkl')
     spatial_firing = process_border_data(spatial_firing)
+    spatial_firing = process_corner_data(spatial_firing)
+    spatial_firing = process_cue_data(spatial_firing)
     print(spatial_firing)
 
 
