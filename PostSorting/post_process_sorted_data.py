@@ -130,6 +130,7 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
 def run_analyses(spike_data_in, synced_spatial_data):
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+    spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250, prm.get_sampling_rate())
     hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
