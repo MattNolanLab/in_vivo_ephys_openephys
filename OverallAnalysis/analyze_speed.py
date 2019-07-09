@@ -3,6 +3,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 import plot_utility
+import PostSorting.make_plots
 import PostSorting.speed
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
@@ -53,7 +54,7 @@ def add_speed_score_to_spatial_firing(output_path, server_path, animal, video_sa
                 save_path = save_output_path + animal + '_speed_scatter_plots/'
                 if os.path.exists(save_path) is False:
                     os.makedirs(save_path)
-                PostSorting.speed.plot_speed_vs_firing_rate(position_data, spatial_firing, ephys_sample, video_sampling, save_path)
+                PostSorting.make_plots.plot_speed_vs_firing_rate(position_data, spatial_firing, ephys_sample, video_sampling, save_path)
                 save_path = save_output_path + animal + 'grid_speed_scatter_plots/'
                 if os.path.exists(save_path) is False:
                     os.makedirs(save_path)
