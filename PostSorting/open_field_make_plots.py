@@ -169,6 +169,7 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
             ax = plot_utility.style_open_field_plot(ax)
             ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
             plt.tight_layout()
+            plt.title('grid score: ' + str(round(spatial_firing.grid_score[cluster], 2)))
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
             # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
