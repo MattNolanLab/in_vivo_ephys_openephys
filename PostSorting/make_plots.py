@@ -224,7 +224,7 @@ save_path : path to folder where the plot gets saved
 
 
 def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, prm: object) -> None:
-    sampling_rate_video = float(1 / position['synced_time'].diff().mean())
+    sampling_rate_video = int(1 / position['synced_time'].diff().mean())
     sigma = gauss_sd / sampling_rate_video
 
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
@@ -248,3 +248,4 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.ylim(0, None)
         plt.savefig(save_path + '/' + cell.session_id + '_' + str(cell.cluster_id + 1) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
+
