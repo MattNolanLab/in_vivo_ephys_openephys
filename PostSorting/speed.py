@@ -12,7 +12,7 @@ import OverallAnalysis.analyze_speed
 
 '''
 
-The sped score is a measure of the correlation between the firing rate of the neuron and the running speed of the
+The speed score is a measure of the correlation between the firing rate of the neuron and the running speed of the
 animal. The firing times of the neuron are binned at the same sampling rate as the position data (speed). The resulting
 temporal firing histogram is then smoothed with a Gaussian (standard deviation ~250ms). Speed and temporal firing rate
 are correlated (Pearson correlation) to obtain the speed score.
