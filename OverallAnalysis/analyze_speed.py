@@ -6,12 +6,8 @@ import plot_utility
 import PostSorting.make_plots
 import PostSorting.speed
 import OverallAnalysis.folder_path_settings
-import OverallAnalysis.analyze_field_correlations
 import os
 import OverallAnalysis.false_positives
-
-import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
 
 
 local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/speed/all_mice_df.pkl'
