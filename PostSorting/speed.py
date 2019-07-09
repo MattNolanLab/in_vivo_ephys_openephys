@@ -29,7 +29,9 @@ should be 1.
 '''
 
 
-def calculate_speed_score(position: pd.DataFrame, spatial_firing: pd.DataFrame, sigma: float, sampling_rate_conversion: int) -> pd.DataFrame:
+def calculate_speed_score(position: pd.DataFrame, spatial_firing: pd.DataFrame, gauss_sd: float, sampling_rate_conversion: int) -> pd.DataFrame:
+    avg_sampling_rate_video = float(1 / position['synced_time'].diff().mean())
+    sigma = gauss_sd / avg_sampling_rate_video
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
     speed_scores = []
     speed_score_ps = []
