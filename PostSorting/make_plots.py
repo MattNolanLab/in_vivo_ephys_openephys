@@ -5,7 +5,7 @@ import math
 import numpy as np
 import pandas as pd
 import plot_utility
-import scipy
+import scipy.ndimage
 
 from typing import Tuple
 
@@ -223,13 +223,16 @@ save_path : path to folder where the plot gets saved
 '''
 
 
-def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, video_sampling_rate: int, save_path: str) -> None:
-    sigma = 250 / video_sampling_rate
+def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, prm: object) -> None:
+    sampling_rate_video = float(1 / position['synced_time'].diff().mean())
+    sigma = gauss_sd / sampling_rate_video
+
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
+    save_path = prm.get_output_path() + '/Figures/firing_properties'
     for index, cell in spatial_firing.iterrows():
         firing_times = cell.firing_times
         firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
-        firing_hist *= video_sampling_rate
+        firing_hist *= sampling_rate_video
         smooth_hist = scipy.ndimage.filters.gaussian_filter(firing_hist.astype(float), sigma)
         speed, smooth_hist = array_utility.remove_nans_from_both_arrays(speed, smooth_hist)
         median_x, median_y, percentile_25, percentile_75 = calculate_median_for_scatter_binned(speed, smooth_hist)
@@ -243,5 +246,5 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.title('speed score: ' + str(np.round(cell.speed_score, 4)))
         plt.xlim(0, 50)
         plt.ylim(0, None)
-        plt.savefig(save_path + cell.session_id + str(cell.cluster_id) + '_speed.png')
+        plt.savefig(save_path + '/' + cell.session_id + '_' + str(cell.cluster_id + 1) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
