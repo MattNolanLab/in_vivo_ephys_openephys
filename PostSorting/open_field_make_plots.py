@@ -169,6 +169,7 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
             ax = plot_utility.style_open_field_plot(ax)
             ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
             plt.tight_layout()
+            plt.title('grid score: ' + str(round(spatial_firing.grid_score[cluster], 2)))
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
             # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
@@ -321,6 +322,7 @@ def make_combined_figure(prm, spatial_firing):
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
         rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
+        speed_vs_firing_rate_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_vs_firing_rate.png'
 
         number_of_firing_fields = 0
         if 'firing_fields' in spatial_firing:
@@ -353,6 +355,11 @@ def make_combined_figure(prm, spatial_firing):
             autocorrelogram_250_plot = plt.subplot(grid[0, 2])
             autocorrelogram_250_plot.axis('off')
             autocorrelogram_250_plot.imshow(autocorrelogram_250)
+        if os.path.exists(speed_vs_firing_rate_path):
+            speed_vs_rate = mpimg.imread(speed_vs_firing_rate_path)
+            speed_vs_rate_plot = plt.subplot(grid[0, 5])
+            speed_vs_rate_plot.axis('off')
+            speed_vs_rate_plot.imshow(speed_vs_rate)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
             spike_scatter_plot = plt.subplot(grid[1, 0])
