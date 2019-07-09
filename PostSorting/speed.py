@@ -80,43 +80,6 @@ def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[
     return np.array(median_x), np.array(median_y), np.array(percentile_25), np.array(percentile_75)
 
 
-'''
-Make scatter plot of speed vs firing rate and mark the median and the 25th and 75th percentiles.
-
-position : data frame that contains the speed of the animal as a column ('speed')
-spatial_firing : data frame that contains the firing times ('firing_times') and speed scores ('speed_score')
-sigma : standard deviation for Gaussian filter (sigma = 250 / video_sampling)
-sampling_rate_conversion : sampling rate of ephys data relative to seconds. If the firing times are in seconds then this
-should be 1.
-save_path : path to folder where the plot gets saved
-
-'''
-
-
-def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, video_sampling_rate: int, save_path: str) -> None:
-    sigma = 250 / video_sampling_rate
-    speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
-    for index, cell in spatial_firing.iterrows():
-        firing_times = cell.firing_times
-        firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
-        firing_hist *= video_sampling_rate
-        smooth_hist = scipy.ndimage.filters.gaussian_filter(firing_hist.astype(float), sigma)
-        speed, smooth_hist = array_utility.remove_nans_from_both_arrays(speed, smooth_hist)
-        median_x, median_y, percentile_25, percentile_75 = calculate_median_for_scatter_binned(speed, smooth_hist)
-        plt.cla()
-        fig, ax = plt.subplots()
-        ax = plot_utility.format_bar_chart(ax, 'Speed (cm/s)', 'Firing rate (Hz)')
-        plt.scatter(speed[::10], smooth_hist[::10], color='gray', alpha=0.7)
-        plt.plot(median_x, percentile_25, color='black', linewidth=5)
-        plt.plot(median_x, percentile_75, color='black', linewidth=5)
-        plt.scatter(median_x, median_y, color='black', s=100)
-        plt.title('speed score: ' + str(np.round(cell.speed_score, 4)))
-        plt.xlim(0, 50)
-        plt.ylim(0, None)
-        plt.savefig(save_path + cell.session_id + str(cell.cluster_id) + '_speed.png')
-        plt.close()
-
-
 # plot grid cells only
 def plot_speed_vs_firing_rate_grid(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, video_sampling_rate: int, save_path: str) -> None:
     sigma = 250 / video_sampling_rate
