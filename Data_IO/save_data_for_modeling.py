@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import pandas as pd
 
@@ -23,35 +24,42 @@ def save_firing_data(spatial_firing, save_path):
 def load_data_frames(path_to_session):
     session_path = path_to_session + 'position.pkl'
     spikes_path = path_to_session + 'spatial_firing.pkl'
-    session = pd.read_pickle(session_path)
-    spikes = pd.read_pickle(spikes_path)
-    return session, spikes
+    if os.path.exists(session_path):
+        session = pd.read_pickle(session_path)
+        spikes = pd.read_pickle(spikes_path)
+    else:
+        return None, None, False
+    return session, spikes, True
 
 
 def process_data():
     save_path = 'C:/Users/s1466507/Dropbox/Edinburgh/grid_fields/for_modeling/'
-    session, spikes = load_data_frames('//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/M12_2018-04-10_14-22-14_of/MountainSort/DataFrames/')
+    session, spikes, done = load_data_frames('//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/Open_field_opto_tagging_p038/M12_2018-04-10_14-22-14_of/MountainSort/DataFrames/')
     if not os.path.exists(save_path + spikes.session_id.iloc[0]):
         os.makedirs(save_path + spikes.session_id.iloc[0])
     save_session_data(session, save_path + spikes.session_id.iloc[0] + '/')
     save_firing_data(spikes, save_path + spikes.session_id.iloc[0] + '/')
 
-    path_to_control = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/control_narrow/'
-    tag = 'cn'
-    for dir, subdirs, files in os.walk(path_to_control):
+    path_to_ventral = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/ventral_narrow/'
+    tag = 'vn'
+    for dir, subdirs, files in os.walk(path_to_ventral):
         for session_name in subdirs:
-            session, spikes = load_data_frames(dir + session_name + '/')
+            session, spikes, done = load_data_frames(dir + session_name + '/')
+            if not done:
+                continue
             name = save_path + spikes.session_id.iloc[0] + '_' + tag + '_' + session_name + '/'
             if not os.path.exists(name):
                 os.makedirs(name)
             save_session_data(session, name)
             save_firing_data(spikes, name)
 
-    path_to_ventral = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/ventral_narrow/'
-    tag = 'vn'
-    for dir, subdirs, files in os.walk(path_to_ventral):
+    path_to_control = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/grid_fields/simulated_data/control_narrow/'
+    tag = 'cn'
+    for dir, subdirs, files in os.walk(path_to_control):
         for session_name in subdirs:
-            session, spikes = load_data_frames(dir + session_name + '/')
+            session, spikes, done = load_data_frames(dir + session_name + '/')
+            if not done:
+                continue
             name = save_path + spikes.session_id.iloc[0] + '_' + tag + '_' + session_name + '/'
             if not os.path.exists(name):
                 os.makedirs(name)
