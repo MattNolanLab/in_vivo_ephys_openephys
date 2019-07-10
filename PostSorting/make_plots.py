@@ -246,6 +246,6 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.title('speed score: ' + str(np.round(cell.speed_score, 4)))
         plt.xlim(0, 50)
         plt.ylim(0, None)
-        plt.savefig(save_path + '/' + cell.session_id + '_' + str(cell.cluster_id + 1) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + cell.session_id + '_' + str(cell.cluster_id) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
