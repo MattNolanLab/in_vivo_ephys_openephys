@@ -710,6 +710,39 @@ def process_data(spatial_firing, sampling_rate_video, local_path, animal='mouse'
     compare_shuffled_to_real_data_mw_test(shuffled_spatial_firing_not_classified, analysis_type='percentile')
 
 
+# todo implement this
+def down_sample_data(spatial_firing):
+    down_sampled = pd.DataFrame()
+    all_x_cell = []
+    all_y_cell = []
+    all_hd_cell = []
+    all_x_session = []
+    all_y_session = []
+    all_hd_session = []
+
+    for index, cell in spatial_firing.iterrows():
+        if len(cell.number_of_spikes_in_fields) > 2:
+            end = int(cell.number_of_spikes_in_fields[0])
+            all_x_cell.append(cell.position_x[:end])
+            all_y_cell.append(cell.position_y[:end])
+            all_hd_cell.append(cell.hd[:end])
+            end_session_sec = int(cell.firing_times[cell.number_of_spikes_in_fields[0]] / 30000)
+            end_session = cell.trajectory_times[cell.trajectory_times < end_session_sec].argmax()
+            all_x_session.append(cell.trajectory_x[:end_session])
+            all_y_session.append(cell.trajectory_y[:end_session])
+            all_hd_session.append(cell.trajectory_hd[:end_session])
+        down_sampled['position_x'] = all_x_cell
+        down_sampled['position_y'] = all_y_cell
+        down_sampled['hd'] = all_hd_cell
+        down_sampled['trajectory_x'] = all_x_session
+        down_sampled['trajectory_y'] = all_y_session
+        down_sampled['trajectory_hd'] = all_hd_session
+
+        # todo add rate map - the rate map won't be informative. need to think more about how to downsample
+
+    return spatial_firing
+
+
 def process_downsampled_data(spatial_firing, sampling_rate_video, local_path, animal='mouse', shuffle_type='occupancy'):
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
@@ -720,7 +753,8 @@ def process_downsampled_data(spatial_firing, sampling_rate_video, local_path, an
         sampling_rate_video /= downsample_by
 
     good_cell = spatial_firing.false_positive == False
-
+    # down sample data
+    spatial_firing = down_sample_data(spatial_firing)
     spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20, shuffle_type=shuffle_type)
     print('I finished the shuffled analysis on ' + animal + ' data.\n')
@@ -754,6 +788,8 @@ def main():
     # prm.set_pixel_ratio(100)
     # process_data(spatial_firing_all_rats, 50, local_path_rat, animal='rat', shuffle_type='distributive')
     prm.set_pixel_ratio(440)
+    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse_down_sampled, server_path_mouse, spike_sorter='/MountainSort')
+    process_downsampled_data(spatial_firing_all_mice, 30, local_path_mouse_down_sampled, animal='mouse', shuffle_type='distributive_downsampled')
     spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     process_data(spatial_firing_all_mice, 30, local_path_mouse, animal='mouse', shuffle_type='distributive')
     '''
