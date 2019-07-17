@@ -717,7 +717,7 @@ def process_data(spatial_firing, sampling_rate_video, local_path, animal='mouse'
 
 # Take the first 'percentage_to_keep' percentage of the data and make new df and corresponding rate map.
 def down_sample_data(spatial_firing, percentage_to_keep, prm, sampling_rate_ephys=30000):
-    if 'grid_score' in spatial_firing:
+    if 'is_down_sampled' in spatial_firing:
         return spatial_firing
     down_sampled = pd.DataFrame()
     all_x_cell = []
@@ -767,6 +767,7 @@ def down_sample_data(spatial_firing, percentage_to_keep, prm, sampling_rate_ephy
     down_sampled['session_id'] = spatial_firing.session_id.values
     down_sampled['number_of_spikes'] = number_of_spikes_all
     down_sampled['firing_times'] = all_firing_times
+    down_sampled['is_down_sampled'] = True
 
     down_sampled['index_id'] = spatial_firing.cluster_id.values - 1
     down_sampled.set_index('index_id', inplace=True, drop=True)
