@@ -11,6 +11,7 @@ import scipy
 from scipy import stats
 import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
+import PostSorting.open_field_head_direction
 import PostSorting.open_field_firing_maps
 import PostSorting.parameters
 import array_utility
@@ -716,6 +717,8 @@ def process_data(spatial_firing, sampling_rate_video, local_path, animal='mouse'
 
 # Take the first 'percentage_to_keep' percentage of the data and make new df and corresponding rate map.
 def down_sample_data(spatial_firing, percentage_to_keep, prm, sampling_rate_ephys=30000):
+    if 'grid_score' in spatial_firing:
+        return spatial_firing
     down_sampled = pd.DataFrame()
     all_x_cell = []
     all_y_cell = []
@@ -774,9 +777,13 @@ def down_sample_data(spatial_firing, percentage_to_keep, prm, sampling_rate_ephy
     position['synced_time'] = all_times_session[0]
     position['position_x_pixels'] = all_x_session_pixel[0]
     position['position_y_pixels'] = all_y_session_pixel[0]
+    position['hd'] = all_hd_session[0]
 
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position, down_sampled, prm)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+    prm.set_file_path(local_path + '/tmp/')
+    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position, prm)
+
     return spatial_firing
 
 
@@ -793,10 +800,10 @@ def process_downsampled_data(spatial_firing, sampling_rate_video, local_path, pr
 
     good_cell = spatial_firing.false_positive == False
     # down sample data
-    spatial_firing = down_sample_data(spatial_firing, downsample_to, prm, sampling_rate)
+    if downsample_to < 1:
+        spatial_firing = down_sample_data(spatial_firing, downsample_to, prm, sampling_rate)
     spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
     spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20, shuffle_type=shuffle_type)
-
 
     print('I finished the shuffled analysis on ' + animal + ' data.\n')
 
@@ -828,9 +835,19 @@ def main():
     # spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
     # prm.set_pixel_ratio(100)
     # process_data(spatial_firing_all_rats, 50, local_path_rat, animal='rat', shuffle_type='distributive')
-    prm.set_pixel_ratio(440)
+    prm.set_pixel_ratio(440)#
+
+    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse_down_sampled + '100' + '.pkl', server_path_mouse, spike_sorter='/MountainSort')
+    process_downsampled_data(spatial_firing_all_mice, 30, local_path_mouse_down_sampled + '100' + '.pkl', prm, animal='mouse', shuffle_type='distributive_downsampled_100', downsample_to=1)
+
+    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse_down_sampled + '75' + '.pkl', server_path_mouse, spike_sorter='/MountainSort')
+    process_downsampled_data(spatial_firing_all_mice, 30, local_path_mouse_down_sampled + '75' + '.pkl', prm, animal='mouse', shuffle_type='distributive_downsampled_75', downsample_to=0.75)
+
+    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse_down_sampled + '50' + '.pkl', server_path_mouse, spike_sorter='/MountainSort')
+    process_downsampled_data(spatial_firing_all_mice, 30, local_path_mouse_down_sampled + '50' + '.pkl', prm, animal='mouse', shuffle_type='distributive_downsampled_50', downsample_to=0.50)
+
     spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse_down_sampled + '25' + '.pkl', server_path_mouse, spike_sorter='/MountainSort')
-    process_downsampled_data(spatial_firing_all_mice, 30, local_path_mouse_down_sampled + '25' + '.pkl', prm, animal='mouse', shuffle_type='distributive_downsampled', downsample_to=0.25)
+    process_downsampled_data(spatial_firing_all_mice, 30, local_path_mouse_down_sampled + '25' + '.pkl', prm, animal='mouse', shuffle_type='distributive_downsampled_25', downsample_to=0.25)
     # spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
     # process_data(spatial_firing_all_mice, 30, local_path_mouse, animal='mouse', shuffle_type='distributive')
     '''
