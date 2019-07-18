@@ -3,6 +3,8 @@ class Parameters:
     is_ubuntu = True
     is_windows = False
     is_stable = False
+    is_interleaved_opto = False
+    delete_two_min = False
     first_half_only = False
     second_half_only = False
     pixel_ratio = None
@@ -181,7 +183,15 @@ class Parameters:
     def set_stop_threshold(self, st):
         Parameters.stop_threshold = st
 
+    def get_interleaved_opto(self):
+        return Parameters.is_interleaved_opto
 
+    def set_interleaved_opto(self, inter_opto):
+        Parameters.is_interleaved_opto = inter_opto
 
+    def get_delete_two_minutes(self):
+        return Parameters.delete_two_min
 
+    def set_delete_two_minutes(self, delete_two_minutes):
+        Parameters.delete_two_min = delete_two_minutes
 
