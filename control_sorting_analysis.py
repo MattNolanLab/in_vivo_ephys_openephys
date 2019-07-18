@@ -99,7 +99,7 @@ def get_tags_parameter_file(recording_directory):
     param_file_reader = open(parameters_path, 'r')
     parameters = param_file_reader.readlines()
     parameters = list([x.strip() for x in parameters])
-    if len(parameters) > 1:
+    if len(parameters) > 2:
         tags = parameters[2]
     return tags
 

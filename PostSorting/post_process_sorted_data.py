@@ -51,6 +51,7 @@ def process_running_parameter_tag(running_parameter_tags):
             delete_first_two_minutes = True
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
+            unexpected_tag = True
     return unexpected_tag, interleaved_opto, delete_first_two_minutes
 
 
