@@ -36,6 +36,24 @@ def initialize_parameters(recording_to_process):
     prm.set_file_path(recording_to_process)  # todo clean this
 
 
+def process_running_parameter_tag(running_parameter_tags):
+    unexpected_tag = False
+    interleaved_opto = False
+    delete_first_two_minutes = False
+    if not running_parameter_tags:
+        return unexpected_tag, interleaved_opto, delete_first_two_minutes
+
+    tags = [x.strip() for x in running_parameter_tags.split('*')]
+    for tag in tags:
+        if tag == 'interleaved_opto':
+            interleaved_opto = True
+        elif tag == 'delete_first_two_minutes':
+            delete_first_two_minutes = True
+        else:
+            print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
+    return unexpected_tag, interleaved_opto, delete_first_two_minutes
+
+
 def process_position_data(recording_to_process, session_type, prm):
     spatial_data = None
     is_found = False
@@ -140,11 +158,14 @@ def run_analyses(spike_data_in, synced_spatial_data):
     return synced_spatial_data, spatial_firing
 
 
-def post_process_recording(recording_to_process, session_type, run_type='default', analysis_type='default', sorter_name='MountainSort'):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
+    unexpected_tag, interleaved_opto, delete_first_two_minutes = process_running_parameter_tag(running_parameter_tags)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
+    prm.set_interleaved_opto(interleaved_opto)
+    prm.set_delete_two_minutes(delete_first_two_minutes)
 
     if run_type == 'stable':
         prm.set_is_stable(True)
@@ -152,6 +173,7 @@ def post_process_recording(recording_to_process, session_type, run_type='default
 
     if run_type == 'default':
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
+        # todo implement different opto-tagging protocols here based on tags
         opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
         # process spatial data
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
