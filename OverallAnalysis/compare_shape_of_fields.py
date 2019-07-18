@@ -20,6 +20,7 @@ prm.set_sorter_name('MountainSort')
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
 
 
 def remove_zeros(first, second):
@@ -31,7 +32,7 @@ def remove_zeros(first, second):
     return first_out, second_out
 
 
-def load_field_data(output_path, server_path, spike_sorter, animal):
+def load_field_data(output_path, server_path, spike_sorter, animal, df_path='/DataFrames'):
     if animal == 'mouse':
         ephys_sampling_rate = 30000
     else:
@@ -42,9 +43,9 @@ def load_field_data(output_path, server_path, spike_sorter, animal):
     field_data_combined = pd.DataFrame()
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
-        data_frame_path = recording_folder + spike_sorter + '/DataFrames/shuffled_fields.pkl'
-        spatial_firing_path = recording_folder + spike_sorter + '/DataFrames/spatial_firing.pkl'
-        position_path = recording_folder + spike_sorter + '/DataFrames/position.pkl'
+        data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields_distributive.pkl'
+        spatial_firing_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
+        position_path = recording_folder + spike_sorter + df_path + '/position.pkl'
         if os.path.exists(data_frame_path):
             print('I found a field data frame.')
             field_data = pd.read_pickle(data_frame_path)
@@ -618,7 +619,7 @@ def remove_nans_from_both(first, second):
     return first_out, second_out
 
 
-def process_circular_data(animal):
+def process_circular_data(animal, tag=''):
     # print('I am loading the data frame that has the fields')
     if animal == 'mouse':
         mouse_path = local_path + 'field_data_modes_mouse.pkl'
@@ -647,8 +648,8 @@ def process_circular_data(animal):
         # plot_half_fields(field_data, 'mouse')
 
     if animal == 'rat':
-        rat_path = local_path + 'field_data_modes_rat.pkl'
-        field_data = load_field_data(rat_path, server_path_rat, '', animal)
+        simulated_path = local_path + 'field_data_modes_rat.pkl'
+        field_data = load_field_data(simulated_path, server_path_rat, '', animal)
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
         field_data = add_cell_types_to_data_frame(field_data)
@@ -672,8 +673,35 @@ def process_circular_data(animal):
         plot_correlation_matrix_individual_cells(field_data, 'rat')
         # plot_half_fields(field_data, 'rat')
 
+    if animal == 'simulated':
+        simulated_path = local_path + 'field_data_modes_simulated' + tag + '.pkl'
+        field_data = load_field_data(simulated_path, server_path_simulated + '/' + tag + '/', '', animal, df_path='')
+        field_data = add_cell_types_to_data_frame(field_data)
+        field_data = tag_border_and_middle_fields(field_data)
+        field_data['accepted_field'] = True
+
+        grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
+        grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
+        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
+
+        conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+        conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+
+        compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
+        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
+        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
+
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'simulated' + tag)
+        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'simulated' + tag, tag='_centre')
+        plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'simulated' + tag,
+                                                       tag='_centre_vs_border')
+        plot_correlation_matrix(field_data, 'simulated' + tag)
+        plot_correlation_matrix_individual_cells(field_data, 'simulated' + tag)
+        # plot_half_fields(field_data, 'rat')
+
 
 def main():
+    process_circular_data('simulated', 'ventral_narrow')
     process_circular_data('mouse')
     process_circular_data('rat')
 
