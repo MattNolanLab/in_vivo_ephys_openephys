@@ -93,6 +93,17 @@ def get_location_on_server(recording_directory):
     return location_on_server
 
 
+def get_tags_parameter_file(recording_directory):
+    tags = False
+    parameters_path = recording_directory + '/parameters.txt'
+    param_file_reader = open(parameters_path, 'r')
+    parameters = param_file_reader.readlines()
+    parameters = list([x.strip() for x in parameters])
+    if len(parameters) > 1:
+        tags = parameters[2]
+    return tags
+
+
 def write_param_file_for_matlab(file_to_sort, path_to_server, is_openfield, is_vr):
     if is_openfield:
         openfield = 1
@@ -178,6 +189,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
+        tags = get_tags_parameter_file(recording_to_sort)
 
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
@@ -194,7 +206,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
         if is_open_field:
-            post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield')
+            post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
         if is_vr:
             post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr')
 
