@@ -35,12 +35,15 @@ def remove_zeros(first, second):
 def load_field_data(output_path, server_path, spike_sorter, animal, df_path='/DataFrames'):
     if animal == 'mouse':
         ephys_sampling_rate = 30000
-    else:
+    elif animal == 'rat':
         ephys_sampling_rate = 1  # this is because the rat data is already in seconds
+    else:
+        ephys_sampling_rate = 1000  # simulated is in ms
     if os.path.exists(output_path):
         field_data = pd.read_pickle(output_path)
         return field_data
     field_data_combined = pd.DataFrame()
+    loaded_session_count = 0
     for recording_folder in glob.glob(server_path + '*'):
         os.path.isdir(recording_folder)
         data_frame_path = recording_folder + spike_sorter + df_path + '/shuffled_fields_distributive.pkl'
@@ -54,6 +57,7 @@ def load_field_data(output_path, server_path, spike_sorter, animal, df_path='/Da
             prm.set_file_path(recording_folder)
             # spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, position, spatial_firing)
             if 'shuffled_data' in field_data:
+                loaded_session_count += 1
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id', 'position_x_spikes',
                                                     'position_y_spikes', 'position_x_session', 'position_y_session',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',
@@ -67,6 +71,7 @@ def load_field_data(output_path, server_path, spike_sorter, animal, df_path='/Da
                 rate_maps = []
                 length_recording = []
                 length_of_recording = 0
+                field_data_to_combine.session_id = field_data_to_combine.session_id + '_' + str(loaded_session_count)
 
                 for cluster in range(len(field_data.cluster_id)):
                     rate_map = spatial_firing[field_data.cluster_id.iloc[cluster] == spatial_firing.cluster_id].firing_maps
@@ -697,11 +702,12 @@ def process_circular_data(animal, tag=''):
                                                        tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'simulated' + tag)
         plot_correlation_matrix_individual_cells(field_data, 'simulated' + tag)
-        # plot_half_fields(field_data, 'rat')
+        plot_half_fields(field_data, 'simulated' + tag + '/')
 
 
 def main():
     process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
     process_circular_data('mouse')
     process_circular_data('rat')
 
