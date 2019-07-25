@@ -40,8 +40,9 @@ def process_running_parameter_tag(running_parameter_tags):
     unexpected_tag = False
     interleaved_opto = False
     delete_first_two_minutes = False
+    pixel_ratio = False
     if not running_parameter_tags:
-        return unexpected_tag, interleaved_opto, delete_first_two_minutes
+        return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
@@ -49,10 +50,12 @@ def process_running_parameter_tag(running_parameter_tags):
             interleaved_opto = True
         elif tag == 'delete_first_two_minutes':
             delete_first_two_minutes = True
+        elif tag.startswith('pixel_ratio'):
+            pixel_ratio = int(tag.split('=')[1])   # put pixel ratio value in pixel_ratio
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
-    return unexpected_tag, interleaved_opto, delete_first_two_minutes
+    return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -162,7 +165,7 @@ def run_analyses(spike_data_in, synced_spatial_data):
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    unexpected_tag, interleaved_opto, delete_first_two_minutes = process_running_parameter_tag(running_parameter_tags)
+    unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
