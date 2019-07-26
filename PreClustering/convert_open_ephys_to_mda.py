@@ -3,6 +3,7 @@ Functions for converting open ephys data to mountainsort's mda format
 
 '''
 
+import glob
 import os
 
 import PreClustering.dead_channels
@@ -50,6 +51,16 @@ def convert_continuous_to_mda(prm):
             print('This tetrode is already converted to mda, I will move on and check the next one. ' + spike_data_path + 't' + str(tetrode + 1) + '\\data\\raw.mda')
 
 
+def try_to_figure_out_non_default_file_names(folder_path, ch_num):
+    beginning = glob.glob(folder_path + '*.continuous')[0].split('/')[-1].split('_')[0]
+    end = glob.glob(folder_path + '*.continuous')[0].split('/')[-1].split('CH')[-1].split('.')[0].split('_')[1:]
+    if len(end) == 2:
+        file_path = folder_path + beginning + '_CH' + str(ch_num) + '_' + end[0] + '_' + end[1] + '.continuous'
+    else:
+        file_path = folder_path + beginning + '_CH' + str(ch_num) + '_' + end[0] + '.continuous'
+    return file_path
+
+
 # this is for putting all tetrodes in the same mda file
 def convert_all_tetrodes_to_mda(prm):
     raw_mda_path = file_utility.get_raw_mda_path_all_channels(prm)
@@ -63,7 +74,12 @@ def convert_all_tetrodes_to_mda(prm):
         path = raw_mda_path
 
         file_path = folder_path + continuous_file_name + str(1) + continuous_file_name_end + '.continuous'
-        first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
+        if os.path.exists(file_path):
+            first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
+        else:
+            file_path = try_to_figure_out_non_default_file_names(folder_path, 1)
+
+            first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
 
         live_channels = PreClustering.dead_channels.get_list_of_live_channels_all_tetrodes(prm)
         number_of_live_channels = len(live_channels)
@@ -75,7 +91,12 @@ def convert_all_tetrodes_to_mda(prm):
         for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
-                channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                if os.path.exists(file_path):
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                else:
+                    file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+
                 channels_all[live_ch_counter, :] = channel_data
                 live_ch_counter += 1
 
