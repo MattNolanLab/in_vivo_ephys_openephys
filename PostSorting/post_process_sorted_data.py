@@ -30,9 +30,9 @@ def initialize_parameters(recording_to_process):
     prm.set_is_ubuntu(True)
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
-    if os.path.exists(recording_to_process + '100_ADC1.continuous'):
+    if os.path.exists(recording_to_process + '/100_ADC1.continuous'):
         prm.set_sync_channel('100_ADC1.continuous')
-    elif os.path.exists(recording_to_process + '105_CH20_2_0.continuous'):
+    elif os.path.exists(recording_to_process + '/105_CH20_2_0.continuous'):
         prm.set_sync_channel('105_CH20_2_0.continuous')
     else:
         prm.set_sync_channel('105_CH20_0.continuous')
