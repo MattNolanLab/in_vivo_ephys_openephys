@@ -176,7 +176,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
     prm.set_delete_two_minutes(delete_first_two_minutes)
-    prm.set_pixel_ratio(pixel_ratio)
+    if pixel_ratio is False:
+        print('Default pixel ratio (440) is used.')
+    else:
+        prm.set_pixel_ratio(pixel_ratio)
 
     if run_type == 'stable':
         prm.set_is_stable(True)
