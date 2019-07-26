@@ -30,7 +30,13 @@ def initialize_parameters(recording_to_process):
     prm.set_is_ubuntu(True)
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
-    prm.set_sync_channel('100_ADC1.continuous')
+    if os.path.exists(recording_to_process + '/100_ADC1.continuous'):
+        prm.set_sync_channel('100_ADC1.continuous')
+    elif os.path.exists(recording_to_process + '/105_CH20_2_0.continuous'):
+        prm.set_sync_channel('105_CH20_2_0.continuous')
+    else:
+        prm.set_sync_channel('105_CH20_0.continuous')
+
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_file_path(recording_to_process)  # todo clean this
@@ -40,8 +46,9 @@ def process_running_parameter_tag(running_parameter_tags):
     unexpected_tag = False
     interleaved_opto = False
     delete_first_two_minutes = False
+    pixel_ratio = False
     if not running_parameter_tags:
-        return unexpected_tag, interleaved_opto, delete_first_two_minutes
+        return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
@@ -49,10 +56,12 @@ def process_running_parameter_tag(running_parameter_tags):
             interleaved_opto = True
         elif tag == 'delete_first_two_minutes':
             delete_first_two_minutes = True
+        elif tag.startswith('pixel_ratio'):
+            pixel_ratio = int(tag.split('=')[1])   # put pixel ratio value in pixel_ratio
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
-    return unexpected_tag, interleaved_opto, delete_first_two_minutes
+    return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -162,11 +171,15 @@ def run_analyses(spike_data_in, synced_spatial_data):
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    unexpected_tag, interleaved_opto, delete_first_two_minutes = process_running_parameter_tag(running_parameter_tags)
+    unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
     prm.set_delete_two_minutes(delete_first_two_minutes)
+    if pixel_ratio is False:
+        print('Default pixel ratio (440) is used.')
+    else:
+        prm.set_pixel_ratio(pixel_ratio)
 
     if run_type == 'stable':
         prm.set_is_stable(True)
