@@ -2,6 +2,7 @@ import open_ephys_IO
 import os
 import numpy as np
 import pandas as pd
+import PostSorting.parameters
 
 import PostSorting.open_field_make_plots
 
@@ -54,5 +55,27 @@ def make_opto_data_frame(opto_on):
     opto_end_times = np.append(opto_end_times, opto_on[0][-1])
     opto_data_frame['opto_end_times'] = opto_end_times
     return opto_data_frame
+
+
+def process_spikes_around_light(spatial_firing, prm):
+    path_to_pulses = prm.get_output_path() + '/DataFrames/opto_pulses.pkl'
+    pulses = pd.read_pickle(path_to_pulses)
+
+    for index, cell in spatial_firing.iterrows():
+        pass
+
+
+def main():
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
+    prm = PostSorting.parameters.Parameters()
+    prm.set_output_path(recording_folder + '/MountainSort')
+    spikes_path = prm.get_output_path() + '/DataFrames/spatial_firing.pkl'
+    spikes = pd.read_pickle(spikes_path)
+    process_spikes_around_light(spikes, prm)
+
+
+if __name__ == '__main__':
+    main()
+
 
 

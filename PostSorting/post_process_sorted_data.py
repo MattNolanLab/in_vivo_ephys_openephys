@@ -148,6 +148,8 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
                 return
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+        if opto_is_found:
+            PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
         spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250, prm.get_sampling_rate())
         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
         position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
