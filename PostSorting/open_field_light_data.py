@@ -1,6 +1,7 @@
 import open_ephys_IO
 import os
 import numpy as np
+import pandas as pd
 
 import PostSorting.open_field_make_plots
 
@@ -42,4 +43,16 @@ def process_opto_data(recording_to_process, prm):
         prm.set_opto_tagging_start_index(None)
 
     return opto_on, opto_off, is_found
+
+
+def make_opto_data_frame(opto_on):
+    opto_data_frame = pd.DataFrame()
+    opto_end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1))
+    opto_start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
+    opto_start_times = np.append(opto_on[0][0], opto_start_times_from_second)
+    opto_data_frame['opto_start_times'] = opto_start_times
+    opto_end_times = np.append(opto_end_times, opto_on[0][-1])
+    opto_data_frame['opto_end_times'] = opto_end_times
+    return opto_data_frame
+
 
