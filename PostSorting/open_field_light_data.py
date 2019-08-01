@@ -63,11 +63,42 @@ def check_parity_of_window_size(window_size_ms):
         assert window_size_ms % 2 == 0
 
 
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=800):
-    check_parity_of_window_size(window_size_ms)
+def get_on_pulse_times(prm):
     path_to_pulses = prm.get_output_path() + '/DataFrames/opto_pulses.pkl'
     pulses = pd.read_pickle(path_to_pulses)
     on_pulses = pulses.opto_start_times
+    return on_pulses
+
+
+def get_firing_times(cell):
+    if 'firing_times_opto' in cell:
+        firing_times = np.append(cell.firing_times, cell.firing_times_opto)
+    else:
+        firing_times = cell.fiting_times
+    return firing_times
+
+
+def find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate):
+    spikes_in_window_binary = np.zeros(window_size_sampling_rate)
+    window_start = int(pulse - window_size_sampling_rate / 2)
+    window_end = int(pulse + window_size_sampling_rate / 2)
+    spikes_in_window_indices = np.where((firing_times > window_start) & (firing_times < window_end))
+    spike_times = np.take(firing_times, spikes_in_window_indices)[0]
+    position_of_spikes = spike_times.astype(int) - window_start
+    spikes_in_window_binary[position_of_spikes] = 1
+    return spikes_in_window_binary
+
+
+def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary, window_size_sampling_rate):
+    columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
+    df_row = np.append([session_id, cluster_id], spikes_in_window_binary.astype(int))
+    df_to_append = pd.DataFrame([(df_row)], columns=columns)
+    return df_to_append
+
+
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
+    check_parity_of_window_size(window_size_ms)
+    on_pulses = get_on_pulse_times(prm)
     sampling_rate = prm.get_sampling_rate()
     window_size_sampling_rate = int(sampling_rate/1000 * window_size_ms)
 
@@ -77,19 +108,10 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=800):
     for index, cell in spatial_firing.iterrows():
         session_id = cell.session_id
         cluster_id = cell.cluster_id
-
         for pulse in on_pulses:
-            spikes_in_window_binary = np.zeros(window_size_sampling_rate)
-            window_start = int(pulse - window_size_sampling_rate/4)
-            window_end = int(pulse + window_size_sampling_rate/4*3)
-            spikes_in_window_indices = np.where((cell.firing_times_opto > window_start) & (cell.firing_times_opto < window_end))
-            spike_times = np.take(cell.firing_times_opto, spikes_in_window_indices)[0]
-            position_of_spikes = spike_times.astype(int) - window_start
-            spikes_in_window_binary[position_of_spikes] = 1
-
-            columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
-            df_row = np.append([session_id, cluster_id], spikes_in_window_binary.astype(int))
-            df_to_append = pd.DataFrame([(df_row)], columns=columns)
+            firing_times = get_firing_times(cell)
+            spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
+            df_to_append = make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary, window_size_sampling_rate)
             peristimulus_spikes = peristimulus_spikes.append(df_to_append)
     peristimulus_spikes.to_pickle(prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl')
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
