@@ -64,31 +64,38 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=80):
     path_to_pulses = prm.get_output_path() + '/DataFrames/opto_pulses.pkl'
     pulses = pd.read_pickle(path_to_pulses)
     on_pulses = pulses.opto_start_times
-    sampling_rate = 30000
+    sampling_rate = prm.get_sampling_rate()
     window_size_sampling_rate = int(sampling_rate/1000 * window_size_ms)
-    number_of_pulses = len(pulses)
 
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
-    df_peristimulus_spikes = pd.DataFrame(columns=columns)
+    peristimulus_spikes = pd.DataFrame(columns=columns)
 
     for index, cell in spatial_firing.iterrows():
         session_id = cell.session_id
-        cluster_id= cell.cluster_id
+        cluster_id = cell.cluster_id
 
         for pulse in on_pulses:
-            empty_array = np.zeros(window_size_sampling_rate)
+            spikes_in_window_binary = np.zeros(window_size_sampling_rate)
             window_start = int(pulse - window_size_sampling_rate/2)
             window_end = int(pulse + window_size_sampling_rate/2)
-            spikes_in_window_indices = np.where((cell.firing_times > window_start) & (cell.firing_times < window_end))
-            spike_times = np.take(cell.firing_times, spikes_in_window_indices)
-            position_of_spikes = int(spike_times) - window_start
-            empty_array[position_of_spikes] = 1
+            spikes_in_window_indices = np.where((cell.firing_times_opto > window_start) & (cell.firing_times_opto < window_end))
+            spike_times = np.take(cell.firing_times_opto, spikes_in_window_indices)[0]
+            position_of_spikes = spike_times.astype(int) - window_start
+            spikes_in_window_binary[position_of_spikes] = 1
+
+            columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
+            df_row = np.append([session_id, cluster_id], spikes_in_window_binary.astype(int))
+            df_to_append = pd.DataFrame([(df_row)], columns=columns)
+            peristimulus_spikes = peristimulus_spikes.append(df_to_append)
+
 
 
 def main():
-    recording_folder = '/Users/briannavandrey/Documents/recordings'
+    # recording_folder = '/Users/briannavandrey/Documents/recordings'
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
     prm = PostSorting.parameters.Parameters()
     prm.set_output_path(recording_folder + '/MountainSort')
+    prm.set_sampling_rate(30000)
     spikes_path = prm.get_output_path() + '/DataFrames/spatial_firing.pkl'
     spikes = pd.read_pickle(spikes_path)
     process_spikes_around_light(spikes, prm)
