@@ -57,10 +57,14 @@ def make_opto_data_frame(opto_on):
     return opto_data_frame
 
 
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=80):
+def check_parity_of_window_size(window_size_ms):
     if window_size_ms % 2 != 0:
         print("Window size must be divisible by 2")
         assert window_size_ms % 2 == 0
+
+
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=80):
+    check_parity_of_window_size(window_size_ms)
     path_to_pulses = prm.get_output_path() + '/DataFrames/opto_pulses.pkl'
     pulses = pd.read_pickle(path_to_pulses)
     on_pulses = pulses.opto_start_times
@@ -87,7 +91,7 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=80):
             df_row = np.append([session_id, cluster_id], spikes_in_window_binary.astype(int))
             df_to_append = pd.DataFrame([(df_row)], columns=columns)
             peristimulus_spikes = peristimulus_spikes.append(df_to_append)
-
+    peristimulus_spikes.to_pickle(prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl')
 
 
 def main():
