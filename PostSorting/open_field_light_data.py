@@ -57,16 +57,36 @@ def make_opto_data_frame(opto_on):
     return opto_data_frame
 
 
-def process_spikes_around_light(spatial_firing, prm):
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=80):
+    if window_size_ms % 2 != 0:
+        print("Window size must be divisible by 2")
+        assert window_size_ms % 2 == 0
     path_to_pulses = prm.get_output_path() + '/DataFrames/opto_pulses.pkl'
     pulses = pd.read_pickle(path_to_pulses)
+    on_pulses = pulses.opto_start_times
+    sampling_rate = 30000
+    window_size_sampling_rate = int(sampling_rate/1000 * window_size_ms)
+    number_of_pulses = len(pulses)
+
+    columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
+    df_peristimulus_spikes = pd.DataFrame(columns=columns)
 
     for index, cell in spatial_firing.iterrows():
-        pass
+        session_id = cell.session_id
+        cluster_id= cell.cluster_id
+
+        for pulse in on_pulses:
+            empty_array = np.zeros(window_size_sampling_rate)
+            window_start = int(pulse - window_size_sampling_rate/2)
+            window_end = int(pulse + window_size_sampling_rate/2)
+            spikes_in_window_indices = np.where((cell.firing_times > window_start) & (cell.firing_times < window_end))
+            spike_times = np.take(cell.firing_times, spikes_in_window_indices)
+            position_of_spikes = int(spike_times) - window_start
+            empty_array[position_of_spikes] = 1
 
 
 def main():
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
+    recording_folder = '/Users/briannavandrey/Documents/recordings'
     prm = PostSorting.parameters.Parameters()
     prm.set_output_path(recording_folder + '/MountainSort')
     spikes_path = prm.get_output_path() + '/DataFrames/spatial_firing.pkl'
