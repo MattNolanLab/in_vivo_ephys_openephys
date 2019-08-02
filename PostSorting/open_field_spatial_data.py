@@ -6,6 +6,8 @@ import os
 import pandas as pd
 import math_utility
 
+import pyxona  # for reading axona files
+
 
 import PostSorting.parameters
 
@@ -40,7 +42,29 @@ def find_bonsai_file(recording_folder):
 
     return path_to_bonsai_file, is_found
 
-''' Read raw position data and sync LED intensity from Bonsai file amd convert time to seconds
+
+def find_axona_position_file(recording_folder):
+    if os.path.isdir(recording_folder) is False:
+        print('    Error in open_field_spatial_data.py : The folder you specified as recording folder does not exist, please check if the path is correct.')
+    path_to_axona_file = ''
+    is_found = False
+    for name in glob.glob(recording_folder + '/*.set'):
+        if os.path.exists(name):
+            try:
+                path_to_axona_file = name
+                pyxona.File(path_to_axona_file)
+                is_found = True
+            except Exception as ex:
+                print('Could not read axona file:')
+                print(name)
+                print(ex)
+
+    return path_to_axona_file, is_found
+
+
+
+''' 
+Read raw position data and sync LED intensity from Bonsai file amd convert time to seconds
 '''
 
 
@@ -65,6 +89,19 @@ def read_position(path_to_bonsai_file):
 
     position_data.columns = ['x_left', 'y_left', 'x_right', 'y_right', 'syncLED', 'date', 'time']
     position_data = convert_time_to_seconds(position_data)
+    return position_data
+
+
+def read_position_axona(path_to_position_file):
+    position_data = pd.DataFrame()
+    axona_data = pyxona.File(path_to_position_file)
+    position_data['time'] = axona_data.tracking.times
+    position_data['x_left'] = axona_data.tracking.positions[:, 0]
+    position_data['y_left'] = axona_data.tracking.positions[:, 1]
+    position_data['x_right'] = axona_data.tracking.positions[:, 2]
+    position_data['y_right'] = axona_data.tracking.positions[:, 3]
+    # find and add sync data!
+
     return position_data
 
 
@@ -220,9 +257,13 @@ def remove_position_outlier_rows(position_data):
 
 def process_position_data(recording_folder, params):
     position_of_mouse = None
-    path_to_bonsai_file, is_found = find_bonsai_file(recording_folder)
+    path_to_position_file, is_found = find_bonsai_file(recording_folder)
     if is_found:
-        position_data = read_position(path_to_bonsai_file)  # raw position data from bonsai output
+        position_data = read_position(path_to_position_file)  # raw position data from bonsai output
+    if not is_found:
+        path_to_position_file, is_found = find_axona_position_file(recording_folder)
+        position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
+    if is_found:
         position_data = calculate_speed(position_data)
         position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
         position_data = calculate_position(position_data)  # get central position and interpolate missing data
@@ -244,7 +285,7 @@ def main():
     params = PostSorting.parameters.Parameters()
     params.set_pixel_ratio(440)
 
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/A_2017-01-17_17-17-00'
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M0_2017-11-21_15-52-53'
     position_of_mouse = process_position_data(recording_folder, params)
 
