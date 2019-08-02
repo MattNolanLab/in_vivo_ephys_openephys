@@ -96,12 +96,12 @@ def read_position_axona(path_to_position_file):
     position_data = pd.DataFrame()
     axona_data = pyxona.File(path_to_position_file)
     position_data['time'] = axona_data.tracking.times
+    position_data['date'] = str(axona_data._start_datetime).split(' ')[0]
     position_data['x_left'] = axona_data.tracking.positions[:, 0]
     position_data['y_left'] = axona_data.tracking.positions[:, 1]
     position_data['x_right'] = axona_data.tracking.positions[:, 2]
     position_data['y_right'] = axona_data.tracking.positions[:, 3]
-    # find and add sync data!
-
+    # find and add sync data! axona_data.inp_data  # this just contains a few time stamps-convert based on matlab script
     return position_data
 
 
