@@ -24,9 +24,6 @@ def load_sync_data_ephys(recording_to_process, prm):
             time_stamps = events['timestamps']
             channel = events['channel']
             pulse_indices = time_stamps[np.where(channel == 0)]
-            for sample in pulse_indices:   # make pulse wider
-                pulse_indices = np.append(pulse_indices, np.arange(sample, (sample + 5000)))
-
             # load any continuous data file to get length of recording
             for name in glob.glob(recording_to_process + '/*.continuous'):
                 if os.path.exists(name):
