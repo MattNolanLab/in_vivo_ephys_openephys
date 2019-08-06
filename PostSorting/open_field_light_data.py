@@ -46,7 +46,7 @@ def process_opto_data(recording_to_process, prm):
     return opto_on, opto_off, is_found
 
 
-def make_opto_data_frame(opto_on):
+def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
     opto_data_frame = pd.DataFrame()
     opto_end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1))
     opto_start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)

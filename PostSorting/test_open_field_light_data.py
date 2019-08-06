@@ -1,22 +1,28 @@
+import numpy as np
 import PostSorting.open_field_light_data
 import pandas as pd
+from pandas.util.testing import assert_frame_equal
 
 
 def test_make_opto_data_frame():
 
     # pulses equally spaced and same length
-    array_in = ([1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21])
-    desired_df = pd.DataFrame({'opto_start_times': [1, 9, 17],
-                               'opto_end_times': [5, 13, 21]})
+    array_in = ([[1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 17, 18, 19, 20, 21]])
+    # desired_df = pd.DataFrame({'opto_start_times': [1, 9, 17], 'opto_end_times': [5, 13, 21]})
+    desired_df = pd.DataFrame()
+    desired_df['opto_start_times'] = [1, 9, 17]
+    desired_df['opto_end_times'] = [5, 13, 21]
+
     result_df = PostSorting.open_field_light_data.make_opto_data_frame(array_in)
-    assert desired_df.equals(result_df)
+    assert assert_frame_equal(desired_df, result_df, check_dtype=False) is None
+
 
     # lengths of pulses are different
-    array_in = ([1, 2, 3, 10, 11, 12, 13, 14, 21, 22, 23, 24, 25, 26, 27])
+    array_in = ([[1, 2, 3, 10, 11, 12, 13, 14, 21, 22, 23, 24, 25, 26, 27]])
     desired_df = pd.DataFrame({'opto_start_times': [1, 10, 21],
                                'opto_end_times': [3, 14, 27]})
     result_df = PostSorting.open_field_light_data.make_opto_data_frame(array_in)
-    assert desired_df.equals(result_df)
+    assert_frame_equal(desired_df, result_df, check_dtype=False)
 
     # spacings between pulses are different
     array_in = ([1, 2, 3, 4, 5, 10, 11, 12, 13, 14, 23, 24, 25, 26, 27])
