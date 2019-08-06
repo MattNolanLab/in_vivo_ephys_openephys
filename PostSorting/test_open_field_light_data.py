@@ -1,6 +1,7 @@
 import PostSorting.open_field_light_data
 import pandas as pd
 
+
 def test_make_opto_data_frame():
 
     # pulses equally spaced and same length
@@ -39,8 +40,9 @@ def test_make_opto_data_frame():
     assert desired_df.equals(result_df)
 
 
-    def main():
-        test_make_opto_data_frame()
+def main():
+    test_make_opto_data_frame()
 
-    if __name__ == '__main__':
-        main()
+
+if __name__ == '__main__':
+    main()
