@@ -558,6 +558,12 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
     print(stat)
     print(p)
 
+    t, p = scipy.stats.wilcoxon(correlation_values_in_between)
+    print('Wilcoxon p value for correlations in between fields is ' + str(p) + ' T is ' + str(t))
+
+    t, p = scipy.stats.wilcoxon(within_field_corr)
+    print('Wilcoxon p value for within field correlations is ' + str(p) + ' T is ' + str(t))
+
 
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     first_halves = field_data.hd_hist_first_half.values
@@ -706,8 +712,8 @@ def process_circular_data(animal, tag=''):
 
 
 def main():
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
     process_circular_data('mouse')
     process_circular_data('rat')
 
