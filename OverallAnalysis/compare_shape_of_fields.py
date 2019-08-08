@@ -550,11 +550,20 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.close()
 
 
+def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
+    correlation_data = pd.DataFrame()
+    correlation_data['R'] = good_grid_coef
+    correlation_data['p'] = good_grid_cells_p
+    correlation_data.to_csv(OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/' + file_name + '.csv')
+
+
 def compare_within_field_with_other_fields_stat(field_data, animal):
     correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    save_corr_coef_in_csv(correlation_values_in_between, correlation_p, 'in_between_fields_all_' + animal)
     print('% of significant p values for in between field correlations:')
     print(sum(np.array(correlation_p) < 0.01) / len(correlation_p) * 100)
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
+    save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
     print('% of significant p values for within field correlations:')
     print(sum(correlation_p_within < 0.01) / len(correlation_p_within) * 100)
     stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field_corr)
@@ -612,9 +621,11 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
 
     print('% of coefficients with significant p for in between field correlations:')
     print(sum(in_between_fields_p < 0.01) / len(in_between_fields_p) * 100)
+    save_corr_coef_in_csv(in_between_fields, in_between_fields_p, 'in_between_fields_correlating_only_' + animal)
 
     print('% of coefficients with significant p for within field correlations:')
     print(sum(p_within_field < 0.01) / len(p_within_field) * 100)
+    save_corr_coef_in_csv(within_field, p_within_field, 'within_fields_correlating_only_' + animal)
 
 
 def plot_half_fields(field_data, animal):
