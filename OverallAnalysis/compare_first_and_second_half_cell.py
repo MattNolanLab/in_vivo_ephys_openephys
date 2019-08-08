@@ -113,6 +113,13 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
     print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].mean())
     print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].std())
 
+    print('% of significant correlation values for grid cells: ')
+    good_grid_cells_p = df_all_animals.hd_correlation_first_vs_second_half_p[good_cluster & grid_cell]
+    number_of_significant_ps = (good_grid_cells_p < 0.01).sum()
+    all_ps = len(good_grid_cells_p)
+    proportion = number_of_significant_ps / all_ps * 100
+    print(proportion)
+
     t, p = scipy.stats.wilcoxon(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell])
     print('Wilcoxon p value is ' + str(p) + ' T is ' + str(t))
 
