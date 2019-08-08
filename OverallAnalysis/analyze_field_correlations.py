@@ -66,3 +66,11 @@ plot_correlation_coef_hist(grid_coeffs, save_path)
 grid_coeffs = fields[conjunctive_cells & significant]['correlation coef'].values
 save_path = path + 'correlation_coef_hist_conj.png'
 plot_correlation_coef_hist(grid_coeffs, save_path)
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
