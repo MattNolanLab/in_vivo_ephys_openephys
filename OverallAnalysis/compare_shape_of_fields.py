@@ -601,6 +601,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     in_between_fields = np.array(correlation_values)
     in_between_fields_p = np.array(correlation_p)
     within_field, p_within_field = get_correlation_values_within_fields(field_data)
+    save_corr_coef_in_csv(within_field, p_within_field, 'within_fields_correlating_only_' + animal)
     within_field = within_field[within_field >= 0.4]
 
     fig, ax = plt.subplots()
@@ -625,7 +626,6 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
 
     print('% of coefficients with significant p for within field correlations:')
     print(sum(p_within_field < 0.01) / len(p_within_field) * 100)
-    save_corr_coef_in_csv(within_field, p_within_field, 'within_fields_correlating_only_' + animal)
 
 
 def plot_half_fields(field_data, animal):
