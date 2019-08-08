@@ -552,7 +552,11 @@ def compare_within_field_with_other_fields(field_data, animal):
 
 def compare_within_field_with_other_fields_stat(field_data, animal):
     correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    print('% of significant p values for in between field correlations:')
+    print(sum(np.array(correlation_p) < 0.01) / len(correlation_p) * 100)
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
+    print('% of significant p values for within field correlations:')
+    print(sum(correlation_p_within < 0.01) / len(correlation_p_within) * 100)
     stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field_corr)
     print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
     print(stat)
@@ -586,7 +590,8 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
         count_f1 += 1
 
     in_between_fields = np.array(correlation_values)
-    within_field, p = get_correlation_values_within_fields(field_data)
+    in_between_fields_p = np.array(correlation_p)
+    within_field, p_within_field = get_correlation_values_within_fields(field_data)
     within_field = within_field[within_field >= 0.4]
 
     fig, ax = plt.subplots()
@@ -604,6 +609,12 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     print(stat)
     print(p)
     print('number of fields ' + str(len(within_field)))
+
+    print('% of coefficients with significant p for in between field correlations:')
+    print(sum(in_between_fields_p < 0.01) / len(in_between_fields_p) * 100)
+
+    print('% of coefficients with significant p for within field correlations:')
+    print(sum(p_within_field < 0.01) / len(p_within_field) * 100)
 
 
 def plot_half_fields(field_data, animal):
