@@ -43,7 +43,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     print('Started another cluster')
     print(cluster)
     cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
-    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
+    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels.iloc[cluster_index], 'position_y': firing_data_spatial.position_y_pixels.iloc[cluster_index]})
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
     firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
