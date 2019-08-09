@@ -560,6 +560,15 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative2.png')
     plt.close()
 
+    # plot only within field comparisons
+    fig, ax = plt.subplots()
+    plt.axvline(x=0, linewidth=3, color='red')
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_cumulative_winthin_field_only.png')
+    plt.close()
+
 
 def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
     correlation_data = pd.DataFrame()
