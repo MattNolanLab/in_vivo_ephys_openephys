@@ -114,7 +114,7 @@ def find_maximum_firing_rate(spatial_firing):
     max_firing_rates = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_rate_map = spatial_firing.firing_maps[cluster]
+        firing_rate_map = spatial_firing.firing_maps.iloc[cluster]
         max_firing_rate = np.max(firing_rate_map.flatten())
         max_firing_rates.append(max_firing_rate)
     spatial_firing['max_firing_rate'] = max_firing_rates
