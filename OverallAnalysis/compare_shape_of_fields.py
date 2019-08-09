@@ -236,6 +236,17 @@ def compare_hd_histograms(field_data):
     return pearson_coefs_avg
 
 
+def save_hd_histograms_csv(field_data, file_name):
+    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
+        for index, field in enumerate(field_histograms):
+            np.savetxt(local_path + '/data_for_r/' + file_name + '_' + cell_id + '_' +  str(index) + '.csv', field, delimiter=',')
+
+
 def save_correlation_plot(corr, animal, cell_type, tag=''):
     # Generate a mask for the upper triangle
     mask = np.zeros_like(corr, dtype=np.bool)
@@ -662,11 +673,20 @@ def process_circular_data(animal, tag=''):
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
 
-        grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
-        grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
-        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
+        all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+        grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df)
+        save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
+        centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
+        grid_pearson_centre = compare_hd_histograms(centre_fields_only_df)
+        save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
+        border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
+        grid_pearson_border = compare_hd_histograms(border_fields_only_df)
+        save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
-        conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+        conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
+        conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df)
+        save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
+
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
