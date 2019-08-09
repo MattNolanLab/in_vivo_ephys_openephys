@@ -96,7 +96,7 @@ def plot_hd(spatial_firing, position_data, prm):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         x_positions = spatial_firing.position_x.iloc[cluster]
         y_positions = spatial_firing.position_y.iloc[cluster]
-        hd = spatial_firing.hd[cluster]
+        hd = spatial_firing.hd.iloc[cluster]
         hd_map_fig = plt.figure()
         hd_map_fig.set_size_inches(5, 5, forward=True)
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
