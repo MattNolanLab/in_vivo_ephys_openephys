@@ -290,7 +290,7 @@ def plot_spikes_on_firing_fields(spatial_firing, prm):
                 spatial_firing_cluster = make_df_for_cluster(spatial_firing, cluster)
 
                 for field_id, field in enumerate(firing_fields_cluster):
-                    spike_times_field = spatial_firing.spike_times_in_fields[cluster][field_id]
+                    spike_times_field = spatial_firing.spike_times_in_fields.iloc[cluster][field_id]
                     field_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_field)]
                     of_plot.scatter(field_df['x'].values, field_df['y'].values, color=colors[field_id], marker='o', s=10)
                 plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot)
