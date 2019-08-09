@@ -216,8 +216,8 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
-            firing_rate_map = spatial_firing.firing_maps[cluster]
+            number_of_firing_fields = len(spatial_firing.firing_fields.iloc[cluster])
+            firing_rate_map = spatial_firing.firing_maps.iloc[cluster]
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
@@ -227,7 +227,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 of_plot.axis('off')
                 of_plot.imshow(firing_rate_map)
 
-                firing_fields_cluster = spatial_firing.firing_fields[cluster]
+                firing_fields_cluster = spatial_firing.firing_fields.iloc[cluster]
                 colors = generate_colors(number_of_firing_fields)
 
                 for field_id, field in enumerate(firing_fields_cluster):
