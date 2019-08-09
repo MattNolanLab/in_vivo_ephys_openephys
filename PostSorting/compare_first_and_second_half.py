@@ -100,7 +100,7 @@ def get_half_of_the_data(prm, spike_data_in, synced_spatial_data_in, half='first
     return spike_data_half, synced_spatial_data_half
 
 
-def get_half_of_the_data_cells(prm, spike_data_in, synced_spatial_data_in, half='first_half'):
+def get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half'):
     spike_data = spike_data_in.copy()
     synced_spatial_data = synced_spatial_data_in.copy()
     synced_spatial_data_half = None
