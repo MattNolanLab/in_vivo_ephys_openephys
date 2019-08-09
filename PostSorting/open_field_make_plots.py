@@ -258,7 +258,7 @@ def make_df_for_cluster(spatial_firing, cluster):
     spatial_firing_cluster = pd.DataFrame(cluster_id)
     spatial_firing_cluster['x'] = spatial_firing.position_x_pixels.iloc[cluster]
     spatial_firing_cluster['y'] = spatial_firing.position_y_pixels.iloc[cluster]
-    spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
+    spatial_firing_cluster['hd'] = spatial_firing.hd.iloc[cluster]
     spatial_firing_cluster['firing_times'] = spatial_firing.firing_times.iloc[cluster]
     return spatial_firing_cluster
 
