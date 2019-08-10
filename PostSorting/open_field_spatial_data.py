@@ -282,8 +282,8 @@ def process_position_data(recording_folder, params):
         if is_found:
             position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
         else:
-            if os.path.isfile(recording_folder + 'axona_position.pkl'):
-                position_data = recording_folder + 'axona_position.pkl'
+            if os.path.isfile(recording_folder + '/axona_position.pkl'):
+                position_data = recording_folder + '/axona_position.pkl'
                 is_found = True
     if is_found:
         position_data = calculate_speed(position_data)
