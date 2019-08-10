@@ -585,6 +585,7 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
     save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
     print('% of significant p values for within field correlations:')
+    print('number of fields included: ' + str(len(correlation_p_within)))
     print(sum(correlation_p_within < 0.01) / len(correlation_p_within) * 100)
     stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field_corr)
     print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
