@@ -6,9 +6,6 @@ import os
 import pandas as pd
 import math_utility
 
-# import pyxona  # for reading axona files
-from shutil import copyfile
-
 
 import PostSorting.parameters
 
@@ -44,28 +41,6 @@ def find_bonsai_file(recording_folder):
     return path_to_bonsai_file, is_found
 
 
-def find_axona_position_file(recording_folder):
-    if os.path.isdir(recording_folder) is False:
-        print('    Error in open_field_spatial_data.py : The folder you specified as recording folder does not exist, please check if the path is correct.')
-    path_to_axona_file = ''
-    is_found = False
-    for name in glob.glob(recording_folder + '/*.set'):
-        if os.path.exists(name):
-            new_name = name.split('.SET')[0] + '.set'
-            os.rename(name, new_name)
-            try:
-                path_to_axona_file = new_name
-                # pyxona.File(path_to_axona_file)
-                is_found = True
-            except Exception as ex:
-                print('Could not read axona file:')
-                print(new_name)
-                print(ex)
-
-    return path_to_axona_file, is_found
-
-
-
 ''' 
 Read raw position data and sync LED intensity from Bonsai file amd convert time to seconds
 '''
@@ -93,36 +68,6 @@ def read_position(path_to_bonsai_file):
     position_data.columns = ['x_left', 'y_left', 'x_right', 'y_right', 'syncLED', 'date', 'time']
     position_data = convert_time_to_seconds(position_data)
     return position_data
-
-
-def convert_axona_sync_pulses_to_continuous(axona_data):
-    sync_pulse_times = axona_data.inp_data.times[1:]
-    length = len(axona_data.tracking.times)
-    sync_data = np.zeros(length)
-    pulse_indices = (axona_data._inp_data.times[1:] * 50).astype(int)
-    sync_data[pulse_indices] = 1
-    return sync_data
-
-
-'''
-def read_position_axona(path_to_position_file):
-    import pyxona
-    position_data = pd.DataFrame()
-    axona_data = pyxona.File(path_to_position_file)
-    position_data['time'] = axona_data.tracking.times
-    position_data.time = position_data.time - position_data.time[1] + (position_data.time[2] - position_data.time[1])
-    position_data.time[0] = 0
-    position_data['time_seconds'] = position_data.time
-    position_data['date'] = str(axona_data._start_datetime).split(' ')[0]
-    position_data['x_left'] = axona_data.tracking.positions[:, 0]
-    position_data['y_left'] = axona_data.tracking.positions[:, 1]
-    position_data['x_right'] = axona_data.tracking.positions[:, 2]
-    position_data['y_right'] = axona_data.tracking.positions[:, 3]
-    sync_data = convert_axona_sync_pulses_to_continuous(axona_data)
-    position_data['syncLED'] = sync_data
-    # find and add sync data! axona_data.inp_data  # this just contains a few time stamps-convert based on matlab script
-    return position_data
-'''
 
 
 def calculate_speed(position_data):
@@ -281,9 +226,6 @@ def process_position_data(recording_folder, params):
     if is_found:
         position_data = read_position(path_to_position_file)  # raw position data from bonsai output
     if not is_found:
-        path_to_position_file, is_found = find_axona_position_file(recording_folder)
-        #if is_found:
-            #position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
         if os.path.isfile(recording_folder + '/axona_position.pkl'):
             position_data = pd.read_pickle(recording_folder + '/axona_position.pkl')
             is_found = True
