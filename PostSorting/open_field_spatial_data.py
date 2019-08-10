@@ -279,7 +279,12 @@ def process_position_data(recording_folder, params):
         position_data = read_position(path_to_position_file)  # raw position data from bonsai output
     if not is_found:
         path_to_position_file, is_found = find_axona_position_file(recording_folder)
-        position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
+        if is_found:
+            position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
+        else:
+            if os.path.isfile(recording_folder + 'axona_position.pkl'):
+                position_data = recording_folder + 'axona_position.pkl'
+                is_found = True
     if is_found:
         position_data = calculate_speed(position_data)
         position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
