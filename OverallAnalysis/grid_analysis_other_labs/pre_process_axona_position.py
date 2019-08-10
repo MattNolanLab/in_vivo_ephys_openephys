@@ -20,6 +20,7 @@ def process_axona_recordings():
                             path_to_position_file, is_found = PostSorting.open_field_spatial_data.find_axona_position_file(file + '/')
                             position_data = PostSorting.open_field_spatial_data.read_position_axona(path_to_position_file)
                             position_data.to_pickle(file + '/axona_position.pkl')
+                            print('saved ' + file + '/axona_position.pkl')
                         except:
                             print('did not manage to process ' + file)
 
