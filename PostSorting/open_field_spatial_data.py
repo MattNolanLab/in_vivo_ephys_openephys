@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import math_utility
 
-import pyxona  # for reading axona files
+# import pyxona  # for reading axona files
 from shutil import copyfile
 
 
@@ -55,7 +55,7 @@ def find_axona_position_file(recording_folder):
             os.rename(name, new_name)
             try:
                 path_to_axona_file = new_name
-                pyxona.File(path_to_axona_file)
+                # pyxona.File(path_to_axona_file)
                 is_found = True
             except Exception as ex:
                 print('Could not read axona file:')
@@ -104,7 +104,9 @@ def convert_axona_sync_pulses_to_continuous(axona_data):
     return sync_data
 
 
+'''
 def read_position_axona(path_to_position_file):
+    import pyxona
     position_data = pd.DataFrame()
     axona_data = pyxona.File(path_to_position_file)
     position_data['time'] = axona_data.tracking.times
@@ -120,6 +122,7 @@ def read_position_axona(path_to_position_file):
     position_data['syncLED'] = sync_data
     # find and add sync data! axona_data.inp_data  # this just contains a few time stamps-convert based on matlab script
     return position_data
+'''
 
 
 def calculate_speed(position_data):
@@ -279,12 +282,11 @@ def process_position_data(recording_folder, params):
         position_data = read_position(path_to_position_file)  # raw position data from bonsai output
     if not is_found:
         path_to_position_file, is_found = find_axona_position_file(recording_folder)
-        if is_found:
-            position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
-        else:
-            if os.path.isfile(recording_folder + '/axona_position.pkl'):
-                position_data = recording_folder + '/axona_position.pkl'
-                is_found = True
+        #if is_found:
+            #position_data = read_position_axona(path_to_position_file)  # raw position data from bonsai output
+        if os.path.isfile(recording_folder + '/axona_position.pkl'):
+            position_data = pd.read_pickle(recording_folder + '/axona_position.pkl')
+            is_found = True
     if is_found:
         position_data = calculate_speed(position_data)
         position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
