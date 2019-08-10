@@ -51,7 +51,7 @@ def find_axona_position_file(recording_folder):
     is_found = False
     for name in glob.glob(recording_folder + '/*.set'):
         if os.path.exists(name):
-            new_name = name.split('.')[:-1][0] + '.set'
+            new_name = name.split('.SET')[0] + '.set'
             os.rename(name, new_name)
             try:
                 path_to_axona_file = new_name
