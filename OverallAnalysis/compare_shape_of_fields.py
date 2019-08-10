@@ -174,6 +174,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.close()
 
     print(animal + ' ' + tag + 'median correlation coefs in between fields [grid cells]')
+    coefs_grid = [x for x in coefs_grid if ~np.isnan(x)]
     print(str(np.median(coefs_grid)))
     print(str(np.std(coefs_grid)))
 
@@ -764,10 +765,10 @@ def process_circular_data(animal, tag=''):
 
 
 def main():
-    # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
-    process_circular_data('mouse')
-    process_circular_data('rat')
+    process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
+    #process_circular_data('mouse')
+    #process_circular_data('rat')
 
 
 if __name__ == '__main__':
