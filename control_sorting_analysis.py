@@ -248,6 +248,8 @@ def copy_file(filename, path_local):
             shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
         if filename.split('.')[-1] == 'continuous':
             shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
+        if filename.split('.')[-1] == 'pkl':
+            shutil.copy(filename, path_local + '/' + filename.split('/')[-1])
 
 
 def copy_recording_to_sort_to_local(recording_to_sort):
