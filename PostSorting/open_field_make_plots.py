@@ -94,9 +94,9 @@ def plot_hd(spatial_firing, position_data, prm):
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
-        x_positions = spatial_firing.position_x.iloc[cluster]
-        y_positions = spatial_firing.position_y.iloc[cluster]
-        hd = spatial_firing.hd.iloc[cluster]
+        x_positions = spatial_firing.position_x[cluster]
+        y_positions = spatial_firing.position_y[cluster]
+        hd = spatial_firing.hd[cluster]
         hd_map_fig = plt.figure()
         hd_map_fig.set_size_inches(5, 5, forward=True)
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -106,7 +106,7 @@ def plot_hd(spatial_firing, position_data, prm):
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot, fraction=0.046, pad=0.04)
         plt.title('head-direction', y=1.08)
-        plt.savefig(save_path + '/' + spatial_firing.session_id.iloc[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
@@ -216,8 +216,8 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields.iloc[cluster])
-            firing_rate_map = spatial_firing.firing_maps.iloc[cluster]
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+            firing_rate_map = spatial_firing.firing_maps[cluster]
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
@@ -227,7 +227,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 of_plot.axis('off')
                 of_plot.imshow(firing_rate_map)
 
-                firing_fields_cluster = spatial_firing.firing_fields.iloc[cluster]
+                firing_fields_cluster = spatial_firing.firing_fields[cluster]
                 colors = generate_colors(number_of_firing_fields)
 
                 for field_id, field in enumerate(firing_fields_cluster):
@@ -246,23 +246,23 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
 
 
 def plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot):
-    all_spikes_in_fields = np.hstack(np.array(spatial_firing.spike_times_in_fields.iloc[cluster]))
-    mask_for_spikes_not_in_fields = ~np.in1d(spatial_firing.firing_times.iloc[cluster], all_spikes_in_fields)
+    all_spikes_in_fields = np.hstack(np.array(spatial_firing.spike_times_in_fields[cluster]))
+    mask_for_spikes_not_in_fields = ~np.in1d(spatial_firing.firing_times[cluster], all_spikes_in_fields)
     try:
-        spike_times_not_in_fields = spatial_firing.firing_times.iloc[cluster][mask_for_spikes_not_in_fields]
+        spike_times_not_in_fields = spatial_firing.firing_times[cluster][mask_for_spikes_not_in_fields]
     except:
-        spike_times_not_in_fields = np.array(spatial_firing.firing_times.iloc[cluster])[mask_for_spikes_not_in_fields]
+        spike_times_not_in_fields = np.array(spatial_firing.firing_times[cluster])[mask_for_spikes_not_in_fields]
     not_in_fields_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_not_in_fields)]
     of_plot.scatter(not_in_fields_df['x'].values, not_in_fields_df['y'].values, color='black', marker='o', s=6)
 
 
 def make_df_for_cluster(spatial_firing, cluster):
-    cluster_id = np.arange(len(spatial_firing.firing_times.iloc[cluster]))
+    cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
     spatial_firing_cluster = pd.DataFrame(cluster_id)
-    spatial_firing_cluster['x'] = spatial_firing.position_x_pixels.iloc[cluster]
-    spatial_firing_cluster['y'] = spatial_firing.position_y_pixels.iloc[cluster]
-    spatial_firing_cluster['hd'] = spatial_firing.hd.iloc[cluster]
-    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times.iloc[cluster]
+    spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
+    spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
+    spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
+    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
     return spatial_firing_cluster
 
 '''
@@ -280,7 +280,7 @@ def plot_spikes_on_firing_fields(spatial_firing, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields.iloc[cluster])
+            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
@@ -288,17 +288,17 @@ def plot_spikes_on_firing_fields(spatial_firing, prm):
                 of_figure.set_size_inches(5, 5, forward=True)
                 of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
-                firing_fields_cluster = spatial_firing.firing_fields.iloc[cluster]
+                firing_fields_cluster = spatial_firing.firing_fields[cluster]
                 colors = generate_colors(number_of_firing_fields)
                 spatial_firing_cluster = make_df_for_cluster(spatial_firing, cluster)
 
                 for field_id, field in enumerate(firing_fields_cluster):
-                    spike_times_field = spatial_firing.spike_times_in_fields.iloc[cluster][field_id]
+                    spike_times_field = spatial_firing.spike_times_in_fields[cluster][field_id]
                     field_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_field)]
                     of_plot.scatter(field_df['x'].values, field_df['y'].values, color=colors[field_id], marker='o', s=10)
                 plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot)
 
-                plt.savefig(save_path + '/' + spatial_firing.session_id.iloc[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
                 # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
