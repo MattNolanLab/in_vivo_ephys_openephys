@@ -100,6 +100,33 @@ def get_half_of_the_data(prm, spike_data_in, synced_spatial_data_in, half='first
     return spike_data_half, synced_spatial_data_half
 
 
+def get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half'):
+    spike_data = spike_data_in.copy()
+    synced_spatial_data = synced_spatial_data_in.copy()
+    synced_spatial_data_half = None
+    spike_data_half = None
+    end_of_first_half_seconds = (synced_spatial_data.synced_time.max() - synced_spatial_data.synced_time.min()) / 2
+    end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * 30000
+
+    if half == 'first_half':
+        first_half_synced_data_indices = synced_spatial_data.synced_time < end_of_first_half_seconds
+        synced_spatial_data_half = synced_spatial_data[first_half_synced_data_indices].copy()
+        for cluster in range(len(spike_data)):
+            cluster = spike_data.cluster_id.values[cluster] - 1
+            firing_times_first_half = spike_data.firing_times[cluster] < end_of_first_half_ephys_sampling_points
+            spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_first_half)
+
+    if half == 'second_half':
+        second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
+        synced_spatial_data_half = synced_spatial_data[second_half_synced_data_indices]
+        for cluster in range(len(spike_data)):
+            cluster = spike_data.cluster_id.values[cluster] - 1
+            firing_times_second_half = spike_data.firing_times[cluster] >= end_of_first_half_ephys_sampling_points
+            spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster, firing_times_second_half)
+    return spike_data_cluster, synced_spatial_data_half
+
+
+
 '''
 slope : slope of the regression line
 intercept : intercept of the regression line

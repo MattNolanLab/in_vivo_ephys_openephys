@@ -7,6 +7,7 @@ import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
 import os
+import scipy.stats
 
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
@@ -100,6 +101,13 @@ def add_combined_id_to_df(df_all_mice):
     return df_all_mice
 
 
+def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p):
+    correlation_data = pd.DataFrame()
+    correlation_data['R'] = good_grid_coef
+    correlation_data['p'] = good_grid_cells_p
+    correlation_data.to_csv(OverallAnalysis.folder_path_settings.get_local_path() + '/correlation_cell/whole_cell_correlations.csv')
+
+
 def correlation_between_first_and_second_halves_of_session(df_all_animals, animal='mouse'):
     good_cluster = df_all_animals.false_positive == False
     grid_cell = df_all_animals['cell type'] == 'grid'
@@ -111,6 +119,17 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
     print('mean and sd pearson r of correlation between first and second half for grid cells')
     print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].mean())
     print(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell].std())
+
+    print('% of significant correlation values for grid cells: ')
+    good_grid_coef = df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell]
+    good_grid_cells_p = df_all_animals.hd_correlation_first_vs_second_half_p[good_cluster & grid_cell]
+    number_of_significant_ps = (good_grid_cells_p < 0.01).sum()
+    all_ps = len(good_grid_cells_p)
+    proportion = number_of_significant_ps / all_ps * 100
+    print(proportion)
+    save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p)
+    t, p = scipy.stats.wilcoxon(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell])
+    print('Wilcoxon p value is ' + str(p) + ' T is ' + str(t))
 
     OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell], save_output_path + 'correlation_hd_session_' + animal + '.png', y_axis_label='Number of cells')
 

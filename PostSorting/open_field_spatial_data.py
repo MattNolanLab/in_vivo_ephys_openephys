@@ -40,7 +40,9 @@ def find_bonsai_file(recording_folder):
 
     return path_to_bonsai_file, is_found
 
-''' Read raw position data and sync LED intensity from Bonsai file amd convert time to seconds
+
+''' 
+Read raw position data and sync LED intensity from Bonsai file amd convert time to seconds
 '''
 
 
@@ -220,9 +222,14 @@ def remove_position_outlier_rows(position_data):
 
 def process_position_data(recording_folder, params):
     position_of_mouse = None
-    path_to_bonsai_file, is_found = find_bonsai_file(recording_folder)
+    path_to_position_file, is_found = find_bonsai_file(recording_folder)
     if is_found:
-        position_data = read_position(path_to_bonsai_file)  # raw position data from bonsai output
+        position_data = read_position(path_to_position_file)  # raw position data from bonsai output
+    if not is_found:
+        if os.path.isfile(recording_folder + '/axona_position.pkl'):
+            position_data = pd.read_pickle(recording_folder + '/axona_position.pkl')
+            is_found = True
+    if is_found:
         position_data = calculate_speed(position_data)
         position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
         position_data = calculate_position(position_data)  # get central position and interpolate missing data
@@ -243,8 +250,9 @@ def main():
 
     params = PostSorting.parameters.Parameters()
     params.set_pixel_ratio(440)
+    params.set_sorter_name('MountainSort')
 
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/A_2017-01-17_17-17-00'
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M0_2017-11-21_15-52-53'
     position_of_mouse = process_position_data(recording_folder, params)
 

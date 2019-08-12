@@ -224,7 +224,8 @@ def main():
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M13_2018-05-09_10-32-20_of'
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M15_2018-05-11_10-56-39_of'
     recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-03-08_14-37-05_of'
-
+    # recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/A_2017-01-17_17-17-00'
+    post_process_recording(recording_folder, 'openfield', running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort')
 
     # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
     # process_position_data(recording_folder, 'openfield', params)

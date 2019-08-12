@@ -174,6 +174,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.close()
 
     print(animal + ' ' + tag + 'median correlation coefs in between fields [grid cells]')
+    coefs_grid = [x for x in coefs_grid if ~np.isnan(x)]
     print(str(np.median(coefs_grid)))
     print(str(np.std(coefs_grid)))
 
@@ -234,6 +235,17 @@ def compare_hd_histograms(field_data):
         pearson_coefs_all.append([pearson_coefs_cell])
         pearson_coefs_avg.append([np.mean(pearson_coefs_cell)])
     return pearson_coefs_avg
+
+
+def save_hd_histograms_csv(field_data, file_name):
+    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
+        for index, field in enumerate(field_histograms):
+            np.savetxt(local_path + '/data_for_r/' + file_name + '_' + cell_id + '_' +  str(index) + '.csv', field, delimiter=',')
 
 
 def save_correlation_plot(corr, animal, cell_type, tag=''):
@@ -549,14 +561,43 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative2.png')
     plt.close()
 
+    # plot only within field comparisons
+    fig, ax = plt.subplots()
+    plt.axvline(x=0, linewidth=3, color='red')
+    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
+    plt.xlim(-1, 1)
+    plt.savefig(local_path + animal + 'half_session_correlations_cumulative_winthin_field_only.png')
+    plt.close()
+
+
+def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
+    correlation_data = pd.DataFrame()
+    correlation_data['R'] = good_grid_coef
+    correlation_data['p'] = good_grid_cells_p
+    correlation_data.to_csv(OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/' + file_name + '.csv')
+
 
 def compare_within_field_with_other_fields_stat(field_data, animal):
     correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
+    save_corr_coef_in_csv(correlation_values_in_between, correlation_p, 'in_between_fields_all_' + animal)
+    print('% of significant p values for in between field correlations:')
+    print(sum(np.array(correlation_p) < 0.01) / len(correlation_p) * 100)
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
+    save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
+    print('% of significant p values for within field correlations:')
+    print('number of fields included: ' + str(len(correlation_p_within)))
+    print(sum(correlation_p_within < 0.01) / len(correlation_p_within) * 100)
     stat, p = scipy.stats.ks_2samp(correlation_values_in_between, within_field_corr)
     print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
     print(stat)
     print(p)
+
+    t, p = scipy.stats.wilcoxon(correlation_values_in_between)
+    print('Wilcoxon p value for correlations in between fields is ' + str(p) + ' T is ' + str(t))
+
+    t, p = scipy.stats.wilcoxon(within_field_corr)
+    print('Wilcoxon p value for within field correlations is ' + str(p) + ' T is ' + str(t))
 
 
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
@@ -580,7 +621,9 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
         count_f1 += 1
 
     in_between_fields = np.array(correlation_values)
-    within_field, p = get_correlation_values_within_fields(field_data)
+    in_between_fields_p = np.array(correlation_p)
+    within_field, p_within_field = get_correlation_values_within_fields(field_data)
+    save_corr_coef_in_csv(within_field, p_within_field, 'within_fields_correlating_only_' + animal)
     within_field = within_field[within_field >= 0.4]
 
     fig, ax = plt.subplots()
@@ -598,6 +641,13 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     print(stat)
     print(p)
     print('number of fields ' + str(len(within_field)))
+
+    print('% of coefficients with significant p for in between field correlations:')
+    print(sum(in_between_fields_p < 0.01) / len(in_between_fields_p) * 100)
+    save_corr_coef_in_csv(in_between_fields, in_between_fields_p, 'in_between_fields_correlating_only_' + animal)
+
+    print('% of coefficients with significant p for within field correlations:')
+    print(sum(p_within_field < 0.01) / len(p_within_field) * 100)
 
 
 def plot_half_fields(field_data, animal):
@@ -634,11 +684,20 @@ def process_circular_data(animal, tag=''):
         field_data = add_cell_types_to_data_frame(field_data)
         field_data = tag_border_and_middle_fields(field_data)
 
-        grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
-        grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
-        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
+        all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+        grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df)
+        save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
+        centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
+        grid_pearson_centre = compare_hd_histograms(centre_fields_only_df)
+        save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
+        border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
+        grid_pearson_border = compare_hd_histograms(border_fields_only_df)
+        save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
-        conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+        conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
+        conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df)
+        save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
+
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
 
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
@@ -691,6 +750,7 @@ def process_circular_data(animal, tag=''):
 
         conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
         conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+        conjunctive_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == True)])
 
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
@@ -698,6 +758,8 @@ def process_circular_data(animal, tag=''):
 
         plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'simulated' + tag)
         plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'simulated' + tag, tag='_centre')
+        plot_pearson_coefs_of_field_hist(grid_pearson_border, conjunctive_pearson_border, 'simulated' + tag, tag='_border')
+
         plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'simulated' + tag,
                                                        tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'simulated' + tag)
@@ -708,8 +770,8 @@ def process_circular_data(animal, tag=''):
 def main():
     process_circular_data('simulated', 'ventral_narrow')
     process_circular_data('simulated', 'control_narrow')
-    process_circular_data('mouse')
-    process_circular_data('rat')
+    #process_circular_data('mouse')
+    #process_circular_data('rat')
 
 
 if __name__ == '__main__':

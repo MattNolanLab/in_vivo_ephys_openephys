@@ -28,6 +28,7 @@ def get_rolling_sum(array_in, window):
 
 
 def get_hd_histogram(angles):
+    angles = angles[~np.isnan(angles)]
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=23)
@@ -139,14 +140,15 @@ def process_hd_data(spatial_firing, spatial_data, prm):
             angles_spike = (np.array(cluster.hd) + 180) * np.pi / 180
 
         if prm.get_is_stable() is False:
-            save_hd_for_r(angles_whole_session, angles_spike, index, prm)
-            analyze_hd_r(prm, index)
+            print('The watson test is not going to run. If you need this data, you can run it on the dataframes later.')
+            # save_hd_for_r(angles_whole_session, angles_spike, index, prm)
+            # analyze_hd_r(prm, index)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
-    spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
+    # spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
