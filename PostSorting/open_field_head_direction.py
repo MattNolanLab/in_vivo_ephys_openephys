@@ -28,6 +28,7 @@ def get_rolling_sum(array_in, window):
 
 
 def get_hd_histogram(angles):
+    angles = angles[~np.isnan(angles)]
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=23)
@@ -147,7 +148,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
 
-    spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
+    # spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
