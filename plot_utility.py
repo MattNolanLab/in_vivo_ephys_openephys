@@ -167,8 +167,8 @@ def format_bar_chart(ax, x_label, y_label):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel(x_label, fontsize=30)
-    ax.set_ylabel(y_label, fontsize=30)
+    ax.set_xlabel(x_label, fontsize=25)
+    ax.set_ylabel(y_label, fontsize=25)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     return ax

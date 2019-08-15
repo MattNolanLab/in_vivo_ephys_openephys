@@ -154,8 +154,8 @@ def format_bar_chart(ax, x_label, y_label):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel(x_label, fontsize=30)
-    ax.set_ylabel(y_label, fontsize=30)
+    ax.set_xlabel(x_label, fontsize=25)
+    ax.set_ylabel(y_label, fontsize=25)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     return ax
@@ -167,7 +167,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     plt.axvline(x=0, linewidth=3, color='gray')
-    plt.hist(grid_coefs, color='navy', alpha=0.7, normed=True)
+    plt.hist(grid_coefs, color='gray', alpha=0.7, normed=True)
 
     if len(conj_coefs) > 0:
         plt.hist(conj_coefs, color='red', alpha=0.7, normed='True')
@@ -177,7 +177,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
     plt.axvline(x=0, linewidth=3, color='gray')
-    plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='navy')
+    plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='gray')
     if len(conj_coefs) > 0:
         plot_utility.plot_cumulative_histogram(conj_coefs, ax, color='red')
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
@@ -240,8 +240,9 @@ def compare_hd_histograms(field_data, type='cell'):
                 if index1 != index2:
                     field1_clean, field2_clean = remove_nans(field1, field2)
                     field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
-                    pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
-                    pearson_coefs_cell.append(pearson_coef)
+                    if len(field1_clean_z) > 1:
+                        pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
+                        pearson_coefs_cell.append(pearson_coef)
         pearson_coefs_all.append([pearson_coefs_cell])
         pearson_coefs_avg.append([np.mean(pearson_coefs_cell)])
 
@@ -532,9 +533,14 @@ def get_correlation_values_in_between_fields(field_data):
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
                 field1_clean, field2_clean = remove_zeros(field1, field2)
-                pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
-                correlation_values.append(pearson_coef)
-                correlation_p.append(corr_p)
+                if len(field1_clean) > 1:
+                    pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
+                    correlation_values.append(pearson_coef)
+                    correlation_p.append(corr_p)
+                else:
+                    correlation_values.append(np.nan)
+                    correlation_p.append(np.nan)
+
             count_f2 += 1
         count_f1 += 1
 
@@ -552,9 +558,13 @@ def get_correlation_values_within_fields(field_data):
         second = second_halves.iloc[field]
         first, second = remove_zeros(first, second)
 
-        pearson_coef, corr_p = scipy.stats.pearsonr(first, second)
-        correlation_values.append(pearson_coef)
-        correlation_p.append(corr_p)
+        if len(first) > 1:
+            pearson_coef, corr_p = scipy.stats.pearsonr(first, second)
+            correlation_values.append(pearson_coef)
+            correlation_p.append(corr_p)
+        else:
+            correlation_values.append(np.nan)
+            correlation_p.append(np.nan)
 
     correlation_values_within = np.array(correlation_values)
     correlation_p = np.array(correlation_p)
@@ -641,9 +651,14 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
             if count_f1 != count_f2:
                 if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
                     field_1_clean, field_2_clean = remove_zeros(field1, field2)
-                    pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
-                    correlation_values.append(pearson_coef)
-                    correlation_p.append(corr_p)
+                    if len(field_1_clean) > 1:
+                        pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
+                        correlation_values.append(pearson_coef)
+                        correlation_p.append(corr_p)
+                    else:
+                        correlation_values.append(np.nan)
+                        correlation_p.append(np.nan)
+
             count_f2 += 1
         count_f1 += 1
 
@@ -801,8 +816,8 @@ def process_circular_data(animal, tag=''):
 
 def main():
     # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
-    # process_circular_data('mouse')
+    # process_circular_data('simulated', 'control_narrow'
+    process_circular_data('mouse')
     process_circular_data('rat')
 
 
