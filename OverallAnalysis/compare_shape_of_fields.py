@@ -176,7 +176,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
 
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
-    plt.axvline(x=0, linewidth=3, color='gray')
+    plt.axvline(x=0, linewidth=3, color='red')
     plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='gray')
     if len(conj_coefs) > 0:
         plot_utility.plot_cumulative_histogram(conj_coefs, ax, color='red')
@@ -606,6 +606,10 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative_winthin_field_only.png')
     plt.close()
+    t, p = scipy.stats.wilcoxon(in_between_fields)
+    print('Wilcoxon p value for correlations in between fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
+    t, p = scipy.stats.wilcoxon(within_field_corr)
+    print('Wilcoxon p value for correlations within fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
 
 
 def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
@@ -691,6 +695,10 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
 
     print('% of coefficients with significant p for within field correlations:')
     print(sum(p_within_field < 0.01) / len(p_within_field) * 100)
+    t, p = scipy.stats.wilcoxon(in_between_fields)
+    print('Wilcoxon p value for correlations in between fields (all, R>0.4)' + str(p) + ' T is ' + str(t) + animal)
+    t, p = scipy.stats.wilcoxon(within_field)
+    print('Wilcoxon p value for correlations within fields (all, R>0.4)' + str(p) + ' T is ' + str(t) + animal)
 
 
 def plot_half_fields(field_data, animal):
@@ -795,30 +803,30 @@ def process_circular_data(animal, tag=''):
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
 
-        conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
-        conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
-        conjunctive_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == True)])
+        # conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
+        # conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+        # conjunctive_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == True)])
 
         compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
         compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
         compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
 
-        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'simulated' + tag)
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'simulated' + tag, tag='_centre')
-        plot_pearson_coefs_of_field_hist(grid_pearson_border, conjunctive_pearson_border, 'simulated' + tag, tag='_border')
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, [], 'simulated' + tag)
+        # plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'simulated' + tag, tag='_centre')
+        # plot_pearson_coefs_of_field_hist(grid_pearson_border, conjunctive_pearson_border, 'simulated' + tag, tag='_border')
 
         plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'simulated' + tag,
                                                        tag='_centre_vs_border')
         plot_correlation_matrix(field_data, 'simulated' + tag)
         plot_correlation_matrix_individual_cells(field_data, 'simulated' + tag)
-        plot_half_fields(field_data, 'simulated' + tag + '/')
+        # plot_half_fields(field_data, 'simulated' + tag + '/')
 
 
 def main():
-    # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow'
-    process_circular_data('mouse')
-    process_circular_data('rat')
+    process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('mouse')
+    # process_circular_data('rat')
 
 
 if __name__ == '__main__':
