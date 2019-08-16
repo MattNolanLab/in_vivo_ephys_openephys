@@ -247,7 +247,9 @@ def compare_hd_histograms(field_data, type='cell'):
         pearson_coefs_avg.append([np.mean(pearson_coefs_cell)])
 
     t, p = scipy.stats.wilcoxon([item for sublist in pearson_coefs_avg for item in sublist])
+    coefs_list = [item for sublist in pearson_coefs_avg for item in sublist]
     print('Wilcoxon p value for correlations in between fields is (for avg of cell) ' + str(p) + ' T is ' + str(t) + type)
+    print('nedian for in between fields: ' + str(np.median(coefs_list)) + 'sd ' + str(np.std(coefs_list)))
     return pearson_coefs_avg
 
 
@@ -828,10 +830,10 @@ def process_circular_data(animal, tag=''):
 
 
 def main():
-    # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
+    process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
     # process_circular_data('mouse')
-    process_circular_data('rat')
+    # process_circular_data('rat')
 
 
 if __name__ == '__main__':
