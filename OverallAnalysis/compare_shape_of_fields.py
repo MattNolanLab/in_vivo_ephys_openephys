@@ -607,9 +607,12 @@ def compare_within_field_with_other_fields(field_data, animal):
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative_winthin_field_only.png')
     plt.close()
     t, p = scipy.stats.wilcoxon(in_between_fields)
+    print('all fields included')
     print('Wilcoxon p value for correlations in between fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
     t, p = scipy.stats.wilcoxon(within_field_corr)
     print('Wilcoxon p value for correlations within fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
+    print('median of in-between fields: ' + str(np.median(in_between_fields[~np.isnan(in_between_fields)])) + ' sd: ' + str(np.std(in_between_fields[~np.isnan(in_between_fields)])))
+    print('median of within fields: ' + str(np.median(within_field_corr[~np.isnan(within_field_corr)])) + ' sd: ' + str(np.std(within_field_corr[~np.isnan(within_field_corr)])))
 
 
 def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
@@ -684,6 +687,8 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
 
     stat, p = scipy.stats.ks_2samp(in_between_fields, within_field)
     print('for Pearson r >= 0.4')
+    print('median of in-between fields: ' + str(np.median(in_between_fields)) + ' sd: ' + str(np.std(in_between_fields)))
+    print('median of within fields: ' + str(np.median(within_field)) + ' sd: ' + str(np.std(within_field)))
     print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
     print(stat)
     print(p)
@@ -823,11 +828,12 @@ def process_circular_data(animal, tag=''):
 
 
 def main():
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
     # process_circular_data('mouse')
-    # process_circular_data('rat')
+    process_circular_data('rat')
 
 
 if __name__ == '__main__':
     main()
+
