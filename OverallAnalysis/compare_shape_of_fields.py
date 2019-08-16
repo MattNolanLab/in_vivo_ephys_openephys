@@ -247,9 +247,11 @@ def compare_hd_histograms(field_data, type='cell'):
         pearson_coefs_avg.append([np.mean(pearson_coefs_cell)])
 
     t, p = scipy.stats.wilcoxon([item for sublist in pearson_coefs_avg for item in sublist])
-    coefs_list = [item for sublist in pearson_coefs_avg for item in sublist]
+    coefs_list = np.asanyarray([item for sublist in pearson_coefs_avg for item in sublist])
+    coefs_list = coefs_list[~np.isnan(coefs_list)]
     print('Wilcoxon p value for correlations in between fields is (for avg of cell) ' + str(p) + ' T is ' + str(t) + type)
     print('nedian for in between fields: ' + str(np.median(coefs_list)) + 'sd ' + str(np.std(coefs_list)))
+    print('number of fields: ' + str(len(coefs_list)))
     return pearson_coefs_avg
 
 
@@ -800,6 +802,7 @@ def process_circular_data(animal, tag=''):
         # plot_half_fields(field_data, 'rat')
 
     if animal == 'simulated':
+        print(animal + ' ' + tag)
         simulated_path = local_path + 'field_data_modes_simulated' + tag + '.pkl'
         field_data = load_field_data(simulated_path, server_path_simulated + '/' + tag + '/', '', animal, df_path='')
         field_data = add_cell_types_to_data_frame(field_data)
@@ -830,9 +833,9 @@ def process_circular_data(animal, tag=''):
 
 
 def main():
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
-    # process_circular_data('mouse')
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
+    process_circular_data('mouse')
     # process_circular_data('rat')
 
 
