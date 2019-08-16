@@ -66,7 +66,7 @@ def bin_spike_times(spike_times, number_of_bins):
 def create_histogram(spike_times, number_of_bins):
     posrange = np.linspace(number_of_bins.min(), number_of_bins.max(),  num=number_of_bins.shape[0])
     values = np.array([posrange[0], posrange[-1]])
-    H, bins = np.histogram(spike_times, bins=(posrange), range=values)
+    H, bins = np.hist(spike_times, bins=(posrange), range=values)
     return H
 
 
