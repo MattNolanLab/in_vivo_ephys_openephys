@@ -165,7 +165,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     grid_coefs = clean_data(coefs_grid)
     conj_coefs = clean_data(coefs_conjunctive)
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    ax = format_bar_chart(ax, 'r', 'Proportion')
     plt.axvline(x=0, linewidth=3, color='gray')
     plt.hist(grid_coefs, color='gray', alpha=0.7, normed=True)
 
@@ -175,7 +175,7 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
     plt.close()
 
     fig, ax = plt.subplots()
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    ax = format_bar_chart(ax, 'r', 'Proportion')
     plt.axvline(x=0, linewidth=3, color='red')
     plot_utility.plot_cumulative_histogram(grid_coefs, ax, color='gray')
     if len(conj_coefs) > 0:
@@ -198,7 +198,7 @@ def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, a
     border_coefs = clean_data(coefs_border)
     fig, ax = plt.subplots()
     plt.xlim(-1, 1)
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    ax = format_bar_chart(ax, 'r', 'Proportion')
     plt.axvline(x=0, linewidth=3, color='red')
     plt.hist(centre_coefs, color='black', alpha=0.7, normed=True)
     plt.hist(border_coefs, color='gray', alpha=0.4, normed=True)
@@ -591,7 +591,7 @@ def compare_within_field_with_other_fields(field_data, animal):
 
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    ax = format_bar_chart(ax, 'r', 'Proportion')
     plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
     plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
     plt.xlim(-1, 1)
@@ -601,7 +601,7 @@ def compare_within_field_with_other_fields(field_data, animal):
     # plot only within field comparisons
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    ax = format_bar_chart(ax, 'r', 'Proportion')
     plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative_winthin_field_only.png')
@@ -675,7 +675,7 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
 
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Proportion')
+    ax = format_bar_chart(ax, 'r', 'Proportion')
     plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
     plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='navy')
     plt.xlim(-1, 1)

@@ -177,7 +177,7 @@ def format_bar_chart(ax, x_label, y_label):
 def plot_cumulative_histogram(corr_values, ax, color='black'):
     plt.xlim(-1, 1)
     plt.yticks([0, 1])
-    ax = format_bar_chart(ax, 'Pearson correlation coef.', 'Cumulative probability')
+    ax = format_bar_chart(ax, 'r', 'Cumulative probability')
     values, base = np.histogram(corr_values, bins=40)
     # evaluate the cumulative
     cumulative = np.cumsum(values / len(corr_values))
