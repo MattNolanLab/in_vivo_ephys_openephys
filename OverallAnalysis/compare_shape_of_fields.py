@@ -810,6 +810,7 @@ def process_circular_data(animal, tag=''):
         field_data['accepted_field'] = True
 
         grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
+        np.savetxt(local_path + "grid_cell_pearson_avg_for_cell" + animal + tag + ".csv", grid_cell_pearson, delimiter=",")
         grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
         grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
 
@@ -832,11 +833,46 @@ def process_circular_data(animal, tag=''):
         # plot_half_fields(field_data, 'simulated' + tag + '/')
 
 
+def compare_correlations_from_different_experiments():
+    pearson_grid_simulated_narrow = pd.read_csv(local_path + 'grid_cell_pearson_avg_for_cellsimulatedventral_narrow.csv', header=None)
+    pearson_grid_simulated_control = pd.read_csv(local_path + 'grid_cell_pearson_avg_for_cellsimulatedcontrol_narrow.csv', header=None)
+
+    print('**************************')
+    print('I will now compare results from different experiments.')
+    stat, p = scipy.stats.ks_2samp(pearson_grid_simulated_narrow[0].values, pearson_grid_simulated_control[0].values)
+    print('Kolmogorov-Smirnov result to compare simulted control and ventral grid cell within field pearson ' + str(stat) + ' ' + str(p))
+
+    between_field_ventral_narrow_04 = pd.read_csv(local_path + 'in_between_fields_correlating_only_grid_simulatedcontrol_narrow.csv').R.values
+    between_field_control_narrow_04 = pd.read_csv(local_path + 'in_between_fields_correlating_only_grid_simulatedventral_narrow.csv').R.values
+    between_field_ventral_narrow = pd.read_csv(local_path + 'in_between_fields_all_grid_simulatedventral_narrow.csv').R.values
+    between_field_control_narrow = pd.read_csv(local_path + 'in_between_fields_all_grid_simulatedcontrol_narrow.csv').R.values
+
+    within_field_ventral_narrow_04 = pd.read_csv(local_path + 'within_fields_correlating_only_grid_simulatedcontrol_narrow.csv').R.values
+    within_field_control_narrow_04 = pd.read_csv(local_path + 'within_fields_correlating_only_grid_simulatedventral_narrow.csv').R.values
+    within_field_ventral_narrow = pd.read_csv(local_path + 'within_fields_all_grid_simulatedventral_narrow.csv').R.values
+    within_field_control_narrow = pd.read_csv(local_path + 'within_fields_all_grid_simulatedcontrol_narrow.csv').R.values
+
+    stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow_04, between_field_control_narrow_04)
+    print('Kolmogorov-Smirnov result between_field_ventral_narrow_04 ' + str(stat) + ' ' + str(p))
+
+    stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow, between_field_control_narrow)
+    print('Kolmogorov-Smirnov result between_field_ventral_narrow ' + str(stat) + ' ' + str(p))
+
+    stat, p = scipy.stats.ks_2samp(within_field_ventral_narrow_04, within_field_control_narrow_04)
+    print('Kolmogorov-Smirnov result within_field_ventral_narrow_04 ' + str(stat) + ' ' + str(p))
+
+    stat, p = scipy.stats.ks_2samp(within_field_ventral_narrow, within_field_control_narrow)
+    print('Kolmogorov-Smirnov result within_field_ventral_narrow ' + str(stat) + ' ' + str(p))
+
+
+
+
 def main():
     # process_circular_data('simulated', 'ventral_narrow')
     # process_circular_data('simulated', 'control_narrow')
-    process_circular_data('mouse')
+    # process_circular_data('mouse')
     # process_circular_data('rat')
+    compare_correlations_from_different_experiments()
 
 
 if __name__ == '__main__':
