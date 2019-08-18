@@ -736,101 +736,63 @@ def remove_nans_from_both(first, second):
 
 def process_circular_data(animal, tag=''):
     # print('I am loading the data frame that has the fields')
+    animal_path = local_path + 'field_data_modes_' + animal + tag + '.pkl'
     if animal == 'mouse':
-        mouse_path = local_path + 'field_data_modes_mouse.pkl'
-        field_data = load_field_data(mouse_path, server_path_mouse, '/MountainSort', animal)
+        server_path = server_path_mouse
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
-        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-        field_data = add_cell_types_to_data_frame(field_data)
-        field_data = tag_border_and_middle_fields(field_data)
-
-        all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
-        grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
-        save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
-        centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
-        grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
-        save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
-        border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
-        grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
-        save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
-
-        conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
-        conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
-        save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
-
-        conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
-
-        save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
-        compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_mouse')
-        compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_mouse')
-        compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_mouse')
-
-        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_mouse')
-        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'mouse')
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'mouse', tag='_centre')
-        plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'mouse', tag='_centre_vs_border')
-        plot_correlation_matrix(field_data, 'mouse')
-        plot_correlation_matrix_individual_cells(field_data, 'mouse')
-        # plot_half_fields(field_data, 'mouse')
-
+        field_data = load_field_data(animal_path, server_path, '/MountainSort', animal)
     if animal == 'rat':
-        simulated_path = local_path + 'field_data_modes_rat.pkl'
-        field_data = load_field_data(simulated_path, server_path_rat, '', animal)
+        server_path = server_path_rat
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
-        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
-        field_data = add_cell_types_to_data_frame(field_data)
-        field_data = tag_border_and_middle_fields(field_data)
-
-        all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
-        grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid ' + animal)
-        grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)], type='grid centre' + animal)
-        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)], type='grid border' + animal)
-
-        conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
-        conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive ' + animal)
-        conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)], type='conjunctive centre' + animal)
-
-        compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
-        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
-        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_rat')
-
-        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, 'rat')
-        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'rat', tag='_centre')
-        plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'rat', tag='_centre_vs_border')
-        plot_correlation_matrix(field_data, 'rat')
-        plot_correlation_matrix_individual_cells(field_data, 'rat')
-        # plot_half_fields(field_data, 'rat')
+        field_data = load_field_data(animal_path, server_path, '', animal)
 
     if animal == 'simulated':
-        print(animal + ' ' + tag)
-        simulated_path = local_path + 'field_data_modes_simulated' + tag + '.pkl'
-        field_data = load_field_data(simulated_path, server_path_simulated + '/' + tag + '/', '', animal, df_path='')
-        field_data = add_cell_types_to_data_frame(field_data)
-        field_data = tag_border_and_middle_fields(field_data)
+        if tag == 'ventral_narrow':
+            server_path = server_path_simulated + '/' + tag + '/'
+            field_data = load_field_data(animal_path, server_path + '/' + tag + '/', '', animal, df_path='')
+        else:
+            server_path = server_path_simulated + '/' + tag + '/'
+            field_data = load_field_data(animal_path, server_path + '/' + tag + '/', '', animal, df_path='')
+
+    if animal == 'mouse':
+        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    if animal == 'rat':
+        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+    else:
         field_data['accepted_field'] = True
 
-        grid_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')])
-        np.savetxt(local_path + "grid_cell_pearson_avg_for_cell" + animal + tag + ".csv", grid_cell_pearson, delimiter=",")
-        grid_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)])
-        grid_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)])
+    field_data = add_cell_types_to_data_frame(field_data)
+    field_data = tag_border_and_middle_fields(field_data)
 
-        # conjunctive_cell_pearson = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')])
-        # conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
-        # conjunctive_pearson_border = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == True)])
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
+    save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
+    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
+    grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
+    save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
+    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
+    grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
+    save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
-        compare_within_field_with_other_fields_correlating_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
-        compare_within_field_with_other_fields(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
-        compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_simulated' + tag)
+    conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
+    save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
+    compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal)
+    compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal)
 
-        plot_pearson_coefs_of_field_hist(grid_cell_pearson, [], 'simulated' + tag)
-        # plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, 'simulated' + tag, tag='_centre')
-        # plot_pearson_coefs_of_field_hist(grid_pearson_border, conjunctive_pearson_border, 'simulated' + tag, tag='_border')
+    if len(conjunctive_cells_df) > 0:
+        print('There are conjunctive cells in the data set. I will analyze them now.')
+        conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
+        save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
+        conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+        compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal)
+        plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal)
+        plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, animal, tag='_centre')
 
-        plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'simulated' + tag,
-                                                       tag='_centre_vs_border')
-        plot_correlation_matrix(field_data, 'simulated' + tag)
-        plot_correlation_matrix_individual_cells(field_data, 'simulated' + tag)
-        # plot_half_fields(field_data, 'simulated' + tag + '/')
+    compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_' + animal)
+    plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal', tag='_centre_vs_border')
+    plot_correlation_matrix(field_data, animal)
+    plot_correlation_matrix_individual_cells(field_data, animal)
+    # plot_half_fields(field_data, 'mouse')
 
 
 def compare_correlations_from_different_experiments():
@@ -853,26 +815,31 @@ def compare_correlations_from_different_experiments():
     within_field_control_narrow = pd.read_csv(local_path + 'within_fields_all_grid_simulatedcontrol_narrow.csv').R.values
 
     stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow_04, between_field_control_narrow_04)
-    print('Kolmogorov-Smirnov result between_field_ventral_narrow_04 ' + str(stat) + ' ' + str(p))
+    print('Kolmogorov-Smirnov result between_field_ventral_narrow_04 vs control ' + str(stat) + ' ' + str(p))
 
     stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow, between_field_control_narrow)
-    print('Kolmogorov-Smirnov result between_field_ventral_narrow ' + str(stat) + ' ' + str(p))
+    print('Kolmogorov-Smirnov result between_field_ventral_narrow vs control ' + str(stat) + ' ' + str(p))
 
     stat, p = scipy.stats.ks_2samp(within_field_ventral_narrow_04, within_field_control_narrow_04)
-    print('Kolmogorov-Smirnov result within_field_ventral_narrow_04 ' + str(stat) + ' ' + str(p))
+    print('Kolmogorov-Smirnov result within_field_ventral_narrow_04 vs control ' + str(stat) + ' ' + str(p))
 
     stat, p = scipy.stats.ks_2samp(within_field_ventral_narrow, within_field_control_narrow)
-    print('Kolmogorov-Smirnov result within_field_ventral_narrow ' + str(stat) + ' ' + str(p))
+    print('Kolmogorov-Smirnov result within_field_ventral_narrow vs control' + str(stat) + ' ' + str(p))
 
+    print('****************')
+    stat, p = scipy.stats.ks_2samp(between_field_control_narrow, within_field_control_narrow)
+    print('Kolmogorov-Smirnov result within_field vs in between, control ' + str(stat) + ' ' + str(p))
 
+    stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow, within_field_ventral_narrow)
+    print('Kolmogorov-Smirnov result within_field vs in between, ventral ' + str(stat) + ' ' + str(p))
 
 
 def main():
     # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
+    process_circular_data('simulated', 'control_narrow')
     # process_circular_data('mouse')
     # process_circular_data('rat')
-    compare_correlations_from_different_experiments()
+    # compare_correlations_from_different_experiments()
 
 
 if __name__ == '__main__':
