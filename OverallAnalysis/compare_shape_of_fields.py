@@ -110,8 +110,9 @@ def tag_accepted_fields_mouse(field_data, accepted_fields):
 
 # select accepted fields based on list of fields that were correctly identified by field detector
 def tag_accepted_fields_rat(field_data, accepted_fields):
-    unique_id = field_data.session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
-    unique_cell_id = field_data.session_id + '_' + field_data.cluster_id.apply(str)
+    session_id = field_data.session_id.str.split('_', expand=True)[0]
+    unique_id = session_id + '_' + field_data.cluster_id.apply(str) + '_' + (field_data.field_id + 1).apply(str)
+    unique_cell_id = session_id + '_' + field_data.cluster_id.apply(str)
     field_data['unique_id'] = unique_id
     field_data['unique_cell_id'] = unique_cell_id
     if 'Session ID' in accepted_fields:
@@ -752,11 +753,11 @@ def get_server_path_and_load_accepted_fields(animal, tag):
     else:
         if tag == 'ventral_narrow':
             server_path = server_path_simulated + '/' + tag + '/'
-            field_data = load_field_data(animal_path, server_path + '/' + tag + '/', '', animal, df_path='')
+            field_data = load_field_data(animal_path, server_path, '', animal, df_path='')
             accepted_fields = True
         else:
             server_path = server_path_simulated + '/' + tag + '/'
-            field_data = load_field_data(animal_path, server_path + '/' + tag + '/', '', animal, df_path='')
+            field_data = load_field_data(animal_path, server_path, '', animal, df_path='')
             accepted_fields = True
 
     return field_data, accepted_fields
@@ -800,8 +801,8 @@ def process_circular_data(animal, tag=''):
 
     compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_' + animal)
     plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal', tag='_centre_vs_border')
-    plot_correlation_matrix(field_data, animal)
-    plot_correlation_matrix_individual_cells(field_data, animal)
+    # plot_correlation_matrix(field_data, animal)
+    # plot_correlation_matrix_individual_cells(field_data, animal)
     # plot_half_fields(field_data, 'mouse')
 
 
@@ -845,9 +846,9 @@ def compare_correlations_from_different_experiments():
 
 
 def main():
-    # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
-    process_circular_data('mouse')
+    process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('mouse')
     # process_circular_data('rat')
     # compare_correlations_from_different_experiments()
 
