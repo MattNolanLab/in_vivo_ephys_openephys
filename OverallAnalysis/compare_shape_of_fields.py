@@ -238,8 +238,8 @@ def compare_hd_histograms(field_data, type='cell'):
         for index1, field1 in enumerate(field_histograms):
             for index2, field2 in enumerate(field_histograms):
                 if index1 != index2:
-                    field1_clean, field2_clean = remove_nans(field1, field2)
-                    field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                    field1_clean_z, field2_clean_z = remove_nans(field1, field2)
+                    # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
                     if len(field1_clean_z) > 1:
                         pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
                         pearson_coefs_cell.append(pearson_coef)
@@ -493,8 +493,8 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
     second_halves = []
     hd_second_spikes = []
     hd_second_session = []
-    pearson_coefs = []
-    pearson_ps = []
+    # pearson_coefs = []
+    # pearson_ps = []
     for field_index, field in field_data.iterrows():
         # get half of spike data
         hd_field_hist_first_spikes, hd_field_hist_second_spikes, hd_field_first_half_spikes, hd_field_second_half_spikes = get_halves_for_spike_data(length_of_recording, spatial_firing, field, sampling_rate_ephys)
@@ -502,13 +502,13 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
         # get half of session data
         hd_field_hist_first_session, hd_field_hist_second_session, hd_field_first_half, hd_field_second_half = get_halves_for_session_data(position, field, length_of_recording)
 
-        hd_hist_first_half = np.divide(hd_field_hist_first_spikes, hd_field_hist_first_session, out=np.zeros_like(hd_field_hist_first_spikes), where=hd_field_hist_first_session != 0)
-        hd_hist_second_half = np.divide(hd_field_hist_second_spikes, hd_field_hist_second_session, out=np.zeros_like(hd_field_hist_second_spikes), where=hd_field_hist_second_session != 0)
-        pearson_coef, pearson_p = scipy.stats.pearsonr(hd_hist_first_half, hd_hist_second_half)
+        hd_hist_first_half = np.divide(hd_field_hist_first_spikes, hd_field_hist_first_session)
+        hd_hist_second_half = np.divide(hd_field_hist_second_spikes, hd_field_hist_second_session)
+        # pearson_coef, pearson_p = scipy.stats.pearsonr(hd_hist_first_half, hd_hist_second_half)
         first_halves.append(hd_hist_first_half)
         second_halves.append(hd_hist_second_half)
-        pearson_coefs.append(pearson_coef)
-        pearson_ps.append(pearson_p)
+        # pearson_coefs.append(pearson_coef)
+        # pearson_ps.append(pearson_p)
         hd_first_spikes.append(hd_field_first_half_spikes)
         hd_second_spikes.append(hd_field_second_half_spikes)
         hd_first_session.append(hd_field_first_half)
@@ -516,8 +516,8 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
 
     field_data['hd_hist_first_half'] = first_halves
     field_data['hd_hist_second_half'] = second_halves
-    field_data['pearson_coef_halves'] = pearson_coefs
-    field_data['pearson_p_halves'] = pearson_ps
+    # field_data['pearson_coef_halves'] = pearson_coefs
+    # field_data['pearson_p_halves'] = pearson_ps
     field_data['hd_first_half_session'] = hd_first_session
     field_data['hd_second_half_session'] = hd_second_session
     field_data['hd_first_half_spikes'] = hd_first_spikes
@@ -536,7 +536,8 @@ def get_correlation_values_in_between_fields(field_data):
     for index, field1 in enumerate(first_halves):
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
-                field1_clean, field2_clean = remove_zeros(field1, field2)
+                # field1_clean, field2_clean = remove_zeros(field1, field2)
+                field1_clean, field2_clean = remove_nans(field1, field2)
                 if len(field1_clean) > 1:
                     pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
                     correlation_values.append(pearson_coef)
@@ -560,7 +561,8 @@ def get_correlation_values_within_fields(field_data):
     for field in range(len(field_data)):
         first = first_halves.iloc[field]
         second = second_halves.iloc[field]
-        first, second = remove_zeros(first, second)
+        # first, second = remove_zeros(first, second)
+        first, second = remove_nans(first, second)
 
         if len(first) > 1:
             pearson_coef, corr_p = scipy.stats.pearsonr(first, second)
@@ -661,7 +663,8 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
         for index2, field2 in enumerate(second_halves):
             if count_f1 != count_f2:
                 if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
-                    field_1_clean, field_2_clean = remove_zeros(field1, field2)
+                    # field_1_clean, field_2_clean = remove_zeros(field1, field2)
+                    field_1_clean, field_2_clean = remove_nans(field1, field2)
                     if len(field_1_clean) > 1:
                         pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
                         correlation_values.append(pearson_coef)
@@ -734,26 +737,33 @@ def remove_nans_from_both(first, second):
     return first_out, second_out
 
 
-def process_circular_data(animal, tag=''):
-    # print('I am loading the data frame that has the fields')
+def get_server_path_and_load_accepted_fields(animal, tag):
+    print('I will analyze data from this animal: ' + animal + ' ' + tag)
     animal_path = local_path + 'field_data_modes_' + animal + tag + '.pkl'
     if animal == 'mouse':
         server_path = server_path_mouse
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
         field_data = load_field_data(animal_path, server_path, '/MountainSort', animal)
-    if animal == 'rat':
+    elif animal == 'rat':
         server_path = server_path_rat
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
         field_data = load_field_data(animal_path, server_path, '', animal)
 
-    if animal == 'simulated':
+    else:
         if tag == 'ventral_narrow':
             server_path = server_path_simulated + '/' + tag + '/'
             field_data = load_field_data(animal_path, server_path + '/' + tag + '/', '', animal, df_path='')
+            accepted_fields = True
         else:
             server_path = server_path_simulated + '/' + tag + '/'
             field_data = load_field_data(animal_path, server_path + '/' + tag + '/', '', animal, df_path='')
+            accepted_fields = True
 
+    return field_data, accepted_fields
+
+
+def process_circular_data(animal, tag=''):
+    field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
     if animal == 'mouse':
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
     if animal == 'rat':
@@ -836,8 +846,8 @@ def compare_correlations_from_different_experiments():
 
 def main():
     # process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
-    # process_circular_data('mouse')
+    # process_circular_data('simulated', 'control_narrow')
+    process_circular_data('mouse')
     # process_circular_data('rat')
     # compare_correlations_from_different_experiments()
 
