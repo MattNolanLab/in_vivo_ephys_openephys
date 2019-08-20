@@ -538,7 +538,7 @@ def get_correlation_values_in_between_fields(field_data):
             if count_f1 != count_f2:
                 # field1_clean, field2_clean = remove_zeros(field1, field2)
                 field1_clean, field2_clean = remove_nans(field1, field2)
-                if len(field1_clean) > 1:
+                if len(field1_clean) > 1:   # if there is any data left after removing nans
                     pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
                     correlation_values.append(pearson_coef)
                     correlation_p.append(corr_p)
@@ -813,13 +813,13 @@ def compare_correlations_from_different_experiments():
     stat, p = scipy.stats.ks_2samp(pearson_grid_simulated_narrow[0].values, pearson_grid_simulated_control[0].values)
     print('Kolmogorov-Smirnov result to compare simulted control and ventral grid cell within field pearson ' + str(stat) + ' ' + str(p))
 
-    between_field_ventral_narrow_04 = pd.read_csv(local_path + 'in_between_fields_correlating_only_grid_simulatedcontrol_narrow.csv').R.values
-    between_field_control_narrow_04 = pd.read_csv(local_path + 'in_between_fields_correlating_only_grid_simulatedventral_narrow.csv').R.values
+    between_field_ventral_narrow_04 = pd.read_csv(local_path + 'in_between_fields_correlating_only_grid_simulatedventral_narrow.csv').R.values
+    between_field_control_narrow_04 = pd.read_csv(local_path + 'in_between_fields_correlating_only_grid_simulatedcontrol_narrow.csv').R.values
     between_field_ventral_narrow = pd.read_csv(local_path + 'in_between_fields_all_grid_simulatedventral_narrow.csv').R.values
     between_field_control_narrow = pd.read_csv(local_path + 'in_between_fields_all_grid_simulatedcontrol_narrow.csv').R.values
 
-    within_field_ventral_narrow_04 = pd.read_csv(local_path + 'within_fields_correlating_only_grid_simulatedcontrol_narrow.csv').R.values
-    within_field_control_narrow_04 = pd.read_csv(local_path + 'within_fields_correlating_only_grid_simulatedventral_narrow.csv').R.values
+    within_field_ventral_narrow_04 = pd.read_csv(local_path + 'within_fields_correlating_only_grid_simulatedventral_narrow.csv').R.values
+    within_field_control_narrow_04 = pd.read_csv(local_path + 'within_fields_correlating_only_grid_simulatedcontrol_narrow.csv').R.values
     within_field_ventral_narrow = pd.read_csv(local_path + 'within_fields_all_grid_simulatedventral_narrow.csv').R.values
     within_field_control_narrow = pd.read_csv(local_path + 'within_fields_all_grid_simulatedcontrol_narrow.csv').R.values
 
@@ -844,8 +844,8 @@ def compare_correlations_from_different_experiments():
 
 
 def main():
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
     # process_circular_data('mouse')
     # process_circular_data('rat')
     compare_correlations_from_different_experiments()
