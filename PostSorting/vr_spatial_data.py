@@ -78,10 +78,11 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
             speed_in_bin = find_speed_in_bin(speed_ms, trial_locations, loc)
             time_in_bin,time_in_bin_moving, time_in_bin_stationary = find_dwell_time_in_bin(dwell_time_per_sample, speed_ms, trial_locations, loc)
             apsolute_elapsed_time_in_bin = find_time_in_bin(time_per_sample, trial_locations, loc)
-            binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_speed_ms_per_trial":  np.float16(speed_in_bin), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_time_ms_per_trial_moving":  np.float16(time_in_bin_moving), "dwell_time_ms_stationary":  np.float16(time_in_bin_stationary), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
+            binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_speed_ms_per_trial":  np.float16(speed_in_bin), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_time_ms_per_trial_moving":  np.float16(time_in_bin_moving), "binned_time_ms_per_trial_stationary":  np.float16(time_in_bin_stationary), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
 
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial_moving']], axis=1)
+    processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial_stationary']], axis=1)    
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_type_in_bin']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_number_in_bin']], axis=1)
@@ -116,15 +117,13 @@ def drop_columns_from_dataframe(raw_position_data):
     return raw_position_data
 
 
-def process_position(raw_position_data, prm, recording_to_process):
+def process_position_data(raw_position_data, prm, recording_to_process):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
     processed_position_data = bin_data_over_trials(raw_position_data,processed_position_data)
     processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
-    #processed_position_data = PostSorting.vr_stop_analysis.calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_to_process)
-    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data,processed_position_data, prm)
+    processed_position_data = PostSorting.vr_stop_analysis.calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_to_process)
     gc.collect()
-
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
     processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]
     raw_position_data = drop_columns_from_dataframe(raw_position_data)
