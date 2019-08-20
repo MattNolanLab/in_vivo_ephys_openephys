@@ -846,11 +846,11 @@ def compare_correlations_from_different_experiments():
 
 
 def main():
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
     # process_circular_data('mouse')
     # process_circular_data('rat')
-    # compare_correlations_from_different_experiments()
+    compare_correlations_from_different_experiments()
 
 
 if __name__ == '__main__':
