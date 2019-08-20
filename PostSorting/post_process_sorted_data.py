@@ -84,6 +84,10 @@ def process_position_data(recording_to_process, session_type, prm):
 
 def process_light_stimulation(recording_to_process, prm):
     opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
+    opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
     return opto_on, opto_off, is_found
 
 
@@ -131,7 +135,7 @@ def save_data_frames(spatial_firing, synced_spatial_data, bad_clusters=None):
 #  this only calls stable analysis functions
 def call_stable_functions(recording_to_process, session_type, analysis_type):
     # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
-    opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
+    opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
@@ -146,6 +150,8 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
                 return
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+        if opto_is_found:
+            PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
         spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250, prm.get_sampling_rate())
         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
         position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
@@ -215,31 +221,16 @@ def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
 
-    # recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of'
 
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-15_17-23-36_of'
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-22_17-34-12_of'
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-27_16-38-15_of'
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M7_2018-03-12_15-16-29_of'
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M13_2018-05-09_10-32-20_of'
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M15_2018-05-11_10-56-39_of'
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-03-08_14-37-05_of'
-    # recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/A_2017-01-17_17-17-00'
+    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
     post_process_recording(recording_folder, 'openfield', running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort')
-
-    # recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M13_2018-05-01_11-23-01_of'
-    # process_position_data(recording_folder, 'openfield', params)
-    # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='get_noisy_clusters', sorter_name='MS')
-    # post_process_recording(recording_folder, 'openfield', run_type='stable', analysis_type='default')
-    # post_process_recording(recording_folder, 'openfield', run_type='stable')
-
     spike_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl')
     synced_spatial_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/position.pkl')
     angles_whole_session = (np.array(synced_spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = PostSorting.open_field_head_direction.get_hd_histogram(angles_whole_session)
     hd_histogram /= prm.get_sampling_rate()
     prm.set_output_path(recording_folder + '/MountainSort')
-    PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spike_data, prm)
+    # PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spike_data, prm)
 
 
 if __name__ == '__main__':
