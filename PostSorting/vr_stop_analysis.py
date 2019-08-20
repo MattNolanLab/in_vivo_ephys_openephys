@@ -175,8 +175,9 @@ def find_rewarded_positions(raw_position_data,processed_position_data):
     rewarded_stop_locations = np.take(stop_locations, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
     rewarded_trials = np.take(stop_trials, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
 
-    processed_position_data['rewarded_stop_locations'] = pd.Series(rewarded_stop_locations)
-    processed_position_data['rewarded_trials'] = pd.Series(rewarded_trials)
+    locations, trials = take_first_reward_on_trial(rewarded_stop_locations, rewarded_trials)
+    processed_position_data['rewarded_stop_locations'] = pd.Series(locations)
+    processed_position_data['rewarded_trials'] = pd.Series(trials)
     return processed_position_data
 
 
@@ -227,7 +228,7 @@ def process_stops(raw_position_data,processed_position_data, prm):
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
-    processed_position_data = find_rewarded_positions_test(raw_position_data,processed_position_data)
+    processed_position_data = find_rewarded_positions(raw_position_data,processed_position_data)
     return processed_position_data
 
 
