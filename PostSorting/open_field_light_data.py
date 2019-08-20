@@ -2,6 +2,7 @@ import open_ephys_IO
 import os
 import numpy as np
 import pandas as pd
+from scipy import stats
 import PostSorting.parameters
 
 import PostSorting.open_field_make_plots
@@ -23,8 +24,9 @@ def load_opto_data(recording_to_process, prm):
 def get_ons_and_offs(opto_data):
     # opto_on = np.where(opto_data > np.min(opto_data) + 10 * np.std(opto_data))
     # opto_off = np.where(opto_data <= np.min(opto_data) + 10 * np.std(opto_data))
-    opto_on = np.where(opto_data > 0.5)
-    opto_off = np.where(opto_data <= 0.5)
+    mode = stats.mode(opto_data[::30000])[0][0]
+    opto_on = np.where(opto_data > 0.2 + mode)
+    opto_off = np.where(opto_data <= 0.2 + mode)
     return opto_on, opto_off
 
 
