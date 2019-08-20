@@ -599,8 +599,8 @@ def compare_within_field_with_other_fields(field_data, animal):
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
     ax = format_bar_chart(ax, 'r', 'Proportion')
-    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
-    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
+    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='navy')
+    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='gray')
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative2.png')
     plt.close()
@@ -609,7 +609,7 @@ def compare_within_field_with_other_fields(field_data, animal):
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
     ax = format_bar_chart(ax, 'r', 'Proportion')
-    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='navy')
+    plot_utility.plot_cumulative_histogram(within_field_corr[~np.isnan(within_field_corr)], ax, color='gray')
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations_cumulative_winthin_field_only.png')
     plt.close()
@@ -687,8 +687,8 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     fig, ax = plt.subplots()
     plt.axvline(x=0, linewidth=3, color='red')
     ax = format_bar_chart(ax, 'r', 'Proportion')
-    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='gray')
-    plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='navy')
+    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='navy')
+    plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='gray')
     plt.xlim(-1, 1)
     plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04_cumulative.png')
     plt.close()
@@ -846,10 +846,10 @@ def compare_correlations_from_different_experiments():
 
 
 def main():
-    # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
-    # process_circular_data('mouse')
-    # process_circular_data('rat')
+    process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
+    process_circular_data('mouse')
+    process_circular_data('rat')
     compare_correlations_from_different_experiments()
 
 
