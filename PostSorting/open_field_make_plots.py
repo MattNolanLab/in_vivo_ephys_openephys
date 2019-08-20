@@ -248,7 +248,10 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
 def plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot):
     all_spikes_in_fields = np.hstack(np.array(spatial_firing.spike_times_in_fields[cluster]))
     mask_for_spikes_not_in_fields = ~np.in1d(spatial_firing.firing_times[cluster], all_spikes_in_fields)
-    spike_times_not_in_fields = spatial_firing.firing_times[cluster][mask_for_spikes_not_in_fields]
+    try:
+        spike_times_not_in_fields = spatial_firing.firing_times[cluster][mask_for_spikes_not_in_fields]
+    except:
+        spike_times_not_in_fields = np.array(spatial_firing.firing_times[cluster])[mask_for_spikes_not_in_fields]
     not_in_fields_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_not_in_fields)]
     of_plot.scatter(not_in_fields_df['x'].values, not_in_fields_df['y'].values, color='black', marker='o', s=6)
 

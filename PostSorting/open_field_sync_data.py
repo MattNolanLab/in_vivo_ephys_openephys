@@ -1,9 +1,11 @@
 from __future__ import division
+import glob
 import open_ephys_IO
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
+import OpenEphys
 
 
 def load_sync_data_ephys(recording_to_process, prm):
@@ -15,7 +17,27 @@ def load_sync_data_ephys(recording_to_process, prm):
         sync_data = open_ephys_IO.get_data_continuous(prm, file_path)
         is_found = True
     else:
-        print('Opto data was not found.')
+        print('Sync data was not found, I will check if Axona sync data is present and convert it if it is.')
+        events_file = recording_to_process + '/all_channels.events'
+        if os.path.exists(events_file):
+            events = OpenEphys.load(events_file)
+            time_stamps = events['timestamps']
+            channel = events['channel']
+            pulse_indices = time_stamps[np.where(channel == 0)]
+            for sample in pulse_indices:   # make pulse wider
+                pulse_indices = np.append(pulse_indices, np.arange(sample, (sample + 5000)))
+
+            # load any continuous data file to get length of recording
+            for name in glob.glob(recording_to_process + '/*.continuous'):
+                if os.path.exists(name):
+                    print(name)
+                    ch = open_ephys_IO.get_data_continuous(prm, name)
+                    length = len(ch)
+                    sync_data = np.zeros(length)
+                    sync_data[np.take(pulse_indices, np.where(pulse_indices < len(ch))).astype(int)] = 1
+                    is_found = True
+                    return sync_data, is_found
+
     return sync_data, is_found
 
 
@@ -48,7 +70,7 @@ def pad_shorter_array_with_0s(array1, array2):
 
 
 def downsample_ephys_data(sync_data_ephys, spatial_data, prm):
-    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
+    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'][:50].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
     prm.set_sampling_rate_rate(sampling_rate_rate)
@@ -121,7 +143,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
 
-    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
+    avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'][:50].diff().mean())
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
     spatial_data['synced_time_estimate'] = spatial_data.time_seconds - lag  # at this point the lag is about 100 ms
 

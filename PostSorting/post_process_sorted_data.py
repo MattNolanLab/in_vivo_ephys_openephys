@@ -221,9 +221,9 @@ def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
 
+
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
     post_process_recording(recording_folder, 'openfield', running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort')
-
     spike_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl')
     synced_spatial_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/position.pkl')
     angles_whole_session = (np.array(synced_spatial_data.hd) + 180) * np.pi / 180
