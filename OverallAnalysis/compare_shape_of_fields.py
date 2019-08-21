@@ -527,27 +527,34 @@ def add_histograms_for_half_recordings(field_data, position, spatial_firing, len
 
 
 def get_correlation_values_in_between_fields(field_data):
-    first_halves = field_data.hd_hist_first_half
-    second_halves = field_data.hd_hist_second_half
+    if 'unique_cell_id' not in field_data:
+        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
+    # first_halves = field_data.hd_hist_first_half
+    # second_halves = field_data.hd_hist_second_half
     correlation_values = []
     correlation_p = []
     count_f1 = 0
     count_f2 = 0
-    for index, field1 in enumerate(first_halves):
-        for index2, field2 in enumerate(second_halves):
-            if count_f1 != count_f2:
-                # field1_clean, field2_clean = remove_zeros(field1, field2)
-                field1_clean, field2_clean = remove_nans(field1, field2)
-                if len(field1_clean) > 1:   # if there is any data left after removing nans
-                    pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
-                    correlation_values.append(pearson_coef)
-                    correlation_p.append(corr_p)
-                else:
-                    correlation_values.append(np.nan)
-                    correlation_p.append(np.nan)
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        first_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_first_half
+        second_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_second_half
+        for index, field1 in enumerate(first_halves):
+            for index2, field2 in enumerate(second_halves):
+                if count_f1 != count_f2:
+                    # field1_clean, field2_clean = remove_zeros(field1, field2)
+                    field1_clean, field2_clean = remove_nans(field1, field2)
+                    if len(field1_clean) > 1:   # if there is any data left after removing nans
+                        pearson_coef, corr_p = scipy.stats.pearsonr(field1_clean, field2_clean)
+                        correlation_values.append(pearson_coef)
+                        correlation_p.append(corr_p)
+                    else:
+                        correlation_values.append(np.nan)
+                        correlation_p.append(np.nan)
 
-            count_f2 += 1
-        count_f1 += 1
+                count_f2 += 1
+            count_f1 += 1
 
     correlation_values_in_between = np.array(correlation_values)
     return correlation_values_in_between, correlation_p
@@ -652,30 +659,34 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
 
 
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
-    first_halves = field_data.hd_hist_first_half.values
-    second_halves = field_data.hd_hist_second_half.values
+    if 'unique_cell_id' not in field_data:
+        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
     correlation_within, p = get_correlation_values_within_fields(field_data)
+    list_of_cells = np.unique(list(field_data.unique_cell_id))
     correlation_values = []
     correlation_p = []
     count_f1 = 0
     count_f2 = 0
+    for cell in range(len(list_of_cells)):
+        cell_id = list_of_cells[cell]
+        first_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_first_half.values
+        second_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_second_half.values
+        for index, field1 in enumerate(first_halves):
+            for index2, field2 in enumerate(second_halves):
+                if count_f1 != count_f2:
+                    if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
+                        # field_1_clean, field_2_clean = remove_zeros(field1, field2)
+                        field_1_clean, field_2_clean = remove_nans(field1, field2)
+                        if len(field_1_clean) > 1:
+                            pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
+                            correlation_values.append(pearson_coef)
+                            correlation_p.append(corr_p)
+                        else:
+                            correlation_values.append(np.nan)
+                            correlation_p.append(np.nan)
 
-    for index, field1 in enumerate(first_halves):
-        for index2, field2 in enumerate(second_halves):
-            if count_f1 != count_f2:
-                if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
-                    # field_1_clean, field_2_clean = remove_zeros(field1, field2)
-                    field_1_clean, field_2_clean = remove_nans(field1, field2)
-                    if len(field_1_clean) > 1:
-                        pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
-                        correlation_values.append(pearson_coef)
-                        correlation_p.append(corr_p)
-                    else:
-                        correlation_values.append(np.nan)
-                        correlation_p.append(np.nan)
-
-            count_f2 += 1
-        count_f1 += 1
+                count_f2 += 1
+            count_f1 += 1
 
     in_between_fields = np.array(correlation_values)
     in_between_fields_p = np.array(correlation_p)
