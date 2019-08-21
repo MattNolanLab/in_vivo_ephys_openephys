@@ -661,7 +661,7 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
 def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
     if 'unique_cell_id' not in field_data:
         field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
-    correlation_within, p = get_correlation_values_within_fields(field_data)
+    # correlation_within, p = get_correlation_values_within_fields(field_data)
     list_of_cells = np.unique(list(field_data.unique_cell_id))
     correlation_values = []
     correlation_p = []
@@ -669,8 +669,9 @@ def compare_within_field_with_other_fields_correlating_fields(field_data, animal
     count_f2 = 0
     for cell in range(len(list_of_cells)):
         cell_id = list_of_cells[cell]
-        first_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_first_half.values
-        second_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_second_half.values
+        first_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_first_half
+        second_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_second_half
+        correlation_within, p_within = get_correlation_values_within_fields(field_data.loc[field_data['unique_cell_id'] == cell_id])
         for index, field1 in enumerate(first_halves):
             for index2, field2 in enumerate(second_halves):
                 if count_f1 != count_f2:
@@ -775,6 +776,7 @@ def get_server_path_and_load_accepted_fields(animal, tag):
 
 
 def process_circular_data(animal, tag=''):
+    print('*************************' + animal + tag + '***************************')
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
     if animal == 'mouse':
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
@@ -798,7 +800,7 @@ def process_circular_data(animal, tag=''):
 
     conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
     save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
-    compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
+    # compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
     compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
 
     conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
@@ -855,10 +857,10 @@ def compare_correlations_from_different_experiments():
 
 
 def main():
-    # process_circular_data('simulated', 'ventral_narrow')
-    # process_circular_data('simulated', 'control_narrow')
     process_circular_data('mouse')
-    # process_circular_data('rat')
+    process_circular_data('rat')
+    process_circular_data('simulated', 'ventral_narrow')
+    process_circular_data('simulated', 'control_narrow')
     compare_correlations_from_different_experiments()
 
 
