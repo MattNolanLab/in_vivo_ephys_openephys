@@ -789,6 +789,7 @@ def process_circular_data(animal, tag=''):
     field_data = tag_border_and_middle_fields(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
     grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
     save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
     centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
@@ -854,6 +855,14 @@ def compare_correlations_from_different_experiments():
 
     stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow, within_field_ventral_narrow)
     print('Kolmogorov-Smirnov result within_field vs in between, ventral ' + str(stat) + ' ' + str(p))
+
+
+def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
+    if not os.path.isdir(local_path + 'session_length_and_spikes'):
+        os.mkdir(local_path + 'session_length_and_spikes')
+
+    df_to_save = field_data[['session_id', 'cluster_id', 'field_id', 'time_spent_in_field', 'number_of_spikes_in_field']]
+    df_to_save.to_csv(local_path + 'session_length_and_spikes/' + tag + '.csv')
 
 
 def main():
