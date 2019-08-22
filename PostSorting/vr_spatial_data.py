@@ -116,13 +116,15 @@ def drop_columns_from_dataframe(raw_position_data):
     return raw_position_data
 
 
-def process_position_data(raw_position_data, prm, recording_to_process):
+def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
     processed_position_data = bin_data_over_trials(raw_position_data,processed_position_data)
     processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
-    processed_position_data = PostSorting.vr_stop_analysis.calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_to_process)
+    #processed_position_data = PostSorting.vr_stop_analysis.calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_to_process)
+    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data,processed_position_data, prm)
     gc.collect()
+
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
     processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]
     raw_position_data = drop_columns_from_dataframe(raw_position_data)

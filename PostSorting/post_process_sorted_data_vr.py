@@ -31,7 +31,7 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, prm):
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position_data(raw_position_data, prm, recording_to_process)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
     return raw_position_data, processed_position_data
 
 
