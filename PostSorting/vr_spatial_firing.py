@@ -159,11 +159,12 @@ def process_spatial_firing(spike_data, spatial_data):
     spike_data_stationary = spike_data.copy()
 
     spike_data = find_firing_location_indices(spike_data, spatial_data)
-    
+
     spike_data_movement,spike_data_stationary = split_spatial_firing_by_speed(spike_data, spike_data_movement,spike_data_stationary)
+    spike_data_movement = split_spatial_firing_by_trial_type(spike_data_movement)
+    spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
-    #spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
     print('-------------------------------------------------------------')
     print('spatial firing processed')
     print('-------------------------------------------------------------')
-    return spike_data
+    return spike_data_movement, spike_data_stationary, spike_data
