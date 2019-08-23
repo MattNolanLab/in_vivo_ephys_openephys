@@ -223,8 +223,8 @@ def calculate_average_stops(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def process_stops(raw_position_data,processed_position_data, prm):
-    processed_position_data = calculate_stops(raw_position_data,processed_position_data, prm)
+def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
+    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory)
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
