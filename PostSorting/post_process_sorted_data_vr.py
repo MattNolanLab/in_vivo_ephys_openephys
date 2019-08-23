@@ -53,7 +53,7 @@ def make_plots(spike_data, raw_position_data, processed_position_data):
     PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_movement')
     gc.collect()
     PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
-    #PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
+    PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
     #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
     #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
 
