@@ -106,7 +106,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data_movement = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data_movement, raw_position_data)
 
     save_data_frames(prm, spike_data_movement, spike_data_stationary, spike_data, raw_position_data, processed_position_data, bad_clusters)
-    make_plots(spike_data, raw_position_data, processed_position_data)
+    make_plots(spike_data_movement, raw_position_data, processed_position_data)
     gc.collect()
 
 
