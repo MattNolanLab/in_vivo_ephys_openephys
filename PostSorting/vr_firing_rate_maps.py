@@ -10,13 +10,22 @@ def get_trial_numbers(spatial_data):
     probe_trial_no = spatial_data.at[0,'probe_total_trial_number']
     return beaconed_trial_no, nonbeaconed_trial_no, probe_trial_no
 
-
+'''
 def get_bin_size(spatial_data):
     bin_size_cm = 1
     track_length = spatial_data.x_position_cm.max()
     start_of_track = spatial_data.x_position_cm.min()
     number_of_bins = (track_length - start_of_track)/bin_size_cm
     return bin_size_cm,number_of_bins
+'''
+
+def get_bin_size(spatial_data):
+    track_length = spatial_data.x_position_cm.max()
+    start_of_track = spatial_data.x_position_cm.min()
+    number_of_bins = 200
+    bin_size_cm = (track_length - start_of_track)/number_of_bins
+    bins = np.arange(start_of_track,track_length+1, 200)
+    return bin_size_cm,number_of_bins, bins
 
 
 def gaussian_kernel(kernx):

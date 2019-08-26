@@ -206,7 +206,7 @@ def get_bin_size(spatial_data):
     #number_of_bins = (track_length - start_of_track)/bin_size_cm
     number_of_bins = 200
     bin_size_cm = (track_length - start_of_track)/number_of_bins
-    bins = np.arange(start_of_track,track_length, 200)
+    bins = np.arange(start_of_track,track_length+1, 200)
     return bin_size_cm,number_of_bins, bins
 
 
