@@ -200,11 +200,13 @@ def find_rewarded_positions_test(raw_position_data,processed_position_data):
 
 
 def get_bin_size(spatial_data):
-    bin_size_cm = 1
+    #bin_size_cm = 1
     track_length = spatial_data.x_position_cm.max()
     start_of_track = spatial_data.x_position_cm.min()
-    number_of_bins = (track_length - start_of_track)/bin_size_cm
-    bins = np.arange(start_of_track,track_length, bin_size_cm)
+    #number_of_bins = (track_length - start_of_track)/bin_size_cm
+    number_of_bins = 200
+    bin_size_cm = (track_length - start_of_track)/number_of_bins
+    bins = np.arange(start_of_track,track_length, 200)
     return bin_size_cm,number_of_bins, bins
 
 
