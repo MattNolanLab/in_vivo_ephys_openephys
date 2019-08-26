@@ -87,9 +87,8 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
-    raw_position_data, processed_position_data = process_position_data(recording_to_process, prm)
-    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
+    raw_position_data, processed_position_data = process_position_data(recording_to_process, prm) #process spatial data for session
+    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm) #process firing properties for all clusters in session
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         save_data_frames(prm, spike_data, raw_position_data,processed_position_data, snippet_data, bad_clusters)
@@ -99,8 +98,8 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         return
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm) #load waveform data
 
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     spike_data_movement = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data_movement, raw_position_data, processed_position_data)
     spike_data_movement = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data_movement, raw_position_data)
