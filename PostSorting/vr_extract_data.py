@@ -56,9 +56,9 @@ def reshape_and_average_over_trials(beaconed_cluster_firings, nonbeaconed_cluste
     nonbeaconed_cluster_firings[nonbeaconed_cluster_firings == inf] = 0
     probe_cluster_firings[probe_cluster_firings == inf] = 0
 
-    beaconed_reshaped_hist = np.reshape(beaconed_cluster_firings, (int(beaconed_cluster_firings.size/200), 200))
-    nonbeaconed_reshaped_hist = np.reshape(nonbeaconed_cluster_firings, (int(nonbeaconed_cluster_firings.size/200), 200))
-    probe_reshaped_hist = np.reshape(probe_cluster_firings, (int(probe_cluster_firings.size/200), 200))
+    beaconed_reshaped_hist = np.reshape(beaconed_cluster_firings, (int(max_trial_number), 200))
+    nonbeaconed_reshaped_hist = np.reshape(nonbeaconed_cluster_firings, (int(max_trial_number), 200))
+    probe_reshaped_hist = np.reshape(probe_cluster_firings, (int(max_trial_number), 200))
     average_beaconed_spike_rate = np.nanmean(beaconed_reshaped_hist, axis=0)
     average_nonbeaconed_spike_rate = np.nanmean(nonbeaconed_reshaped_hist, axis=0)
     average_probe_spike_rate = np.nanmean(probe_reshaped_hist, axis=0)
