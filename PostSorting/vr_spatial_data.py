@@ -126,7 +126,7 @@ def process_position(raw_position_data, prm, recording_to_process):
     gc.collect()
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
     processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]
-    raw_position_data = drop_columns_from_dataframe(raw_position_data)
+    #raw_position_data = drop_columns_from_dataframe(raw_position_data)
 
     print('-------------------------------------------------------------')
     print('position data processed')
