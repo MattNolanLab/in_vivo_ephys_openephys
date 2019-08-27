@@ -158,7 +158,7 @@ def normalise_spike_number_by_time_all(firing_rate_map, processed_position_data_
 def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index):
     bin_size_cm,number_of_bins = get_bin_size(raw_position_data) # get bin info
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
-    array_of_trials = np.arange(1,number_of_trials+1,1) # array of unique trial numbers
+    array_of_trials = np.arange(1,number_of_trials,1) # array of unique trial numbers
     firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), number_of_bins,array_of_trials)
     return firing_rate_map,number_of_bins,array_of_trials
 
