@@ -29,8 +29,8 @@ def calculate_total_trial_numbers(raw_position_data,processed_position_data):
 def find_dwell_time_in_bin(dwell_time_per_sample, speed_ms, locations, loc):
     time_in_bin = dwell_time_per_sample[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]
     speed_in_bin = speed_ms[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]
-    time_in_bin_moving = sum(time_in_bin[np.where(speed_in_bin >= 2.5)])
-    time_in_bin_stationary = sum(time_in_bin[np.where(speed_in_bin < 2.5)])
+    time_in_bin_moving = sum(time_in_bin[np.where(speed_in_bin >= 1.5)])
+    time_in_bin_stationary = sum(time_in_bin[np.where(speed_in_bin < 1.5)])
     return time_in_bin,time_in_bin_moving, time_in_bin_stationary
 
 
