@@ -362,7 +362,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
         ax.plot(firing_rate, position, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-        #plt.xlim(0,200)
+        # ]polt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
         #plot_utility.style_track_plot(ax, 200)
