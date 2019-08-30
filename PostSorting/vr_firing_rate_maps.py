@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
 import PostSorting.vr_sync_spatial_data
+import os
 
 
 def get_trial_numbers(spatial_data):
@@ -155,24 +156,46 @@ def normalise_spike_number_by_time_all(firing_rate_map, processed_position_data_
     return firing_rate_map
 
 
-def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index):
+def plot_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_index):
+    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_rate_on_trials']), number_of_trials, np.max(number_of_trials))
+    save_path = prm.get_output_path() + '/Figures/spike_number'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.plot(data)
+    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id[cluster_index] + str(cluster_index +1) + '.png')
+    plt.close()
+
+
+def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index, prm):
     bin_size_cm,number_of_bins = get_bin_size(raw_position_data) # get bin info
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials,1) # array of unique trial numbers
-    firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.loc[cluster_index].trial_number), spike_data.loc[cluster_index].x_position_cm, number_of_bins,array_of_trials)
+    firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), number_of_bins,array_of_trials)
+    quick_spike_plot(spike_data, prm, np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), cluster_index)
     return firing_rate_map,number_of_bins,array_of_trials
 
 
-def make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data):
+def quick_spike_plot(spike_data, prm, trials, locations, cluster_index):
+    save_path = prm.get_output_path() + '/Figures/spike_number'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.plot(locations, trials, 'o', markersize=0.5)
+    plt.savefig(prm.get_output_path() + '/Figures/spike_number/' + '/' + spike_data.session_id[cluster_index] + str(cluster_index +1) + '.png')
+    plt.close()
+    return
+
+
+def make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm):
     print('I am calculating the average firing rate ...')
     for cluster_index in range(len(spike_data)):
         firing_rate_map = pd.DataFrame()
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index)
+        firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index, prm)
         firing_rate_map = add_trial_number(firing_rate_map, processed_position_data)
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
+        plot_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         #firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
 
