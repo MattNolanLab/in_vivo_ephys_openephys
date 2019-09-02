@@ -61,7 +61,7 @@ outputs:
 
 def bin_data_trial_by_trial(raw_position_data,processed_position_data):
     print('calculate binned data per trial...')
-    binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'dwell_time_ms_moving', 'dwell_time_ms_stationary', 'binned_apsolute_elapsed_time'])
+    binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
     bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     trials = np.array(raw_position_data['trial_number'])
@@ -71,7 +71,7 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
     time_per_sample = np.array(raw_position_data['time_seconds'])
 
-    for t in range(1,int(number_of_trials)+1):
+    for t in range(1,int(number_of_trials)):
         trial_locations = np.take(locations, np.where(trials == t)[0])
         trial_type = int(stats.mode(np.take(trial_types, np.where(trials == t)[0]))[0])
         for loc in range(int(number_of_bins)):
