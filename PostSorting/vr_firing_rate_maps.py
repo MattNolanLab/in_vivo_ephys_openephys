@@ -115,6 +115,7 @@ def add_data_to_dataframe(cluster_index, firing_rate_map, spike_data):
     sn.append(np.array(firing_rate_map['spike_num_on_trials']))
     sn.append(np.array(firing_rate_map['trial_number']))
     sn.append(np.array(firing_rate_map['trial_type']))
+    sn.append(np.array(firing_rate_map['dwell_time']))
     spike_data.at[cluster_index, 'spike_num_on_trials'] = list(sn)
 
     sr=[]
