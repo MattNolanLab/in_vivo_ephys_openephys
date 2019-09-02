@@ -156,20 +156,31 @@ def normalise_spike_number_by_time_all(firing_rate_map, processed_position_data_
     return firing_rate_map
 
 
-def plot_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_index):
-    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_rate_on_trials']), number_of_trials, np.max(number_of_trials))
-    save_path = prm.get_output_path() + '/Figures/spike_number'
+def plot_rate_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_index):
+    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_num_on_trials']), number_of_trials, np.max(number_of_trials))
+    save_path = prm.get_output_path() + '/Figures/spike_data'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.plot(data)
-    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id[cluster_index] + str(cluster_index +1) + '.png')
+    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id[cluster_index] + '_rate_' + str(cluster_index +1) + '.png')
     plt.close()
 
 
+def plot_rate_norm_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_index):
+    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_rate_on_trials']), number_of_trials, np.max(number_of_trials))
+    save_path = prm.get_output_path() + '/Figures/spike_data'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.plot(data)
+    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id[cluster_index] + '_rate_norm_' + str(cluster_index +1) + '.png')
+    plt.close()
+
+
+
 def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index, prm):
-    bin_size_cm,number_of_bins = get_bin_size(raw_position_data) # get bin info
+    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
-    array_of_trials = np.arange(1,number_of_trials,1) # array of unique trial numbers
+    array_of_trials = np.arange(1,number_of_trials+1,1) # array of unique trial numbers
     firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), number_of_bins,array_of_trials)
     quick_spike_plot(spike_data, prm, np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), cluster_index)
     return firing_rate_map,number_of_bins,array_of_trials
@@ -195,7 +206,8 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
-        plot_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
+        plot_rate_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
+        plot_rate_norm_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         #firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
 
