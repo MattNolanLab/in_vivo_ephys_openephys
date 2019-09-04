@@ -99,7 +99,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
         print('-------------------------------------------------------------')
         return
     gc.collect()
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm) #load waveform data
+    #spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm) #load waveform data
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
