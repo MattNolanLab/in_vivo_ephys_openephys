@@ -347,7 +347,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
         #plot_utility.style_track_plot(ax, 200)
-        plot_utility.style_vr_plot(ax, x_max)
+        #plot_utility.style_vr_plot(ax, x_max)
         plt.locator_params(axis = 'y', nbins  = 4)
         try:
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
@@ -366,7 +366,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
         #plot_utility.style_track_plot(ax, 200)
-        plot_utility.style_vr_plot(ax, x_max)
+        #plot_utility.style_vr_plot(ax, x_max)
         plt.locator_params(axis = 'y', nbins  = 4)
         try:
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
