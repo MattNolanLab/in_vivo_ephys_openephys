@@ -102,17 +102,17 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
 
     print('stops extracted')
 
-    #processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
-    #processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
-    #processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
-    return pd.Series(stop_locations), pd.Series(stop_trials), pd.Series(stop_trial_types)
+    processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
+    processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
+    processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
+    return processed_position_data
 
 
 def calculate_stops(raw_position_data,processed_position_data, threshold):
     all_stops = get_stop_times(raw_position_data,threshold)
     track_beginnings = get_beginning_of_track_positions(raw_position_data)
-    stop_locations, stop_trials, stop_trial_types = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
-    return stop_locations, stop_trials, stop_trial_types
+    processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+    return processed_position_data
 
 
 def generate_stop_lists(raw_position_data, processed_position_data):
@@ -226,7 +226,7 @@ def calculate_average_stops(raw_position_data,processed_position_data):
 
 
 def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
-    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory)
+    processed_position_data = calculate_stops(raw_position_data, processed_position_data, 10.7)
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
