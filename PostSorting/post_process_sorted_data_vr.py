@@ -13,6 +13,8 @@ import PostSorting.vr_firing_rate_maps
 import PostSorting.vr_firing_maps_copy
 import PostSorting.vr_FiringMaps_InTime
 import gc
+from tqdm import tqdm
+import pandas as pd
 
 prm = PostSorting.parameters.Parameters()
 
@@ -85,8 +87,21 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
+    #Process position
+    print('process position')
     raw_position_data, processed_position_data = process_position_data(recording_to_process, prm)
+    print('process file properties')
+
+    #save data
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    # raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+    # processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
+    # processed_position_data = pd.read_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
+
+    #Process firing
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
+
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         save_data_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
         return

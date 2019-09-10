@@ -16,6 +16,9 @@ import mdaio
 
 
 def convert_continuous_to_mda(prm):
+    '''
+    Convert continous data from open ephys to mda format
+    '''
     file_utility.create_folder_structure(prm)
     file_utility.folders_for_separate_tetrodes(prm)
     number_of_tetrodes = prm.get_num_tetrodes()
@@ -32,6 +35,8 @@ def convert_continuous_to_mda(prm):
         if os.path.isfile(spike_data_path + 't' + str(tetrode + 1) + raw_mda_file_path) is False:
             channel_data_all = []
             if len(live_channels) >= 2:
+                # search for the live channels in each tetrode and load them
+
                 for channel in range(4):
                     if (channel + 1) in live_channels:
                         number_of_live_ch_in_tetrode += 1
@@ -40,9 +45,12 @@ def convert_continuous_to_mda(prm):
                         channel_data_all.append(channel_data)
 
                 recording_length = len(channel_data_all[0])
+                #TODO: there should be a more efficient way to implement this
                 channels_tetrode = np.zeros((number_of_live_ch_in_tetrode, recording_length))
                 for ch in range(number_of_live_ch_in_tetrode):
                     channels_tetrode[ch, :] = channel_data_all[ch]
+                    
+                #write to the bag MDA file
                 mdaio.writemda16i(channels_tetrode, spike_data_path + 't' + str(tetrode + 1) + raw_mda_file_path)
             else:
                 print('The number of live channels is fewer than 2 in this tetrode so I will not sort it.')

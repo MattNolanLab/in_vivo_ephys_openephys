@@ -1,0 +1,17 @@
+mountainlab
+mountainlab_pytools
+ml_ephys
+ml_ms3
+ml_ms4alg
+ml_pyms
+pandas
+joblib
+scipy
+matplotlib
+numba
+xlrd
+rpy2
+scikit-image
+cmocean
+pyyaml
+tqdm

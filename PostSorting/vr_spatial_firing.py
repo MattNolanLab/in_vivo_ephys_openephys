@@ -39,7 +39,7 @@ def add_columns_to_dataframe(spike_data):
 
 def add_speed(spike_data, spatial_data_speed):
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
         spike_data.speed_per200ms[cluster_index] = list(spatial_data_speed[cluster_firing_indices])
     return spike_data
