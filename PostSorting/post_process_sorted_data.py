@@ -121,12 +121,13 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Firing_fields')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, snippet_data, bad_clusters=None):
+def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None):
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
     synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
-    snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
+    if snippet_data is not None:
+        snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
     if bad_clusters is not None:
         bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 
@@ -147,7 +148,7 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
             snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
 
             if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                save_data_frames(spike_data, synced_spatial_data, snippet_data, bad_clusters=bad_clusters)
+                save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
                 return
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data,
@@ -161,7 +162,7 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
         spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
         spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data,
                                                                                     prm)
-        save_data_frames(spatial_firing, synced_spatial_data, snippet_data)
+        save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
@@ -179,7 +180,7 @@ def run_analyses(spike_data_in, synced_spatial_data):
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data,
                                                                                 prm)
-    save_data_frames(spatial_firing, synced_spatial_data, snippet_data)
+    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
     return synced_spatial_data, spatial_firing
 
@@ -218,13 +219,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                 spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
                 snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                    save_data_frames(spike_data, synced_spatial_data, snippet_data, bad_clusters)
+                    save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
                     return
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data)
             spike_data = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
                                                                                                    synced_spatial_data,
                                                                                                    spatial_firing)
-            save_data_frames(spike_data, synced_spatial_data, snippet_data)
+            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 
 
 #  this is here for testing
