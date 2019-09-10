@@ -83,8 +83,11 @@ def process_position_data(recording_to_process, session_type, prm):
 
 
 def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process,
-                                                                                      prm)  # indices
+    opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
+    opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
     return opto_on, opto_off, is_found
 
 
@@ -135,7 +138,7 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
 #  this only calls stable analysis functions
 def call_stable_functions(recording_to_process, session_type, analysis_type):
     # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
-    opto_on, opto_off, is_found = process_light_stimulation(recording_to_process, prm)
+    opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
@@ -153,6 +156,8 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
         spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data,
                                                                                           synced_spatial_data)
+        if opto_is_found:
+            PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
         spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250,
                                                                      prm.get_sampling_rate())
         hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial,
