@@ -102,6 +102,11 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         save_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
+        print('-------------------------------------------------------------')
+        print('-------------------------------------------------------------')
+        print('No curated clusters found. Saving dataframe for noisy clusters')
+        print('-------------------------------------------------------------')
+        print('-------------------------------------------------------------')
         return
     gc.collect()
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm) #load waveform data
