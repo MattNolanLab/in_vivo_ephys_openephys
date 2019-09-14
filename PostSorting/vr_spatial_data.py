@@ -135,8 +135,8 @@ def drop_columns_from_dataframe(raw_position_data):
 
 def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
-    #processed_position_data = bin_data_over_trials(raw_position_data,processed_position_data)
-    processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data)
+    processed_position_data = bin_data_over_trials(raw_position_data,processed_position_data)
+    #processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data)
     processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data,processed_position_data, prm)
