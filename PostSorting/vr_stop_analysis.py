@@ -234,8 +234,3 @@ def process_stops(raw_position_data,processed_position_data, prm):
     return processed_position_data
 
 
-def load_stop_data(spatial_data):
-    locations = spatial_data['stop_location_cm'].values
-    trials = spatial_data['stop_trial_number'].values
-    trial_type = spatial_data['stop_trial_type'].values
-    return locations,trials,trial_type
