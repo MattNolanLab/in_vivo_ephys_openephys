@@ -115,27 +115,6 @@ def calculate_stops(raw_position_data,processed_position_data, threshold):
     return processed_position_data
 
 
-def generate_stop_lists(raw_position_data, processed_position_data):
-    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, 0.7)
-    processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
-    processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
-    processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
-    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, 4.7)
-    processed_position_data['stop_location_cm_4.7'] = pd.Series(stop_locations)
-    processed_position_data['stop_trial_number_4.7'] = pd.Series(stop_trials)
-    processed_position_data['stop_trial_type_4.7'] = pd.Series(stop_trial_types)
-    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, 10.7)
-    processed_position_data['stop_location_cm_10.7'] = pd.Series(stop_locations)
-    processed_position_data['stop_trial_number_10.7'] = pd.Series(stop_trials)
-    processed_position_data['stop_trial_type_10.7'] = pd.Series(stop_trial_types)
-
-    processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
-    gc.collect()
-    processed_position_data = find_first_stop_in_series(processed_position_data)
-    processed_position_data = find_rewarded_positions_test(raw_position_data,processed_position_data)
-    return processed_position_data
-
-
 def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory):
     stop_threshold = check_stop_threshold(recording_directory)
     stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
