@@ -70,7 +70,7 @@ def save_data_frames(prm, spatial_firing_movement, spatial_firing_stationary, sp
     snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
 
 
-def save_frames(prm, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
+def save_noisy_cluster_frames(prm, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_all.pkl')
@@ -101,7 +101,7 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm) #process firing properties for all clusters in session
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-        save_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
+        save_noisy_cluster_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         print('No curated clusters found. Saving dataframe for noisy clusters')
@@ -109,6 +109,12 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
         print('-------------------------------------------------------------')
         return
     gc.collect()
+
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
+    print(str(len(spike_data)), ' curated clusters found. Processing spatial firing...')
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm) #load waveform data
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
