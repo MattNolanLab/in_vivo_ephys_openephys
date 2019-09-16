@@ -153,9 +153,9 @@ def load_first_trial_channel(recording_folder, prm):
     first = []
     file_path = recording_folder + '/' + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_first = open_ephys_IO.get_data_continuous(prm, file_path)
+    if trial_first.shape[0] > 90000000:
+        trial_first = trial_first[:90000000]
     first.append(trial_first)
-    if first.shape[0] > 90000000:
-        first = first[:90000000]
     return np.asarray(first, dtype=np.uint8)
 
 
@@ -164,9 +164,9 @@ def load_second_trial_channel(recording_folder, prm):
     second = []
     file_path = recording_folder + '/' + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_second = open_ephys_IO.get_data_continuous(prm, file_path)
+    if trial_second.shape[0] > 90000000:
+        trial_second = trial_second[:90000000]
     second.append(trial_second)
-    if second.shape[0] > 90000000:
-        second = second[:90000000]
     return np.asarray(second, dtype=np.uint8)
 
 
