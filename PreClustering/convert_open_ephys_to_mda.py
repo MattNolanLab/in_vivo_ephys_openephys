@@ -81,6 +81,8 @@ def convert_all_tetrodes_to_mda(prm):
 
             first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
 
+        if first_ch.shape[0] > 90000000:
+            first_ch = first_ch[:90000000]
         live_channels = PreClustering.dead_channels.get_list_of_live_channels_all_tetrodes(prm)
         number_of_live_channels = len(live_channels)
 
@@ -91,12 +93,9 @@ def convert_all_tetrodes_to_mda(prm):
         for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
-                if os.path.exists(file_path):
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
-                else:
-                    file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
-
+                channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                if channel_data.shape[0] > 90000000:
+                    channel_data = channel_data[:90000000]
                 channels_all[live_ch_counter, :] = channel_data
                 live_ch_counter += 1
 
