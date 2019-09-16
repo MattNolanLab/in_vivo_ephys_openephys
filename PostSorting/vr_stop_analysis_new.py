@@ -36,13 +36,13 @@ def get_stop_locations(raw_position_data, stop_threshold):
     stops = np.array([])
     speed = np.array(raw_position_data['speed_per200ms'].tolist())
     locations = np.array(raw_position_data['x_position_cm'].tolist())
-    trials = np.array(raw_position_data['trial_numbers'].tolist())
+    trials = np.array(raw_position_data['trial_number'].tolist())
     types = np.array(raw_position_data['trial_type'].tolist())
 
     threshold = stop_threshold
-    stop_locs = np.take(locations[np.where(speed < threshold)])
-    stop_trials = np.take(trials[np.where(speed < threshold)])
-    stop_types = np.take(types[np.where(speed < threshold)])
+    stop_locs = np.take(locations, np.where(speed < threshold)[0])
+    stop_trials = np.take(trials, np.where(speed < threshold)[0])
+    stop_types = np.take(types, np.where(speed < threshold)[0])
     
     stops = remove_extra_stops(5, stop_locs)
     #stops = np.hstack((stop_locs, stop_trials, stop_types))
@@ -51,8 +51,7 @@ def get_stop_locations(raw_position_data, stop_threshold):
     
 def calculate_stops(raw_position_data,processed_position_data, threshold):
     stop_locs, stop_trials, stop_types = get_stop_locations(raw_position_data,threshold)
-    #processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
-    return processed_position_data
+    return stop_locs, stop_trials, stop_types
     
     
 def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory):
@@ -80,12 +79,11 @@ def find_rewarded_positions_test(raw_position_data,processed_position_data):
     processed_position_data['rewarded_stop_locations'] = pd.Series(rewarded_stop_locations)
     processed_position_data['rewarded_trials'] = pd.Series(rewarded_trials)
     return processed_position_data
-    
+
+
 def get_bin_size(spatial_data):
-    #bin_size_cm = 1
     track_length = spatial_data.x_position_cm.max()
     start_of_track = spatial_data.x_position_cm.min()
-    #number_of_bins = (track_length - start_of_track)/bin_size_cm
     number_of_bins = 200
     bin_size_cm = (track_length - start_of_track)/number_of_bins
     bins = np.arange(start_of_track,track_length, 200)
@@ -109,8 +107,8 @@ def calculate_average_stops(raw_position_data,processed_position_data):
 
 
 
-def process_stops(raw_position_data,processed_position_data, prm):
-    processed_position_data = calculate_stops(raw_position_data, processed_position_data, 10.7)
+def process_stops(raw_position_data,processed_position_data, prm,recording_directory):
+    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory)
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
     processed_position_data = find_rewarded_positions_test(raw_position_data,processed_position_data)

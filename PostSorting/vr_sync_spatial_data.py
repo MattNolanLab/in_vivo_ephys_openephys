@@ -28,6 +28,8 @@ def get_raw_location(recording_folder, prm):
         location = open_ephys_IO.get_data_continuous(prm, file_path)
     else:
         print('Movement data was not found.')
+    if location.shape[0] > 90000000:
+        location = location[:90000000]
     location=correct_for_restart(location)
     PostSorting.vr_make_plots.plot_movement_channel(location, prm)
     return np.asarray(location, dtype=np.float16)
@@ -152,6 +154,8 @@ def load_first_trial_channel(recording_folder, prm):
     file_path = recording_folder + '/' + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_first = open_ephys_IO.get_data_continuous(prm, file_path)
     first.append(trial_first)
+    if first.shape[0] > 90000000:
+        first = first[:90000000]
     return np.asarray(first, dtype=np.uint8)
 
 
@@ -161,6 +165,8 @@ def load_second_trial_channel(recording_folder, prm):
     file_path = recording_folder + '/' + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_second = open_ephys_IO.get_data_continuous(prm, file_path)
     second.append(trial_second)
+    if second.shape[0] > 90000000:
+        second = second[:90000000]
     return np.asarray(second, dtype=np.uint8)
 
 
