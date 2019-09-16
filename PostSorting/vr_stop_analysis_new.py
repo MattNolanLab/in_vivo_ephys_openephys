@@ -32,21 +32,27 @@ def remove_extra_stops(min_distance, stops):
     return filtered_stops
 
 
-def get_stop_times(raw_position_data, stop_threshold):
+def get_stop_locations(raw_position_data, stop_threshold):
     stops = np.array([])
     speed = np.array(raw_position_data['speed_per200ms'].tolist())
     locations = np.array(raw_position_data['x_position_cm'].tolist())
+    trials = np.array(raw_position_data['trial_numbers'].tolist())
+    types = np.array(raw_position_data['trial_type'].tolist())
 
     threshold = stop_threshold
-    stops = np.take(locations[np.where(speed < threshold)])
+    stop_locs = np.take(locations[np.where(speed < threshold)])
+    stop_trials = np.take(trials[np.where(speed < threshold)])
+    stop_types = np.take(types[np.where(speed < threshold)])
+    
+    stops = remove_extra_stops(5, stop_locs)
+    #stops = np.hstack((stop_locs, stop_trials, stop_types))
 
-    stops = remove_extra_stops(5, stops)
-    return stops
+    return stop_locs, stop_trials, stop_types
     
     
 def calculate_stops(raw_position_data,processed_position_data, threshold):
-    all_stops = get_stop_locations(raw_position_data,threshold)
-    processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+    stop_locs, stop_trials, stop_types = get_stop_locations(raw_position_data,threshold)
+    #processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
     return processed_position_data
     
     
