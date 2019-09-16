@@ -81,12 +81,12 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
         trial_locations = np.take(locations, np.where(trials == t)[0])
         trial_type = int(stats.mode(np.take(trial_types, np.where(trials == t)[0]))[0])
         for loc in range(int(number_of_bins)):
-            speed_in_bin = find_speed_in_bin(speed_ms, trial_locations, loc)
-            time_in_bin= find_dwell_time_in_bin(dwell_time_per_sample, trial_locations, loc)
+            #speed_in_bin = find_speed_in_bin(speed_ms, trial_locations, loc)
+            time_in_bin = find_dwell_time_in_bin(dwell_time_per_sample, trial_locations, loc)
             apsolute_elapsed_time_in_bin = find_time_in_bin(time_per_sample, trial_locations, loc)
             binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_speed_ms_per_trial":  np.float16(speed_in_bin), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
 
-    processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
+    #processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_type_in_bin']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_number_in_bin']], axis=1)
@@ -139,7 +139,7 @@ def drop_columns_from_dataframe(raw_position_data):
 
 def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
-    #processed_position_data = bin_data_over_trials(raw_position_data,processed_position_data)
+    #processed_position_data = bin_data_over_trials_by_speed(raw_position_data,processed_position_data)
     processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data)
     processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
