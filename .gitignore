@@ -1,0 +1,4 @@
+/testData
+*.ipynb
+*.pyc
+*.pkl

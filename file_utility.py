@@ -1,6 +1,25 @@
 import glob
 import os
+import setting
+import OpenEphys
+import numpy as np
 
+def load_OpenEphysRecording(folder):
+    signal = []
+    for i in range(setting.num_tetrodes*4):
+        fname = folder+setting.data_file_prefix+str(i+1)+setting.data_file_suffix+'.continuous'
+        x = OpenEphys.loadContinuousFast(fname)['data']
+        if i==0:
+            #preallocate array on first run
+            signal = np.zeros((setting.num_tetrodes*4,x.shape[0]))
+        signal[i,:] = x
+    return signal
+
+def getDeadChannel(deadChannelFile):
+    with open(deadChannelFile,'r') as f:
+        deadChannels = [int(s) for s in f.readlines()]
+    
+    return deadChannels
 
 def find_the_file(file_path, pattern, type):
     name = None

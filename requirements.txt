@@ -1,0 +1,13 @@
+ml_ms4alg
+pandas
+joblib
+scipy
+matplotlib
+numba
+xlrd
+rpy2
+scikit-image
+cmocean
+pyyaml
+tqdm
+pyopenephys

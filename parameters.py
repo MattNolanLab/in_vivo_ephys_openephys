@@ -6,12 +6,14 @@ prm.set_filepath('C:/Users/s1466507/Documents/Ephys/deep MEC/day3/2016-08-29_09-
 prm.get_filepath()
 '''
 
+import setting
+
 
 class Parameters:
     analyze_tetrode_by_tetrode = False
     analyze_all_tetrodes_together = True
 
-    sorter_name = 'MountainSort'
+    sorter_name = setting.sorterName
 
     dead_channels = []
 
@@ -27,13 +29,17 @@ class Parameters:
     spike_path = ''
     ephys_path = ''
 
-    sampling_rate = 30000
-    num_tetrodes = 0
-    movement_ch = '100_ADC2.continuous'
-    opto_ch = '100_ADC3.continuous'
-    waveform_size = 40
-    
+    sampling_rate = setting.sampling_rate
+    num_tetrodes = setting.num_tetrodes
+    movement_ch = setting.movement_ch
+    opto_ch = setting.opto_ch
+    waveform_size = setting.wave_form_size
 
+    analyze_tetrode_by_tetrode = setting.is_tetrode_by_tetrode
+    analyze_all_tetrodes_together = not setting.is_tetrode_by_tetrode
+
+    continuous_file_name = setting.data_file_prefix
+    continuous_file_name_end = setting.data_file_suffix
 
     def __init__(self):
         return
@@ -59,7 +65,7 @@ class Parameters:
     def get_dead_channels(self):
         return Parameters.dead_channels
 
-    def set_dead_channels(d_ch = [], *args):
+    def set_dead_channels(self,d_ch = [], *args):
         dead_ch = []
         for dead_chan in args:
             dead_ch.append(dead_chan)
