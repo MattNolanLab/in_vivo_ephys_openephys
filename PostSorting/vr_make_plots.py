@@ -18,27 +18,24 @@ from scipy import stats
 '''
 
 # plot the raw movement channel to check all is good
-def plot_movement_channel(location, prm):
-    save_path = prm.get_output_path() + '/Figures'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+def plot_movement_channel(location, get_local_recording_folder_path):
     plt.plot(location)
-    plt.savefig(save_path + '/movement' + '.png')
+    plt.savefig(get_local_recording_folder_path + '/Figures/movement' + '.png')
     plt.close()
 
 # plot the trials to check all is good
-def plot_trials(trials, prm):
+def plot_trials(trials, filename):
     plt.plot(trials)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials' + '.png')
+    plt.savefig(filename)
     plt.close()
 
 # plot the raw trial channels to check all is good
-def plot_trial_channels(trial1, trial2, prm):
+def plot_trial_channels(trial1, trial2, type1_filename, type2_filename):
     plt.plot(trial1[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type1' + '.png')
+    plt.savefig(type1_filename)
     plt.close()
     plt.plot(trial2[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2' + '.png')
+    plt.savefig(type2_filename)
     plt.close()
 
 

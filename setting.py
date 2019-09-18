@@ -27,3 +27,23 @@ sorterName = 'mountainsort4'
 is_tetrode_by_tetrode = False #set to True if you want the spike sorting to be done tetrode by tetrode
 all_tetrode_together = True #set to True if you want the spike sorting done on all tetrodes combined
 
+##########
+# Figures save location
+get_local_recording_folder_path = 'figures'
+
+
+##########
+# VR
+track_length = 200
+first_trial_channel = '100_ADC4.continuous'
+second_trial_channel = '100_ADC5.continuous'
+
+
+##########
+# Experiment
+session_type = 'vr'
+
+
+##########
+# open field
+opto_tagging_start_index = None

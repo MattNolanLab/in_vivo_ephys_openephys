@@ -8,7 +8,8 @@ import gc
 from scipy import stats
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
-
+import OpenEphys
+import setting
 
 def correct_for_restart(location):
     location[location <0.55] = 0.56 # deals with if the VR is switched off during recording - location value drops to 0 - min is usually 0.56 approx
@@ -21,17 +22,17 @@ Loads raw location continuous channel from ACD1.continuous
 # output: raw location as numpy array
 """
 
-def get_raw_location(recording_folder, prm):
+def get_raw_location(recording_folder, movement_channel):
     print('Extracting raw location...')
-    file_path = recording_folder + '/' + prm.get_movement_channel()
+    file_path = recording_folder + '/' + movement_channel
     if os.path.exists(file_path):
-        location = open_ephys_IO.get_data_continuous(prm, file_path)
+        location = OpenEphys.loadContinuousFast(file_path)['data']
     else:
         print('Movement data was not found.')
     if location.shape[0] > 90000000:
         location = location[:90000000]
     location=correct_for_restart(location)
-    PostSorting.vr_make_plots.plot_movement_channel(location, prm)
+    # PostSorting.vr_make_plots.plot_movement_channel(location, prm)
     return np.asarray(location, dtype=np.float16)
 
 
@@ -55,13 +56,13 @@ ephys recording in time, but the smallest value recorded by the rotary encoder.)
 distance unit calculated in the previous step to convert the rotary encoder values to metric.
 '''
 
-def calculate_track_location(position_data, recording_folder, prm):
-    recorded_location = get_raw_location(recording_folder, prm) # get raw location from DAQ pin
+def calculate_track_location(position_data, recording_folder):
+    recorded_location = get_raw_location(recording_folder, setting.movement_ch) # get raw location from DAQ pin
     print('Converting raw location input to cm...')
     recorded_startpoint = min(recorded_location)
     recorded_endpoint = max(recorded_location)
     recorded_track_length = recorded_endpoint - recorded_startpoint
-    distance_unit = recorded_track_length/prm.get_track_length()  # Obtain distance unit (cm) by dividing recorded track length to actual track length
+    distance_unit = recorded_track_length/setting.track_length  # Obtain distance unit (cm) by dividing recorded track length to actual track length
     location_in_cm = (recorded_location - recorded_startpoint) / distance_unit
     position_data['x_position_cm'] = np.asarray(location_in_cm, dtype=np.float16) # fill in dataframe
     return position_data
@@ -134,12 +135,11 @@ def fill_in_trial_array(new_trial_indices,trials):
 
 
 # calculates trial number from location
-def calculate_trial_numbers(position_data, prm):
+def calculate_trial_numbers(position_data):
     print('Calculating trial numbers...')
     trials = np.zeros((position_data.shape[0]))
     new_trial_indices = get_new_trial_indices(position_data)
     trials = fill_in_trial_array(new_trial_indices,trials)
-    PostSorting.vr_make_plots.plot_trials(trials, prm)
 
     position_data['trial_number'] = np.asarray(trials, dtype=np.uint8)
     position_data['new_trial_indices'] = pd.Series(new_trial_indices)
@@ -149,32 +149,25 @@ def calculate_trial_numbers(position_data, prm):
 
 
 # two continuous channels represent trial type
-def load_first_trial_channel(recording_folder, prm):
+def load_first_trial_channel(recording_folder):
     first = []
-    file_path = recording_folder + '/' + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
-    trial_first = open_ephys_IO.get_data_continuous(prm, file_path)
-    if trial_first.shape[0] > 90000000:
-        trial_first = trial_first[:90000000]
+
     first.append(trial_first)
     return np.asarray(first, dtype=np.uint8)
 
 
 # two continuous channels represent trial type
-def load_second_trial_channel(recording_folder, prm):
+def load_second_trial_channel(recording_folder):
     second = []
-    file_path = recording_folder + '/' + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
-    trial_second = open_ephys_IO.get_data_continuous(prm, file_path)
-    if trial_second.shape[0] > 90000000:
-        trial_second = trial_second[:90000000]
+
     second.append(trial_second)
     return np.asarray(second, dtype=np.uint8)
 
 
-def calculate_trial_types(position_data, recording_folder, prm):
+def calculate_trial_types(position_data, recording_folder):
     print('Loading trial types from continuous...')
-    first_ch = load_first_trial_channel(recording_folder, prm)
-    second_ch = load_second_trial_channel(recording_folder, prm)
-    PostSorting.vr_make_plots.plot_trial_channels(first_ch, second_ch, prm)
+    first_ch = load_first_trial_channel(recording_folder)
+    second_ch = load_second_trial_channel(recording_folder)
 
     trial_type = np.zeros((second_ch.shape[1]));trial_type[:]=np.nan
     new_trial_indices = position_data['new_trial_indices'].values
@@ -193,7 +186,7 @@ def calculate_trial_types(position_data, recording_folder, prm):
         if second > 2 and first > 2: # if probe
             trial_type[new_trial_index:next_trial_index] = int(1)
     position_data['trial_type'] = np.asarray(trial_type, dtype=np.uint8)
-    return position_data
+    return (position_data,first_ch,second_ch)
 
 
 '''
@@ -256,10 +249,10 @@ The location array is duplicated, and shifted in a way that it can be subtracted
 subtracted from the original location array.)
 '''
 
-def calculate_instant_velocity(position_data, prm):
+def calculate_instant_velocity(position_data):
     print('Calculating velocity...')
     location = np.array(position_data['x_position_cm']) # Get the raw location from the movement channel
-    sampling_points_per200ms = int(prm.get_sampling_rate()/5)
+    sampling_points_per200ms = int(setting.sampling_rate/5)
     end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
@@ -328,10 +321,10 @@ output
 
 '''
 
-def get_avg_speed_200ms(position_data, prm):
+def get_avg_speed_200ms(position_data):
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
-    sampling_points_per200ms = int(prm.get_sampling_rate()/5)
+    sampling_points_per200ms = int(setting.sampling_rate/5)
     position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
     return position_data
 

@@ -2,3 +2,6 @@
 *.ipynb
 *.pyc
 *.pkl
+/.snakemake
+/.vscode
+/.idea

@@ -1,11 +1,7 @@
 
 #%%
-import pipieline_manager 
-from PreClustering import pre_process_ephys_data
 import Logger
 import setting
-import sys
-import parameters
 from collections import namedtuple
 import file_utility
 import os
@@ -23,6 +19,7 @@ import pickle
 from scipy.signal import butter,filtfilt
 from tqdm import tqdm
 import numpy as np
+
 #%% define input and output
 
 if 'snakemake' not in locals():
@@ -75,8 +72,8 @@ def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
 
 filterRecording(recording,setting.sampling_rate) #for faster operation later
 
-#%%
-# recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
+#%% Remove some bad channels
+recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
 # recording_waveform = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000,chunk_size=int(setting.sampling_rate*0.02))
 # recording_sort = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000)
 
@@ -86,44 +83,40 @@ param = json.load(open(input.sort_param))
 sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=sorterPrefix,
     adjacency_radius=param['adjacency_radius'], detect_sign=param['detect_sign'])
 
+#%%
+sorting_ms4 = pickle.load(open(input.sorter,'rb'))
+
+#%% compute some property of the sorting
+st.postprocessing.get_unit_max_channels(recording, sorting_ms4, max_num_waveforms=100)
+st.postprocessing.get_unit_waveforms(recording, sorting_ms4, max_num_waveforms=100)
+
+for id in sorting_ms4.get_unit_ids():
+    number_of_spikes = len(sorting_ms4.get_unit_spike_train(id))
+    mean_firing_rate = number_of_spikes/(recording._timeseries.shape[1]/setting.sampling_rate)
+    sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
+    sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 
 #%% save data
 se.MdaSortingExtractor.write_sorting(sorting_ms4, output.firings)
 pickle.dump(sorting_ms4,open(input.sorter,'wb'))
 
-#%%
-sorting_ms4 = pickle.load(open(input.sorter,'rb'))
-
-
-#%% save sorting waveform
-spike_waveform = st.postprocessing.get_unit_waveforms(recording, sorting_ms4,
-     max_num_waveforms=100)
-
-pickle.dump(spike_waveform,open(output.spike_waveforms,'wb'))
-
-# #%% Calculate metrics for curation
-
-# metricsCal = st.validation.MetricCalculator(sorting_ms4, recording,verbose=True)
-# numWaveform = 100
-# metricsName = ['firing_rate', 'num_spikes', 'isi_viol', 'presence_ratio','d_prime','snr']
-# metricsCal.compute_all_metric_data(max_num_waveforms=numWaveform, max_num_pca_waveforms=numWaveform)
-# metrics = metricsCal.compute_metrics(max_snr_waveforms=numWaveform, max_spikes_for_silhouette=numWaveform,max_spikes_for_unit=numWaveform,
-#     max_spikes_for_nn=numWaveform,metric_names=metricsName)
-
 #%% Do some simple curation for now
 sorting_ms4_curated = st.curation.threshold_snr(sorting=sorting_ms4, recording = recording,
-  threshold =1.2, threshold_sign='less', max_snr_waveforms=100,) #remove when less than threshold
+  threshold =1.2, threshold_sign='less', max_snr_waveforms=100) #remove when less than threshold
 print(sorting_ms4_curated.get_unit_ids())
 
 sorting_ms4_curated=st.curation.threshold_firing_rate(sorting_ms4_curated,
-     threshold=0.5, threshold_sign='less')
+    threshold=0.5, threshold_sign='less')
 print(sorting_ms4_curated.get_unit_ids())
 
-st.curation.threshold_isi_violations(sorting_ms4_curated, threshold = 0.9, threshold_sign='greater')
+sorting_ms4_curated=st.curation.threshold_isi_violations(sorting_ms4_curated, threshold = 0.9)
 print(sorting_ms4_curated.get_unit_ids())
 
-pickle.dump(sorting_ms4, open(output.sorter_curated,'wb'))
-se.MdaSortingExtractor.write_sorting(sorting_ms4, output.firings_curated)
-
+sorting_ms4_curated = st.curation.threshold_firing_rate(sorting=sorting_ms4_curated,threshold=0.5,threshold_sign='less')
+print(sorting_ms4_curated.get_unit_ids())
 
 #%%
+#save curated data
+sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_curated.get_unit_ids())
+pickle.dump(sorting_ms4_curated, open(output.sorter_curated,'wb'))
+se.MdaSortingExtractor.write_sorting(sorting_ms4_curated, output.firings_curated)
