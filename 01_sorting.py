@@ -19,13 +19,13 @@ import pickle
 from scipy.signal import butter,filtfilt
 from tqdm import tqdm
 import numpy as np
-
+from types import SimpleNamespace
 #%% define input and output
 
 if 'snakemake' not in locals():
     #Define some variable to run the script standalone
-    input = namedtuple
-    output = namedtuple
+    input = SimpleNamespace()
+    output = SimpleNamespace()
     
     input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25/'
     input.probe_file = 'sorting_files/tetrode_16.prb'

@@ -6,20 +6,20 @@ from PostSorting.vr_spatial_data import *
 import PostSorting
 from collections import namedtuple
 import setting
-
+from types import SimpleNamespace
 #%% define input and output
 if 'snakemake' not in locals():
     #Define some variable to run the script standalone
-    input = namedtuple
-    output = namedtuple
+    input = SimpleNamespace()
+    output = SimpleNamespace()
 
     input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25'
     
     sorterPrefix = input.recording_to_sort+'/processed/'+setting.sorterName
     
-    output.trial_figure = input.recording_to_sort + '/processed/Figures/trials.png'
-    output.first_trial_ch = input.recording_to_sort + '/processed/Figures/trials_type1.png'
-    output.second_trial_ch = input.recording_to_sort + '/processed/Figures/trials_type2.png'
+    output.trial_figure = input.recording_to_sort + '/processed/figures/trials.png'
+    output.first_trial_ch = input.recording_to_sort + '/processed/figures/trials_type1.png'
+    output.second_trial_ch = input.recording_to_sort + '/processed/figures/trials_type2.png'
     output.raw_position_data = input.recording_to_sort +'/processed/raw_position.hdf'
     output.processed_position_data = input.recording_to_sort +'/processed/processed_position.hdf'
 

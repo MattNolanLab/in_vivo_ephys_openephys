@@ -5,12 +5,12 @@ import PostSorting.vr_FiringMaps_InTime
 import setting
 import pandas as pd
 from collections import namedtuple
-
+from types import SimpleNamespace
 #%% define input and output
 if 'snakemake' not in locals():
     #Define some variable to run the script standalone
-    input = namedtuple
-    output = namedtuple
+    input = SimpleNamespace()
+    output = SimpleNamespace()
 
     input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25'
     input.spatial_firing = input.recording_to_sort + '/processed/spatial_firing.hdf'
