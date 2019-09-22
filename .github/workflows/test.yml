@@ -19,8 +19,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          echo todo
-          docker run -t -v ${PWD}:/code -w /code ephys /bin/bash -l mp-list-processors
+          docker run -t -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_tests_integration.sh
 
       - name: Run code coverage
         run: |
