@@ -16,6 +16,7 @@ class Parameters:
     local_recording_folder_path = ''
     file_path = []
     output_path = []
+    ms_tmp_path = []
     total_length_sampling_points = 0
     dead_channels = []
     sorter_name = []
@@ -119,6 +120,12 @@ class Parameters:
 
     def set_output_path(self, path):
         Parameters.output_path = path
+
+    def get_ms_tmp_path(self):
+        return Parameters.ms_tmp_path
+
+    def set_ms_tmp_path(self, path):
+        Parameters.ms_tmp_path = path
 
     def get_total_length_sampling_points(self):
         return Parameters.total_length_sampling_points
