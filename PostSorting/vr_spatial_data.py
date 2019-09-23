@@ -6,7 +6,7 @@ import PostSorting.vr_stop_analysis
 import PostSorting.vr_stop_analysis_new
 import PostSorting.vr_make_plots
 from scipy import stats
-
+from tqdm import tqdm
 
 
 def calculate_total_trial_numbers(raw_position_data,processed_position_data):
@@ -27,26 +27,24 @@ def calculate_total_trial_numbers(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def find_dwell_time_in_bin_by_speed(dwell_time_per_sample, speed_ms, locations, loc):
-    time_in_bin = dwell_time_per_sample[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]
-    speed_in_bin = speed_ms[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]
-    time_in_bin_moving = sum(time_in_bin[np.where(speed_in_bin >= 1.5)])
-    time_in_bin_stationary = sum(time_in_bin[np.where(speed_in_bin < 1.5)])
+def find_dwell_time_in_bin_by_speed(dwell_time_per_sample, speed_ms, idx):
+    time_in_bin = dwell_time_per_sample[idx]
+    speed_in_bin = speed_ms[idx]
+    time_in_bin_moving = np.sum(time_in_bin[np.where(speed_in_bin >= 1.5)])
+    time_in_bin_stationary = np.sum(time_in_bin[np.where(speed_in_bin < 1.5)])
     return time_in_bin,time_in_bin_moving, time_in_bin_stationary
 
+def find_dwell_time_in_bin(dwell_time_per_sample, idx):
+    time_in_bin = dwell_time_per_sample[idx]
+    return time_in_bin
 
-def find_dwell_time_in_bin(dwell_time_per_sample, locations, loc):
-    time_in_bin = dwell_time_per_sample[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]
+def find_time_in_bin(time_per_sample, idx):
+    time_in_bin = time_per_sample[idx]
     return time_in_bin
 
 
-def find_time_in_bin(time_per_sample, locations, loc):
-    time_in_bin = time_per_sample[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]
-    return time_in_bin
-
-
-def find_speed_in_bin(speed_ms, locations, loc):
-    speed_in_bin = (np.nanmean(speed_ms[np.where(np.logical_and(locations > loc, locations <= (loc+1)))]))
+def find_speed_in_bin(speed_ms, idx):
+    speed_in_bin = (np.nanmean(speed_ms[idx]))
     return speed_in_bin
 
 
@@ -65,10 +63,10 @@ outputs:
     position_data : with additional column added for processed data
 """
 
-def bin_data_trial_by_trial(raw_position_data,processed_position_data):
+def bin_data_trial_by_trial(raw_position_data,processed_position_data,number_of_bins = 200):
     print('calculate binned data per trial...')
     binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
-    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    # bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     trials = np.array(raw_position_data['trial_number'])
     trial_types = np.array(raw_position_data['trial_type'])
@@ -77,35 +75,40 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
     time_per_sample = np.array(raw_position_data['time_seconds'])
 
-    for t in range(1,int(number_of_trials)):
-        trial_locations = np.take(locations, np.where(trials == t)[0])
-        trial_type = int(stats.mode(np.take(trial_types, np.where(trials == t)[0]))[0])
+    for t in tqdm(range(1,int(number_of_trials))):
+        trial_locations = locations[np.where(trials == t)]
+        trial_type = int(stats.mode(trial_types[np.where(trials == t)])[0])
         for loc in range(int(number_of_bins)):
-            #speed_in_bin = find_speed_in_bin(speed_ms, trial_locations, loc)
-            time_in_bin = find_dwell_time_in_bin(dwell_time_per_sample, trial_locations, loc)
-            apsolute_elapsed_time_in_bin = find_time_in_bin(time_per_sample, trial_locations, loc)
+            idx = getBinnedIdx(trial_locations,loc)
+            speed_in_bin = find_speed_in_bin(speed_ms, idx)
+            time_in_bin = find_dwell_time_in_bin(dwell_time_per_sample, idx)
+            apsolute_elapsed_time_in_bin = find_time_in_bin(time_per_sample, idx)
             binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_speed_ms_per_trial":  np.float16(speed_in_bin), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
 
-    #processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
+    processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_type_in_bin']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_number_in_bin']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_apsolute_elapsed_time']], axis=1)
     return processed_position_data
 
+def getBinnedIdx(locations,loc):
+    idx = np.where(np.logical_and(locations > loc, locations <= (loc+1)))
+    return idx
 
-def bin_data_over_trials(raw_position_data,processed_position_data):
+def bin_data_over_trials(raw_position_data, processed_position_data, number_of_bins = 200):
     print('Calculating binned data over trials...')
     binned_data = pd.DataFrame(columns=['dwell_time_ms', 'dwell_time_ms_moving', 'dwell_time_ms_stationary', 'speed_in_bin'])
-    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    # bin_size_cm, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data.x_position_cm,number_of_bins)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     locations = np.array(raw_position_data['x_position_cm'])
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
     speed_ms = np.array(raw_position_data['speed_per200ms'])
 
-    for loc in range(int(number_of_bins)):
-        time_in_bin,time_in_bin_moving, time_in_bin_stationary = find_dwell_time_in_bin_by_speed(dwell_time_per_sample, speed_ms, locations, loc)
-        speed_in_bin = find_speed_in_bin(speed_ms, locations, loc)
+    for loc in tqdm(range(int(number_of_bins))):
+        idx = getBinnedIdx(locations, loc)
+        time_in_bin,time_in_bin_moving, time_in_bin_stationary = find_dwell_time_in_bin_by_speed(dwell_time_per_sample, speed_ms, idx)
+        speed_in_bin = find_speed_in_bin(speed_ms, idx)
         binned_data = binned_data.append({"dwell_time_ms":  np.float16(sum(time_in_bin))/number_of_trials, "dwell_time_ms_moving":  np.float16(time_in_bin_moving)/number_of_trials, "dwell_time_ms_stationary":  np.float16(time_in_bin_stationary)/number_of_trials, "speed_in_bin": np.float16(speed_in_bin)}, ignore_index=True)
 
     processed_position_data['binned_time_ms'] = binned_data['dwell_time_ms']
@@ -113,8 +116,6 @@ def bin_data_over_trials(raw_position_data,processed_position_data):
     processed_position_data['binned_time_stationary_ms'] = binned_data['dwell_time_ms_stationary']
     processed_position_data['binned_speed_ms'] = binned_data['speed_in_bin']
     return processed_position_data
-
-
 
 def bin_speed_over_trials(raw_position_data,processed_position_data):
     print('Calculating binned data over trials...')
