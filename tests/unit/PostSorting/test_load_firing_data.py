@@ -1,5 +1,5 @@
 import numpy as np
-import PostSorting.load_firing_rate_data
+import PostSorting.load_firing_data
 
 
 def test_correct_detected_ch_for_dead_channels():

@@ -24,6 +24,6 @@ def test_get_rolling_sum():
     window = 3
 
     desired_result = [11, 12, 17, 24, 20, 15, 9, 12, 12]
-    result = open_field_head_direction.get_rolling_sum(array_in, window)
+    result = PostSorting.open_field_head_direction.get_rolling_sum(array_in, window)
 
     assert np.allclose(result, desired_result, rtol=1e-05, atol=1e-08)
