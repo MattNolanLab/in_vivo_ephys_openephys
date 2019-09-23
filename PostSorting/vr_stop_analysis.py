@@ -3,7 +3,8 @@ import os
 import pandas as pd
 import math
 import gc
-
+from tqdm import tqdm
+import setting
 
 def check_stop_threshold(recording_directory):
     parameters_path = recording_directory + '/parameters.txt'
@@ -83,7 +84,7 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     all_stops = np.asanyarray(all_stops)
     track_beginnings = np.asanyarray(track_beginnings)
     try:
-        for trial in range(1,int(number_of_trials)-1):
+        for trial in tqdm(range(1,int(number_of_trials)-1)):
             beginning = track_beginnings[trial]
             end = track_beginnings[trial + 1]
             all_stops = np.asanyarray(all_stops)
@@ -148,11 +149,11 @@ def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     return np.array(locations), np.array(trials)
 
 
-def find_rewarded_positions(raw_position_data,processed_position_data):
+def find_rewarded_positions(raw_position_data,processed_position_data,reward_start=setting.reward_start, reward_stop=setting.reward_end):
     stop_locations = np.array(processed_position_data['first_series_location_cm'])
     stop_trials = np.array(processed_position_data['first_series_trial_number'])
-    rewarded_stop_locations = np.take(stop_locations, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
-    rewarded_trials = np.take(stop_trials, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
+    rewarded_stop_locations = np.take(stop_locations, np.where(np.logical_and(stop_locations >= reward_start, stop_locations < reward_stop))[0])
+    rewarded_trials = np.take(stop_trials, np.where(np.logical_and(stop_locations >= reward_start, stop_locations < reward_stop))[0])
 
     locations, trials = take_first_reward_on_trial(rewarded_stop_locations, rewarded_trials)
     processed_position_data['rewarded_stop_locations'] = pd.Series(locations)
@@ -204,7 +205,7 @@ def calculate_average_stops(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def process_stops(raw_position_data,processed_position_data, prm):
+def process_stops(raw_position_data,processed_position_data):
     processed_position_data = calculate_stops(raw_position_data, processed_position_data, 10.7)
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
