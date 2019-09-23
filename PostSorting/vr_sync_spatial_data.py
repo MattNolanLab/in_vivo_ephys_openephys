@@ -29,8 +29,8 @@ def get_raw_location(recording_folder, movement_channel):
         location = OpenEphys.loadContinuousFast(file_path)['data']
     else:
         print('Movement data was not found.')
-    if location.shape[0] > 90000000:
-        location = location[:90000000]
+    # if location.shape[0] > 90000000:
+    #     location = location[:90000000]
     location=correct_for_restart(location)
     # PostSorting.vr_make_plots.plot_movement_channel(location, prm)
     return np.asarray(location, dtype=np.float16)
@@ -151,7 +151,8 @@ def calculate_trial_numbers(position_data):
 # two continuous channels represent trial type
 def load_first_trial_channel(recording_folder):
     first = []
-
+    file_path = recording_folder + '/' + setting.first_trial_channel #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    trial_first = OpenEphys.loadContinuousFast(file_path)['data']
     first.append(trial_first)
     return np.asarray(first, dtype=np.uint8)
 
@@ -159,7 +160,8 @@ def load_first_trial_channel(recording_folder):
 # two continuous channels represent trial type
 def load_second_trial_channel(recording_folder):
     second = []
-
+    file_path = recording_folder + '/' + setting.second_trial_channel #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    trial_second = OpenEphys.loadContinuousFast(file_path)['data']
     second.append(trial_second)
     return np.asarray(second, dtype=np.uint8)
 
