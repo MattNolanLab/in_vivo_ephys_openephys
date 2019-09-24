@@ -294,7 +294,7 @@ output
 def moving_sum(array, window):
     ret = np.cumsum(array, dtype=float)
     ret[window:] = ret[window:] - ret[:-window]
-    return ret[window:] / window
+    return ret[window:]
 
 
 def get_rolling_sum(array_in, window):
