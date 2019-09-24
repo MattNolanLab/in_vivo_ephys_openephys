@@ -3,7 +3,6 @@ import pandas as pd
 import PostSorting.parameters
 import gc
 import PostSorting.vr_stop_analysis
-import PostSorting.vr_stop_analysis_new
 import PostSorting.vr_make_plots
 from scipy import stats
 
