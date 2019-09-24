@@ -65,7 +65,7 @@ def bin_spike_times(spike_times, number_of_bins):
 
 def create_histogram(spike_times, number_of_bins):
     posrange = np.linspace(number_of_bins.min(), number_of_bins.max(),  num=number_of_bins.shape[0])
-    values = np.array([[posrange[0], posrange[-1]]])
+    values = np.array([posrange[0], posrange[-1]])
     H, bins = np.histogram(spike_times, bins=(posrange), range=values)
     return H
 
@@ -102,7 +102,6 @@ def convolve_speed_in_time(spike_data, cluster_index,raw_spatial_data):
     convolved_speed = convolve_binned_spikes(binned_speed)
     spike_data.at[cluster_index, "speed_rate_in_time"] = convolved_speed
     return spike_data, number_of_bins
-
 
 
 def convolve_position_in_time(spike_data, cluster_index,raw_spatial_data, number_of_bins):
