@@ -204,6 +204,57 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
 > firing rate
 
 '''
+def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_position_data, prm, prefix):
+    # only called for cue conditioning PI task
+    if prm.cue_conditioned_goal:
+        print('plotting spike rastas with cue offsets...')
+        save_path = prm.get_output_path() + '/Figures/spike_trajectories'
+        if os.path.exists(save_path) is False:
+            os.makedirs(save_path)
+
+        #rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))  #
+        #rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
+
+        for cluster_index in range(len(spike_data)):
+            cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+            x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+            spikes_on_track = plt.figure(figsize=(4, (x_max / 32)))
+            ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+            # uncomment if you want to plot stops
+            # ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+            # ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+            # ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+
+            ax.plot(spike_data.loc[cluster_index].beaconed_position_cm,
+                    spike_data.loc[cluster_index].beaconed_trial_number,
+                    '|', color='Black', markersize=4)
+            ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm,
+                    spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+            #ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number,
+            #        '|',
+            #        color='Blue', markersize=4)
+            #ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
+
+            plt.ylabel('Spikes on trials', fontsize=12, labelpad=10)
+            plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
+            #plt.xlim(0, 200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+
+            plot_utility.style_track_plot_cue_conditioned(ax, 300)
+            plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis='y', nbins=4)
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
+            plt.close()
+    else:
+        print("Not plotting any cue offset spike plots")
+
+
 
 def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting spike rastas...')

@@ -48,6 +48,7 @@ def process_running_parameter_tag(running_parameter_tags):
     interleaved_opto = False
     delete_first_two_minutes = False
     pixel_ratio = False
+
     if not running_parameter_tags:
         return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 

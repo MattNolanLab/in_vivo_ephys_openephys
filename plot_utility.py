@@ -118,6 +118,13 @@ def style_track_plot(ax, bins):
     ax.axvspan(0, 30/divider, facecolor='k', linewidth =0, alpha=.25) # black box
     ax.axvspan((200-30)/divider, 200/divider, facecolor='k', linewidth =0, alpha=.25)# black box
 
+def style_track_plot_cue_conditioned(ax, bins):
+    divider = prm.get_track_length() / bins
+    ax.axvspan(-82 / divider, -71 / divider, facecolor='yellow', alpha=.25, linewidth=0)
+    ax.axvspan(-11 / divider, 11 / divider, facecolor='DarkGreen', alpha=.25, linewidth=0)
+    #ax.axvspan(0, 30 / divider, facecolor='k', linewidth=0, alpha=.25)  # black box
+    ax.axvspan((300 - 30) / divider, 300 / divider, facecolor='k', linewidth=0, alpha=.25)  # black box
+
 
 def makelegend(fig,ax, x_location):
     handles, labels = ax.get_legend_handles_labels()

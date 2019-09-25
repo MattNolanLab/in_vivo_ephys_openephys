@@ -12,6 +12,7 @@ import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
 import PostSorting.vr_FiringMaps_InTime
 import gc
+import PostSorting.vr_cued
 
 prm = PostSorting.parameters.Parameters()
 
@@ -25,8 +26,10 @@ def initialize_parameters(recording_to_process):
     prm.set_movement_channel('100_ADC2.continuous')
     prm.set_first_trial_channel('100_ADC4.continuous')
     prm.set_second_trial_channel('100_ADC5.continuous')
+    prm.set_goal_location_chennl('100_ADC7.continuous')
     prm.set_file_path(recording_to_process)
     prm.set_local_recording_folder_path(recording_to_process)
+    prm.set_ms_tmp_path('/tmp/mountainlab/')
 
 
 def process_position_data(recording_to_process, prm):
@@ -78,10 +81,36 @@ def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Data_test') is False:
         os.makedirs(recording_to_process + '/Data_test')
 
+def process_running_parameter_tag(running_parameter_tags):
+    stop_threshold = 4.9  # defaults
+    track_length = 200 # default assumptions
+    cue_conditioned_goal = False
 
-def post_process_recording(recording_to_process, session_type, sorter_name='MountainSort'):
+    if not running_parameter_tags:
+        return stop_threshold, track_length, cue_conditioned_goal
+
+    tags = [x.strip() for x in running_parameter_tags.split('*')]
+    for tag in tags:
+        if tag.startswith('stop_threshold'):
+            stop_threshold = int(tag.split("=")[1])
+        elif tag.startswith('track_length'):
+            track_length = int(tag.split("=")[1])
+        elif tag.startswith('cue_conditioned_goal'):
+            cue_conditioned_goal = int(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
+        else:
+            print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
+            unexpected_tag = True
+    return stop_threshold, track_length, cue_conditioned_goal
+
+
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
+    stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
+    prm.set_stop_threshold(stop_threshold)
+    prm.set_track_length(track_length)
+    prm.set_cue_conditioned_goal(cue_conditioned_goal)
+
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 

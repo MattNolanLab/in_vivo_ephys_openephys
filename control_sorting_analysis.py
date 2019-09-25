@@ -208,7 +208,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         if is_open_field:
             post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
         if is_vr:
-            post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr')
+            post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags)
 
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
