@@ -40,6 +40,7 @@ def initialize_parameters(recording_to_process):
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_file_path(recording_to_process)  # todo clean this
+    prm.set_ms_tmp_path('/tmp/mountainlab/')
 
 
 def process_running_parameter_tag(running_parameter_tags):
