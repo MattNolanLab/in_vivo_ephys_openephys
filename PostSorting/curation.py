@@ -9,6 +9,14 @@ def load_curation_metrics(spike_data_frame, prm):
     peak_amplitudes = []
     sorter_name = prm.get_sorter_name()
     path_to_metrics = prm.get_local_recording_folder_path() + '/Electrophysiology' + sorter_name + '/cluster_metrics.json'
+    if not os.path.exists(path_to_metrics):
+        print('I did not find the curation results.')
+
+        for filename in os.listdir(prm.get_ms_tmp_path() + 'prvbucket/_mountainprocess/'):
+            if filename.startswith('output_metrics_out'):
+                print(filename)
+                path_to_metrics = prm.get_ms_tmp_path() + '/prvbucket/_mountainprocess/' + filename
+
     if os.path.exists(path_to_metrics):
         with open(path_to_metrics) as metrics_file:
             cluster_metrics = json.load(metrics_file)
