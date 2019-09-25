@@ -10,7 +10,6 @@ import PostSorting.vr_spatial_firing
 import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
-import PostSorting.vr_firing_maps_copy
 import PostSorting.vr_FiringMaps_InTime
 import gc
 
@@ -32,7 +31,7 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, prm):
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position_data(raw_position_data, prm)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm,recording_to_process)
     return raw_position_data, processed_position_data
 
 
@@ -92,14 +91,22 @@ def post_process_recording(recording_to_process, session_type, sorter_name='Moun
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         save_data_frames(prm, spike_data, raw_position_data,processed_position_data, snippet_data, bad_clusters)
+        print('-------------------------------------------------------------')
+        print('-------------------------------------------------------------')
+        print('No curated clusters found. Saving dataframe for noisy clusters...')
+        print('-------------------------------------------------------------')
+        print('-------------------------------------------------------------')
         return
-
+    
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
+    print(str(len(spike_data)), ' curated clusters found. Processing spatial firing...')
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
     spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
-    #spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_for_trial_types(spike_data, raw_position_data, processed_position_data)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
-    #spike_data = PostSorting.vr_firing_maps_copy.make_firing_field_maps(raw_position_data, spike_data, prm)
 
     save_data_frames(prm, spike_data, raw_position_data, processed_position_data, snippet_data, bad_clusters)
     make_plots(spike_data, raw_position_data, processed_position_data)
