@@ -15,6 +15,7 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.open_field_grid_cells
 import PostSorting.make_plots
+import PostSorting.make_opto_plots
 import PostSorting.compare_first_and_second_half
 
 import numpy as np
@@ -114,6 +115,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
+    PostSorting.make_opto_plots.make_optogenetics_plots(prm)
 
 
 def create_folders_for_output(recording_to_process):

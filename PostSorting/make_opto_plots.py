@@ -40,6 +40,13 @@ def plot_peristimulus_raster(peristimulus_spikes, prm):
         # plt.plot((cluster_rows.astype(int)).sum().rolling(100).sum())
 
 
+def make_optogenetics_plots(prm):
+    peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
+    if os.path.exists(peristimulus_spikes_path):
+        peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
+        plot_peristimulus_raster(peristimulus_spikes, prm)
+
+
 def main():
     prm = PostSorting.parameters.Parameters()
     path = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
