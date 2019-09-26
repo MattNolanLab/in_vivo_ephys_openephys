@@ -92,11 +92,11 @@ def process_running_parameter_tag(running_parameter_tags):
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
         if tag.startswith('stop_threshold'):
-            stop_threshold = int(tag.split("=")[1])
+            stop_threshold = float(tag.split("=")[1])
         elif tag.startswith('track_length'):
             track_length = int(tag.split("=")[1])
         elif tag.startswith('cue_conditioned_goal'):
-            cue_conditioned_goal = int(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
+            cue_conditioned_goal = bool(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
@@ -133,7 +133,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
-    spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
+    spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 

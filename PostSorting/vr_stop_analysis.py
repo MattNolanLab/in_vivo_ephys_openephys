@@ -3,21 +3,7 @@ import os
 import pandas as pd
 import math
 import gc
-
-
-def check_stop_threshold(recording_directory):
-    parameters_path = recording_directory + '/parameters.txt'
-    try:
-        param_file_reader = open(parameters_path, 'r')
-        parameters = param_file_reader.readlines()
-        parameters = list([x.strip() for x in parameters])
-        threshold = parameters[2]
-
-    except Exception as ex:
-        print('There is a problem with the parameter file.')
-        print(ex)
-    return np.float(threshold)
-
+import PostSorting.parameters
 
 def keep_first_from_close_series(array, threshold):
     num_delete = 1
@@ -114,8 +100,8 @@ def calculate_stops(raw_position_data,processed_position_data, threshold):
     return processed_position_data
 
 
-def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory):
-    stop_threshold = check_stop_threshold(recording_directory)
+def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm):
+    stop_threshold = prm.get_stop_threshold()
     processed_position_data = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
     return processed_position_data
 
@@ -201,7 +187,7 @@ def calculate_average_stops(raw_position_data,processed_position_data):
 
 
 def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
-    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory)
+    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm)
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
