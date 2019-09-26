@@ -87,6 +87,26 @@ def generate_new_color(existing_colors, pastel_factor=0.5):
             best_color = color
     return best_color
 
+def style_vr_plot_offset(ax, x_max):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(True)
+    ax.spines['bottom'].set_visible(True)
+    plt.tick_params(
+        axis='both',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom=True,  # ticks along the bottom edge are off
+        top=False,  # ticks along the top edge are off
+        right=False,
+        left=True,
+        labelleft=True,
+        labelbottom=True)  # labels along the bottom edge are off
+
+    #ax.set_aspect('equal')
+
+    plt.ylim(0, x_max)
+
+    return ax
 
 def style_vr_plot(ax, x_max):
     ax.spines['top'].set_visible(False)

@@ -82,7 +82,7 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
-    ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+    #ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
@@ -90,12 +90,42 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     plt.xlim(0,200)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
+    plot_utility.style_track_plot_cue_conditioned(ax, 300)
     x_max = max(raw_position_data.trial_number)+0.5
-    plot_utility.style_vr_plot(ax, x_max)
+    plot_utility.style_vr_plot_offset(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
+
+def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
+    if prm.cue_conditioned_goal:
+        print('I am plotting stop rasta offset from the goal location...')
+        save_path = prm.get_output_path() + '/Figures/behaviour'
+        if os.path.exists(save_path) is False:
+            os.makedirs(save_path)
+        stops_on_track = plt.figure(figsize=(6,6))
+        ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
+        reward_locs = np.array(processed_position_data.rewarded_stop_locations)
+        reward_trials = np.array(processed_position_data.rewarded_trials)
+
+        ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
+        ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
+        ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+        ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+        plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
+        plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+        #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+        plt.xlim(0,200)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plot_utility.style_track_plot(ax, 200)
+        x_max = max(raw_position_data.trial_number)+0.5
+        plot_utility.style_vr_plot(ax, x_max)
+        plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
+        plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
+        plt.close()
 
 
 def plot_stop_histogram(raw_position_data, processed_position_data, prm):
@@ -243,7 +273,7 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
             ax.xaxis.set_ticks_position('bottom')
 
             plot_utility.style_track_plot_cue_conditioned(ax, 300)
-            plot_utility.style_vr_plot(ax, x_max)
+            plot_utility.style_vr_plot_offset(ax, x_max)
             plt.locator_params(axis='y', nbins=4)
             try:
                 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)

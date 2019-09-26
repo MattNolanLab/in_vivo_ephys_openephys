@@ -186,6 +186,7 @@ def copy_output_to_server(recording_to_sort, location_on_server):
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
+
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
@@ -218,16 +219,18 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
 
+    
     except Exception as ex:
-        add_to_list_of_failed_sortings(recording_to_sort)
-        location_on_server = get_location_on_server(recording_to_sort)
-        if os.path.exists(recording_to_sort + '/Figures') is True:
-            copy_output_to_server(recording_to_sort, location_on_server)
         print('There is a problem with this file. '
               'I will move on to the next one. This is what Python says happened:')
         print(ex)
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback)
+        add_to_list_of_failed_sortings(recording_to_sort)
+        location_on_server = get_location_on_server(recording_to_sort)
+        if os.path.exists(recording_to_sort + '/Figures') is True:
+            copy_output_to_server(recording_to_sort, location_on_server)
+
         shutil.rmtree(recording_to_sort)
         if os.path.exists(mountainsort_tmp_folder) is True:
             shutil.rmtree(mountainsort_tmp_folder)
