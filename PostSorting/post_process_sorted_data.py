@@ -187,7 +187,9 @@ def run_analyses(spike_data_in, synced_spatial_data):
                                                                                                   prm)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data,
-                                                                                prm)
+                                                                            prm)
+    PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
+
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
     return synced_spatial_data, spatial_firing
@@ -229,9 +231,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
                     save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
                     return
+
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data)
-            if opto_is_found:
-                PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
             spike_data = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
                                                                                                    synced_spatial_data,
