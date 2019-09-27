@@ -77,10 +77,10 @@ def add_trial_type(spike_data, spatial_data_trial_type):
 def find_firing_location_indices(spike_data, spatial_data, prm=None):
     print('I am extracting firing locations for each cluster...')
     spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
-    if prm.cue_conditioned_goal:
-        spike_data = add_position_x_offset(spike_data, spatial_data.x_position_cm, spatial_data.goal_location_cm)
-    else:
-        spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
+    #if prm.cue_conditioned_goal:
+    #    spike_data = add_position_x_offset(spike_data, spatial_data.x_position_cm, spatial_data.goal_location_cm)
+    #else:
+    spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
     spike_data = add_trial_number(spike_data, spatial_data.trial_number)
     spike_data = add_trial_type(spike_data, spatial_data.trial_type)
     return spike_data
