@@ -60,8 +60,7 @@ def remove_extra_stops(min_distance, stops):
 
 def get_stop_times(raw_position_data, stop_threshold):
     stops = np.array([])
-    speed = np.array(raw_position_data['speed_per200ms'].tolist())
-
+    speed = raw_position_data['speed_per200ms']
     threshold = stop_threshold
     low_speed = np.where(speed < threshold)
     low_speed = np.asanyarray(low_speed)

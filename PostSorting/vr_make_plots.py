@@ -115,7 +115,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, figure_path)
     plt.close()
 
 
-def plot_speed_histogram(raw_position_data, processed_position_data, figure_path):
+def plot_speed_histogram(processed_position_data, figure_path):
     print('plotting speed histogram...')
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -203,7 +203,8 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, f
     rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_id = spike_data.cluster_id[cluster_index]
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
         spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -231,7 +232,7 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, f
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 
@@ -241,7 +242,8 @@ def plot_firing_rate_maps(spike_data,figure_folder_path, prefix):
     # if os.path.exists(save_path) is False:
     #     os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_id = spike_data.cluster_id[cluster_index]
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
         avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index)
@@ -271,7 +273,7 @@ def plot_firing_rate_maps(spike_data,figure_folder_path, prefix):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 

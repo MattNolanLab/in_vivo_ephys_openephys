@@ -15,7 +15,7 @@ import spikeinterface.comparison as sc
 import spikeinterface.widgets as sw
 import json
 import pickle
-
+import spikeinterfaceHelper
 from scipy.signal import butter,filtfilt
 from tqdm import tqdm
 import numpy as np
@@ -37,7 +37,9 @@ if 'snakemake' not in locals():
     output.firings_curated = sorterPrefix + '/firings_curated.mda'
     output.cluster_metrics = sorterPrefix + '/cluster_metrics.pkl'
     output.sorter = sorterPrefix +'/sorter.pkl'
+    output.sorter_df = sorterPrefix +'/sorter_df.pkl'
     output.sorter_curated = sorterPrefix +'/sorter_curated.pkl'
+    output.sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl'
     output.spike_waveforms = sorterPrefix + '/spike_waveforms.pkl'
 else:
     #in snakemake environment, the input and output will be provided by the workflow
@@ -84,7 +86,7 @@ sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=sor
     adjacency_radius=param['adjacency_radius'], detect_sign=param['detect_sign'])
 
 #%%
-sorting_ms4 = pickle.load(open(input.sorter,'rb'))
+sorting_ms4 = pickle.load(open(output.sorter,'rb'))
 
 #%% compute some property of the sorting
 st.postprocessing.get_unit_max_channels(recording, sorting_ms4, max_num_waveforms=100)
@@ -97,8 +99,9 @@ for id in sorting_ms4.get_unit_ids():
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 
 #%% save data
-se.MdaSortingExtractor.write_sorting(sorting_ms4, output.firings)
-pickle.dump(sorting_ms4,open(input.sorter,'wb'))
+pickle.dump(sorting_ms4,open(output.sorter,'wb'))
+sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4)
+sorter_df.to_pickle(output.sorter_df)
 
 #%% Do some simple curation for now
 sorting_ms4_curated = st.curation.threshold_snr(sorting=sorting_ms4, recording = recording,
@@ -117,6 +120,10 @@ print(sorting_ms4_curated.get_unit_ids())
 
 #%%
 #save curated data
+curated_sorter_df = spikeinterfaceHelper.sorter2dataframe(sorting_ms4_curated)
+curated_sorter_df.to_pickle(output.sorter_curated_df)
 sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_curated.get_unit_ids())
 pickle.dump(sorting_ms4_curated, open(output.sorter_curated,'wb'))
-se.MdaSortingExtractor.write_sorting(sorting_ms4_curated, output.firings_curated)
+
+
+#%%

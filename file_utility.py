@@ -4,6 +4,7 @@ import setting
 import OpenEphys
 import numpy as np
 
+
 def load_OpenEphysRecording(folder):
     signal = []
     for i in range(setting.num_tetrodes*4):

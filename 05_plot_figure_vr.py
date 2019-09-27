@@ -21,13 +21,11 @@ if 'snakemake' not in locals():
     input.processed_position_data = input.recording_to_sort + '/processed/processed_position.hdf'
     input.spatial_firing_vr = input.recording_to_sort + '/processed/spatial_firing_vr.hdf'
     
-    output.stop_raster = input.recording_to_sort +figure_folder + '/behaviour/stop_raster.png'
-    output.stop_histogram = input.recording_to_sort +figure_folder + '/behaviour/stop_histogram.png'
-    output.speed_histogram = input.recording_to_sort +figure_folder + '/behaviour/speed_histogram.png'
-    output.spike_histogram = input.recording_to_sort + figure_folder + '/behaviour/spike_histogram.png'
+    output.spike_histogram = input.recording_to_sort + figure_folder + '/behaviour/spike_histogram/'
     output.autocorrelogram = input.recording_to_sort + figure_folder + '/behaviour/autocorrelogram/'
     output.spike_trajectories = input.recording_to_sort + figure_folder + '/behaviour/spike_trajectories/'
     output.spike_rate =  input.recording_to_sort + figure_folder + '/behaviour/spike_rate/'
+    output.result = input.recording_to_sort +'/processed/results.txt'
 
     SnakeIOHelper.makeFolders(output)
 else:
@@ -39,15 +37,6 @@ else:
 spike_data = pd.read_hdf(input.spatial_firing_vr)
 raw_position_data =pd.read_hdf(input.raw_position)
 processed_position_data = pd.read_hdf(input.processed_position_data)
-
-#%% make plots
-PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, output.stop_raster)
-
-#%%
-PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, output.stop_histogram)
-
-#%%
-PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, output.speed_histogram)
 
 #%%
 # PostSorting.make_plots.plot_waveforms(spike_data, prm)
@@ -61,5 +50,11 @@ PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, pro
 
 #%%
 PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, output.spike_rate, prefix='_all')
+
+#%%
+with open(output.result,'w') as f:
+    f.write('Completed!')
+    
+
 
 #%%

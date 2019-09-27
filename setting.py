@@ -28,12 +28,20 @@ is_tetrode_by_tetrode = False #set to True if you want the spike sorting to be d
 all_tetrode_together = True #set to True if you want the spike sorting done on all tetrodes combined
 
 
+############
+# Analysis
+spike_bin_size = 20 #the bin size to group spike together to calculate spike count, in ms
+location_bin_num = 200 #number of location bin
+stop_threshold = 4.7
+
+
 ##########
 # VR
 track_length = 200
 first_trial_channel = '100_ADC4.continuous'
 second_trial_channel = '100_ADC5.continuous'
-
+reward_start = 88
+reward_end = 110
 
 ##########
 # Experiment

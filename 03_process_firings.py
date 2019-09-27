@@ -33,3 +33,6 @@ spike_data = process_firing_times2(session_id, input.firing_data_path, setting.s
 spike_data.to_hdf(output.spike_data,'spike_data')
 
 
+
+
+#%%

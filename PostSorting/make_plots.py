@@ -15,8 +15,9 @@ def plot_spike_histogram(spatial_firing, figure_path):
     sampling_rate = setting.sampling_rate
     print('I will plot spikes vs time for the whole session excluding opto tagging.')
     for cluster in tqdm(range(len(spatial_firing))):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        # cluster = spatial_firing.cluster_id.values[cluster] - 1
         firings_cluster = spatial_firing.firing_times[cluster]
+        cluster_id = spatial_firing.cluster_id[cluster]
         spike_hist = plt.figure()
         spike_hist.set_size_inches(5, 5, forward=True)
         ax = spike_hist.add_subplot(1, 1, 1)
@@ -30,7 +31,7 @@ def plot_spike_histogram(spatial_firing, figure_path):
         plt.title('total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08)
         plt.xlabel('time (sampling points)')
         plt.ylabel('number of spikes')
-        plt.savefig(figure_path, dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_path+str(cluster_id)+'_spike_hist.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -104,8 +105,9 @@ def plot_autocorrelograms(spike_data, figure_path_folder):
     plt.close()
     print('I will plot autocorrelograms for each cluster.')
     for cluster in tqdm(range(len(spike_data))):
-        cluster = spike_data.cluster_id.values[cluster] - 1
+        # cluster = spike_data.cluster_id.values[cluster] - 1
         firing_times_cluster = spike_data.firing_times[cluster]
+        cluster_id = spike_data.cluster_id[cluster]
         #lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
         corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/setting.sampling_rate, 1, 20)
         plt.xlim(-10, 10)
@@ -116,8 +118,8 @@ def plot_autocorrelograms(spike_data, figure_path_folder):
         corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/setting.sampling_rate, 1, 500)
         plt.xlim(-250, 250)
         plt.bar(time, corr, align='center', width=1, color='black')
-        plt.savefig(figure_path_folder + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(figure_path_folder + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.pdf', bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_path_folder + spike_data.session_id[cluster] + '_' + str(cluster_id) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_path_folder + spike_data.session_id[cluster] + '_' + str(cluster_id) + '_autocorrelogram_250ms.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
