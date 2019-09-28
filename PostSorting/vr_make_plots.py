@@ -106,13 +106,13 @@ def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
     beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
-    reward_locs = np.array(processed_position_data.rewarded_stop_locations)
-    reward_trials = np.array(processed_position_data.rewarded_trials)
+    #reward_locs = np.array(processed_position_data.rewarded_stop_locations)
+    #reward_trials = np.array(processed_position_data.rewarded_trials)
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
     #ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
-    ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    #ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
