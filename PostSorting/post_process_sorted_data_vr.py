@@ -45,33 +45,35 @@ def process_firing_properties(recording_to_process, session_type, prm):
     return spike_data, bad_clusters
 
 
-def make_plots(spike_data, raw_position_data, processed_position_data, prm):
+def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):
     if prm.cue_conditioned_goal is False:
         PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, prm)
         PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
         PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
-        PostSorting.make_plots.plot_waveforms(spike_data, prm)
-        PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-        PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
-        gc.collect()
-        PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
-        #PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
-        #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
-        #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
+        if spike_data is not None:
+            PostSorting.make_plots.plot_waveforms(spike_data, prm)
+            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+            gc.collect()
+            PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            #PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
+            #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+            #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
     else:
         PostSorting.vr_make_plots.plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
         #PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
         #PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
-        PostSorting.make_plots.plot_waveforms(spike_data, prm)
-        PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-        PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
-        gc.collect()
-        PostSorting.vr_make_plots.plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        gc.collect()
-        #PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
-        # PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
-        # PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
-        # PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
+        if spike_data is not None:
+            PostSorting.make_plots.plot_waveforms(spike_data, prm)
+            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+            gc.collect()
+            PostSorting.vr_make_plots.plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+            gc.collect()
+            #PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            # PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
+            # PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+            # PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
 
 
 def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationary=None, spatial_firing=None, raw_position_data=None, processed_position_data=None, snippet_data=None, bad_clusters=None):
@@ -146,6 +148,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                          processed_position_data=processed_position_data,
                          snippet_data=snippet_data,
                          bad_clusters=bad_clusters)
+        make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
 
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
@@ -173,7 +176,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      processed_position_data=processed_position_data,
                      snippet_data=snippet_data,
                      bad_clusters=bad_clusters)
-    make_plots(spike_data, raw_position_data, processed_position_data, prm)
+    make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
     gc.collect()
 
 
