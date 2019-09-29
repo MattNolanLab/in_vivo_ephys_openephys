@@ -1,0 +1,26 @@
+name: Build and run tests
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build Docker image
+        run: |
+          export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
+          docker pull $PREBUILT_IMAGE || true
+          docker build --cache-from $PREBUILT_IMAGE . -t ephys
+
+      - name: Run unit tests
+        run: |
+          docker run -t -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_tests_unit.sh
+
+      - name: Run integration tests
+        run: |
+          docker run -t -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_tests_integration.sh
+
+      - name: Run code coverage
+        run: |
+          docker run -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_code_coverage.sh ${{ secrets.CODECOV_TOKEN }} ${{ github.sha }}

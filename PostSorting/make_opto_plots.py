@@ -25,8 +25,8 @@ def plot_peristimulus_raster(peristimulus_spikes, prm):
         peristimulus_figure = plt.figure()
         peristimulus_figure.set_size_inches(5, 5, forward=True)
         ax = peristimulus_figure.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        sample_times = np.argwhere(cluster_rows.to_numpy().astype(int) == 1)[:, 1]
-        trial_numbers = np.argwhere(cluster_rows.to_numpy().astype(int) == 1)[:, 0]
+        sample_times = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 1]
+        trial_numbers = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 0]
         stimulation_start = cluster_rows.shape[1] / 2 - 45  # todo remove magic number
         stimulation_end = cluster_rows.shape[1] / 2 + 45
         ax.axvspan(stimulation_start, stimulation_end, 0, cluster_rows.shape[0], alpha=0.5, color='lightblue')
@@ -38,6 +38,13 @@ def plot_peristimulus_raster(peristimulus_spikes, prm):
         plt.close()
 
         # plt.plot((cluster_rows.astype(int)).sum().rolling(100).sum())
+
+
+def make_optogenetics_plots(prm):
+    peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
+    if os.path.exists(peristimulus_spikes_path):
+        peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
+        plot_peristimulus_raster(peristimulus_spikes, prm)
 
 
 def main():

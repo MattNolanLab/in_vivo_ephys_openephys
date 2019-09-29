@@ -4,6 +4,7 @@ import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
+from numpy import inf
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
@@ -18,8 +19,11 @@ from scipy import stats
 
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, prm):
+    save_path = prm.get_output_path() + '/Figures'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     plt.plot(location)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/movement' + '.png')
+    plt.savefig(save_path + '/movement' + '.png')
     plt.close()
 
 # plot the trials to check all is good
@@ -48,8 +52,15 @@ def plot_trial_channels(trial1, trial2, prm):
 
 '''
 
+def load_stop_data(spatial_data):
+    locations = spatial_data['stop_location_cm'].values
+    trials = spatial_data['stop_trial_number'].values
+    trial_type = spatial_data['stop_trial_type'].values
+    return locations,trials,trial_type
+
+
 def split_stop_data_by_trial_type(spatial_data):
-    locations,trials,trial_type = PostSorting.vr_stop_analysis.load_stop_data(spatial_data)
+    locations,trials,trial_type = load_stop_data(spatial_data)
     stop_data=np.transpose(np.vstack((locations, trials, trial_type)))
     beaconed = np.delete(stop_data, np.where(stop_data[:,2]>0),0)
     nonbeaconed = np.delete(stop_data, np.where(stop_data[:,2]!=1),0)
@@ -66,11 +77,13 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
     beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
+    reward_locs = np.array(processed_position_data.rewarded_stop_locations)
+    reward_trials = np.array(processed_position_data.rewarded_trials)
 
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
     ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
-    ax.plot(processed_position_data.rewarded_stop_locations, processed_position_data.rewarded_trials, '>', color='Red', markersize=3)
+    ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
@@ -254,6 +267,9 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,200)
+        avg_beaconed_spike_rate[avg_beaconed_spike_rate == inf] = 0
+        avg_nonbeaconed_spike_rate[avg_nonbeaconed_spike_rate == inf] = 0
+        avg_probe_spike_rate[avg_probe_spike_rate == inf] = 0
         nb_x_max = np.nanmax(avg_beaconed_spike_rate)
         b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
         p_x_max = np.nanmax(avg_probe_spike_rate)
@@ -327,11 +343,11 @@ def plot_convolved_rates_in_time(spike_data, prm):
         ax.plot(firing_rate, speed, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Speed (cm/sec)', fontsize=12, labelpad = 10)
-        plt.xlim(0,200)
+        #plt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
-        plot_utility.style_track_plot(ax, 200)
-        plot_utility.style_vr_plot(ax, x_max)
+        #plot_utility.style_track_plot(ax, 200)
+        #plot_utility.style_vr_plot(ax, x_max)
         plt.locator_params(axis = 'y', nbins  = 4)
         try:
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
@@ -342,15 +358,15 @@ def plot_convolved_rates_in_time(spike_data, prm):
 
         spikes_on_track = plt.figure(figsize=(4,5))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        position = spike_data.loc[cluster_index].location_rate_in_time
+        position = spike_data.loc[cluster_index].position_rate_in_time
         ax.plot(firing_rate, position, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-        plt.xlim(0,200)
+        # ]polt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
-        plot_utility.style_track_plot(ax, 200)
-        plot_utility.style_vr_plot(ax, x_max)
+        #plot_utility.style_track_plot(ax, 200)
+        #plot_utility.style_vr_plot(ax, x_max)
         plt.locator_params(axis = 'y', nbins  = 4)
         try:
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
