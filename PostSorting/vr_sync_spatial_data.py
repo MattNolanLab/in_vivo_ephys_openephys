@@ -213,9 +213,9 @@ An alternative solution may be to nto analyze this data.
 
 '''
 
-def fix_teleport(velocity):
+def fix_teleport(velocity, prm):
     max_velocity = max(velocity)
-    track_length = 200
+    track_length = prm.get_track_length()
     # If the mouse goes from the end of the track to the beginning, the velocity would be a negative value
     # if velocity< (-1)*track_length + max_velocity, then track_length is added to the value
     too_small_indices = np.where(velocity < (-track_length + max_velocity))
@@ -259,7 +259,7 @@ def calculate_instant_velocity(position_data, prm):
     beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
     velocity = location - location_to_subtract_from
-    velocity = fix_teleport(velocity)
+    velocity = fix_teleport(velocity, prm)
     position_data['velocity'] = velocity
     return position_data
 
