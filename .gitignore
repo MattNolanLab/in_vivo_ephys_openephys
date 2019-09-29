@@ -1,0 +1,14 @@
+/testData
+*.pyc
+*.pkl
+/.snakemake
+/.vscode
+/.idea
+/notebooks
+*.mda
+.DS_Store
+/.ipynb_checkpoints
+
+__pycache__/
+*.py[cod]
+*$py.class
