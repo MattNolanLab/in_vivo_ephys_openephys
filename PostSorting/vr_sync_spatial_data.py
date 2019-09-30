@@ -309,25 +309,45 @@ def get_rolling_sum(array_in, window):
     array_out = np.hstack((beginning, inner_part_result, end))
     return array_out
 
+def get_rolling_average(array_in, window):
+    """Get the rolling average of with a specified moving window
+    
+    Arguments:
+        array_in {np.narray} -- input array
+        window {int} -- size of the moving window to get average
+    
+    Returns:
+        np.narray -- moving average of the input array
+    """
+    if window > (len(array_in) / 3) - 1:
+        print('Window is too big, plot cannot be made.')
+    inner_part_result = moving_sum(array_in, window)
+    edges = np.append(array_in[-2 * window:], array_in[: 2 * window])
+    edges_result = moving_sum(edges, window)
+    end = edges_result[window:math.floor(len(edges_result)/2)]
+    beginning = edges_result[math.floor(len(edges_result)/2):-window]
+    array_out = np.hstack((beginning, inner_part_result, end))/window 
+    return array_out
 
-'''
-Calculate average speed for the last 200ms at each particular sampling point, based on velocity
 
-input
-    prm : object, parameters
-    velocity : numpy array, instant velocity values
-    sampling_points_per200ms : number of sampling points in 200ms
-
-output
-    avg_speed : numpy array, contains average speed for each location. The first 200ms are filled with 0s.
-
-'''
 
 def get_avg_speed_200ms(position_data):
+    '''
+    Calculate average speed for the last 200ms at each particular sampling point, based on velocity
+
+    input
+        prm : object, parameters
+        velocity : numpy array, instant velocity values
+        sampling_points_per200ms : number of sampling points in 200ms
+
+    output
+        avg_speed : numpy array, contains average speed for each location. The first 200ms are filled with 0s.
+
+    '''
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
     sampling_points_per200ms = int(setting.sampling_rate/5)
-    position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
+    position_data['speed_per200ms'] = get_rolling_average(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
     return position_data
 
 
