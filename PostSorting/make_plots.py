@@ -35,17 +35,18 @@ def plot_spike_histogram(spatial_firing, figure_path):
         plt.close()
 
 
-def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
+def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  figure_folder_path):
     sampling_rate = 30
     print('I will plot spikes vs speed for the whole session excluding opto tagging.')
-    save_path = prm.get_output_path() + '/Figures/firing_properties'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+    # save_path = prm.get_output_path() + '/Figures/firing_properties'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
     speed = spatial_data.speed[~np.isnan(spatial_data.speed)]
     number_of_bins = math.ceil(max(speed)) - math.floor(min(speed))
     session_hist, bins_s = np.histogram(speed, bins=number_of_bins, range=(math.floor(min(speed)), math.ceil(max(speed))))
     for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        # cluster = spatial_firing.cluster_id.values[cluster] - 1
+        cluster_id = spatial_firing.cluster_id[cluster]
         speed_cluster = spatial_firing.speed[cluster]
         speed_cluster = sorted(speed_cluster)
         spike_hist = plt.figure()
@@ -65,8 +66,8 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         plt.xlabel('speed [cm/s]')
         plt.ylabel('firing rate [Hz]')
         plt.xlim(0, 30)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.pdf', bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_folder_path + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_folder_path + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_speed_histogram.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -219,12 +220,12 @@ save_path : path to folder where the plot gets saved
 '''
 
 
-def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, prm: object) -> None:
+def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, figure_folder_path: str) -> None:
     sampling_rate_video = int(1 / position['synced_time'].diff().mean())
     sigma = gauss_sd / sampling_rate_video
 
     speed = scipy.ndimage.filters.gaussian_filter(position.speed, sigma)
-    save_path = prm.get_output_path() + '/Figures/firing_properties'
+    # save_path = prm.get_output_path() + '/Figures/firing_properties'
     for index, cell in spatial_firing.iterrows():
         firing_times = cell.firing_times
         firing_hist, edges = np.histogram(firing_times, bins=len(speed), range=(0, max(position.synced_time) * sampling_rate_conversion))
@@ -242,6 +243,6 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.title('speed score: ' + str(np.round(cell.speed_score, 4)))
         plt.xlim(0, 50)
         plt.ylim(0, None)
-        plt.savefig(save_path + '/' + cell.session_id + '_' + str(cell.cluster_id) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_folder_path +  cell.session_id + '_' + str(cell.cluster_id) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
