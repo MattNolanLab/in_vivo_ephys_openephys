@@ -469,8 +469,8 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             #make_combined_figure(prm, spike_data, prefix='_all')
     else:
         plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
-        plot_stop_histogram(raw_position_data, processed_position_data, prm)
-        plot_speed_histogram(raw_position_data, processed_position_data, prm)
+        #plot_stop_histogram(raw_position_data, processed_position_data, prm)
+        #plot_speed_histogram(raw_position_data, processed_position_data, prm)
         if spike_data is not None:
             PostSorting.make_plots.plot_waveforms(spike_data, prm)
             PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
@@ -604,9 +604,8 @@ def main():
     params.track_length = 300
     params.cue_conditioned_goal = True
 
-    processed_position_data = pd.read_pickle(r"Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D19_2019-09-27_12-42-16\MountainSort\DataFrames\processed_position_data.pkl")
-    raw_position_data = pd.read_pickle(r"Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D19_2019-09-27_12-42-16\MountainSort\DataFrames\raw_position_data.pkl")
-
+    processed_position_data = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseVR/data/Cue_conditioned_cohort1_190902/M2_D19_2019-09-27_12-42-16/MountainSort/DataFrames/processed_position_data.pkl')
+    raw_position_data = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseVR/data/Cue_conditioned_cohort1_190902/M2_D19_2019-09-27_12-42-16/MountainSort/DataFrames/raw_position_data.pkl')
     make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None)
 
 if __name__ == '__main__':
