@@ -51,4 +51,5 @@ session_type = 'vr'
 ##########
 # open field
 opto_tagging_start_index = None
-
+pixel_ratio = 440
+sync_channel = '100_ADC1.continuous'
