@@ -110,6 +110,10 @@ def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
     #reward_locs = np.array(processed_position_data.rewarded_stop_locations)
     #reward_trials = np.array(processed_position_data.rewarded_trials)
 
+    trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+    fill_blackbox(trial_bb_start, ax)
+    fill_blackbox(trial_bb_end, ax)
+
     ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
     ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
     #ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
@@ -117,7 +121,8 @@ def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
-    #plt.xlim(0,200)
+    plt.xlim(-200,200)
+
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot_cue_conditioned(ax, 300)
@@ -127,6 +132,35 @@ def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
 
+def find_blackboxes_to_plot(raw_position_data, prm):
+    trial_bb_start = []
+    trial_bb_end = []
+    for trial_number in range(1, max(raw_position_data["trial_number"]) + 1):
+        trial_goal_pos = np.asarray(raw_position_data["goal_location_cm"][raw_position_data["trial_number"] == trial_number])[0]
+        trial_bb_start.append(15-trial_goal_pos)
+        trial_bb_end.append(285-trial_goal_pos)
+
+    # returns the centres of the black boxes for each trial
+    return trial_bb_start, trial_bb_end
+
+def fill_blackbox(blackbox_centres, ax):
+    # check if blackboxes are all in same place
+    if np.std(blackbox_centres) > 10:
+        # fills in black boxes per trial
+        for trial_number in range(1, len(blackbox_centres)+1):
+            x = [blackbox_centres[trial_number - 1]-15,
+                 blackbox_centres[trial_number - 1]+15,
+                 blackbox_centres[trial_number - 1]+15,
+                 blackbox_centres[trial_number - 1]-15]
+            y = [trial_number-0.5, trial_number-0.5, trial_number+0.5, trial_number+0.5]
+            ax.fill(x, y, alpha=0.25, color="k")
+    else:
+        mean_pos = np.mean(blackbox_centres)
+        x = [mean_pos - 15, mean_pos +15, mean_pos + 15, mean_pos - 15]
+        y = [0.5, 0.5, len(blackbox_centres), len(blackbox_centres)]
+        ax.fill(x, y, alpha=0.25, color="k")
+
+    return ax
 
 def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
