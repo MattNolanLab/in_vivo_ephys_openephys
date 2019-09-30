@@ -45,37 +45,6 @@ def process_firing_properties(recording_to_process, session_type, prm):
     return spike_data, bad_clusters
 
 
-def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):
-    if prm.cue_conditioned_goal is False:
-        PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, prm)
-        PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
-        PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
-        if spike_data is not None:
-            PostSorting.make_plots.plot_waveforms(spike_data, prm)
-            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
-            gc.collect()
-            PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
-            #PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
-            #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
-            #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
-    else:
-        PostSorting.vr_make_plots.plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
-        #PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
-        #PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
-        if spike_data is not None:
-            PostSorting.make_plots.plot_waveforms(spike_data, prm)
-            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
-            gc.collect()
-            PostSorting.vr_make_plots.plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-            gc.collect()
-            #PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
-            # PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
-            # PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
-            # PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
-
-
 def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationary=None, spatial_firing=None, raw_position_data=None, processed_position_data=None, snippet_data=None, bad_clusters=None):
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
@@ -119,7 +88,7 @@ def process_running_parameter_tag(running_parameter_tags):
         elif tag.startswith('track_length'):
             track_length = int(tag.split("=")[1])
         elif tag.startswith('cue_conditioned_goal'):
-            cue_conditioned_goal = bool(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
+            cue_conditioned_goal = bool(tag.split('=')[1])
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
@@ -148,7 +117,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                          processed_position_data=processed_position_data,
                          snippet_data=snippet_data,
                          bad_clusters=bad_clusters)
-        make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
+        PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
 
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
@@ -176,7 +145,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      processed_position_data=processed_position_data,
                      snippet_data=snippet_data,
                      bad_clusters=bad_clusters)
-    make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
+    PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
     gc.collect()
 
 
@@ -188,7 +157,6 @@ def main():
     params = PostSorting.parameters.Parameters()
 
     recording_folder = '/home/nolanlab/to_sort/recordings/M1_D31_2018-11-01_12-28-25' # test recording
-    recording_folder = '/home/nolanlab/to_sort/recordings/M5_D8_2019-09-26_14-28-19'
 
     print('Processing ' + str(recording_folder))
 

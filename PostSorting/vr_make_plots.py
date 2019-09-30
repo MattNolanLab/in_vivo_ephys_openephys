@@ -5,6 +5,7 @@ import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
 from numpy import inf
+import gc
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
@@ -452,6 +453,36 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
+def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):
+    if prm.cue_conditioned_goal is False:
+        plot_stops_on_track(raw_position_data, processed_position_data, prm)
+        plot_stop_histogram(raw_position_data, processed_position_data, prm)
+        plot_speed_histogram(raw_position_data, processed_position_data, prm)
+        if spike_data is not None:
+            PostSorting.make_plots.plot_waveforms(spike_data, prm)
+            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+            gc.collect()
+            plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            #plot_convolved_rates_in_time(spike_data, prm)
+            #plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+            #make_combined_figure(prm, spike_data, prefix='_all')
+    else:
+        plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
+        plot_stop_histogram(raw_position_data, processed_position_data, prm)
+        plot_speed_histogram(raw_position_data, processed_position_data, prm)
+        if spike_data is not None:
+            PostSorting.make_plots.plot_waveforms(spike_data, prm)
+            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+            gc.collect()
+            plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+            gc.collect()
+            plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            # plot_convolved_rates_in_time(spike_data, prm)
+            # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+            # make_combined_figure(prm, spike_data, prefix='_all')
+
 
 # unused code but might use in future
 
@@ -562,3 +593,21 @@ def make_combined_figure(prm, spatial_firing, prefix):
         plt.close()
 
 '''
+
+#  this is here for testing
+def main():
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
+
+    params = PostSorting.parameters.Parameters()
+    params.stop_threshold = 7.0
+    params.track_length = 300
+    params.cue_conditioned_goal = True
+
+    processed_position_data = pd.read_pickle(r"Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D19_2019-09-27_12-42-16\MountainSort\DataFrames\processed_position_data.pkl")
+    raw_position_data = pd.read_pickle(r"Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D19_2019-09-27_12-42-16\MountainSort\DataFrames\raw_position_data.pkl")
+
+    make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None)
+
+if __name__ == '__main__':
+    main()
