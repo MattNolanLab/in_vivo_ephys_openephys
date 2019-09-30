@@ -261,6 +261,52 @@ def writemda16ui(X,fname):
     num_bytes_per_entry = 2
     return _writemda(X,fname,'uint16', num_bytes_per_entry)
 
+
+def _writeMdaHeader(shapes,f, dt, num_bytes_per_entry):
+    """write header of MDA data
+    
+    Arguments:
+        shapes {list} -- list containing size in each dimension
+        f {object} -- file handle
+        dt {np.dtype} -- numpy datatype
+        num_bytes_per_entry {int} -- number of bype per data
+    
+    Returns:
+        object -- file object
+    """
+
+    dt_code=0
+    #num_bytes_per_entry=2 # changed 0 to 2 here
+    dt_code=_dt_code_from_dt(dt)
+    if dt_code is None:
+        print("Unexpected data type: {}".format(dt))
+        return False
+
+    try:
+        _write_int32(f, dt_code)
+        _write_int32(f, num_bytes_per_entry)
+        _write_int32(f, len(shapes))
+        for s in shapes:
+            _write_int32(f, s)
+    except Exception as e: # catch *all* exceptions
+        print(e)
+    finally:
+        f.flush()
+        # f.close()
+        return f
+
+def _writeMdaData(f,X):
+    """Write raw data into MDA file, allow repeated write
+    
+    Arguments:
+        f {file handle} -- file handle of the mda file
+        X {np.narray} -- 1d array to be written, it will be intepreted as a column of matrix
+    """
+    #This is how I do column-major order
+    A = np.reshape(X, X.size, order='F').astype(X.dtype)
+    A.tofile(f)
+    f.flush()
+
 def _writemda(X,fname,dt, num_bytes_per_entry):
     dt_code=0
     #num_bytes_per_entry=2 # changed 0 to 2 here
