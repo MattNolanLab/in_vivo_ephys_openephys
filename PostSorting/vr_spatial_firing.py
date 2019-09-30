@@ -65,6 +65,8 @@ def add_trial_type(spike_data, spatial_data_trial_type):
 
 
 def find_firing_location_indices(spike_data, spatial_data):
+    # Add the corresponding kinematics data corresponding to spike timing
+    
     print('I am extracting firing locations for each cluster...')
     spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
     spike_data = add_position_x(spike_data, spatial_data.x_position_cm)

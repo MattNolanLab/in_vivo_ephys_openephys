@@ -80,15 +80,14 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     location = np.array(raw_position_data['x_position_cm'].tolist())
     trial_type = np.array(raw_position_data['trial_type'].tolist())
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
-    all_stops = np.asanyarray(all_stops)
+    all_stops = np.asanyarray(all_stops) #stop indices
     track_beginnings = np.asanyarray(track_beginnings)
     try:
-        for trial in tqdm(range(1,int(number_of_trials)-1)):
+        for trial in range(1,int(number_of_trials)-1):
             beginning = track_beginnings[trial]
             end = track_beginnings[trial + 1]
             all_stops = np.asanyarray(all_stops)
             stops_on_trial_indices = (np.where((beginning <= all_stops) & (all_stops <= end)))
-
             stops_on_trial = np.take(all_stops, stops_on_trial_indices)
             if len(stops_on_trial) > 0:
                 stops = np.take(location, stops_on_trial)
@@ -102,9 +101,10 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
 
     print('stops extracted')
 
-    processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
-    processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
-    processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
+    df1 = pd.DataFrame({"stop_location_cm": pd.Series(stop_locations),
+         "stop_trial_number": pd.Series(stop_trials), 
+         "stop_trial_type": pd.Series(stop_trial_types)})
+    processed_position_data = pd.concat([processed_position_data, df1], axis=1)
     return processed_position_data
 
 

@@ -34,39 +34,39 @@ def correct_for_dead_channels(primary_channels, prm):
         primary_channels = correct_detected_ch_for_dead_channels(dead_channels, primary_channels)
     return primary_channels
 
-def process_firing_times2(session_id, sorter_data_path, session_type):
+def process_firing_times2(session_id, sorted_data_path, session_type):
     #Read from sorter and create a dataframe to store the experiments values
 
-    sorter = pickle.load(open(sorter_data_path,'rb'))
-    cluster_ids = sorter.get_unit_ids()
+    sorted_result = pd.read_pickle(sorted_data_path)
     
     if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
         #TODO implement the openfield processing
         pass
     else:
-        #TODO: should be implement as a list of dataframe instead
-        firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 
-            'primary_channel', 'firing_times', 'trial_number', 'trial_type', 'number_of_spikes', 'mean_firing_rate'], 
-            dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16, np.float, np.float])
+        dataframeList = []
+        # firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 
+        #     'primary_channel', 'firing_times', 'trial_number', 'trial_type', 'number_of_spikes', 'mean_firing_rate'], 
+        #     dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16, np.float, np.float])
 
-        for id in cluster_ids:
-            cluster_firings = sorter.get_unit_spike_train(id)
-            ch = sorter.get_unit_property(id,'max_channel')
+        for i in range(len(sorted_result)):
+            cluster_firings = sorted_result.spike_train[i]
+            ch = sorted_result.max_channel[i]
             tetrode  = ch//setting.num_tetrodes
-            num_spikes = sorter.get_unit_property(id,'number_of_spikes')
-            mean_rate = sorter.get_unit_property(id, 'mean_firing_rate')
+            num_spikes = sorted_result.number_of_spikes[i]
+            mean_rate = sorted_result.mean_firing_rate[i]
+            unit_id = sorted_result.unit_id[i]
 
-            firing_data = firing_data.append({
+            dataframeList.append({
                     "session_id": session_id,
-                    "cluster_id":  int(id),
+                    "cluster_id":  unit_id,
                     "tetrode": tetrode,
                     "primary_channel": ch,
                     "firing_times": cluster_firings,
                     'number_of_spikes': num_spikes,
                     'mean_firing_rate': mean_rate
-                }, ignore_index=True)
+                })
 
-    return firing_data
+    return pd.DataFrame(dataframeList)
 
 def process_firing_times(session_id,firing_data_path, session_type):
     #TODO probably easier to use the sorterextractor object directly

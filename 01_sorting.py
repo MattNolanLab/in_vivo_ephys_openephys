@@ -76,8 +76,6 @@ filterRecording(recording,setting.sampling_rate) #for faster operation later
 
 #%% Remove some bad channels
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
-# recording_waveform = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000,chunk_size=int(setting.sampling_rate*0.02))
-# recording_sort = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000)
 
 
 #%% perform sorting
@@ -86,7 +84,7 @@ sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=sor
     adjacency_radius=param['adjacency_radius'], detect_sign=param['detect_sign'])
 
 #%%
-sorting_ms4 = pickle.load(open(output.sorter,'rb'))
+# sorting_ms4 = pickle.load(open(output.sorter,'rb'))
 
 #%% compute some property of the sorting
 st.postprocessing.get_unit_max_channels(recording, sorting_ms4, max_num_waveforms=100)

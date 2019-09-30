@@ -8,6 +8,7 @@ from numpy import inf
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
+from tqdm import tqdm
 
 '''
 
@@ -318,20 +319,21 @@ def plot_gc_firing_rate_maps(spike_data, prm, prefix):
 plot gaussian convolved firing rate in time against similarly convolved speed and location. 
 '''
 
-def plot_convolved_rates_in_time(spike_data, prm):
-    print('plotting spike rastas...')
-    save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+def plot_convolved_rates_in_time(spike_data, figure_folder_path):
+    print('plotting spike rasters...')
+    # save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
 
-    for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+    for cluster_index in tqdm(range(len(spike_data))):
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_id = spike_data.cluster_id[cluster_index]
         spikes_on_track = plt.figure(figsize=(4,5))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        firing_rate = spike_data.loc[cluster_index].spike_rate_in_time
-        speed = spike_data.loc[cluster_index].speed_rate_in_time
+        firing_rate = spike_data.spike_rate_in_time[cluster_index]
+        speed = spike_data.speed_rate_in_time[cluster_index]
         x_max= np.max(firing_rate)
-        ax.plot(firing_rate, speed, '|', color='Black', markersize=4)
+        ax.plot(speed,firing_rate, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Speed (cm/sec)', fontsize=12, labelpad = 10)
         #plt.xlim(0,200)
@@ -344,13 +346,13 @@ def plot_convolved_rates_in_time(spike_data, prm):
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_SPEED_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path +  spike_data.session_id[cluster_index] + '_rate_versus_SPEED_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
         spikes_on_track = plt.figure(figsize=(4,5))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        position = spike_data.loc[cluster_index].position_rate_in_time
-        ax.plot(firing_rate, position, '|', color='Black', markersize=4)
+        position = spike_data.position_rate_in_time[cluster_index]
+        ax.plot(position,firing_rate, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
         # ]polt.xlim(0,200)
@@ -363,7 +365,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 

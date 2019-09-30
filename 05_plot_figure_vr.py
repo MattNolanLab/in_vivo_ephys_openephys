@@ -25,6 +25,7 @@ if 'snakemake' not in locals():
     output.autocorrelogram = input.recording_to_sort + figure_folder + '/behaviour/autocorrelogram/'
     output.spike_trajectories = input.recording_to_sort + figure_folder + '/behaviour/spike_trajectories/'
     output.spike_rate =  input.recording_to_sort + figure_folder + '/behaviour/spike_rate/'
+    output.convolved_rate = input.recording_to_sort + figure_folder + '/ConvolvedRates_InTime/'
     output.result = input.recording_to_sort +'/processed/results.txt'
 
     SnakeIOHelper.makeFolders(output)
@@ -41,20 +42,13 @@ processed_position_data = pd.read_hdf(input.processed_position_data)
 #%%
 # PostSorting.make_plots.plot_waveforms(spike_data, prm)
 PostSorting.make_plots.plot_spike_histogram(spike_data, output.spike_histogram)
-
-#%%
 PostSorting.make_plots.plot_autocorrelograms(spike_data, output.autocorrelogram)
-
-#%%
 PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, output.spike_trajectories, prefix='_movement')
-
-#%%
 PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, output.spike_rate, prefix='_all')
+#%%
+PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, output.convolved_rate)
 
 #%%
 with open(output.result,'w') as f:
     f.write('Completed!')
     
-
-
-#%%

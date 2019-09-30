@@ -38,7 +38,7 @@ def fftkernel(x, w):
     K = np.exp(-0.5 * (w * 2 * np.pi * f)**2)
     y = np.fft.ifft(X * K, n)
     y = y[:L].copy()
-    return y
+    return np.absolute(y) #only return the real value
 
 
 """

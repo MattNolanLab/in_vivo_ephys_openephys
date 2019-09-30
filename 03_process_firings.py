@@ -3,6 +3,7 @@ from PostSorting.load_firing_data import process_firing_times2
 import PostSorting
 import setting
 from types import SimpleNamespace
+
 #%% define input and output
 if 'snakemake' not in locals():
     #Define some variable to run the script standalone
@@ -10,7 +11,7 @@ if 'snakemake' not in locals():
     output = SimpleNamespace()
 
     input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25'
-    input.firing_data_path = input.recording_to_sort +'/processed/' + setting.sorterName + '/sorter_curated.pkl'
+    input.sorted_data_path = input.recording_to_sort +'/processed/' + setting.sorterName + '/sorter_curated_df.pkl'
     
     sorterPrefix = input.recording_to_sort+'/processed/'+setting.sorterName
     
@@ -27,7 +28,7 @@ else:
 
 #%% process firing times
 session_id = input.recording_to_sort.split('/')[-1]
-spike_data = process_firing_times2(session_id, input.firing_data_path, setting.session_type)
+spike_data = process_firing_times2(session_id, input.sorted_data_path, setting.session_type)
 
 #%% save data
 spike_data.to_hdf(output.spike_data,'spike_data')

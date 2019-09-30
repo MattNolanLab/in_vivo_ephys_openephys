@@ -41,10 +41,10 @@ processed_position_data = pd.read_hdf(input.processed_position_data)
 spike_data_vr = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
 spike_data_vr = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, 
     processed_position_data, output.cluster_spike_plot )
+
+#%%
 spike_data_vr = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 
-#%% process stops
-split_stop_data_by_trial_type
 #%% save data
 spike_data.to_hdf(output.spatial_firing_vr ,'spatial_firing_vr')
 

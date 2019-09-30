@@ -2,14 +2,14 @@
 import pandas as pd
 import testload
 from PostSorting.vr_sync_spatial_data import *
-from PostSorting.vr_spatial_data import bin_data_trial_by_trial,calculate_total_trial_numbers,bin_data_over_trials
+import PostSorting.vr_spatial_data as vr_spatial_data
+import PostSorting.vr_make_plots as vr_make_plots
 import PostSorting
 from collections import namedtuple
 import setting
 from types import SimpleNamespace
 import gc
 import PostSorting.vr_stop_analysis as vr_stop_analysis
-import PostSorting.vr_stop_analysis_new as vr_stop_analysis_new
 import setting
 
 #%% define input and output
@@ -58,38 +58,30 @@ raw_position_data = get_avg_speed_200ms(raw_position_data)
 raw_position_data.to_hdf(output.raw_position_data, 'raw_position_data', mode='w')
 
 #%%
-raw_position_data=pd.read_hdf(output.raw_position_data)
+# raw_position_data=pd.read_hdf(output.raw_position_data)
+
 #%% bin the position data over trials
 processed_position_data = pd.DataFrame() # make dataframe for processed position data
-processed_position_data = bin_data_over_trials(raw_position_data,processed_position_data)
-processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
-processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
+processed_position_data = vr_spatial_data.bin_speed_over_trials(raw_position_data,processed_position_data)
+processed_position_data = vr_spatial_data.bin_data_trial_by_trial(raw_position_data,processed_position_data)
+processed_position_data = vr_spatial_data.calculate_total_trial_numbers(raw_position_data, processed_position_data)
 #%%
 processed_position_data.to_hdf(output.processed_position_data,'processed_position_data', mode='w')
+# processed_position_data=pd.read_hdf(output.processed_position_data)
 
-#%%
-processed_position_data = vr_stop_analysis_new.calculate_stop_data(raw_position_data, processed_position_data, setting.stop_threshold)
-processed_position_data = vr_stop_analysis_new.calculate_average_stops(raw_position_data,processed_position_data)
-processed_position_data = vr_stop_analysis_new.find_rewarded_positions_test(raw_position_data,processed_position_data)
+#%% Analyze stops
+processed_position_data = vr_stop_analysis.calculate_stops(raw_position_data, processed_position_data, 10.7/6000)
+processed_position_data = vr_stop_analysis.calculate_average_stops(raw_position_data,processed_position_data)
+processed_position_data = vr_stop_analysis.find_first_stop_in_series(processed_position_data)
+processed_position_data = vr_stop_analysis.find_rewarded_positions(raw_position_data,processed_position_data)
 
-
-# #%% analyse stops
-# processed_position_data = vr_stop_analysis.calculate_stops(raw_position_data, processed_position_data, 10.7)
-# processed_position_data = vr_stop_analysis.calculate_average_stops(raw_position_data,processed_position_data)
-# processed_position_data = vr_stop_analysis.find_first_stop_in_series(processed_position_data)
-# processed_position_data = vr_stop_analysis.find_rewarded_positions(raw_position_data,processed_position_data)
-# processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]
-
-
-#%% save data
-processed_position_data.to_hdf(output.processed_position_data,'processed_position_data', mode='w')
-
+processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]
 
 #%% plotting position data
 PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, output.stop_raster)
 PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, output.stop_histogram)
-PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, output.speed_histogram)
+PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, output.speed_histogram)
 
+#%% save data
+processed_position_data.to_hdf(output.processed_position_data,'processed_position_data', mode='w')
 
-
-#%%

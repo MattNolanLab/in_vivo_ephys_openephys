@@ -70,7 +70,7 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data,number_of_
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     trials = np.array(raw_position_data['trial_number'])
     trial_types = np.array(raw_position_data['trial_type'])
-    speed_ms = np.array(raw_position_data['speed_per200ms'])
+    # speed_ms = np.array(raw_position_data['speed_per200ms'])
     locations = np.array(raw_position_data['x_position_cm'])
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
     time_per_sample = np.array(raw_position_data['time_seconds'])
@@ -80,12 +80,12 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data,number_of_
         trial_type = int(stats.mode(trial_types[np.where(trials == t)])[0])
         for loc in range(int(number_of_bins)):
             idx = getBinnedIdx(trial_locations,loc)
-            speed_in_bin = find_speed_in_bin(speed_ms, idx)
+            # speed_in_bin = find_speed_in_bin(speed_ms, idx)
             time_in_bin = find_dwell_time_in_bin(dwell_time_per_sample, idx)
             apsolute_elapsed_time_in_bin = find_time_in_bin(time_per_sample, idx)
-            binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_speed_ms_per_trial":  np.float16(speed_in_bin), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
+            binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
 
-    processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
+    # processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_type_in_bin']], axis=1)
     processed_position_data = pd.concat([processed_position_data, binned_data['trial_number_in_bin']], axis=1)
@@ -124,8 +124,9 @@ def bin_speed_over_trials(raw_position_data,processed_position_data):
     locations = np.array(raw_position_data['x_position_cm'])
     speed_ms = np.array(raw_position_data['speed_per200ms'])
 
-    for loc in range(int(number_of_bins)):
-        speed_in_bin = find_speed_in_bin(speed_ms, locations, loc)
+    for loc in tqdm(range(int(number_of_bins))):
+        idx = getBinnedIdx(locations,loc)
+        speed_in_bin = find_speed_in_bin(speed_ms, idx)
         binned_data = binned_data.append({"speed_in_bin": np.float16(speed_in_bin)}, ignore_index=True)
 
     processed_position_data['binned_speed_ms'] = binned_data['speed_in_bin']
