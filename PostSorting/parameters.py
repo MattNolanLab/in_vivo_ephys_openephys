@@ -27,6 +27,7 @@ class Parameters:
     movement_channel = ''  # vr
     stop_threshold = 10.7  # vr
     track_length = 200  # vr
+    cue_conditioned_goal = False
 
     def __init__(self):
         return
@@ -178,10 +179,8 @@ class Parameters:
     def get_track_length(self):
         return Parameters.track_length
 
-
     def set_track_length(self, track_length):
-        Parameters.track_length = track_length
-
+        Parameters.track_length = float(track_length)
 
     def get_stop_threshold(self):
         return Parameters.stop_threshold
@@ -201,4 +200,16 @@ class Parameters:
 
     def set_delete_two_minutes(self, delete_two_minutes):
         Parameters.delete_two_min = delete_two_minutes
+
+    def get_cue_conditioned_goal(self):
+        return Parameters.cue_conditioned_goal
+
+    def set_cue_conditioned_goal(self, cue_conditioned_goal):
+        Parameters.cue_conditioned_goal = cue_conditioned_goal
+
+    def get_goal_location_channel(self):
+        return Parameters.goal_location_channel
+
+    def set_goal_location_chennl(self, goal_location_channel):
+        Parameters.goal_location_channel = goal_location_channel
 

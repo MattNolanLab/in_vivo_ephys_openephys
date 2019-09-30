@@ -87,6 +87,26 @@ def generate_new_color(existing_colors, pastel_factor=0.5):
             best_color = color
     return best_color
 
+def style_vr_plot_offset(ax, x_max):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(True)
+    ax.spines['bottom'].set_visible(True)
+    plt.tick_params(
+        axis='both',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom=True,  # ticks along the bottom edge are off
+        top=False,  # ticks along the top edge are off
+        right=False,
+        left=True,
+        labelleft=True,
+        labelbottom=True)  # labels along the bottom edge are off
+
+    #ax.set_aspect('equal')
+
+    plt.ylim(0, x_max)
+
+    return ax
 
 def style_vr_plot(ax, x_max):
     ax.spines['top'].set_visible(False)
@@ -117,6 +137,13 @@ def style_track_plot(ax, bins):
     ax.axvspan(88/divider, (88+22)/divider, facecolor='DarkGreen', alpha=.25, linewidth =0)
     ax.axvspan(0, 30/divider, facecolor='k', linewidth =0, alpha=.25) # black box
     ax.axvspan((200-30)/divider, 200/divider, facecolor='k', linewidth =0, alpha=.25)# black box
+
+def style_track_plot_cue_conditioned(ax, bins):
+    divider = prm.get_track_length() / bins
+    ax.axvspan(-82 / divider, -71 / divider, facecolor='yellow', alpha=.25, linewidth=0)
+    ax.axvspan(-11 / divider, 11 / divider, facecolor='DarkGreen', alpha=.25, linewidth=0)
+    #ax.axvspan(0, 30 / divider, facecolor='k', linewidth=0, alpha=.25)  # black box
+    #ax.axvspan((300 - 30) / divider, 300 / divider, facecolor='k', linewidth=0, alpha=.25)  # black box
 
 
 def makelegend(fig,ax, x_location):
