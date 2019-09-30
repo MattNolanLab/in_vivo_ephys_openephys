@@ -100,7 +100,15 @@ def convert_all_tetrodes_to_mda(prm):
                 channels_all[live_ch_counter, :] = channel_data
                 live_ch_counter += 1
 
-        mdaio.writemda16i(channels_all, path)
+        f = open(raw_mda_path, 'wb')
+
+        number_of_channels = 16
+        f = mdaio._writeMdaHeader([channels_all.shape[0], number_of_channels], f, channels_all.dtype, 2)
+        for i in range(16):
+            mdaio._writeMdaData(f, channels_all)  # load and write each channel of data here
+        f.close()
+        # mdaio.writemda16i(channels_all, path)
+
     else:
         print('The mda file that contains all channels is already in Electrophysiology/Spike_sorting/all_tetrodes/data.'
               ' You  need to delete it if you want me to make it again.')
