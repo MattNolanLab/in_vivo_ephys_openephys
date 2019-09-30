@@ -6,15 +6,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
 import OpenEphys
+import setting
 
-
-def load_sync_data_ephys(recording_to_process, prm):
+def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_channel ):
     is_found = False
     sync_data = None
     print('loading sync channel...')
-    file_path = recording_to_process + '/' + prm.get_sync_channel()
+    file_path = recording_to_process + sync_channel
     if os.path.exists(file_path):
-        sync_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        sync_data = OpenEphys.loadContinuousFast(file_path)['data']
         is_found = True
     else:
         print('Sync data was not found, I will check if Axona sync data is present and convert it if it is.')
@@ -28,7 +28,7 @@ def load_sync_data_ephys(recording_to_process, prm):
             for name in glob.glob(recording_to_process + '/*.continuous'):
                 if os.path.exists(name):
                     print(name)
-                    ch = open_ephys_IO.get_data_continuous(prm, name)
+                    ch = OpenEphys.loadContinuousFast(name)['data']
                     length = len(ch)
                     sync_data = np.zeros(length)
                     sync_data[np.take(pulse_indices, np.where(pulse_indices < len(ch))).astype(int)] = 1
@@ -45,10 +45,10 @@ def get_video_sync_on_and_off_times(spatial_data):
     return spatial_data
 
 
-def get_ephys_sync_on_and_off_times(sync_data_ephys, prm):
+def get_ephys_sync_on_and_off_times(sync_data_ephys, sampling_rate = setting.sampling_rate):
     sync_data_ephys['on_index'] = sync_data_ephys['sync_pulse'] > 0.5
     sync_data_ephys['on_index_diff'] = np.append([None], np.diff(sync_data_ephys['on_index'].values))  # true when light turns on
-    sync_data_ephys['time'] = sync_data_ephys.index / prm.get_sampling_rate()
+    sync_data_ephys['time'] = sync_data_ephys.index / sampling_rate
     return sync_data_ephys
 
 
@@ -66,17 +66,17 @@ def pad_shorter_array_with_0s(array1, array2):
     return array1, array2
 
 
-def downsample_ephys_data(sync_data_ephys, spatial_data, prm):
+def downsample_ephys_data(sync_data_ephys, spatial_data):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'][:50].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
-    sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
-    prm.set_sampling_rate_rate(sampling_rate_rate)
-    length = int(len(sync_data_ephys['time']) / sampling_rate_rate)
-    indices = (np.arange(length) * sampling_rate_rate).astype(int)
+    downsample_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
+    # prm.set_sampling_rate_rate(sampling_rate_rate)
+    length = int(len(sync_data_ephys['time']) / downsample_rate)
+    indices = (np.arange(length) * downsample_rate).astype(int)
     sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
     sync_data_ephys_downsampled['sync_pulse'] = sync_data_ephys['sync_pulse'][indices]
     sync_data_ephys_downsampled['time'] = sync_data_ephys['time'][indices]
-    return sync_data_ephys_downsampled
+    return sync_data_ephys_downsampled,downsample_rate
 
 
 def find_nearest(array, value):
@@ -104,34 +104,35 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
-'''
-The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
-The open ephys GUI receives TTL pulses. Bonsai detects intensity from an LED that lights up whenever the TTL is
-sent to open ephys. The pulses have 20-60 s long randomised gaps in between them. The recordings don't necessarily
-start at the same time, so it is possible that bonsai will have an extra pulse that open ephys does not.
-Open ephys samples at 30000 Hz, and bonsai at 30 Hz, but the webcam frame rate is not precise.
 
-(1) I downsampled the open ephys signal to match the sampling rate of bonsai calculated based on the average
-interval between time stamps.
-(2) I reduced the noise in both signals by setting a threshold and replacing low values with 0s.
-(3) I calculated the correlation between the OE and Bonsai pulses
-(4) I calculated a lag estimate between the two signals based on the highest correlation.
-(5) I shifted the bonsai times by the lag.
-This reduces the delay to <100ms, so the pulses are more or less aligned at this point. The precision is lost because
-of the way I did the downsampling and the variable frame rate of the camera.
-(6) I cut the first 20 seconds of both arrays to make sure the first pulse of the array has a corresponding pulse
-from the other dataset.
-(7) I detected the rising edges of both peaks and subtracted the corresponding time values to get the lag.
-(8) I shifted the bonsai data again by this lag.
-Now the lag is within/around 30ms, so around the frame rate of the camera.
-Eventually, the shifted 'synced' times are added to the spatial dataframe.
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
 
-'''
+    '''
+    The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
+    The open ephys GUI receives TTL pulses. Bonsai detects intensity from an LED that lights up whenever the TTL is
+    sent to open ephys. The pulses have 20-60 s long randomised gaps in between them. The recordings don't necessarily
+    start at the same time, so it is possible that bonsai will have an extra pulse that open ephys does not.
+    Open ephys samples at 30000 Hz, and bonsai at 30 Hz, but the webcam frame rate is not precise.
 
+    (1) I downsampled the open ephys signal to match the sampling rate of bonsai calculated based on the average
+    interval between time stamps.
+    (2) I reduced the noise in both signals by setting a threshold and replacing low values with 0s.
+    (3) I calculated the correlation between the OE and Bonsai pulses
+    (4) I calculated a lag estimate between the two signals based on the highest correlation.
+    (5) I shifted the bonsai times by the lag.
+    This reduces the delay to <100ms, so the pulses are more or less aligned at this point. The precision is lost because
+    of the way I did the downsampling and the variable frame rate of the camera.
+    (6) I cut the first 20 seconds of both arrays to make sure the first pulse of the array has a corresponding pulse
+    from the other dataset.
+    (7) I detected the rising edges of both peaks and subtracted the corresponding time values to get the lag.
+    (8) I shifted the bonsai data again by this lag.
+    Now the lag is within/around 30ms, so around the frame rate of the camera.
+    Eventually, the shifted 'synced' times are added to the spatial dataframe.
 
-def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
+    '''
+
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
-    sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
+    sync_data_ephys_downsampled,downsample_rate = downsample_ephys_data(sync_data_ephys, spatial_data)
 
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
@@ -164,34 +165,35 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     # plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
     # trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
     # plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
-    return spatial_data
+    return spatial_data,downsample_rate
 
 
-def remove_opto_tagging_from_spatial_data(prm, spatial_data):
-    if prm.get_opto_tagging_start_index() is None:
+def remove_opto_tagging_from_spatial_data(spatial_data, downsample_rate, opto_start_index):
+    if opto_start_index is None:
         return spatial_data
     else:
-        beginning_of_opto_tagging = prm.get_opto_tagging_start_index()
-        sampling_rate_rate = prm.get_sampling_rate_rate()
-        bonsai_start_index = int(beginning_of_opto_tagging / sampling_rate_rate)
+        beginning_of_opto_tagging = opto_start_index
+        bonsai_start_index = int(beginning_of_opto_tagging / downsample_rate)
         spatial_data.drop(range(bonsai_start_index, len(spatial_data)), inplace=True)
     return spatial_data
 
 
-def process_sync_data(recording_to_process, prm, spatial_data):
-    sync_data, is_found = load_sync_data_ephys(recording_to_process, prm)
+def process_sync_data(recording_to_process, spatial_data, opto_start_index):
+    sync_data, is_found = load_sync_data_ephys(recording_to_process)
     sync_data_ephys = pd.DataFrame(sync_data)
     sync_data_ephys.columns = ['sync_pulse']
-    sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
+    sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
+    spatial_data,downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
+    
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
+    
     # remove negative time points
     synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
 
-    synced_spatial_data = remove_opto_tagging_from_spatial_data(prm, synced_spatial_data)
-    prm.set_total_length_sampling_points(synced_spatial_data.synced_time.values[-1]) # seconds
+    synced_spatial_data = remove_opto_tagging_from_spatial_data(synced_spatial_data,downsample_rate, opto_start_index)
+    total_length_sample_point = synced_spatial_data.synced_time.values[-1] # seconds
 
-    return synced_spatial_data, is_found
+    return synced_spatial_data, total_length_sample_point, is_found
