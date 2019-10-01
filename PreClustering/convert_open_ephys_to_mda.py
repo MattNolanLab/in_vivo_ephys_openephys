@@ -71,7 +71,7 @@ def convert_all_tetrodes_to_mda(prm):
         continuous_file_name = prm.get_continuous_file_name()
         continuous_file_name_end = prm.get_continuous_file_name_end()
 
-        path = raw_mda_path
+
 
         file_path = folder_path + continuous_file_name + str(1) + continuous_file_name_end + '.continuous'
         if os.path.exists(file_path):
@@ -87,6 +87,8 @@ def convert_all_tetrodes_to_mda(prm):
         recording_length = len(first_ch)
         channels_all = np.zeros((number_of_live_channels, recording_length))
 
+        f = open(raw_mda_path, 'wb')
+        f = mdaio._writeMdaHeader([channels_all.shape[0], len(live_channels)], f, channels_all.dtype, 2)
         live_ch_counter = 0
         for channel in range(16):
             if (channel + 1) in live_channels:
@@ -97,22 +99,22 @@ def convert_all_tetrodes_to_mda(prm):
                     file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
                     channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
 
-                channels_all[live_ch_counter, :] = channel_data
+                mdaio._writeMdaData(f, channel_data)  # load and write each channel of data here
                 live_ch_counter += 1
 
-        f = open(raw_mda_path, 'wb')
-
-        number_of_channels = 16
-        f = mdaio._writeMdaHeader([channels_all.shape[0], number_of_channels], f, channels_all.dtype, 2)
-        for i in range(16):
-            mdaio._writeMdaData(f, channels_all)  # load and write each channel of data here
         f.close()
-        # mdaio.writemda16i(channels_all, path)
 
     else:
         print('The mda file that contains all channels is already in Electrophysiology/Spike_sorting/all_tetrodes/data.'
               ' You  need to delete it if you want me to make it again.')
 
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
 
 
 
