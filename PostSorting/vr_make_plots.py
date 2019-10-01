@@ -144,6 +144,9 @@ def find_blackboxes_to_plot(raw_position_data, prm):
     return trial_bb_start, trial_bb_end
 
 def fill_blackbox(blackbox_centres, ax):
+    # remove last trial as is inaccurate
+    blackbox_centres = blackbox_centres[0:-1]
+
     # check if blackboxes are all in same place
     if np.std(blackbox_centres) > 10:
         # fills in black boxes per trial
@@ -283,6 +286,11 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
         spikes_on_track = plt.figure(figsize=(4, (x_max / 32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        # fill in black box locations
+        trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+        fill_blackbox(trial_bb_start, ax)
+        fill_blackbox(trial_bb_end, ax)
 
         # uncomment if you want to plot stops
         # ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
