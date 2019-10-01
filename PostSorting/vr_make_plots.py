@@ -5,6 +5,7 @@ import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
 from numpy import inf
+import gc
 import matplotlib.image as mpimg
 import pandas as pd
 from scipy import stats
@@ -97,6 +98,69 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
 
+def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
+    print('I am plotting stop rasta offset from the goal location...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stops_on_track = plt.figure(figsize=(6,6))
+    ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
+    #reward_locs = np.array(processed_position_data.rewarded_stop_locations)
+    #reward_trials = np.array(processed_position_data.rewarded_trials)
+
+    trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+    fill_blackbox(trial_bb_start, ax)
+    fill_blackbox(trial_bb_end, ax)
+
+    ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
+    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
+    #ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+    #ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200,200)
+
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plot_utility.style_track_plot_cue_conditioned(ax, 300)
+    x_max = max(raw_position_data.trial_number) + 0.5
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
+    plt.close()
+
+def find_blackboxes_to_plot(raw_position_data, prm):
+    trial_bb_start = []
+    trial_bb_end = []
+    for trial_number in range(1, max(raw_position_data["trial_number"]) + 1):
+        trial_goal_pos = np.asarray(raw_position_data["goal_location_cm"][raw_position_data["trial_number"] == trial_number])[0]
+        trial_bb_start.append(15-trial_goal_pos)
+        trial_bb_end.append(285-trial_goal_pos)
+
+    # returns the centres of the black boxes for each trial
+    return trial_bb_start, trial_bb_end
+
+def fill_blackbox(blackbox_centres, ax):
+    # check if blackboxes are all in same place
+    if np.std(blackbox_centres) > 10:
+        # fills in black boxes per trial
+        for trial_number in range(1, len(blackbox_centres)+1):
+            x = [blackbox_centres[trial_number - 1]-15,
+                 blackbox_centres[trial_number - 1]+15,
+                 blackbox_centres[trial_number - 1]+15,
+                 blackbox_centres[trial_number - 1]-15]
+            y = [trial_number-0.5, trial_number-0.5, trial_number+0.5, trial_number+0.5]
+            ax.fill(x, y, alpha=0.25, color="k")
+    else:
+        mean_pos = np.mean(blackbox_centres)
+        x = [mean_pos - 15, mean_pos +15, mean_pos + 15, mean_pos - 15]
+        y = [0.5, 0.5, len(blackbox_centres), len(blackbox_centres)]
+        ax.fill(x, y, alpha=0.25, color="k")
+
+    return ax
 
 def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
@@ -204,6 +268,54 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
 > firing rate
 
 '''
+def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_position_data, prm, prefix):
+    # only called for cue conditioning PI task
+    print('plotting spike rastas with cue offsets...')
+    save_path = prm.get_output_path() + '/Figures/spike_trajectories'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    #rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))  #
+    #rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
+
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        spikes_on_track = plt.figure(figsize=(4, (x_max / 32)))
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        # uncomment if you want to plot stops
+        # ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        # ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+        # ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+
+        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm,
+                spike_data.loc[cluster_index].beaconed_trial_number,
+                '|', color='Black', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm,
+                spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+        #ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number,
+        #        '|',
+        #        color='Blue', markersize=4)
+        #ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
+
+        plt.ylabel('Spikes on trials', fontsize=12, labelpad=10)
+        plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
+        #plt.xlim(0, 200)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+
+        plot_utility.style_track_plot_cue_conditioned(ax, 300)
+        plot_utility.style_vr_plot_offset(ax, x_max)
+        plt.locator_params(axis='y', nbins=4)
+        try:
+            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        except ValueError:
+            continue
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
+        plt.close()
+
+
 
 def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting spike rastas...')
@@ -375,6 +487,36 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
+def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):
+    if prm.cue_conditioned_goal is False:
+        plot_stops_on_track(raw_position_data, processed_position_data, prm)
+        plot_stop_histogram(raw_position_data, processed_position_data, prm)
+        plot_speed_histogram(raw_position_data, processed_position_data, prm)
+        if spike_data is not None:
+            PostSorting.make_plots.plot_waveforms(spike_data, prm)
+            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+            gc.collect()
+            plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            #plot_convolved_rates_in_time(spike_data, prm)
+            #plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+            #make_combined_figure(prm, spike_data, prefix='_all')
+    else:
+        plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
+        #plot_stop_histogram(raw_position_data, processed_position_data, prm)
+        #plot_speed_histogram(raw_position_data, processed_position_data, prm)
+        if spike_data is not None:
+            PostSorting.make_plots.plot_waveforms(spike_data, prm)
+            PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+            PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+            gc.collect()
+            plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+            gc.collect()
+            # plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            # plot_convolved_rates_in_time(spike_data, prm)
+            # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+            # make_combined_figure(prm, spike_data, prefix='_all')
+
 
 # unused code but might use in future
 
@@ -485,3 +627,20 @@ def make_combined_figure(prm, spatial_firing, prefix):
         plt.close()
 
 '''
+
+#  this is here for testing
+def main():
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
+
+    params = PostSorting.parameters.Parameters()
+    params.stop_threshold = 7.0
+    params.track_length = 300
+    params.cue_conditioned_goal = True
+
+    processed_position_data = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseVR/data/Cue_conditioned_cohort1_190902/M2_D19_2019-09-27_12-42-16/MountainSort/DataFrames/processed_position_data.pkl')
+    raw_position_data = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseVR/data/Cue_conditioned_cohort1_190902/M2_D19_2019-09-27_12-42-16/MountainSort/DataFrames/raw_position_data.pkl')
+    make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None)
+
+if __name__ == '__main__':
+    main()
