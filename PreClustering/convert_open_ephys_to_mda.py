@@ -71,8 +71,6 @@ def convert_all_tetrodes_to_mda(prm):
         continuous_file_name = prm.get_continuous_file_name()
         continuous_file_name_end = prm.get_continuous_file_name_end()
 
-
-
         file_path = folder_path + continuous_file_name + str(1) + continuous_file_name_end + '.continuous'
         if os.path.exists(file_path):
             first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
