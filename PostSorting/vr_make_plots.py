@@ -125,7 +125,7 @@ def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
 
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot_cue_conditioned(ax, 300)
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
     x_max = max(raw_position_data.trial_number) + 0.5
     plot_utility.style_vr_plot_offset(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
@@ -144,8 +144,12 @@ def find_blackboxes_to_plot(raw_position_data, prm):
     return trial_bb_start, trial_bb_end
 
 def fill_blackbox(blackbox_centres, ax):
+    # remove last 2 trials in case of inaccuracies as is inaccurate
+    og_blackbox_centres_len = len(blackbox_centres)
+    blackbox_centres = blackbox_centres[0:-2]
+
     # check if blackboxes are all in same place
-    if np.std(blackbox_centres) > 10:
+    if np.std(blackbox_centres) > 5:
         # fills in black boxes per trial
         for trial_number in range(1, len(blackbox_centres)+1):
             x = [blackbox_centres[trial_number - 1]-15,
@@ -156,8 +160,8 @@ def fill_blackbox(blackbox_centres, ax):
             ax.fill(x, y, alpha=0.25, color="k")
     else:
         mean_pos = np.mean(blackbox_centres)
-        x = [mean_pos - 15, mean_pos +15, mean_pos + 15, mean_pos - 15]
-        y = [0.5, 0.5, len(blackbox_centres), len(blackbox_centres)]
+        x = [mean_pos - 15, mean_pos + 15, mean_pos + 15, mean_pos - 15]
+        y = [0.5, 0.5, og_blackbox_centres_len, og_blackbox_centres_len]
         ax.fill(x, y, alpha=0.25, color="k")
 
     return ax
@@ -174,10 +178,10 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     ax.plot(position_bins,average_stops, '-', color='Black')
     plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,200)
+    plt.xlim(0,prm.get_track_length())
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
+    plot_utility.style_track_plot(ax, prm.get_track_length())
     x_max = max(processed_position_data.average_stops)+0.1
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
@@ -197,10 +201,10 @@ def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     ax.plot(position_bins,average_speed, '-', color='Black')
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,200)
+    plt.xlim(0,prm.get_track_length())
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
+    plot_utility.style_track_plot(ax, prm.get_track_length())
     x_max = max(processed_position_data.binned_speed_ms)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
@@ -283,6 +287,11 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
         spikes_on_track = plt.figure(figsize=(4, (x_max / 32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        # fill in black box locations
+        trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+        fill_blackbox(trial_bb_start, ax)
+        fill_blackbox(trial_bb_end, ax)
 
         # uncomment if you want to plot stops
         # ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
@@ -512,8 +521,8 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             gc.collect()
             plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
             gc.collect()
+            plot_convolved_rates_in_time(spike_data, prm)
             # plot_firing_rate_maps(spike_data, prm, prefix='_all')
-            # plot_convolved_rates_in_time(spike_data, prm)
             # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             # make_combined_figure(prm, spike_data, prefix='_all')
 
