@@ -8,6 +8,7 @@ from numpy import inf
 import gc
 import matplotlib.image as mpimg
 import pandas as pd
+from matplotlib.lines import Line2D
 from scipy import stats
 
 '''
@@ -59,9 +60,18 @@ def load_stop_data(spatial_data):
     trial_type = spatial_data['stop_trial_type'].values
     return locations,trials,trial_type
 
+def load_first_stop_data(spatial_data):
+    locations = spatial_data['first_series_location_cm'].values
+    trials = spatial_data['first_series_trial_number'].values
+    trial_type = spatial_data['first_series_trial_type'].values
+    return locations,trials,trial_type
 
-def split_stop_data_by_trial_type(spatial_data):
-    locations,trials,trial_type = load_stop_data(spatial_data)
+def split_stop_data_by_trial_type(spatial_data, first_stops=False):
+    if first_stops:
+        locations, trials, trial_type = load_first_stop_data(spatial_data)
+    else:
+        locations,trials,trial_type = load_stop_data(spatial_data)
+
     stop_data=np.transpose(np.vstack((locations, trials, trial_type)))
     beaconed = np.delete(stop_data, np.where(stop_data[:,2]>0),0)
     nonbeaconed = np.delete(stop_data, np.where(stop_data[:,2]!=1),0)
@@ -522,6 +532,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
             gc.collect()
             plot_convolved_rates_in_time(spike_data, prm)
+            criteria_plot_offset(processed_position_data, prm)
             # plot_firing_rate_maps(spike_data, prm, prefix='_all')
             # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             # make_combined_figure(prm, spike_data, prefix='_all')
@@ -636,6 +647,59 @@ def make_combined_figure(prm, spatial_firing, prefix):
         plt.close()
 
 '''
+def criteria_plot_offset(processed_position_data, prm):
+
+    print('I am plotting stop criteria with offset from the goal location...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stops_on_track = plt.figure(figsize=(6, 6))
+    ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    beaconed, nonbeaconed, probe = split_stop_data_by_trial_type(processed_position_data)
+    fs_beaconed, fs_nonbeaconed, fs_probe = split_stop_data_by_trial_type(processed_position_data, first_stops=True)
+
+    plt.ylabel('Mean Stops', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to Reward Zone (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
+
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+    x_max = max(processed_position_data.stop_trial_number) + 0.5
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    #plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+
+    beaconed_mean_stop = np.nanmean(beaconed[:,0])
+    beaconed_std_stop = np.nanstd(beaconed[:,1])
+    nonbeaconed_mean_stop = np.nanmean(nonbeaconed[:,0])
+    nonbeaconed_std_stop = np.nanstd(nonbeaconed[:,1])
+
+    fs_beaconed_mean_stop = np.nanmean(fs_beaconed[:, 0])
+    fs_beaconed_std_stop = np.nanstd(fs_beaconed[:, 1])
+    fs_nonbeaconed_mean_stop = np.nanmean(fs_nonbeaconed[:, 0])
+    fs_nonbeaconed_std_stop = np.nanstd(fs_nonbeaconed[:, 1])
+
+    plt.ylim(0, 3)
+    plt.yticks(np.array((1, 2)), ("Non beaconed" , "Beaconed"))
+    plt.errorbar(beaconed_mean_stop,       2.1, xerr=beaconed_std_stop, color="k", ecolor="k", fmt='o', capsize=0.2)
+    plt.errorbar(nonbeaconed_mean_stop,    1.1, xerr=nonbeaconed_std_stop, color="r", ecolor="r", fmt='o', capsize=0.2)
+    plt.errorbar(fs_beaconed_mean_stop,    1.9, xerr=fs_beaconed_std_stop, color="k", ecolor="k", fmt='^', capsize=0.2)
+    plt.errorbar(fs_nonbeaconed_mean_stop, 0.9, xerr=fs_nonbeaconed_std_stop, color="r", ecolor="r", fmt='^', capsize=0.2)
+
+    legend_elements = [Line2D([0], [0], marker='o', color='w', markeredgecolor="k", markerfacecolor='none', label='All stops'),
+                       Line2D([0], [0], marker='^', color='w', markeredgecolor="k", markerfacecolor='none', label='First stops')]
+    ax.legend(handles=legend_elements)
+    ax.text(-160, 2.9, "25cm Threshold", fontsize=12)
+
+    plt.plot(np.array([-25,-25]), np.array([0,3]), '--', color="k")
+    plt.plot(np.array([ 25, 25]), np.array([0, 3]), '--', color="k")
+    plt.tight_layout()
+
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_criteria' + '.png', dpi=200)
+    plt.close()
+
 
 #  this is here for testing
 def main():
@@ -646,10 +710,12 @@ def main():
     params.stop_threshold = 7.0
     params.track_length = 300
     params.cue_conditioned_goal = True
+    params.set_output_path(r'C:\Users\44756\Desktop\test_recordings_waveform_matching')
 
-    processed_position_data = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseVR/data/Cue_conditioned_cohort1_190902/M2_D19_2019-09-27_12-42-16/MountainSort/DataFrames/processed_position_data.pkl')
-    raw_position_data = pd.read_pickle('/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Harry/MouseVR/data/Cue_conditioned_cohort1_190902/M2_D19_2019-09-27_12-42-16/MountainSort/DataFrames/raw_position_data.pkl')
-    make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None)
+    processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D21_2019-10-01_13-00-22\MountainSort\DataFrames\processed_position_data.pkl')
+
+
+    criteria_plot_offset(processed_position_data, prm=params)
 
 if __name__ == '__main__':
     main()
