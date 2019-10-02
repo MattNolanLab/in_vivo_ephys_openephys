@@ -71,34 +71,26 @@ def convert_all_tetrodes_to_mda(prm):
         continuous_file_name = prm.get_continuous_file_name()
         continuous_file_name_end = prm.get_continuous_file_name_end()
 
-        file_path = folder_path + continuous_file_name + str(1) + continuous_file_name_end + '.continuous'
-        if os.path.exists(file_path):
-            first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
-        else:
-            file_path = try_to_figure_out_non_default_file_names(folder_path, 1)
-
-            first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
-
         live_channels = PreClustering.dead_channels.get_list_of_live_channels_all_tetrodes(prm)
-        number_of_live_channels = len(live_channels)
-
-        recording_length = len(first_ch)
-        channels_all = np.zeros((number_of_live_channels, recording_length))
 
         f = open(raw_mda_path, 'wb')
-        f = mdaio._writeMdaHeader([channels_all.shape[0], len(live_channels)], f, channels_all.dtype, 2)
-        live_ch_counter = 0
+
+        isFirstrun = True
         for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
                 if os.path.exists(file_path):
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.float32)
                 else:
                     file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.float32) #down cast it to float 32
+
+                if isFirstrun:
+                    #Write header
+                    f = mdaio._writeMdaHeader([channel_data.shape[0], len(live_channels)], f, channel_data.dtype, channel_data.dtype.itemsize)
+                    isFirstrun = False
 
                 mdaio._writeMdaData(f, channel_data)  # load and write each channel of data here
-                live_ch_counter += 1
 
         f.close()
 
