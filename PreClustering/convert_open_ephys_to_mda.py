@@ -75,7 +75,7 @@ def convert_all_tetrodes_to_mda(prm):
 
         f = open(raw_mda_path, 'wb')
 
-        isFirstrun = True
+        is_first_channel = True
         for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
@@ -83,12 +83,12 @@ def convert_all_tetrodes_to_mda(prm):
                     channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.float32)
                 else:
                     file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.float32) #down cast it to float 32
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.float32)  # down cast it to float 32
 
-                if isFirstrun:
-                    #Write header
+                if is_first_channel:
+                    # Write header.
                     f = mdaio._writeMdaHeader([channel_data.shape[0], len(live_channels)], f, channel_data.dtype, channel_data.dtype.itemsize)
-                    isFirstrun = False
+                    is_first_channel = False
 
                 mdaio._writeMdaData(f, channel_data)  # load and write each channel of data here
 
