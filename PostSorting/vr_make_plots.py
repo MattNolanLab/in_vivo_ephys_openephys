@@ -701,6 +701,44 @@ def criteria_plot_offset(processed_position_data, prm):
     plt.close()
 
 
+def plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm):
+    print('I am plotting stop rasta offset from the goal location...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stops_on_track = plt.figure(figsize=(6,6))
+    ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
+    #reward_locs = np.array(processed_position_data.rewarded_stop_locations)
+    #reward_trials = np.array(processed_position_data.rewarded_trials)
+
+    trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+    fill_blackbox(trial_bb_start, ax)
+    fill_blackbox(trial_bb_end, ax)
+
+    ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
+    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
+    #ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+    #ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200,200)
+
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+    x_max = max(raw_position_data.trial_number) + 0.5
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
+    plt.close()
+
+
+
+
+
 #  this is here for testing
 def main():
     print('-------------------------------------------------------------')
@@ -712,8 +750,9 @@ def main():
     params.cue_conditioned_goal = True
     params.set_output_path(r'C:\Users\44756\Desktop\test_recordings_waveform_matching')
 
-    processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D21_2019-10-01_13-00-22\MountainSort\DataFrames\processed_position_data.pkl')
-
+    raw_position_data = pd.read_pickle(r'Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M4_D11_2019-10-01_14-04-47\MountainSort\DataFrames\raw_position_data.pkl')  # m4
+    processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M4_D11_2019-10-01_14-04-47\MountainSort\DataFrames\processed_position_data.pkl') #m4
+    #m2 processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D21_2019-10-01_13-00-22\MountainSort\DataFrames\processed_position_data.pkl') #m2
 
     criteria_plot_offset(processed_position_data, prm=params)
 
