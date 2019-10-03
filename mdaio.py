@@ -307,6 +307,28 @@ def _writeMdaData(f,X):
     A.tofile(f)
     f.flush()
 
+def writeMdaByChunk(x,fname,chunk=300000): 
+    """Write MDA file to disk by chunk
+    
+    Arguments:
+        x {np.narray} -- data to be written, should be in channel x time format
+        fname {str} -- path of the MDA file
+        chunk {int} -- the size of each chunk to be written
+    
+    Raises:
+        ValueError: error if the file is not in channel x time format
+    """
+    if x.shape[0]>x.shape[1]:
+        raise ValueError('The number of channel is larger than the length of data. The signal probably is not in a correct format for mountainsort')
+
+    f = open(fname,'wb')
+    f=_writeMdaHeader([x.shape[0],x.shape[1]],f,x.dtype,x.dtype.itemsize)
+
+    for i in range((x.shape[1]//chunk)+1): #write data in chunk, and make sure the last chunk is coverred
+        _writeMdaData(f,x[:,i*chunk:(i+1)*chunk])
+
+    f.close()
+
 def _writemda(X,fname,dt, num_bytes_per_entry):
     dt_code=0
     #num_bytes_per_entry=2 # changed 0 to 2 here
