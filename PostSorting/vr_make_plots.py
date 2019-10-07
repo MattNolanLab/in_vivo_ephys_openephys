@@ -6,6 +6,7 @@ import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
 from numpy import inf
 import gc
+import math
 import matplotlib.image as mpimg
 import pandas as pd
 from matplotlib.lines import Line2D
@@ -813,18 +814,20 @@ def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
 
     counter = 0
     for row in beaconed:
-        old_trial_number = int(row[1])
-        new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
-        row[1] = new_trial_number
-        beaconed[counter] = row
+        if not math.isnan(row[1]):
+            old_trial_number = int(row[1])
+            new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
+            row[1] = new_trial_number
+            beaconed[counter] = row
         counter += 1
 
     counter = 0
     for row in non_beaconed:
-        old_trial_number = int(row[1])
-        new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
-        row[1] = new_trial_number
-        non_beaconed[counter] = row
+        if not math.isnan(row[1]):
+            old_trial_number = int(row[1])
+            new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
+            row[1] = new_trial_number
+            non_beaconed[counter] = row
         counter += 1
 
     return beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end
