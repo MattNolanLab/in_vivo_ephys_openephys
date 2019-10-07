@@ -26,6 +26,9 @@ def extract_goal_locations(recording_folder, prm):
         goal_location = goal_location[:90000000]
 
     goal_location = np.asarray(goal_location, dtype=np.float16)
+    #
+    goal_location = np.append(np.array([0]), np.diff(goal_location))
+
     floor = np.round(min(goal_location), decimals=1)
     goal_location[np.round(goal_location, decimals=1) != floor] = 1
     goal_location[np.round(goal_location, decimals=1) == floor] = 0
