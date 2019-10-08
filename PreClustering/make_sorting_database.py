@@ -138,7 +138,7 @@ def create_sorting_folder_structure(prm):
         os.makedirs(current_folder)
     try:
         copyfile(main_path + sorting_folder + 'params.json', current_folder + 'params.json')
-        copyfile(main_path + sorting_folder + 'mountainsort3b.mlp', current_folder + 'mountainsort3.mlp')
+        copyfile(main_path + sorting_folder + 'mountainsort3.mlp', current_folder + 'mountainsort3.mlp')
 
         copyfile(main_path + sorting_folder + 'params.json', current_folder + 'params.json')
         copyfile(main_path + sorting_folder + 'geom_all_tetrodes.csv', current_folder + 'geom.csv')
