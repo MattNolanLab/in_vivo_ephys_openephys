@@ -353,6 +353,20 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
 
         # fill in black box locations
         trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+
+        beaconed = np.array([spike_data.loc[cluster_index].beaconed_position_cm,
+                             spike_data.loc[cluster_index].beaconed_trial_number,
+                             np.zeros(len(spike_data.loc[cluster_index].beaconed_trial_number))])
+
+        nonbeaconed = np.array([spike_data.loc[cluster_index].nonbeaconed_position_cm,
+                                 spike_data.loc[cluster_index].nonbeaconed_trial_number,
+                                 np.zeros(len(spike_data.loc[cluster_index].nonbeaconed_trial_number))])
+
+        probe = np.array([0])
+
+        beaconed, nonbeaconed, probe, trial_bb_start, trial_bb_end = order_by_cue(beaconed, nonbeaconed, probe,
+                                                                                  trial_bb_start, trial_bb_end)
+
         fill_blackbox(trial_bb_start, ax)
         fill_blackbox(trial_bb_end, ax)
 
@@ -361,11 +375,8 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
         # ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
         # ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
-        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm,
-                spike_data.loc[cluster_index].beaconed_trial_number,
-                '|', color='Black', markersize=4)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm,
-                spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+        ax.plot(beaconed[:,0], beaconed[:,1], '|', color='Black', markersize=4)
+        ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], '|', color='Red', markersize=4)
         #ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number,
         #        '|',
         #        color='Blue', markersize=4)
