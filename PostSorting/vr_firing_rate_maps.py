@@ -33,7 +33,7 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-def create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials):
+def create_2dhistogram(spatial_data, trials, locations, number_of_bins, array_of_trials):
     posrange = np.linspace(spatial_data.x_position_cm.min(), spatial_data.x_position_cm.max(), num=number_of_bins+1)
     trialrange = np.unique(array_of_trials)
     trialrange = np.append(trialrange, trialrange[-1]+1)  # Add end of range
@@ -43,7 +43,7 @@ def create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_
 
 
 def bin_spikes_over_location_on_trials(spatial_data,trials,locations, number_of_bins,array_of_trials):
-    spike_histogram = create_2dhistogram(spatial_data,trials, locations, number_of_bins, array_of_trials)
+    spike_histogram = create_2dhistogram(spatial_data, trials, locations, number_of_bins, array_of_trials)
     avg_spike_histogram = reshape_spike_histogram(spike_histogram)
     return avg_spike_histogram
 

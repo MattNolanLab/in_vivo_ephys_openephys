@@ -32,10 +32,10 @@ def plot_trials(trials, filename):
 
 # plot the raw trial channels to check all is good
 def plot_trial_channels(trial1, trial2, type1_filename, type2_filename):
-    plt.plot(trial1[0,:])
+    plt.plot(trial1)
     plt.savefig(type1_filename)
     plt.close()
-    plt.plot(trial2[0,:])
+    plt.plot(trial2)
     plt.savefig(type2_filename)
     plt.close()
 

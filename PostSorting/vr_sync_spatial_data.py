@@ -10,6 +10,26 @@ import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
 import OpenEphys
 import setting
+import scipy.signal as signal
+from DataframeHelper import *
+import scipy.signal as signal
+
+def downsample(x,downsample_factor):
+    """downsample data
+    
+    Arguments:
+        x {np.narray} -- data to be downsample
+        downsample_ratio {int} -- downsampling factor
+    """
+    minx = x.min()
+    maxx = x.max()
+    pad = downsample_factor*20
+    xpad = np.pad(x,pad,'edge') # padding the signal to avoid filter artifact
+    xs = signal.decimate(xpad,downsample_factor,ftype='fir')
+    xs[xs<minx] = minx #remove the filtering artifact at the sharp transition
+    xs[xs>maxx] = maxx
+    return xs[20:-20] #remove the padding
+
 
 def correct_for_restart(location):
     location[location <0.55] = 0.56 # deals with if the VR is switched off during recording - location value drops to 0 - min is usually 0.56 approx
@@ -29,11 +49,10 @@ def get_raw_location(recording_folder, movement_channel):
         location = OpenEphys.loadContinuousFast(file_path)['data']
     else:
         print('Movement data was not found.')
-    # if location.shape[0] > 90000000:
-    #     location = location[:90000000]
+
     location=correct_for_restart(location)
     # PostSorting.vr_make_plots.plot_movement_channel(location, prm)
-    return np.asarray(location, dtype=np.float16)
+    return np.asarray(location, dtype=np.float16).ravel()
 
 
 '''
@@ -56,8 +75,8 @@ ephys recording in time, but the smallest value recorded by the rotary encoder.)
 distance unit calculated in the previous step to convert the rotary encoder values to metric.
 '''
 
-def calculate_track_location(position_data, recording_folder):
-    recorded_location = get_raw_location(recording_folder, setting.movement_ch) # get raw location from DAQ pin
+def calculate_track_location(position_data, recorded_location):
+    # recorded_location = get_raw_location(recording_folder, setting.movement_ch) # get raw location from DAQ pin
     print('Converting raw location input to cm...')
     recorded_startpoint = min(recorded_location)
     recorded_endpoint = max(recorded_location)
@@ -69,9 +88,10 @@ def calculate_track_location(position_data, recording_folder):
 
 
 # calculate time from start of recording in seconds for each sampling point
-def calculate_time(position_data):
+def calculate_time(position_data, sampling_rate):
     print('Calculating time...')
-    position_data['time_seconds'] = position_data['trial_number'].index/30000 # convert sampling rate to time (seconds) by dividing by 30
+    position_data=addCol2dataframe(position_data, {'time_seconds': position_data['trial_number'].index/sampling_rate})
+    # position_data['time_seconds'] = position_data['trial_number'].index/30000 # convert sampling rate to time (seconds) by dividing by 30
     return position_data
 
 
@@ -104,22 +124,22 @@ def calculate_trial_numbers(position_data, prm):
     return position_data
 """
 
-def check_for_trial_restarts(trial_indices):
+def check_for_trial_restarts(trial_indices, skip):
     new_trial_indices=[]
     for icount,i in enumerate(range(len(trial_indices)-1)):
         index_difference = trial_indices[icount] - trial_indices[icount+1]
-        if index_difference > - 15000:
+        if index_difference > - skip: #ignore those points
             continue
         else:
-            index = trial_indices[icount+1]
+            index = trial_indices[icount+1] #only include when there is a complete trial
             new_trial_indices = np.append(new_trial_indices,index)
     return new_trial_indices
 
 
-def get_new_trial_indices(position_data):
+def get_new_trial_indices(position_data, skip):
     location_diff = position_data['x_position_cm'].diff()  # Get the raw location from the movement channel
     trial_indices = np.where(location_diff < -40)[0]# return indices where is new trial
-    trial_indices = check_for_trial_restarts(trial_indices)# check if trial_indices values are within 1500 of eachother, if so, delete
+    trial_indices = check_for_trial_restarts(trial_indices,skip)# check if trial_indices values are within 15000 of eachother, if so, delete
     new_trial_indices=np.hstack((0,trial_indices,len(location_diff))) # add start and end indicies so fills in whole arrays
     return new_trial_indices
 
@@ -135,10 +155,10 @@ def fill_in_trial_array(new_trial_indices,trials):
 
 
 # calculates trial number from location
-def calculate_trial_numbers(position_data):
+def calculate_trial_numbers(position_data,skip = 15000):
     print('Calculating trial numbers...')
     trials = np.zeros((position_data.shape[0]))
-    new_trial_indices = get_new_trial_indices(position_data)
+    new_trial_indices = get_new_trial_indices(position_data, skip)
     trials = fill_in_trial_array(new_trial_indices,trials)
 
     position_data['trial_number'] = np.asarray(trials, dtype=np.uint8)
@@ -154,7 +174,7 @@ def load_first_trial_channel(recording_folder):
     file_path = recording_folder + '/' + setting.first_trial_channel #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_first = OpenEphys.loadContinuousFast(file_path)['data']
     first.append(trial_first)
-    return np.asarray(first, dtype=np.uint8)
+    return np.asarray(first, dtype=np.uint8).ravel()
 
 
 # two continuous channels represent trial type
@@ -163,15 +183,13 @@ def load_second_trial_channel(recording_folder):
     file_path = recording_folder + '/' + setting.second_trial_channel #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_second = OpenEphys.loadContinuousFast(file_path)['data']
     second.append(trial_second)
-    return np.asarray(second, dtype=np.uint8)
+    return np.asarray(second, dtype=np.uint8).ravel()
 
 
-def calculate_trial_types(position_data, recording_folder):
+def calculate_trial_types(position_data, first_ch, second_ch):
     print('Loading trial types from continuous...')
-    first_ch = load_first_trial_channel(recording_folder)
-    second_ch = load_second_trial_channel(recording_folder)
 
-    trial_type = np.zeros((second_ch.shape[1]));trial_type[:]=np.nan
+    trial_type = np.zeros((second_ch.shape[0]));trial_type[:]=np.nan
     new_trial_indices = position_data['new_trial_indices'].values
     new_trial_indices = new_trial_indices[~np.isnan(new_trial_indices)]
 
@@ -179,8 +197,8 @@ def calculate_trial_types(position_data, recording_folder):
     for icount,i in enumerate(range(len(new_trial_indices)-1)):
         new_trial_index = int(new_trial_indices[icount])
         next_trial_index = int(new_trial_indices[icount+1])
-        second = stats.mode(second_ch[0,new_trial_index:next_trial_index])[0]
-        first = stats.mode(first_ch[0,new_trial_index:next_trial_index])[0]
+        second = stats.mode(second_ch[new_trial_index:next_trial_index])[0]
+        first = stats.mode(first_ch[new_trial_index:next_trial_index])[0]
         if second < 2 and first < 2: # if beaconed
             trial_type[new_trial_index:next_trial_index] = int(0)
         if second > 2 and first < 2: # if non beaconed
@@ -251,16 +269,16 @@ The location array is duplicated, and shifted in a way that it can be subtracted
 subtracted from the original location array.)
 '''
 
-def calculate_instant_velocity(position_data):
+def calculate_instant_velocity(position_data, sampling_rate):
     print('Calculating velocity...')
     location = np.array(position_data['x_position_cm']) # Get the raw location from the movement channel
-    sampling_points_per200ms = int(setting.sampling_rate/5)
+    sampling_points_per200ms = int(sampling_rate/5)
     end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
     velocity = location - location_to_subtract_from
     velocity = fix_teleport(velocity)
-    position_data['velocity'] = velocity
+    position_data['velocity'] = velocity/0.2 #unit: cm/s
     return position_data
 
 
@@ -331,23 +349,20 @@ def get_rolling_average(array_in, window):
 
 
 
-def get_avg_speed_200ms(position_data):
-    '''
-    Calculate average speed for the last 200ms at each particular sampling point, based on velocity
-
-    input
-        prm : object, parameters
-        velocity : numpy array, instant velocity values
-        sampling_points_per200ms : number of sampling points in 200ms
-
-    output
-        avg_speed : numpy array, contains average speed for each location. The first 200ms are filled with 0s.
-
-    '''
+def get_avg_speed(position_data, average_window):
+    """Calculate the average speed over the window specified in the argument
+    
+    Arguments:
+        position_data {pd.DataFrame} -- position data
+        average_window {int} -- length of data to take average of 
+    
+    Returns:
+        pd.DataFrame -- dataframe with average speed added
+    """
+    
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
-    sampling_points_per200ms = int(setting.sampling_rate/5)
-    position_data['speed_per200ms'] = get_rolling_average(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
+    position_data['speed_per200ms'] = get_rolling_average(velocity, average_window)# Calculate average speed at each point by averaging instant velocities
     return position_data
 
 

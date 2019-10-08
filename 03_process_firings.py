@@ -31,7 +31,7 @@ session_id = input.recording_to_sort.split('/')[-1]
 spike_data = process_firing_times2(session_id, input.sorted_data_path, setting.session_type)
 
 #%% save data
-spike_data.to_hdf(output.spike_data,'spike_data')
+spike_data.to_hdf(output.spike_data,'spike_data',mode='w')
 
 
 

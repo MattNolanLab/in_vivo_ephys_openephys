@@ -27,7 +27,7 @@ if 'snakemake' not in locals():
     input = SimpleNamespace()
     output = SimpleNamespace()
     
-    input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25/'
+    input.recording_to_sort = 'testData/M1_D27_2018-10-26_13-10-36_of/'
     input.probe_file = 'sorting_files/tetrode_16.prb'
     input.sort_param = 'sorting_files/params.json'
     input.tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv'
@@ -92,7 +92,7 @@ st.postprocessing.get_unit_waveforms(recording, sorting_ms4, max_num_waveforms=1
 
 for id in sorting_ms4.get_unit_ids():
     number_of_spikes = len(sorting_ms4.get_unit_spike_train(id))
-    mean_firing_rate = number_of_spikes/(recording._timeseries.shape[1]/setting.sampling_rate)
+    mean_firing_rate = number_of_spikes/(recording._recording._timeseries.shape[1]/setting.sampling_rate)
     sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 

@@ -38,7 +38,7 @@ processed_position_data = pd.read_hdf(input.processed_position_data)
 #%% process firing times
 
 # spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
-spike_data_vr = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
+spike_data_vr = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, setting.sampling_rate/setting.location_ds_rate)
 spike_data_vr = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, 
     processed_position_data, output.cluster_spike_plot )
 

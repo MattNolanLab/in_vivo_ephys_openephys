@@ -33,7 +33,7 @@ all_tetrode_together = True #set to True if you want the spike sorting done on a
 spike_bin_size = 20 #the bin size to group spike together to calculate spike count, in ms
 location_bin_num = 200 #number of location bin
 stop_threshold = 4.7
-
+location_ds_rate = 1000 #the sampleing frequency in Hz to downsample the location signal to 
 
 ##########
 # VR
