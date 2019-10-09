@@ -8,7 +8,7 @@ import numpy as np
 def load_OpenEphysRecording(folder):
     signal = []
     for i in range(setting.num_tetrodes*4):
-        fname = folder+setting.data_file_prefix+str(i+1)+setting.data_file_suffix+'.continuous'
+        fname = folder+'/'+setting.data_file_prefix+str(i+1)+setting.data_file_suffix+'.continuous'
         x = OpenEphys.loadContinuousFast(fname)['data']
         if i==0:
             #preallocate array on first run
