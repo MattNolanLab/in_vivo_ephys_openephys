@@ -102,7 +102,44 @@ def loadFolderToArray(folderpath, channels = 'all', dtype = float, source = '100
 
     return data_array
 
+def writeHeader(f,header):
+    headerstr=''
+    for k,v in header.items():
+        k = 'header.'+k.strip()
+        headerstr = headerstr+'{0} = {1};\n'.format(k,v)
+    headerstr=headerstr.ljust(1024)
+    f.write(headerstr.encode('ascii'))
+    
+def writeFrame(f, timestamp, recording_num, x):
+    byteWritten = 0
+    if x.size==1024:      
+        byteWritten += f.write(np.array(timestamp).astype('<i8').tobytes())
+        byteWritten += f.write(np.array(1024).astype('<i2').tobytes())
+        byteWritten += f.write(np.array(recording_num).astype('<i2').tobytes())
+        byteWritten += f.write(x.astype('>i2').tobytes())
+        byteWritten += f.write(np.array([0,1,2,3,4,5,6,7,8,255]).astype(np.byte).tobytes())
+    else:
+        print('Data point not correct. Skipped')
+    return byteWritten
+    
+def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=np.float):
+    f = open(fname,'wb')
+    writeHeader(f,header)
 
+    noFrame = x.size//1024
+    
+    if dtype == np.float:
+        #convert back the value to int according to the bitVolts
+        x = np.round(x/np.float(header['bitVolts']))
+    
+    for i in range(noFrame):
+        if recording_num is not None:
+            writeFrame(f,timestamp[i],recording_num[i],x[i*1024:(i+1)*1024])
+        else:
+            writeFrame(f,timestamp[i],0,x[i*1024:(i+1)*1024])
+    
+    f.close()
+    
 def loadContinuousFast(filepath, dtype = float):
     #A much faster implementation for loading continous file
     #load all data at once rather than by chunks
