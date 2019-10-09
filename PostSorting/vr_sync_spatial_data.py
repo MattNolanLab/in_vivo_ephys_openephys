@@ -140,7 +140,7 @@ def calculate_trial_numbers(position_data, prm):
     trials = fill_in_trial_array(new_trial_indices,trials)
     PostSorting.vr_make_plots.plot_trials(trials, prm)
 
-    position_data['trial_number'] = np.asarray(trials, dtype=np.uint8)
+    position_data['trial_number'] = np.asarray(trials, dtype=np.uint16)
     position_data['new_trial_indices'] = pd.Series(new_trial_indices)
     print('This mouse did ', int(max(trials)), ' trials')
     gc.collect()
