@@ -6,49 +6,33 @@ import setting
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
-import SnakeIOHelper
+from SnakeIOHelper import getSnake
+
 #%% define input and output
-
-figure_folder ='/processed/figures'
-
-if 'snakemake' not in locals():
-    #Define some variable to run the script standalone
-    input = SimpleNamespace()
-    output = SimpleNamespace()
-
-    input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25'
-    input.raw_position = input.recording_to_sort + '/processed/raw_position.hdf'
-    input.processed_position_data = input.recording_to_sort + '/processed/processed_position.hdf'
-    input.spatial_firing_vr = input.recording_to_sort + '/processed/spatial_firing_vr.hdf'
-    
-    output.spike_histogram = input.recording_to_sort + figure_folder + '/behaviour/spike_histogram/'
-    output.autocorrelogram = input.recording_to_sort + figure_folder + '/behaviour/autocorrelogram/'
-    output.spike_trajectories = input.recording_to_sort + figure_folder + '/behaviour/spike_trajectories/'
-    output.spike_rate =  input.recording_to_sort + figure_folder + '/behaviour/spike_rate/'
-    output.convolved_rate = input.recording_to_sort + figure_folder + '/ConvolvedRates_InTime/'
-    output.result = input.recording_to_sort +'/processed/results.txt'
-
-    SnakeIOHelper.makeFolders(output)
+if 'snakemake' not in locals(): 
+    smk = getSnake('vr_workflow.smk',['testData/M1_D31_2018-11-01_12-28-25_short/processed/plot_figure_done.txt'],
+        'plot_figures' )
+    sinput = smk.input
+    soutput = smk.output
 else:
-    #in snakemake environment, the input and output will be provided by the workflow
-    input = snakemake.input
-    output = snakemake.output
+    sinput = snakemake.input
+    soutput = snakemake.output
 
 #%% Load data
-spike_data = pd.read_hdf(input.spatial_firing_vr)
-raw_position_data =pd.read_hdf(input.raw_position)
-processed_position_data = pd.read_hdf(input.processed_position_data)
+spike_data = pd.read_hdf(sinput.spatial_firing_vr)
+raw_position_data =pd.read_hdf(sinput.raw_position)
+processed_position_data = pd.read_hdf(sinput.processed_position_data)
 
 #%%
 # PostSorting.make_plots.plot_waveforms(spike_data, prm)
-PostSorting.make_plots.plot_spike_histogram(spike_data, output.spike_histogram)
-PostSorting.make_plots.plot_autocorrelograms(spike_data, output.autocorrelogram)
-PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, output.spike_trajectories, prefix='_movement')
-PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, output.spike_rate, prefix='_all')
+PostSorting.make_plots.plot_spike_histogram(spike_data, soutput.spike_histogram)
+PostSorting.make_plots.plot_autocorrelograms(spike_data, soutput.autocorrelogram)
+PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, soutput.spike_trajectories, prefix='_movement')
+PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, soutput.spike_rate, prefix='_all')
 #%%
-PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, output.convolved_rate)
+PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, soutput.convolved_rate)
 
 #%%
-with open(output.result,'w') as f:
+with open(soutput.result,'w') as f:
     f.write('Completed!')
     

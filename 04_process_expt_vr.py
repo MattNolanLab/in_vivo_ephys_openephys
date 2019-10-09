@@ -14,7 +14,7 @@ if 'snakemake' not in locals():
     input = SimpleNamespace()
     output = SimpleNamespace()
 
-    input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25'
+    input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25_short'
     input.spatial_firing = input.recording_to_sort + '/processed/spatial_firing.hdf'
     input.raw_position = input.recording_to_sort + '/processed/raw_position.hdf'
     input.processed_position_data = input.recording_to_sort + '/processed/processed_position.hdf'

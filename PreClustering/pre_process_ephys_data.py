@@ -1,11 +1,28 @@
 import PreClustering.dead_channels
 import PreClustering.make_sorting_database
 import parameters
-
+from scipy.signal import butter,filtfilt
+from tqdm import tqdm
 import file_utility
+import numpy as np
 from PreClustering import convert_open_ephys_to_mda
+
 prm = parameters.Parameters()
 
+
+def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
+    fn = sampling_freq / 2.
+    band = np.array([lp_freq, hp_freq]) / fn
+
+    b, a = butter(order, band, btype='bandpass')
+
+    if not (np.all(np.abs(np.roots(a)) < 1) and np.all(np.abs(np.roots(a)) < 1)):
+        raise ValueError('Filter is not stable')
+    
+    for i in tqdm(range(recording._timeseries.shape[0])):
+        recording._timeseries[i,:] = filtfilt(b,a,recording._timeseries[i,:])
+
+    return recording
 
 def init_params():
     

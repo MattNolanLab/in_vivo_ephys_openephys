@@ -16,79 +16,59 @@ import spikeinterface.widgets as sw
 import json
 import pickle
 import spikeinterfaceHelper
-from scipy.signal import butter,filtfilt
 from tqdm import tqdm
 import numpy as np
-from types import SimpleNamespace
+import setting
+from SnakeIOHelper import getSnake
+from PreClustering.pre_process_ephys_data import filterRecording
+import logging
+
+#for logging
+# logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
+
 #%% define input and output
-
-if 'snakemake' not in locals():
-    #Define some variable to run the script standalone
-    input = SimpleNamespace()
-    output = SimpleNamespace()
-    
-    input.recording_to_sort = 'testData/M1_D27_2018-10-26_13-10-36_of/'
-    input.probe_file = 'sorting_files/tetrode_16.prb'
-    input.sort_param = 'sorting_files/params.json'
-    input.tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv'
-    
-    sorterPrefix = input.recording_to_sort+'processed/'+setting.sorterName
-    output.firings = sorterPrefix+'/firings.mda'
-    output.firings_curated = sorterPrefix + '/firings_curated.mda'
-    output.cluster_metrics = sorterPrefix + '/cluster_metrics.pkl'
-    output.sorter = sorterPrefix +'/sorter.pkl'
-    output.sorter_df = sorterPrefix +'/sorter_df.pkl'
-    output.sorter_curated = sorterPrefix +'/sorter_curated.pkl'
-    output.sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl'
-    output.spike_waveforms = sorterPrefix + '/spike_waveforms.pkl'
+if 'snakemake' not in locals(): 
+    smk = getSnake('vr_workflow.smk',[setting.debug_folder+'/processed/sort_spikes.txt'],
+        'sort_spikes' )
+    sinput = smk.input
+    soutput = smk.output
 else:
-    #in snakemake environment, the input and output will be provided by the workflow
-    input = snakemake.input
-    output = snakemake.output
-
+    sinput = snakemake.input
+    soutput = snakemake.output
 
 #%% Load data and create recording extractor
-signal = file_utility.load_OpenEphysRecording(input.recording_to_sort)
-geom = pd.read_csv(input.tetrode_geom,header=None).values
-bad_channel = file_utility.getDeadChannel(input.recording_to_sort+'dead_channels.txt')
+
+signal = file_utility.load_OpenEphysRecording(sinput.recording_to_sort)
+geom = pd.read_csv(sinput.tetrode_geom,header=None).values
+bad_channel = file_utility.getDeadChannel(sinput.dead_channel)
 
 
 #%% Create and filter the recording
+logger.info('Filtering files') #TODO logging not show correctly
+
 recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
-recording = recording.load_probe_file(input.probe_file) #load probe definition
-
-def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
-    fn = sampling_freq / 2.
-    band = np.array([lp_freq, hp_freq]) / fn
-
-    b, a = butter(order, band, btype='bandpass')
-
-    if not (np.all(np.abs(np.roots(a)) < 1) and np.all(np.abs(np.roots(a)) < 1)):
-        raise ValueError('Filter is not stable')
-    
-    for i in tqdm(range(recording._timeseries.shape[0])):
-        recording._timeseries[i,:] = filtfilt(b,a,recording._timeseries[i,:])
-
-    return recording
-
-
+recording = recording.load_probe_file(sinput.probe_file) #load probe definition
 filterRecording(recording,setting.sampling_rate) #for faster operation later
 
 #%% Remove some bad channels
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
 
-
 #%% perform sorting
-param = json.load(open(input.sort_param))
-sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=sorterPrefix,
-    adjacency_radius=param['adjacency_radius'], detect_sign=param['detect_sign'])
+with open(sinput.sort_param) as f:
+    param = json.load(f)
+sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=setting.sorterName,
+    adjacency_radius=param['adjacency_radius'], detect_sign=param['detect_sign'],verbose=True)
 
+with open(soutput.sorter,'wb') as f:
+    pickle.dump(sorting_ms4,f)
+    
 #%%
 # sorting_ms4 = pickle.load(open(output.sorter,'rb'))
 
 #%% compute some property of the sorting
-st.postprocessing.get_unit_max_channels(recording, sorting_ms4, max_num_waveforms=100)
-st.postprocessing.get_unit_waveforms(recording, sorting_ms4, max_num_waveforms=100)
+st.postprocessing.get_unit_max_channels(recording, sorting_ms4, max_spikes_per_unit=100)
+st.postprocessing.get_unit_waveforms(recording, sorting_ms4, max_spikes_per_unit=100)
 
 for id in sorting_ms4.get_unit_ids():
     number_of_spikes = len(sorting_ms4.get_unit_spike_train(id))
@@ -97,13 +77,14 @@ for id in sorting_ms4.get_unit_ids():
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 
 #%% save data
-pickle.dump(sorting_ms4,open(output.sorter,'wb'))
+with open(soutput.sorter_curated,'wb') as f:
+    pickle.dump(sorting_ms4,f)
 sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4)
-sorter_df.to_pickle(output.sorter_df)
+sorter_df.to_pickle(soutput.sorter_df)
 
 #%% Do some simple curation for now
 sorting_ms4_curated = st.curation.threshold_snr(sorting=sorting_ms4, recording = recording,
-  threshold =1.2, threshold_sign='less', max_snr_waveforms=100) #remove when less than threshold
+  threshold =1.2, threshold_sign='less', max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
 print(sorting_ms4_curated.get_unit_ids())
 
 sorting_ms4_curated=st.curation.threshold_firing_rate(sorting_ms4_curated,
@@ -119,9 +100,10 @@ print(sorting_ms4_curated.get_unit_ids())
 #%%
 #save curated data
 curated_sorter_df = spikeinterfaceHelper.sorter2dataframe(sorting_ms4_curated)
-curated_sorter_df.to_pickle(output.sorter_curated_df)
+curated_sorter_df.to_pickle(soutput.sorter_curated_df)
 sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_curated.get_unit_ids())
-pickle.dump(sorting_ms4_curated, open(output.sorter_curated,'wb'))
+with open(soutput.sorter_curated,'wb') as f:
+    pickle.dump(sorting_ms4_curated, f)
 
 
 #%%
