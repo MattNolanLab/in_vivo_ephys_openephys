@@ -738,14 +738,14 @@ def criteria_plot_offset(processed_position_data, prm):
     #plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
 
     beaconed_mean_stop = np.nanmean(beaconed[:,0])
-    beaconed_std_stop = np.nanstd(beaconed[:,1])
+    beaconed_std_stop = np.nanstd(beaconed[:,0])
     nonbeaconed_mean_stop = np.nanmean(nonbeaconed[:,0])
-    nonbeaconed_std_stop = np.nanstd(nonbeaconed[:,1])
+    nonbeaconed_std_stop = np.nanstd(nonbeaconed[:,0])
 
     fs_beaconed_mean_stop = np.nanmean(fs_beaconed[:, 0])
-    fs_beaconed_std_stop = np.nanstd(fs_beaconed[:, 1])
+    fs_beaconed_std_stop = np.nanstd(fs_beaconed[:, 0])
     fs_nonbeaconed_mean_stop = np.nanmean(fs_nonbeaconed[:, 0])
-    fs_nonbeaconed_std_stop = np.nanstd(fs_nonbeaconed[:, 1])
+    fs_nonbeaconed_std_stop = np.nanstd(fs_nonbeaconed[:, 0])
 
     plt.ylim(0, 3)
     plt.yticks(np.array((1, 2)), ("Non beaconed" , "Beaconed"))
@@ -828,7 +828,7 @@ def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     for row in beaconed:
         if not math.isnan(row[1]):
             old_trial_number = int(row[1])
-            new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
+            new_trial_number = int(new_trial_numbers[sorted_trial_numbers == old_trial_number])
             row[1] = new_trial_number
             beaconed[counter] = row
         counter += 1
@@ -837,7 +837,7 @@ def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     for row in non_beaconed:
         if not math.isnan(row[1]):
             old_trial_number = int(row[1])
-            new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
+            new_trial_number = int(new_trial_numbers[sorted_trial_numbers == old_trial_number])
             row[1] = new_trial_number
             non_beaconed[counter] = row
         counter += 1
