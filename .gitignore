@@ -4,7 +4,6 @@
 /.snakemake
 /.vscode
 /.idea
-/notebooks
 *.mda
 .DS_Store
 .github
