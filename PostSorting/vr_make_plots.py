@@ -335,6 +335,7 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
 
+
 def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed_position_data, prm, prefix):
     # only called for cue conditioning PI task
     print('plotting spike rastas with cue offsets...')
@@ -356,11 +357,11 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
 
         beaconed = np.array([spike_data.loc[cluster_index].beaconed_position_cm,
                              spike_data.loc[cluster_index].beaconed_trial_number,
-                             np.zeros(len(spike_data.loc[cluster_index].beaconed_trial_number))])
+                             np.zeros(len(spike_data.loc[cluster_index].beaconed_trial_number))]).transpose()
 
         nonbeaconed = np.array([spike_data.loc[cluster_index].nonbeaconed_position_cm,
                                  spike_data.loc[cluster_index].nonbeaconed_trial_number,
-                                 np.zeros(len(spike_data.loc[cluster_index].nonbeaconed_trial_number))])
+                                 np.zeros(len(spike_data.loc[cluster_index].nonbeaconed_trial_number))]).transpose()
 
         probe = np.array([0])
 
