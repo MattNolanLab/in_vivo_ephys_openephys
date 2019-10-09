@@ -1,6 +1,8 @@
 # a simple helper class to make working with snake input and output easier in a script
 import os
 from pathlib import Path
+import snakemake
+import sys
 
 def makeFolders(output):
     # make folders used by the output varialbe if not exist
@@ -17,5 +19,46 @@ def makeFolders(output):
         else:
             if not os.path.exists(folder.parent):
                 os.makedirs(folder.parent)
-                print('Created folder:' + folder.parent)
+                print('Created folder:' + str(folder.parent))
+
+def getSnake(snakefile:str, targets:list, rule:str):
+    # determine the running environment and return the snake object appropriately
+    parser = IOParser(snakefile, targets)
+    io = parser.getInputOutput4rule(rule)
+    return io
+
+class IOParser:
+    def __init__(self, snakefile:str, targets:list):
+        self.snakefile = snakefile
+        self.targets = targets
+
+        self.workflow = self.compileWorkflow()
+        self.dag = self.workflow.persistence.dag
+
+
+    def compileWorkflow(self):
+        snakemake.logger.setup_logfile()
+        snakefile = 'vr_workflow.smk'
+        workflow = snakemake.Workflow(snakefile,default_resources=None)
+        workflow.include(self.snakefile)
+        workflow.check()
+
+        workflow.execute(dryrun=True, updated_files=[], quiet=True,
+            targets=self.targets)
+
+        return workflow
+
+    def getInputOutput(self):
+        return self.getJobList(self.dag)
+
+    def getInputOutput4rule(self,rulename:str):
+        io = self.getInputOutput()
+        return io[rulename]
+    
+    def getJobList(self,dag):
+        jobs = {}
+        for j in dag.jobs:
+            jobs[j.name] = j
+        return jobs
+
 
