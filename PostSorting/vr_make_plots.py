@@ -335,6 +335,7 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
 
+
 def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed_position_data, prm, prefix):
     # only called for cue conditioning PI task
     print('plotting spike rastas with cue offsets...')
@@ -353,6 +354,20 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
 
         # fill in black box locations
         trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+
+        beaconed = np.array([spike_data.loc[cluster_index].beaconed_position_cm,
+                             spike_data.loc[cluster_index].beaconed_trial_number,
+                             np.zeros(len(spike_data.loc[cluster_index].beaconed_trial_number))]).transpose()
+
+        nonbeaconed = np.array([spike_data.loc[cluster_index].nonbeaconed_position_cm,
+                                 spike_data.loc[cluster_index].nonbeaconed_trial_number,
+                                 np.zeros(len(spike_data.loc[cluster_index].nonbeaconed_trial_number))]).transpose()
+
+        probe = np.array([0])
+
+        beaconed, nonbeaconed, probe, trial_bb_start, trial_bb_end = order_by_cue(beaconed, nonbeaconed, probe,
+                                                                                  trial_bb_start, trial_bb_end)
+
         fill_blackbox(trial_bb_start, ax)
         fill_blackbox(trial_bb_end, ax)
 
@@ -361,11 +376,8 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
         # ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
         # ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
-        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm,
-                spike_data.loc[cluster_index].beaconed_trial_number,
-                '|', color='Black', markersize=4)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm,
-                spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+        ax.plot(beaconed[:,0], beaconed[:,1], '|', color='Black', markersize=4)
+        ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], '|', color='Red', markersize=4)
         #ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number,
         #        '|',
         #        color='Blue', markersize=4)
@@ -726,14 +738,14 @@ def criteria_plot_offset(processed_position_data, prm):
     #plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
 
     beaconed_mean_stop = np.nanmean(beaconed[:,0])
-    beaconed_std_stop = np.nanstd(beaconed[:,1])
+    beaconed_std_stop = np.nanstd(beaconed[:,0])
     nonbeaconed_mean_stop = np.nanmean(nonbeaconed[:,0])
-    nonbeaconed_std_stop = np.nanstd(nonbeaconed[:,1])
+    nonbeaconed_std_stop = np.nanstd(nonbeaconed[:,0])
 
     fs_beaconed_mean_stop = np.nanmean(fs_beaconed[:, 0])
-    fs_beaconed_std_stop = np.nanstd(fs_beaconed[:, 1])
+    fs_beaconed_std_stop = np.nanstd(fs_beaconed[:, 0])
     fs_nonbeaconed_mean_stop = np.nanmean(fs_nonbeaconed[:, 0])
-    fs_nonbeaconed_std_stop = np.nanstd(fs_nonbeaconed[:, 1])
+    fs_nonbeaconed_std_stop = np.nanstd(fs_nonbeaconed[:, 0])
 
     plt.ylim(0, 3)
     plt.yticks(np.array((1, 2)), ("Non beaconed" , "Beaconed"))
@@ -816,7 +828,7 @@ def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     for row in beaconed:
         if not math.isnan(row[1]):
             old_trial_number = int(row[1])
-            new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
+            new_trial_number = int(new_trial_numbers[sorted_trial_numbers == old_trial_number])
             row[1] = new_trial_number
             beaconed[counter] = row
         counter += 1
@@ -825,7 +837,7 @@ def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     for row in non_beaconed:
         if not math.isnan(row[1]):
             old_trial_number = int(row[1])
-            new_trial_number = int(sorted_trial_numbers[new_trial_numbers == old_trial_number])
+            new_trial_number = int(new_trial_numbers[sorted_trial_numbers == old_trial_number])
             row[1] = new_trial_number
             non_beaconed[counter] = row
         counter += 1
