@@ -47,7 +47,7 @@ def get_stop_times(raw_position_data, stop_threshold):
     stops = np.array([])
     speed = np.array(raw_position_data["speed_per200ms"])
 
-    threshold = stop_threshold
+    threshold = stop_threshold*1000
     low_speed = np.where(speed < threshold)
     low_speed = np.asanyarray(low_speed)
     low_speed_plus_one = low_speed + 1
