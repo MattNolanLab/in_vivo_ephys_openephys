@@ -118,6 +118,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                          snippet_data=snippet_data,
                          bad_clusters=bad_clusters)
         PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
+        if prm.plot_noisy:
+            prm_tmp = prm.copy()
+            prm_tmp.set_output_path(prm.get_output_path() + "/Noisy_clusters")
+            PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm_tmp)
 
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
@@ -146,6 +150,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      snippet_data=snippet_data,
                      bad_clusters=bad_clusters)
     PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
+    if prm.plot_noisy:
+        prm_tmp = prm.copy()
+        prm_tmp.set_output_path(prm.get_output_path() + "/Noisy_clusters")
+        PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm_tmp)
     gc.collect()
 
 
