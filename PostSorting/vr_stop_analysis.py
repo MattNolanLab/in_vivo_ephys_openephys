@@ -27,7 +27,14 @@ def get_beginning_of_track_positions(raw_position_data):
     track_beginnings = np.setdiff1d(beginning_of_track, beginning_plus_one)
 
     track_beginnings = keep_first_from_close_series(track_beginnings, 30000)
-    return track_beginnings
+
+    #return track_beginnings
+
+    # track beginnings is returned as the start of a new trial surely?
+    # so why aren't we using new_trial_indices from raw?
+    new_trial_indices = raw_position_data["new_trial_indices"][~np.isnan(raw_position_data["new_trial_indices"])]
+    return new_trial_indices
+
 
 
 def remove_extra_stops(min_distance, stops):
@@ -68,23 +75,24 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     all_stops = np.asanyarray(all_stops)
     track_beginnings = np.asanyarray(track_beginnings)
-    try:
-        for trial in range(1,int(number_of_trials)):
-            beginning = track_beginnings[trial]
-            end = track_beginnings[trial + 1]
-            all_stops = np.asanyarray(all_stops)
-            stops_on_trial_indices = (np.where((beginning <= all_stops) & (all_stops <= end)))
 
-            stops_on_trial = np.take(all_stops, stops_on_trial_indices)
-            if len(stops_on_trial) > 0:
-                stops = np.take(location, stops_on_trial)
-                trial_types = np.take(trial_type, stops_on_trial)
+    for trial in range(0,int(number_of_trials)):
+        beginning = track_beginnings[trial]
+        if trial == int(number_of_trials)-1: #if last trial
+            end = len(location)-1 # this returns the last index
+        else:
+            end = track_beginnings[trial + 1] # end of trial index
 
-                stop_locations=np.append(stop_locations,stops[0])
-                stop_trial_types=np.append(stop_trial_types,trial_types[0])
-                stop_trials=np.append(stop_trials,np.repeat(trial, len(stops[0])))
-    except IndexError:
-        print('indexerror')
+        stops_on_trial_indices = (np.where((beginning <= all_stops) & (all_stops <= end)))
+
+        stops_on_trial = np.take(all_stops, stops_on_trial_indices)
+        if len(stops_on_trial) > 0:
+            stops = np.take(location, stops_on_trial)
+            trial_types = np.take(trial_type, stops_on_trial)
+
+            stop_locations=np.append(stop_locations,stops[0])
+            stop_trial_types=np.append(stop_trial_types,trial_types[0])
+            stop_trials=np.append(stop_trials,np.repeat(trial+1, len(stops[0])))
 
     print('stops extracted')
 
@@ -193,5 +201,33 @@ def process_stops(raw_position_data,processed_position_data, prm, recording_dire
     processed_position_data = find_first_stop_in_series(processed_position_data)
     processed_position_data = find_rewarded_positions(raw_position_data,processed_position_data)
     return processed_position_data
+
+
+
+def main():
+    print('-------------------------------------------------------------')
+    print('-------------------------------------------------------------')
+
+    params = PostSorting.parameters.Parameters()
+    params.stop_threshold = 4.9
+    params.cue_conditioned_goal = True
+    params.track_length = 300
+
+    raw_position_data = pd.read_pickle(
+        r'C:\Users\44756\Desktop\test_recordings_waveform_matching\m2_d29\DataFrames\raw_position_data.pkl')  # m4
+    processed_position_data = pd.read_pickle(
+        r'C:\Users\44756\Desktop\test_recordings_waveform_matching\m2_d29\DataFrames\processed_position_data.pkl')  # m4
+    spatial_firing = pd.read_pickle(
+        r'C:\Users\44756\Desktop\test_recordings_waveform_matching\m2_d29\DataFrames\spatial_firing.pkl')  # m4
+
+    recording_folder = r'C:\Users\44756\Desktop\test_recordings_waveform_matching\m2_d29\DataFrames'
+    print('Processing ' + str(recording_folder))
+
+    process_stops(raw_position_data, processed_position_data, params, recording_folder)
+
+
+if __name__ == '__main__':
+    main()
+
 
 
