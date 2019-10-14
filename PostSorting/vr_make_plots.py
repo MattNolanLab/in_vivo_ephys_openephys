@@ -603,9 +603,17 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             # make_combined_figure(prm, spike_data, prefix='_all')
 
+def plot_noisy(raw_position_data, processed_position_data, spike_data, prm=None):
+
+    if prm.plot_noisy:
+        save_path = prm.get_output_path() + '/Noisy_clusters'
+        if os.path.exists(save_path) is False:
+            os.makedirs(save_path)
+
+    if len(spike_data) > 0: # only plot if noisy clusters exist
+        make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
 
 # unused code but might use in future
-
 '''
 def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting combined spike rastas and spike rate...')
