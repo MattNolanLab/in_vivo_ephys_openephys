@@ -244,7 +244,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                 snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
                     save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
-
+                    plot_noisy_clusters(bad_clusters, synced_spatial_data, prm, opto_analysis=opto_is_found)
                     return
 
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
