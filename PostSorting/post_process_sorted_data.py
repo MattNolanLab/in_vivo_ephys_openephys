@@ -118,12 +118,15 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
     PostSorting.make_opto_plots.make_optogenetics_plots(prm)
 
-def plot_noisy_clusters(bad_clusters, synced_spatial_data, prm, opto_analysis=None):
+def plot_noisy_clusters(bad_clusters, synced_spatial_data, prm, opto_analysis=False):
     if prm.plot_noisy:
         save_path = prm.get_output_path() + '/Noisy_clusters'
+
         if os.path.exists(save_path) is False:
             os.makedirs(save_path)
-    _, _ = run_analyses(bad_clusters, synced_spatial_data, opto_analysis=opto_analysis)
+
+    if len(bad_clusters) > 0: # only plot if noisy clusters exist
+        _, _ = run_analyses(bad_clusters, synced_spatial_data, opto_analysis=opto_analysis, save_path=save_path)
 
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
@@ -181,7 +184,7 @@ def call_stable_functions(recording_to_process, session_type, analysis_type):
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
 
 
-def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
+def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, save_path=None):
     if len(spike_data_in) > 0:
         snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
@@ -199,6 +202,8 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
         if opto_analysis:
             PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
+        if save_path is not None:
+            prm.set_output_path(save_path)
         save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
         make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
         return synced_spatial_data, spatial_firing

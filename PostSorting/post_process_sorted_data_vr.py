@@ -109,19 +109,24 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     raw_position_data, processed_position_data = process_position_data(recording_to_process, prm)
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
+    #bad_snippet_data = PostSorting.load_snippet_data.get_snippets(bad_clusters, prm, random_snippets=False)
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-        save_data_frames(prm,
-                         spatial_firing=spike_data,
-                         raw_position_data=raw_position_data,
-                         processed_position_data=processed_position_data,
-                         snippet_data=snippet_data,
-                         bad_clusters=bad_clusters)
-        PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
-        if prm.plot_noisy:
-            prm_tmp = prm.copy()
-            prm_tmp.set_output_path(prm.get_output_path() + "/Noisy_clusters")
-            PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm_tmp)
+        if len(bad_clusters) > 0:
+            bad_clusters = PostSorting.load_snippet_data.get_snippets(bad_clusters, prm, random_snippets=True)
+            bad_clusters_movement, bad_clusters_stationary, bad_clusters = PostSorting.vr_spatial_firing.process_spatial_firing(bad_clusters, raw_position_data, prm)
+            bad_clusters = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(bad_clusters, raw_position_data, processed_position_data)
+            bad_clusters = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(bad_clusters, raw_position_data)
+
+            save_data_frames(prm,
+                            spatial_firing=spike_data,
+                            raw_position_data=raw_position_data,
+                            processed_position_data=processed_position_data,
+                            snippet_data=snippet_data,
+                            bad_clusters=bad_clusters)
+
+            PostSorting.vr_make_plots.plot_noisy(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm)
+        PostSorting.vr_make_plots.make_plots(raw_position_data,processed_position_data,spike_data=None, prm=prm)
 
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
@@ -137,9 +142,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     print('-------------------------------------------------------------')
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
-
-    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data,                                                                      processed_position_data)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
+
+    bad_clusters = PostSorting.load_snippet_data.get_snippets(bad_clusters, prm, random_snippets=True)
+    bad_clusters_movement, bad_clusters_stationary, bad_clusters = PostSorting.vr_spatial_firing.process_spatial_firing(bad_clusters, raw_position_data, prm)
+    bad_clusters = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(bad_clusters, raw_position_data, processed_position_data)
+    bad_clusters = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(bad_clusters, raw_position_data)
 
     save_data_frames(prm,
                      spatial_firing_movement=spike_data_movement,
@@ -149,6 +158,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      processed_position_data=processed_position_data,
                      snippet_data=snippet_data,
                      bad_clusters=bad_clusters)
+
     PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
     PostSorting.vr_make_plots.plot_noisy(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm)
     gc.collect()

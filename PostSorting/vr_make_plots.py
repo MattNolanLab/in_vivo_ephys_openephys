@@ -607,6 +607,8 @@ def plot_noisy(raw_position_data, processed_position_data, spike_data, prm=None)
 
     if prm.plot_noisy:
         save_path = prm.get_output_path() + '/Noisy_clusters'
+        prm.set_output_path(save_path)
+
         if os.path.exists(save_path) is False:
             os.makedirs(save_path)
 
