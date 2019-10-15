@@ -1,95 +1,88 @@
 #%%
-import PostSorting
+import PostSorting.make_plots
 import setting
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
-import SnakeIOHelper
+from SnakeIOHelper import getSnake
 import pickle
 import PostSorting.open_field_make_plots as open_field_make_plots
+import logging
 
 #%% define input and output
-figure_folder ='processed/figures/'
-
-
-if 'snakemake' not in locals():
-    #Define some variable to run the script standalone
-    input = SimpleNamespace()
-    output = SimpleNamespace()
-
-    input.recording_to_sort = 'testData/M1_D27_2018-10-26_13-10-36_of/'
-    input.spatial_firing = input.recording_to_sort + 'processed/spatial_firing_of.hdf'
-    input.position = input.recording_to_sort + 'processed/synced_spatial_data.hdf'
-    input.spatial_firing_of = input.recording_to_sort + '/processed/spatial_firing_of.hdf'
-    input.position_heat_map = input.recording_to_sort +'/processed/position_heat_map.pkl'
-    input.hd_histogram = input.recording_to_sort + '/processed/hd_histogram.pkl'
-
-    output.spike_histogram = input.recording_to_sort + figure_folder + 'behaviour/spike_histogram/'
-    output.autocorrelogram = input.recording_to_sort + figure_folder + 'behaviour/autocorrelogram/'
-    output.spike_trajectories = input.recording_to_sort + figure_folder + 'behaviour/spike_trajectories/'
-    output.spike_rate =  input.recording_to_sort + figure_folder + 'behaviour/spike_rate/'
-    output.convolved_rate = input.recording_to_sort + figure_folder + 'ConvolvedRates_InTime/'
-    output.firing_properties = input.recording_to_sort + figure_folder + 'firing_properties/'
-    output.firing_scatter = input.recording_to_sort + figure_folder +'firing_scatters/'
-    output.session = input.recording_to_sort + figure_folder +'session/'
-    output.rate_maps = input.recording_to_sort + figure_folder +'rate_maps/'
-    output.rate_map_autocorrelogram = input.recording_to_sort + figure_folder +'rate_map_autocorrelogram/'
-    output.head_direction_plots_2d = input.recording_to_sort + figure_folder +'head_direction_plots_2d/'
-    output.head_direction_plots_polar = input.recording_to_sort + figure_folder +'head_direction_plots_polar/'
-    output.firing_field_plots = input.recording_to_sort + figure_folder + 'firing_field_plots/'
-    output.firing_fields_coloured_spikes = input.recording_to_sort + figure_folder + 'firing_fields_coloured_spikes/'
-    output.combined = input.recording_to_sort + figure_folder +'combined/'
-
-    SnakeIOHelper.makeFolders(output)
-
+if 'snakemake' not in locals(): 
+    #Run the the file from the root project directory
+    smk = getSnake('op_workflow.smk',[setting.debug_folder+'/processed/figures/completed.txt'],
+        'plot_figures' )
+    sinput = smk.input
+    soutput = smk.output
 else:
-    #in snakemake environment, the input and output will be provided by the workflow
-    input = snakemake.input
-    output = snakemake.output
+    sinput = snakemake.input
+    soutput = snakemake.output
 
+logger = logging.Logger(__file__)
 #%% Load data
-spatial_firing = pd.read_hdf(input.spatial_firing)
-position_data = pd.read_hdf(input.position)
-hd_histogram = pickle.load(open(input.hd_histogram,'rb'))
-position_heat_map = pickle.load(open(input.position_heat_map,'rb'))
+spatial_firing = pd.read_hdf(sinput.spatial_firing)
+position_data = pd.read_hdf(sinput.position)
+hd_histogram = pickle.load(open(sinput.hd_histogram,'rb'))
+position_heat_map = pickle.load(open(sinput.position_heat_map,'rb'))
 
 #%% plot figures
 # PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
 # PostSorting.make_plots.plot_waveforms_opto(spatial_firing, prm)
-PostSorting.make_plots.plot_spike_histogram(spatial_firing, output.spike_histogram)
+logger.info('I will plot spikes vs time for the whole session excluding opto tagging.')
+PostSorting.make_plots.plot_spike_histogram(spatial_firing, soutput.spike_histogram)
 
-PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, output.firing_properties)
+#%%
+logger.info('I will plot spikes vs speed for the whole session excluding opto tagging.')
+PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, soutput.firing_properties)
 
+logger.info('I will plot the speed vs firing rate')
 PostSorting.make_plots.plot_speed_vs_firing_rate(position_data, spatial_firing, setting.sampling_rate, 250, 
-    output.firing_properties)
+    soutput.firing_properties)
 
-PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output.autocorrelogram)
+logger.info('I will plot autocorrelograms for each cluster.')
+PostSorting.make_plots.plot_autocorrelograms(spatial_firing, soutput.autocorrelogram)
+
+#%% Plot spike trajectory
+logger.info('I will make scatter plots of spikes on the trajectory of the animal.')
+open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, soutput.firing_scatter)
+
+#%% Plot coverage of spatial map
+logger.info('I will plot a heat map of the position of the animal to show coverage.')
+open_field_make_plots.plot_coverage(position_heat_map, soutput.session)
+
+#%% Plot firing rate map
+logger.info('I will make rate map plots.')
+open_field_make_plots.plot_firing_rate_maps(spatial_firing, soutput.rate_maps)
+
+#%% Plot autocrrelogram
+logger.info('I will make the rate map autocorrelogram grid plots now.')
+open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing,  soutput.rate_map_autocorrelogram )
+
+#%% Plot head-direction
+logger.info('I will plot HD on open field maps as a scatter plot for each cluster.')
+open_field_make_plots.plot_hd(spatial_firing, position_data, soutput.head_direction_plots_2d)
+
+#%% Plot polar head direction
+logger.info('I will make the polar HD plots now.')
+open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, soutput.head_direction_plots_polar)
+
+#%% Plot head direction for firing fields
+logger.info('I will make the polar HD plots for individual firing fields now.')
+open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, soutput.firing_field_plots)
+
+#%% Plot spike on firing fields
+logger.info('I will plot detected spikes colour coded in fields.')
+open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, soutput.firing_fields_coloured_spikes)
+
+#%% Combine all figures
+logger.info('I will make the combined images now.')
+open_field_make_plots.make_combined_figure(soutput.combined, spatial_firing)
 
 #%%
-open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, output.firing_scatter)
+#create the dummy file for output
+with open(soutput.result,'w') as f:
+    pass
 
-#%%
-open_field_make_plots.plot_coverage(position_heat_map, output.session)
-
-#%%
-open_field_make_plots.plot_firing_rate_maps(spatial_firing, output.rate_maps)
-
-#%%
-open_field_make_plots.plot_rate_map_autocorrelogram(spatial_firing,  output.rate_map_autocorrelogram )
-
-#%%
-open_field_make_plots.plot_hd(spatial_firing, position_data, output.head_direction_plots_2d)
-
-#%%
-open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, output.head_direction_plots_polar)
-#%%
-open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, output.firing_field_plots)
-
-#%%
-open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, output.firing_fields_coloured_spikes)
-
-#%%
-open_field_make_plots.make_combined_figure(input.recording_to_sort + figure_folder ,output.combined, spatial_firing)
-
-  
 #%%

@@ -12,7 +12,7 @@ def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_chann
     is_found = False
     sync_data = None
     print('loading sync channel...')
-    file_path = recording_to_process + sync_channel
+    file_path = recording_to_process + '/'+ sync_channel
     if os.path.exists(file_path):
         sync_data = OpenEphys.loadContinuousFast(file_path)['data']
         is_found = True
@@ -70,12 +70,16 @@ def downsample_ephys_data(sync_data_ephys, spatial_data):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'][:50].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     downsample_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
-    # prm.set_sampling_rate_rate(sampling_rate_rate)
     length = int(len(sync_data_ephys['time']) / downsample_rate)
     indices = (np.arange(length) * downsample_rate).astype(int)
-    sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
-    sync_data_ephys_downsampled['sync_pulse'] = sync_data_ephys['sync_pulse'][indices]
-    sync_data_ephys_downsampled['time'] = sync_data_ephys['time'][indices]
+
+    sync_data_ephys_downsampled = pd.DataFrame({
+        'time': sync_data_ephys['time'][indices],
+        'sync_pulse':sync_data_ephys['sync_pulse'][indices],
+    })
+    # sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
+    # sync_data_ephys_downsampled['sync_pulse'] = sync_data_ephys['sync_pulse'][indices]
+    # sync_data_ephys_downsampled['time'] = sync_data_ephys['time'][indices]
     return sync_data_ephys_downsampled,downsample_rate
 
 
@@ -86,11 +90,11 @@ def find_nearest(array, value):
 
 
 # this is to remove any extra pulses that one dataset has but not the other
-def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data):
+def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data, skip_time=19):
     oe_time = sync_data_ephys_downsampled.time
     bonsai_time = spatial_data.synced_time_estimate
-    ephys_start_index = 19*30  # bonsai sampling rate times 19 seconds
-    ephys_start_time = oe_time.values[19*30]
+    ephys_start_index = skip_time*setting.bonsai_sampling_rate  # bonsai sampling rate times 19 seconds
+    ephys_start_time = oe_time.values[ephys_start_index]
     bonsai_start_index = find_nearest(bonsai_time.values, ephys_start_time)
     return ephys_start_index, bonsai_start_index
 
@@ -134,6 +138,9 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled,downsample_rate = downsample_ephys_data(sync_data_ephys, spatial_data)
 
+    sync_data_ephys_downsampled.to_pickle('sync_data_ephys_downsampled.pkl')
+    spatial_data.to_pickle('spatial_data.pkl')
+
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
@@ -151,7 +158,6 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     trimmed_ephys_pulses = oe[ephys_start:len(trimmed_ephys_time)]
     trimmed_bonsai_time = spatial_data['synced_time_estimate'].values[bonsai_start:]
     trimmed_bonsai_pulses = bonsai[bonsai_start:]
-
     oe_rising_edge_index = detect_last_zero(trimmed_ephys_pulses)
     oe_rising_edge_time = trimmed_ephys_time[oe_rising_edge_index]
 
@@ -161,10 +167,11 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time
     spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
 
-    # plots for testing
-    # plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
-    # trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
-    # plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
+    #plots for testing
+    # plt.plot(spatial_data['synced_time'],spatial_data['syncLED'], color='cyan')
+    # # trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
+    # plt.plot(trimmed_ephys_pulses2*500, color='red')
+    
     return spatial_data,downsample_rate
 
 
@@ -178,6 +185,19 @@ def remove_opto_tagging_from_spatial_data(spatial_data, downsample_rate, opto_st
     return spatial_data
 
 
+def plot_sync_pulse(synced_spatial_data, sync_data_ephys, figure_path):
+    syncLED = synced_spatial_data.syncLED
+    syncLED.index = pd.to_timedelta(synced_spatial_data.synced_time,'s')
+
+    esync = sync_data_ephys.sync_pulse
+    esync.index = pd.to_timedelta(sync_data_ephys.time, 's')
+
+    #resample the ephys sync to reduce plot time
+    esync_ds = esync.resample('30ms').last()
+
+    plt.plot(syncLED/syncLED.max())
+    plt.plot(esync_ds/5*0.5)
+
 def process_sync_data(recording_to_process, spatial_data, opto_start_index):
     sync_data, is_found = load_sync_data_ephys(recording_to_process)
     sync_data_ephys = pd.DataFrame(sync_data)
@@ -187,7 +207,7 @@ def process_sync_data(recording_to_process, spatial_data, opto_start_index):
     spatial_data,downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
     
     # synced time in seconds, x and y in cm, hd in degrees
-    synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
+    synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed', 'syncLED']].copy()
     
     # remove negative time points
     synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
@@ -196,4 +216,4 @@ def process_sync_data(recording_to_process, spatial_data, opto_start_index):
     synced_spatial_data = remove_opto_tagging_from_spatial_data(synced_spatial_data,downsample_rate, opto_start_index)
     total_length_sample_point = synced_spatial_data.synced_time.values[-1] # seconds
 
-    return synced_spatial_data, total_length_sample_point, is_found
+    return synced_spatial_data, total_length_sample_point,sync_data_ephys, is_found

@@ -58,7 +58,7 @@ rule process_firings:
     output:
         spike_data ='{recording}/processed/spatial_firing.hdf'
     script:
-        '03_process_firings.py'
+        'scripts/03_process_firings.py'
 
 rule process_expt:
     input:

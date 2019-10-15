@@ -1,4 +1,3 @@
-
 #%%
 import Logger
 import setting
@@ -29,7 +28,8 @@ logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
 if 'snakemake' not in locals(): 
-    smk = getSnake('vr_workflow.smk',[setting.debug_folder+'/processed/sort_spikes.txt'],
+    targetname = setting.debug_folder+'/processed/'+setting.sorterName+'/sorter_curated.pkl'
+    smk = getSnake('op_workflow.smk',[targetname],
         'sort_spikes' )
     sinput = smk.input
     soutput = smk.output
@@ -105,5 +105,14 @@ sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_cu
 with open(soutput.sorter_curated,'wb') as f:
     pickle.dump(sorting_ms4_curated, f)
 
+
+#%% plot the sorted waveform
+curated_sorter_df = pd.read_pickle(soutput.sorter_curated_df)
+
+#%%
+waveforms = curated_sorter_df.waveforms[0]
+waveforms = np.stack([w for w in waveforms if w is not None])
+max_channel = curated_sorter_df.max_channel
+plt.plot
 
 #%%

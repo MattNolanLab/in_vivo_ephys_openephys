@@ -3,21 +3,14 @@ import OpenEphys
 import numpy as np
 import os
 import shutil
-#%%
-file = OpenEphys.loadContinuousFast('testData/M1_D31_2018-11-01_12-28-25/100_CH1.continuous')
-OpenEphys.writeContinuousFile('test.continuous',file['header'],file['timestamps'],file['data'],file['recordingNumber'])
-x = OpenEphys.loadContinuousFast('test.continuous')
-#%%
-
-np.allclose(file['data'],x['data'])
 
 #%% create short files for debugging purpose
-basePath = 'testData/M1_D31_2018-11-01_12-28-25'
+basePath = 'testData/M1_D27_2018-10-26_13-10-36_of'
 newPath = basePath+'_short'
-shortenLength = 30000*60*5
+shortenLength = 30000*60*10
 
 try:
-    os.mkdir(newPath,)
+    os.mkdir(newPath)
 except  FileExistsError:
     print("Folder already exist")
 
@@ -35,3 +28,6 @@ for f in os.scandir(basePath):
 
         print(f'{f.name} copied')
 
+
+
+#%%

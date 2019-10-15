@@ -85,11 +85,12 @@ def process_position_data(recording_to_process, session_type):
 
 def process_light_stimulation(recording_to_process, file_path):
     opto_on, opto_off, is_found, opto_tagging_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process)  # indices
-    opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
-    # if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-    #     os.makedirs(prm.get_output_path() + '/DataFrames')
-    # opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
-    opto_data_frame.to_pickle(file_path)
+    if is_found:
+        opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
+        opto_data_frame.to_pickle(file_path)
+    else:
+        df = pd.DataFrame()
+        df.to_pickle(file_path)
     return opto_on, opto_off, opto_tagging_start_index,is_found
 
 

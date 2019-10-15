@@ -36,6 +36,7 @@ def getSnake(snakefile:str, targets:list, rule:str, createFolder:bool = True):
     # determine the running environment and return the snake object appropriately
     parser = IOParser(snakefile, targets)
     io = parser.getInputOutput4rule(rule)
+    
     if createFolder:
         makeFolders(io.output)
     return io
@@ -52,13 +53,12 @@ class IOParser:
     def compileWorkflow(self):
         #compile workflow to build the DAG
         snakemake.logger.setup_logfile()
-        snakefile = 'vr_workflow.smk'
-        workflow = snakemake.Workflow(snakefile,default_resources=None)
+        workflow = snakemake.Workflow(self.snakefile,default_resources=None)
         workflow.include(self.snakefile)
         workflow.check()
 
         workflow.execute(dryrun=True, updated_files=[], quiet=True,
-            targets=self.targets,forceall=True)
+            targets=self.targets, forceall=True)
 
         return workflow
 

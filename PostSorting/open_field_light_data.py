@@ -12,7 +12,7 @@ def load_opto_data(recording_to_process):
     is_found = False
     opto_data = None
     print('loading opto channel...')
-    file_path = recording_to_process + setting.opto_ch
+    file_path = recording_to_process +'/'+setting.opto_ch
     print(file_path)
     if os.path.exists(file_path):
         opto_data = OpenEphys.loadContinuousFast(file_path)['data']

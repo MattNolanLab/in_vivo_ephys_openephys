@@ -10,32 +10,22 @@ import PostSorting
 import setting
 import pandas as pd
 from collections import namedtuple
-from types import SimpleNamespace
-import SnakeIOHelper
+from SnakeIOHelper import getSnake
 import pickle
 #%% define input and output
-if 'snakemake' not in locals():
-    #Define some variable to run the script standalone
-    input = SimpleNamespace()
-    output = SimpleNamespace()
-
-    input.recording_to_sort = 'testData/M1_D27_2018-10-26_13-10-36_of/'
-    input.spatial_firing = input.recording_to_sort + 'processed/spatial_firing.hdf'
-    input.position = input.recording_to_sort + 'processed/synced_spatial_data.hdf'
-
-    output.spatial_firing_of = input.recording_to_sort + '/processed/spatial_firing_of.hdf'
-    output.position_heat_map = input.recording_to_sort +'/processed/position_heat_map.pkl'
-    output.hd_histogram = input.recording_to_sort + '/processed/hd_histogram.pkl'
-
-    SnakeIOHelper.makeFolders(output)
+if 'snakemake' not in locals(): 
+    #Run the the file from the root project directory
+    smk = getSnake('op_workflow.smk',[setting.debug_folder+'/processed/spatial_firing_of.hdf'],
+        'process_expt' )
+    sinput = smk.input
+    soutput = smk.output
 else:
-    #in snakemake environment, the input and output will be provided by the workflow
-    input = snakemake.input
-    output = snakemake.output
+    sinput = snakemake.input
+    soutput = snakemake.output
 
 #%% Load data
-spike_data = pd.read_hdf(input.spatial_firing)
-synced_spatial_data = pd.read_hdf(input.position)
+spike_data = pd.read_hdf(sinput.spatial_firing)
+synced_spatial_data = pd.read_hdf(sinput.position)
 
 #%% Proccess spike data together with location data
 #TODO curate data
@@ -55,9 +45,9 @@ spatial_firing = open_field_firing_fields.analyze_firing_fields(spatial_firing, 
   
 
 #%% Save
-spatial_firing.to_hdf(output.spatial_firing_of, 'spatial_firing_of', mode='w')
-pickle.dump(hd_histogram,open(output.hd_histogram,'wb'))
-pickle.dump(position_heat_map, open(output.position_heat_map,'wb'))
+spatial_firing.to_hdf(soutput.spatial_firing_of, 'spatial_firing_of', mode='w')
+pickle.dump(hd_histogram,open(soutput.hd_histogram,'wb'))
+pickle.dump(position_heat_map, open(soutput.position_heat_map,'wb'))
   
 
 #%%
