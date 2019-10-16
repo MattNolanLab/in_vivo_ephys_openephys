@@ -99,6 +99,7 @@ def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary,
 
 
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
+    print('I will process opto data.')
     check_parity_of_window_size(window_size_ms)
     on_pulses = get_on_pulse_times(prm)
     sampling_rate = prm.get_sampling_rate()
