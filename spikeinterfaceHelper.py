@@ -2,11 +2,13 @@
 import pandas as pd
 import matplotlib.pylab as plt
 
-def sorter2dataframe(sorter):
+def sorter2dataframe(sorter, session_id):
     """Convert data in a sorter to dataframe
     
     Arguments:
         sorter {SortingExtractor} -- the sorter to extract data frome
+        session_id {str} -- ID of the session
+
     
     Returns:
         pandas.DataFrame -- dataframe containing the spike train, unit featuers and spike features of the sorter
@@ -27,7 +29,7 @@ def sorter2dataframe(sorter):
         propertyDict['spike_train'] = sorter.get_unit_spike_train(i)
         propertyDict['unit_id'] = i
         propertyDict['sampling_frequency'] = sorter.get_sampling_frequency()
-
+        propertyDict['session_id'] = session_id
         clusterList.append(propertyDict)
     
     return pd.DataFrame(clusterList)
