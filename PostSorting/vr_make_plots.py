@@ -296,6 +296,8 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        if x_max<70:
+            x_max = 100
         spikes_on_track = plt.figure(figsize=(4, (x_max / 32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -349,6 +351,8 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        if x_max < 70:
+            x_max = 100
         spikes_on_track = plt.figure(figsize=(4, (x_max / 32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
