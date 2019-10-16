@@ -125,7 +125,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                             snippet_data=snippet_data,
                             bad_clusters=bad_clusters)
 
-            PostSorting.vr_make_plots.plot_noisy(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm)
+            #PostSorting.vr_make_plots.plot_noisy(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm)
         PostSorting.vr_make_plots.make_plots(raw_position_data,processed_position_data,spike_data=None, prm=prm)
 
         print('-------------------------------------------------------------')
@@ -145,7 +145,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 
-    #bad_clusters = PostSorting.load_snippet_data.get_snippets(bad_clusters, prm, random_snippets=True)
+    bad_clusters = PostSorting.load_snippet_data.get_snippets(bad_clusters, prm, random_snippets=True)
     #bad_clusters_movement, bad_clusters_stationary, bad_clusters = PostSorting.vr_spatial_firing.process_spatial_firing(bad_clusters, raw_position_data, prm)
     #bad_clusters = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(bad_clusters, raw_position_data, processed_position_data, prm)
     #bad_clusters = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(bad_clusters, raw_position_data)
@@ -160,7 +160,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      bad_clusters=bad_clusters)
 
     PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
-    PostSorting.vr_make_plots.plot_noisy(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm)
+    #PostSorting.vr_make_plots.plot_noisy(raw_position_data, processed_position_data, spike_data=bad_clusters, prm=prm)
     gc.collect()
 
 

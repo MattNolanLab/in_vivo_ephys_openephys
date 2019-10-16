@@ -286,7 +286,7 @@ def running_mean(a, N):
     # returns same length array as a, as a running mean with a
     # window n, final values are backed with backend values
     cumsum = np.cumsum(np.insert(a, 0, 0), dtype=float)
-    return np.append(((cumsum[N:] - cumsum[:-N]) / N), a[-N+1:])
+    return np.append(a[0:N-1], ((cumsum[N:] - cumsum[:-N]) / N))
 
 '''
 Calculates moving average
