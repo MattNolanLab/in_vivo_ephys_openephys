@@ -134,17 +134,24 @@ def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, clust
 
 def plot_waveforms(sorted_df, figure_path):
     print('I will plot the waveform shapes for each cluster.')
-    for cluster in range(len(spike_data)):
-        max_channel = spike_data.primary_channel[cluster]
-        highest_value = np.max(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
-        lowest_value = np.min(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
-        fig = plt.figure(figsize=(5, 5))
-        grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
-        for channel in range(4):
-            plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, 'random_snippets')
-
-        plt.savefig(figure_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(figure_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.pdf', bbox_inches='tight', pad_inches=0)
+    for cluster in tqdm(range(len(sorted_df))):
+        #extract waveforms from dataframe
+        waveforms = sorted_df.waveforms[cluster]
+        waveforms = np.stack([w for w in waveforms if w is not None])
+        max_channel = sorted_df.max_channel.values[cluster]
+        cluster_id = sorted_df.unit_id[cluster]
+        tetrode = max_channel//setting.num_tetrodes #get the tetrode number
+        
+        #plot spike waveform from the same tetrode
+        fig = plt.figure()
+        for i in range(4):
+            ax = fig.add_subplot(2,2,i+1)
+            ax.plot(waveforms[:,tetrode+i,:].T,color='lightslategray')
+            template = waveforms[:,tetrode+i,:].mean(0)
+            ax.plot(template, color='red')
+            
+        plt.savefig(figure_path + '/' + sorted_df.session_id[cluster] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_path + '/' + sorted_df.session_id[cluster] + '_' + str(cluster_id) + '_waveforms.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
