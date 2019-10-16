@@ -21,6 +21,7 @@ import setting
 from SnakeIOHelper import getSnake
 from PreClustering.pre_process_ephys_data import filterRecording
 import logging
+from PostSorting.make_plots import plot_waveforms
 
 #for logging
 # logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +29,7 @@ logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
 if 'snakemake' not in locals(): 
-    targetname = setting.debug_folder+'/processed/'+setting.sorterName+'/sorter_curated.pkl'
+    targetname = setting.debug_folder+'/processed/'+setting.sorterName+'/sorter_curated_df.pkl'
     smk = getSnake('op_workflow.smk',[targetname],
         'sort_spikes' )
     sinput = smk.input
@@ -79,12 +80,13 @@ for id in sorting_ms4.get_unit_ids():
 #%% save data
 with open(soutput.sorter_curated,'wb') as f:
     pickle.dump(sorting_ms4,f)
-sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4)
+session_id = sinput.recording_to_sort.split('/')[-1]
+sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4,session_id)
 sorter_df.to_pickle(soutput.sorter_df)
 
 #%% Do some simple curation for now
 sorting_ms4_curated = st.curation.threshold_snr(sorting=sorting_ms4, recording = recording,
-  threshold =1.2, threshold_sign='less', max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
+  threshold =2, threshold_sign='less', max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
 print(sorting_ms4_curated.get_unit_ids())
 
 sorting_ms4_curated=st.curation.threshold_firing_rate(sorting_ms4_curated,
@@ -99,20 +101,12 @@ print(sorting_ms4_curated.get_unit_ids())
 
 #%%
 #save curated data
-curated_sorter_df = spikeinterfaceHelper.sorter2dataframe(sorting_ms4_curated)
+curated_sorter_df = spikeinterfaceHelper.sorter2dataframe(sorting_ms4_curated, session_id)
 curated_sorter_df.to_pickle(soutput.sorter_curated_df)
 sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_curated.get_unit_ids())
 with open(soutput.sorter_curated,'wb') as f:
     pickle.dump(sorting_ms4_curated, f)
 
-
-#%% plot the sorted waveform
-curated_sorter_df = pd.read_pickle(soutput.sorter_curated_df)
-
-#%%
-waveforms = curated_sorter_df.waveforms[0]
-waveforms = np.stack([w for w in waveforms if w is not None])
-max_channel = curated_sorter_df.max_channel
-plt.plot
-
+#%% Plot spike waveforms
+plot_waveforms(curated_sorter_df, soutput.waveform_figure)
 #%%
