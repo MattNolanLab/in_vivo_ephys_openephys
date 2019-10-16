@@ -111,6 +111,8 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     for index, cell in spatial_firing.iterrows():
         session_id = cell.session_id
         cluster_id = cell.cluster_id
+        if len(on_pulses) >= 500:
+            on_pulses = on_pulses[-500:]  # only look at last 500 to make sure it's just the opto tagging
         for pulse in on_pulses:
             firing_times = get_firing_times(cell)
             spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
