@@ -281,6 +281,13 @@ def moving_average(a, n):
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n:] / n
 
+
+def running_mean(a, N):
+    # returns same length array as a, as a running mean with a
+    # window n, final values are backed with backend values
+    cumsum = np.cumsum(np.insert(a, 0, 0), dtype=float)
+    return np.append(((cumsum[N:] - cumsum[:-N]) / N), a[-N+1:])
+
 '''
 Calculates moving average
 
@@ -327,7 +334,7 @@ def get_avg_speed_200ms(position_data, prm):
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
     sampling_points_per200ms = int(prm.get_sampling_rate()/5)
-    position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
+    position_data['speed_per200ms'] = running_mean(velocity, sampling_points_per200ms) # Calculate average speed at each point by averaging instant velocities
     return position_data
 
 

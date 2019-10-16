@@ -76,7 +76,7 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
     time_per_sample = np.array(raw_position_data['time_seconds'])
 
-    for t in range(1,int(number_of_trials)):
+    for t in range(1,int(number_of_trials+1)):
         trial_locations = np.take(locations, np.where(trials == t)[0])
         trial_type = int(stats.mode(np.take(trial_types, np.where(trials == t)[0]))[0])
         for loc in range(int(number_of_bins)):

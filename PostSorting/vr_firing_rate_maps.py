@@ -21,11 +21,10 @@ def get_bin_size(spatial_data):
 '''
 
 def get_bin_size(spatial_data):
-    track_length = spatial_data.x_position_cm.max()
-    start_of_track = spatial_data.x_position_cm.min()
+    track_length = spatial_data.x_position_cm.max() - spatial_data.x_position_cm.min()
     number_of_bins = 200
-    bin_size_cm = (track_length - start_of_track)/number_of_bins
-    return bin_size_cm,number_of_bins
+    bin_size_cm = track_length/number_of_bins
+    return bin_size_cm, number_of_bins
 
 
 def gaussian_kernel(kernx):
@@ -207,7 +206,7 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
-        plot_rate_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
+        plot_rate_data(     prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         plot_rate_norm_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         #firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
