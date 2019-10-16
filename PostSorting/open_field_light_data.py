@@ -99,6 +99,7 @@ def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary,
 
 
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
+    print('I will process opto data.')
     check_parity_of_window_size(window_size_ms)
     on_pulses = get_on_pulse_times(prm)
     sampling_rate = prm.get_sampling_rate()
@@ -110,6 +111,8 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     for index, cell in spatial_firing.iterrows():
         session_id = cell.session_id
         cluster_id = cell.cluster_id
+        if len(on_pulses) >= 500:
+            on_pulses = on_pulses[-500:]  # only look at last 500 to make sure it's just the opto tagging
         for pulse in on_pulses:
             firing_times = get_firing_times(cell)
             spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
