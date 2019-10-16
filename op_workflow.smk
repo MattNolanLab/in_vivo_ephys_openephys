@@ -38,6 +38,7 @@ rule sort_spikes:
         sorter_df = sorterPrefix +'/sorter_df.pkl',
         sorter_curated = sorterPrefix +'/sorter_curated.pkl',
         sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl',
+        waveform_figure = directory(sorterPrefix + '/waveform/')
     script:
         '01_sorting.py'
 
@@ -49,7 +50,7 @@ rule process_position:
         opto_pulse = '{recording}/processed/opto_pulse.pkl',
         hd_power_spectrum = '{recording}/processed/hd_power_spectrum.png',
         synced_spatial_data = '{recording}/processed/synced_spatial_data.hdf',
-        sync_pulse = '{recording}/procssed/sync_pulse.png'
+        sync_pulse = '{recording}/processed/sync_pulse.png'
     script:
         '02a_process_position.py'
 
