@@ -120,6 +120,7 @@ def create_folders_for_output(recording_to_process):
 
 
 def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None):
+    print('I will save the data frames now.')
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
