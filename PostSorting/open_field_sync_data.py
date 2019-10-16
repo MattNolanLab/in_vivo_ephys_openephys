@@ -197,6 +197,7 @@ def plot_sync_pulse(synced_spatial_data, sync_data_ephys, figure_path):
 
     plt.plot(syncLED/syncLED.max())
     plt.plot(esync_ds/5*0.5)
+    plt.savefig(figure_path)
 
 def process_sync_data(recording_to_process, spatial_data, opto_start_index):
     sync_data, is_found = load_sync_data_ephys(recording_to_process)
