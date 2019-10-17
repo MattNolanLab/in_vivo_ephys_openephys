@@ -1,2 +1,1 @@
-echo "TODO: add integration tests"
-mp-list-processors
+export SERVER_PATH_FIRST_HALF='/ActiveProjects/'
