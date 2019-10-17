@@ -289,7 +289,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, prm):
                 spike_times_in_fields.append(spike_times_in_field)
                 times_in_field_sessions.append(times_in_field)
 
-            # analyze_fields_r(prm, cluster)
+            analyze_fields_r(prm, cluster)
         else:
             hd_session.append([None])
             hd_cluster.append([None])

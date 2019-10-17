@@ -24,8 +24,9 @@ class Parameters:
     # vr parameters
     first_trial_channel = ''  # vr
     second_trial_channel = ''  # vr
+    plot_noisy = True
     movement_channel = ''  # vr
-    stop_threshold = 10.7  # vr
+    stop_threshold = 4.9  # vr
     track_length = 200  # vr
     cue_conditioned_goal = False
 

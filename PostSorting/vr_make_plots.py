@@ -603,9 +603,19 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             # make_combined_figure(prm, spike_data, prefix='_all')
 
+def plot_noisy(raw_position_data, processed_position_data, spike_data, prm=None):
+
+    if prm.plot_noisy:
+        save_path = prm.get_output_path() + '/Noisy_clusters'
+        prm.set_output_path(save_path)
+
+        if os.path.exists(save_path) is False:
+            os.makedirs(save_path)
+
+    if len(spike_data) > 0: # only plot if noisy clusters exist
+        make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
 
 # unused code but might use in future
-
 '''
 def plot_combined_spike_raster_and_rate(spike_data,raw_position_data,processed_position_data, prm, prefix):
     print('plotting combined spike rastas and spike rate...')
@@ -859,28 +869,6 @@ def main():
     raw_position_data =       pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\raw_position_data.pkl')  # m4
     processed_position_data = pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\processed_position_data.pkl') #m4
     spatial_firing =          pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\spatial_firing.pkl') #m4
-    #m2 processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D21_2019-10-01_13-00-22\MountainSort\DataFrames\processed_position_data.pkl') #m2
-
-    make_plots(raw_position_data, processed_position_data, spike_data=spatial_firing, prm=params)
-    #criteria_plot_offset(processed_position_data, prm=params)
-    #beaconed = np.array([[0.1, 1, 0],
-    #                     [0.1, 2, 0],
-    #                     [0.2, 2, 0],
-    #                     [0.7, 3, 0],
-    #                     [0.4, 3, 0],
-    #                     [0.5, 4, 0]])
-    #non_beaconed = np.array([[0.12, 5, 1],
-    #                         [0.41, 7, 1],
-    #                         [0.25, 7, 1],
-    #                         [0.47, 8, 1],
-    #                         [0.94, 9, 1],
-    #                         [0.15, 9, 1]])
-
-    #trial_bb_start = [0.1, 0.5, 0.11, 0.4, 0.2, 0.5, 0.1, 0.123, 0.421]
-    #trial_bb_end = [0.4, 0.8, 0.41, 0.7, 0.5, 0.8, 0.4, 0.423, 0.721]
-    #probe = 0
-    #new_beaconed, new_non_beaconed, _, new_trial_bb_start, new_trial_bb_end = order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end)
-    #print("hello there")
 
 
 
