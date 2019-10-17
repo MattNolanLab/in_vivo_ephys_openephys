@@ -18,16 +18,23 @@ def keep_first_from_close_series(array, threshold):
 
 
 def get_beginning_of_track_positions(raw_position_data):
-    location = np.array(raw_position_data["x_position_cm"]) # Get the raw location from the movement channel
-    position = 0
-    beginning_of_track = np.where((location >= position) & (location <= position + 4))
-    beginning_of_track = np.asanyarray(beginning_of_track)
-    beginning_plus_one = beginning_of_track + 1
-    beginning_plus_one = np.asanyarray(beginning_plus_one)
-    track_beginnings = np.setdiff1d(beginning_of_track, beginning_plus_one)
+    #location = np.array(raw_position_data["x_position_cm"]) # Get the raw location from the movement channel
+    #position = 0
+    #beginning_of_track = np.where((location >= position) & (location <= position + 4))
+    #beginning_of_track = np.asanyarray(beginning_of_track)
+    #beginning_plus_one = beginning_of_track + 1
+    #beginning_plus_one = np.asanyarray(beginning_plus_one)
+    #track_beginnings = np.setdiff1d(beginning_of_track, beginning_plus_one)
 
-    track_beginnings = keep_first_from_close_series(track_beginnings, 30000)
-    return track_beginnings
+    #track_beginnings = keep_first_from_close_series(track_beginnings, 30000)
+    #return track_beginnings
+
+    #return track_beginnings
+
+    # track beginnings is returned as the start of a new trial surely?
+    # so why aren't we using new_trial_indices from raw?
+    new_trial_indices = raw_position_data["new_trial_indices"][~np.isnan(raw_position_data["new_trial_indices"])]
+    return new_trial_indices
 
 
 def remove_extra_stops(min_distance, stops):
@@ -47,7 +54,7 @@ def get_stop_times(raw_position_data, stop_threshold):
     stops = np.array([])
     speed = np.array(raw_position_data["speed_per200ms"])
 
-    threshold = stop_threshold
+    threshold = stop_threshold*1000
     low_speed = np.where(speed < threshold)
     low_speed = np.asanyarray(low_speed)
     low_speed_plus_one = low_speed + 1
@@ -68,23 +75,24 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     all_stops = np.asanyarray(all_stops)
     track_beginnings = np.asanyarray(track_beginnings)
-    try:
-        for trial in range(1,int(number_of_trials)):
-            beginning = track_beginnings[trial]
-            end = track_beginnings[trial + 1]
-            all_stops = np.asanyarray(all_stops)
-            stops_on_trial_indices = (np.where((beginning <= all_stops) & (all_stops <= end)))
 
-            stops_on_trial = np.take(all_stops, stops_on_trial_indices)
-            if len(stops_on_trial) > 0:
-                stops = np.take(location, stops_on_trial)
-                trial_types = np.take(trial_type, stops_on_trial)
+    for trial in range(0,int(number_of_trials)):
+        beginning = track_beginnings[trial]
+        if trial == int(number_of_trials)-1: #if last trial
+            end = len(location)-1 # this returns the last index
+        else:
+            end = track_beginnings[trial + 1] # end of trial index
 
-                stop_locations=np.append(stop_locations,stops[0])
-                stop_trial_types=np.append(stop_trial_types,trial_types[0])
-                stop_trials=np.append(stop_trials,np.repeat(trial, len(stops[0])))
-    except IndexError:
-        print('indexerror')
+        stops_on_trial_indices = (np.where((beginning <= all_stops) & (all_stops <= end)))
+
+        stops_on_trial = np.take(all_stops, stops_on_trial_indices)
+        if len(stops_on_trial) > 0:
+            stops = np.take(location, stops_on_trial)
+            trial_types = np.take(trial_type, stops_on_trial)
+
+            stop_locations=np.append(stop_locations,stops[0])
+            stop_trial_types=np.append(stop_trial_types,trial_types[0])
+            stop_trials=np.append(stop_trials,np.repeat(trial+1, len(stops[0])))
 
     print('stops extracted')
 
