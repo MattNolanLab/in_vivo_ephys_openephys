@@ -107,12 +107,35 @@ def calculate_stop_data_from_parameters(raw_position_data, processed_position_da
 
 
 def find_first_stop_in_series(processed_position_data):
-    stop_difference = np.array(processed_position_data['stop_location_cm'].diff())
-    first_in_series_indices = np.where(stop_difference > 1)[0]
-    print('Finding first stops in series')
-    processed_position_data['first_series_location_cm'] = pd.Series(processed_position_data.stop_location_cm[first_in_series_indices].values)
-    processed_position_data['first_series_trial_number'] = pd.Series(processed_position_data.stop_trial_number[first_in_series_indices].values)
-    processed_position_data['first_series_trial_type'] = pd.Series(processed_position_data.stop_trial_type[first_in_series_indices].values)
+    #stop_difference = np.array(processed_position_data['stop_location_cm'].diff())
+    #first_in_series_indices = np.where(stop_difference > 1)[0]
+    #print('Finding first stops in series')
+    #processed_position_data['first_series_location_cm'] = pd.Series(processed_position_data.stop_location_cm[first_in_series_indices].values)
+    #processed_position_data['first_series_trial_number'] = pd.Series(processed_position_data.stop_trial_number[first_in_series_indices].values)
+    #processed_position_data['first_series_trial_type'] = pd.Series(processed_position_data.stop_trial_type[first_in_series_indices].values)
+    #return processed_position_data
+
+    trial_numbers = np.array([])
+    trial_stops = np.array([])
+    trial_types = np.array([])
+
+    unique_trial_numbers = np.unique(np.array(processed_position_data['stop_trial_number']))
+    unique_trial_numbers = unique_trial_numbers[~np.isnan(unique_trial_numbers)]  # remove nans
+
+    for trial_number in unique_trial_numbers:
+        stops = np.array(processed_position_data['stop_location_cm'])[
+            np.array(processed_position_data['stop_trial_number']) == trial_number]
+        trial_type = np.array(processed_position_data['stop_trial_type'])[
+            np.array(processed_position_data['stop_trial_number']) == trial_number][0]
+        first_trial_stop = min(stops)
+
+        trial_numbers = np.append(trial_numbers, trial_number)
+        trial_stops = np.append(trial_stops, first_trial_stop)
+        trial_types = np.append(trial_types, trial_type)
+
+    processed_position_data['first_series_location_cm'] = pd.Series(trial_stops)
+    processed_position_data['first_series_trial_number'] = pd.Series(trial_numbers)
+    processed_position_data['first_series_trial_type'] = pd.Series(trial_types)
     return processed_position_data
 
 
