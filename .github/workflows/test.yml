@@ -7,6 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - name: Configure environment
+        run: |
+          sudo swapoff /swapfile
+          sudo rm /swapfile
+          sudo fallocate -l 3G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon -s
+
       - name: Build Docker image
         run: |
           export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
