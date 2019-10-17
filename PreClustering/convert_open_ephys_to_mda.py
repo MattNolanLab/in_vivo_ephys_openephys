@@ -79,40 +79,40 @@ def convert_all_tetrodes_to_mda(prm):
         continuous_file_name = prm.get_continuous_file_name()
         continuous_file_name_end = prm.get_continuous_file_name_end()
 
-        path = raw_mda_path
-
-        file_path = folder_path + continuous_file_name + str(1) + continuous_file_name_end + '.continuous'
-        if os.path.exists(file_path):
-            first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
-        else:
-            file_path = try_to_figure_out_non_default_file_names(folder_path, 1)
-
-            first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
-
         live_channels = PreClustering.dead_channels.get_list_of_live_channels_all_tetrodes(prm)
-        number_of_live_channels = len(live_channels)
 
-        recording_length = len(first_ch)
-        channels_all = np.zeros((number_of_live_channels, recording_length))
-
-        live_ch_counter = 0
+        is_first_channel = True
+        channel_count = 0
         for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
                 if os.path.exists(file_path):
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.int16)
                 else:
                     file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.int16)  # down cast it to float 32
 
-                channels_all[live_ch_counter, :] = channel_data
-                live_ch_counter += 1
+                if is_first_channel:
+                    all_channel = np.zeros((len(live_channels),channel_data.size),np.int16)
+                    is_first_channel = False
 
-        mdaio.writemda16i(channels_all, path)
+                all_channel[channel_count,:] = channel_data
+                channel_count += 1
+
+        
+        mdaio.writeMdaByChunk(all_channel,raw_mda_path)  # load and write each channel of data here
+
     else:
         print('The mda file that contains all channels is already in Electrophysiology/Spike_sorting/all_tetrodes/data.'
               ' You  need to delete it if you want me to make it again.')
 
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
 
 
 
