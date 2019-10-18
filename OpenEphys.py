@@ -102,6 +102,98 @@ def loadFolderToArray(folderpath, channels = 'all', dtype = float, source = '100
 
     return data_array
 
+def writeHeader(f,header):
+    headerstr=''
+    for k,v in header.items():
+        k = 'header.'+k.strip()
+        headerstr = headerstr+'{0} = {1};\n'.format(k,v)
+    headerstr=headerstr.ljust(1024)
+    f.write(headerstr.encode('ascii'))
+    
+def writeFrame(f, timestamp, recording_num, x):
+    byteWritten = 0
+    if x.size==1024:      
+        byteWritten += f.write(np.array(timestamp).astype('<i8').tobytes())
+        byteWritten += f.write(np.array(1024).astype('<i2').tobytes())
+        byteWritten += f.write(np.array(recording_num).astype('<i2').tobytes())
+        byteWritten += f.write(x.astype('>i2').tobytes())
+        byteWritten += f.write(np.array([0,1,2,3,4,5,6,7,8,255]).astype(np.byte).tobytes())
+    else:
+        print('Data point not correct. Skipped')
+    return byteWritten
+    
+def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=np.float):
+    f = open(fname,'wb')
+    writeHeader(f,header)
+
+    noFrame = x.size//1024
+    
+    if dtype == np.float:
+        #convert back the value to int according to the bitVolts
+        x = np.round(x/np.float(header['bitVolts']))
+    
+    for i in range(noFrame):
+        if recording_num is not None:
+            writeFrame(f,timestamp[i],recording_num[i],x[i*1024:(i+1)*1024])
+        else:
+            writeFrame(f,timestamp[i],0,x[i*1024:(i+1)*1024])
+    
+    f.close()
+    
+def loadContinuousFast(filepath, dtype = float):
+    #A much faster implementation for loading continous file
+    #load all data at once rather than by chunks
+
+    assert dtype in (float, np.int16), \
+        'Invalid data type specified for loadContinous, valid types are float and np.int16'
+
+    print("Loading continuous data...")
+
+    ch = { }
+
+    #read in the data
+    f = open(filepath,'rb')
+
+    fileLength = os.fstat(f.fileno()).st_size
+
+    # calculate number of samples
+    recordBytes = fileLength - NUM_HEADER_BYTES
+    if  recordBytes % RECORD_SIZE != 0:
+        raise Exception("File size is not consistent with a continuous file: may be corrupt")
+    nrec = recordBytes // RECORD_SIZE
+    nsamp = nrec * SAMPLES_PER_RECORD
+    # pre-allocate samples
+    samples = np.zeros(nsamp, dtype)
+    timestamps = np.zeros(nrec)
+    recordingNumbers = np.zeros(nrec)
+    indices = np.arange(0, nsamp + 1, SAMPLES_PER_RECORD, np.dtype(np.int64))
+
+    header = readHeader(f)
+
+    buffer = f.read()
+    data_tmp=np.frombuffer(buffer,np.dtype('>i2')) #read everything into a large buffer
+    data_tmp = data_tmp.reshape(int(len(data_tmp)/(RECORD_SIZE/2)),int(RECORD_SIZE/2)) #reshape it into each chunk
+    
+    timestamps = data_tmp[:,:4].ravel().view('<i8') #reinterpret the timestamp
+    N = data_tmp[:,4].ravel().view('<u2') #reinterpret number of recording
+    recordingNumbers = data_tmp[:,5].ravel().view('>u2') #reintepret the recording number
+    
+    if np.any(N!=SAMPLES_PER_RECORD):
+        raise Exception('Found corrupted record at '+np.where(N!=SAMPLES_PER_RECORD))
+        
+    if dtype == float: # Convert data to float array and convert bits to voltage.
+        samples=data_tmp[:,6:6+SAMPLES_PER_RECORD].ravel() * float(header['bitVolts']) # #extract the data
+    else:  # Keep data in signed 16 bit integer format.
+        samples=data_tmp[:,6:6+SAMPLES_PER_RECORD].ravel()    
+     
+
+    ch['header'] = header
+    ch['timestamps'] = timestamps
+    ch['data'] = samples  # OR use downsample(samples,1), to save space
+    ch['recordingNumber'] = recordingNumbers
+    f.close()
+    return ch
+
 def loadContinuous(filepath, dtype = float):
 
     assert dtype in (float, np.int16), \
