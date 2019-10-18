@@ -17,6 +17,8 @@ jobs:
           sudo swapon /swapfile
           sudo swapon -s
 
+          mkdir artifacts
+
       - name: Build Docker image
         run: |
           export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
@@ -30,6 +32,15 @@ jobs:
       - name: Run integration tests
         run: |
           docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys ephys /bin/bash -l ./tests/run_tests_integration.sh
+
+      - name: Prepare results data for upload
+        run: |
+          zip -P ${{ secrets.ARTIFACT_PASSWORD }} -r artifacts.zip artifacts
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: data
+          path: artifacts.zip
 
       - name: Run code coverage
         run: |
