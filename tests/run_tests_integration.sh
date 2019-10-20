@@ -1,2 +1,1 @@
-export SERVER_PATH_FIRST_HALF='/ActiveProjects/'
-export SINGLE_RUN=true
+conda activate env && python3 -m pytest -s --junitxml=junit.xml tests/integration

@@ -19,7 +19,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          docker run -t -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_tests_integration.sh
+          docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys ephys /bin/bash -l ./tests/run_tests_integration.sh
 
       - name: Run code coverage
         run: |
