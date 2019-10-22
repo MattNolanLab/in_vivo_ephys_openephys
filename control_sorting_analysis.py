@@ -16,7 +16,11 @@ from PostSorting import post_process_sorted_data_vr
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
 to_sort_folder = '/home/nolanlab/to_sort/'
-server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
+if os.environ.get('SERVER_PATH_FIRST_HALF'):
+    server_path_first_half = os.environ['SERVER_PATH_FIRST_HALF']
+    print(f'Using a custom server path: {server_path_first_half}')
+else:
+    server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
 #server_path_first_half = 'smb://ardbeg.mvm.ed.ac.uk/nolanlab/'
 #server_path_first_half = '/home/nolanlab/ardbeg/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
@@ -317,6 +321,10 @@ def monitor_to_sort():
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
+            if os.environ.get('SINGLE_RUN'):
+                print('Single run mode was active, so I will exit instead of monitoring the folders.')
+                break
+
             print('Nothing urgent to sort. I will check if there is anything waiting on the server.')
 
             recording_to_sort = get_next_recording_on_server_to_sort()
