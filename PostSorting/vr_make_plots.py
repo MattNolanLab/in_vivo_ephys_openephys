@@ -10,6 +10,8 @@ import math
 import matplotlib.image as mpimg
 import pandas as pd
 from matplotlib.lines import Line2D
+import matplotlib.colorbar as cbar
+import pylab as pl
 from scipy import stats
 
 '''
@@ -588,6 +590,8 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         criteria_plot_offset(processed_position_data, prm)
         plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
         plot_binned_velocity(raw_position_data, processed_position_data, prm)
+        plot_binned_velocity_beaconed(raw_position_data, processed_position_data, prm)
+        plot_binned_velocity_non_beaconed(raw_position_data, processed_position_data, prm)
         #plot_stop_histogram(raw_position_data, processed_position_data, prm)
         #plot_speed_histogram(raw_position_data, processed_position_data, prm)
         if spike_data is not None:
@@ -822,10 +826,13 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm):
     fill_blackbox(trial_bb_start, ax)
     fill_blackbox(trial_bb_end, ax)
 
-    beaconed = np.array(processed_position_data.speed_trials_beaconed[:x_max])
-    beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number)
-    non_beaconed = np.array(processed_position_data.speed_trials_non_beaconed[:x_max])
-    non_beaconed_trial_numbers = np.array(processed_position_data.speed_trials_non_beaconed_trial_number)
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+    beaconed = list(processed_position_data.speed_trials_beaconed[:n_beaconed_trials])
+    beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number[:n_beaconed_trials])
+    non_beaconed = list(processed_position_data.speed_trials_non_beaconed[:n_nonbeaconed_trials])
+    non_beaconed_trial_numbers = np.array(processed_position_data.speed_trials_non_beaconed_trial_number[:n_nonbeaconed_trials])
 
     plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
     x_max = max(raw_position_data.trial_number) + 0.5
@@ -833,36 +840,166 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
 
-    max_speed = np.max(np.array(processed_position_data.speed_trials_binned))
+    max_speed = np.nanmax(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
+    min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
+
+    # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
+    normal = pl.Normalize(min_speed, max_speed)
+    cax, _ = cbar.make_axes(ax)
+    cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
 
     for i in range(len(beaconed)):
         goal_location = processed_position_data.goal_location_beaconed[i]
         bin_counter = 0.5
         for j in range(len(beaconed[i])):
-            plt.gca().add_patch(rectangle=plt.Rectangle((bin_counter-goal_location, beaconed_trial_numbers[i]), 1, 1, fc='r', color=beaconed[i][j]/max_speed))
+            ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(beaconed[i][j]))))
             bin_counter+=1
 
     for i in range(len(non_beaconed)):
         goal_location = processed_position_data.goal_location_non_beaconed[i]
         bin_counter = 0.5
         for j in range(len(non_beaconed[i])):
-            plt.gca().add_patch(rectangle=plt.Rectangle((bin_counter-goal_location, non_beaconed_trial_numbers[i]), 1, 1, fc='r', color=non_beaconed[i][j]/max_speed))
+            ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, non_beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(non_beaconed[i][j]))))
             bin_counter+=1
-
-    # add a custom color legend
-
 
     # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
-    plt.ylabel('Stops on trials (ordered)', fontsize=12, labelpad=10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
+    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
     # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
     plt.xlim(-200, 200)
 
     plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster_ordered' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials' + '.png', dpi=200)
     plt.close()
 
+def plot_binned_velocity_non_beaconed(raw_position_data, processed_position_data, prm):
+    print('I am plotting stop rasta offset from the goal location...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stops_on_track = plt.figure(figsize=(6, 6))
+    ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    x_max = int(max(processed_position_data.stop_trial_number))
+
+    trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+
+    fill_blackbox(trial_bb_start, ax)
+    fill_blackbox(trial_bb_end, ax)
+
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+    beaconed = list(processed_position_data.speed_trials_beaconed[:n_beaconed_trials])
+    beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number[:n_beaconed_trials])
+    non_beaconed = list(processed_position_data.speed_trials_non_beaconed[:n_nonbeaconed_trials])
+    non_beaconed_trial_numbers = np.array(processed_position_data.speed_trials_non_beaconed_trial_number[:n_nonbeaconed_trials])
+
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+    x_max = max(raw_position_data.trial_number) + 0.5
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+
+    max_speed = np.nanmax(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
+    min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
+
+    # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
+    normal = pl.Normalize(min_speed, max_speed)
+    cax, _ = cbar.make_axes(ax)
+    cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
+
+    '''
+    for i in range(len(beaconed)):
+            goal_location = processed_position_data.goal_location_beaconed[i]
+            bin_counter = 0.5
+            for j in range(len(beaconed[i])):
+                ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(beaconed[i][j]))))
+                bin_counter+=1
+    '''
+
+    for i in range(len(non_beaconed)):
+        goal_location = processed_position_data.goal_location_non_beaconed[i]
+        bin_counter = 0.5
+        for j in range(len(non_beaconed[i])):
+            ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, non_beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(non_beaconed[i][j]))))
+            bin_counter += 1
+
+    # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+    # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
+
+    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials' + '.png', dpi=200)
+    plt.close()
+
+def plot_binned_velocity_beaconed(raw_position_data, processed_position_data, prm):
+    print('I am plotting stop rasta offset from the goal location...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stops_on_track = plt.figure(figsize=(6, 6))
+    ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    x_max = int(max(processed_position_data.stop_trial_number))
+
+    trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+
+    fill_blackbox(trial_bb_start, ax)
+    fill_blackbox(trial_bb_end, ax)
+
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+    beaconed = list(processed_position_data.speed_trials_beaconed[:n_beaconed_trials])
+    beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number[:n_beaconed_trials])
+    non_beaconed = list(processed_position_data.speed_trials_non_beaconed[:n_nonbeaconed_trials])
+    non_beaconed_trial_numbers = np.array(processed_position_data.speed_trials_non_beaconed_trial_number[:n_nonbeaconed_trials])
+
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+    x_max = max(raw_position_data.trial_number) + 0.5
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+
+    max_speed = np.nanmax(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
+    min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
+
+    # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
+    normal = pl.Normalize(min_speed, max_speed)
+    cax, _ = cbar.make_axes(ax)
+    cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
+
+    for i in range(len(beaconed)):
+        goal_location = processed_position_data.goal_location_beaconed[i]
+        bin_counter = 0.5
+        for j in range(len(beaconed[i])):
+            ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(beaconed[i][j]))))
+            bin_counter+=1
+
+    '''
+    for i in range(len(non_beaconed)):
+        goal_location = processed_position_data.goal_location_non_beaconed[i]
+        bin_counter = 0.5
+        for j in range(len(non_beaconed[i])):
+            ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, non_beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(non_beaconed[i][j]))))
+            bin_counter+=1
+    '''
+
+    # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+    # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
+
+    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_beaconed' + '.png', dpi=200)
+    plt.close()
 
 def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     '''
