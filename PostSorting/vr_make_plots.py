@@ -815,16 +815,16 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm):
     stops_on_track = plt.figure(figsize=(6, 6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-    x_max = max(processed_position_data.stop_trial_number)
+    x_max = int(max(processed_position_data.stop_trial_number))
 
     trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
 
     fill_blackbox(trial_bb_start, ax)
     fill_blackbox(trial_bb_end, ax)
 
-    beaconed = np.array(processed_position_data.speed_trials_beaconed)
+    beaconed = np.array(processed_position_data.speed_trials_beaconed[:x_max])
     beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number)
-    non_beaconed = np.array(processed_position_data.speed_trials_non_beaconed)
+    non_beaconed = np.array(processed_position_data.speed_trials_non_beaconed[:x_max])
     non_beaconed_trial_numbers = np.array(processed_position_data.speed_trials_non_beaconed_trial_number)
 
     plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
