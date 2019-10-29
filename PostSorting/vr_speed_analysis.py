@@ -3,6 +3,45 @@ import pandas as pd
 import PostSorting.parameters
 import matplotlib.pyplot as plt
 
+def add_goal_locations(raw_position_data, processed_position_data, prm):
+    # gets goal location from raw and places it in processed_position for all, beaconed and non_beaconed
+
+    goal_location = []
+    goal_location_trial_numbers = []
+
+    goal_location_beaconed = []
+    goal_location_beaconed_trial_number = []
+
+    goal_location_non_beaconed = []
+    goal_location_non_beaconed_trial_number = []
+
+    for trial_number in range(1, max(raw_position_data["trial_number"] + 1)):
+        trial_type = np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number])[0]
+        trial_goal_position_cm = np.array(raw_position_data['goal_location_cm'][np.array(raw_position_data['trial_number']) == trial_number])[0]
+
+        goal_location.append(trial_goal_position_cm)
+        goal_location_trial_numbers.append(trial_number)
+
+        if trial_type == 0:
+            goal_location_beaconed.append(trial_goal_position_cm)
+            goal_location_beaconed_trial_number.append(trial_number)
+        elif trial_type == 1:
+            goal_location_non_beaconed.append(trial_goal_position_cm)
+            goal_location_non_beaconed_trial_number.append(trial_number)
+
+    processed_position_data['goal_location'] = pd.Series(goal_location)
+    processed_position_data['goal_location_trial_numbers'] = pd.Series(goal_location_trial_numbers)
+
+    # trial type specifics speed bins
+    processed_position_data['goal_location_beaconed'] = pd.Series(goal_location_beaconed)
+    processed_position_data['goal_location_beaconed_trial_number'] = pd.Series(goal_location_beaconed_trial_number)
+    processed_position_data['goal_location_non_beaconed'] = pd.Series(goal_location_non_beaconed)
+    processed_position_data['goal_location_non_beaconed_trial_number'] = pd.Series(goal_location_non_beaconed_trial_number)
+
+    return processed_position_data
+
+
+
 def calculate_binned_speed(raw_position_data,processed_position_data, prm):
     numbers_of_bins = get_number_of_bins(prm)
     bin_size_cm = get_bin_size(prm, numbers_of_bins)
@@ -10,7 +49,15 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
     speed_trials_binned = []
     speed_trial_numbers = []
 
+    speed_trials_beaconed = []
+    speed_trials_beaconed_trial_number = []
+
+    speed_trials_non_beaconed = []
+    speed_trials_non_beaconed_trial_number = []
+
     for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
+        trial_type = np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number])[0]
+
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
 
@@ -23,9 +70,22 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
         speed_trials_binned.append(bin_means)
         speed_trial_numbers.append(trial_number)
 
+        if trial_type == 0:
+            speed_trials_beaconed.append(bin_means)
+            speed_trials_beaconed_trial_number.append(trial_number)
+        elif trial_type == 1:
+            speed_trials_non_beaconed.append(bin_means)
+            speed_trials_non_beaconed_trial_number.append(trial_number)
+
 
     processed_position_data['speed_trials_binned'] = pd.Series(speed_trials_binned)
     processed_position_data['speed_trial_numbers'] = pd.Series(speed_trial_numbers)
+
+    # trial type specifics speed bins
+    processed_position_data['speed_trials_beaconed'] = pd.Series(speed_trials_beaconed)
+    processed_position_data['speed_trials_beaconed_trial_number'] = pd.Series(speed_trials_beaconed_trial_number)
+    processed_position_data['speed_trials_non_beaconed'] = pd.Series(speed_trials_non_beaconed)
+    processed_position_data['speed_trials_non_beaconed_trial_number'] = pd.Series(speed_trials_non_beaconed_trial_number)
 
     return processed_position_data
 
@@ -39,6 +99,7 @@ def get_number_of_bins(prm):
     return number_of_bins
 
 def process_speed(raw_position_data,processed_position_data, prm, recording_directory):
+    processed_position_data = add_goal_locations(raw_position_data, processed_position_data, prm)
     processed_position_data = calculate_binned_speed(raw_position_data,processed_position_data, prm)
     return processed_position_data
 
