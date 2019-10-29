@@ -11,6 +11,7 @@ import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
 import PostSorting.vr_FiringMaps_InTime
+import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
 
@@ -34,7 +35,8 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, prm):
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm,recording_to_process)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
+    processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data, prm, recording_to_process)
     return raw_position_data, processed_position_data
 
 
