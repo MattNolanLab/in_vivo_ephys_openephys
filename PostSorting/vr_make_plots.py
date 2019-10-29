@@ -587,6 +587,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
         criteria_plot_offset(processed_position_data, prm)
         plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
+        plot_binned_velocity(raw_position_data, processed_position_data, prm)
         #plot_stop_histogram(raw_position_data, processed_position_data, prm)
         #plot_speed_histogram(raw_position_data, processed_position_data, prm)
         if spike_data is not None:
@@ -805,6 +806,63 @@ def plot_stops_on_track_offset_order(raw_position_data, processed_position_data,
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster_ordered' + '.png', dpi=200)
     plt.close()
+
+def plot_binned_velocity(raw_position_data, processed_position_data, prm):
+    print('I am plotting stop rasta offset from the goal location...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stops_on_track = plt.figure(figsize=(6, 6))
+    ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    x_max = max(processed_position_data.stop_trial_number)
+
+    trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+
+    fill_blackbox(trial_bb_start, ax)
+    fill_blackbox(trial_bb_end, ax)
+
+    beaconed = np.array(processed_position_data.speed_trials_beaconed)
+    beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number)
+    non_beaconed = np.array(processed_position_data.speed_trials_non_beaconed)
+    non_beaconed_trial_numbers = np.array(processed_position_data.speed_trials_non_beaconed_trial_number)
+
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+    x_max = max(raw_position_data.trial_number) + 0.5
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+
+    max_speed = np.max(np.array(processed_position_data.speed_trials_binned))
+
+    for i in range(len(beaconed)):
+        goal_location = processed_position_data.goal_location_beaconed[i]
+        bin_counter = 0.5
+        for j in range(len(beaconed[i])):
+            plt.gca().add_patch(rectangle=plt.Rectangle((bin_counter-goal_location, beaconed_trial_numbers[i]), 1, 1, fc='r', color=beaconed[i][j]/max_speed))
+            bin_counter+=1
+
+    for i in range(len(non_beaconed)):
+        goal_location = processed_position_data.goal_location_non_beaconed[i]
+        bin_counter = 0.5
+        for j in range(len(non_beaconed[i])):
+            plt.gca().add_patch(rectangle=plt.Rectangle((bin_counter-goal_location, non_beaconed_trial_numbers[i]), 1, 1, fc='r', color=non_beaconed[i][j]/max_speed))
+            bin_counter+=1
+
+    # add a custom color legend
+
+
+    # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
+    # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    plt.ylabel('Stops on trials (ordered)', fontsize=12, labelpad=10)
+    plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
+
+    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster_ordered' + '.png', dpi=200)
+    plt.close()
+
 
 def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     '''
