@@ -283,6 +283,47 @@ def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse
     make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal, shuffle_type=shuffle_type)
 
 
+def get_percentage_of_grid_cells_with_directional_nodes(fields):
+    percentage_of_directional_no_corr = []
+    percentage_of_directional_corr = []
+    cell_ids = fields.unique_cell_id.unique()
+    for cell in range(len(cell_ids)):
+        fields_of_cell = fields[fields.unique_cell_id == cell_ids[cell]]
+        number_of_directional_fields_no_correction = np.sum(fields_of_cell.directional_no_correction)
+        percentage = number_of_directional_fields_no_correction / len(fields_of_cell) * 100
+        percentage_of_directional_no_corr.append(percentage)
+        number_of_directional_fields_correction = np.sum(fields_of_cell.directional_correction)
+        percentage = number_of_directional_fields_correction / len(fields_of_cell) * 100
+        percentage_of_directional_corr.append(percentage)
+
+    print('avg % of directional fields in grid cells no correction: ' + str(np.mean(percentage_of_directional_no_corr)))
+    print(np.std(percentage_of_directional_no_corr))
+    print('avg % of directional fields in grid cells BH correction: ' + str(np.mean(percentage_of_directional_corr)))
+    print(np.std(percentage_of_directional_corr))
+
+
+def get_number_of_directional_fields(fields):
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, field in fields.iterrows():
+        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled, field.number_of_different_bins)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
+        percentiles_correction.append(percentile)
+
+    print('Number of grid fields: ' + str(len(fields)))
+    print('Number of directional fields [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    fields['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional fields [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    fields['directional_correction'] = np.array(percentiles_correction) > 95
+
+    get_percentage_of_grid_cells_with_directional_nodes(fields)
+
+
 def analyze_data(animal, server_path, shuffle_type='occupancy'):
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
@@ -319,6 +360,7 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     shuffled_field_data_grid = shuffled_field_data[grid_cells & accepted_field]
     shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
 
+    get_number_of_directional_fields(shuffled_field_data_grid)
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
     if len(shuffled_field_data_not_classified) > 0:
         plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
@@ -341,12 +383,12 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
 
 
 def main():
-    #analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
-    #analyze_data('rat', sever_path_rat, shuffle_type='distributive')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control_narrow')
+    analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
+    analyze_data('rat', server_path_rat, shuffle_type='distributive')
+    # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
+    # analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
+    # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
+    # analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control_narrow')
 
 
 if __name__ == '__main__':
