@@ -9,6 +9,7 @@ from scipy import stats
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
 import PostSorting.vr_cued
+import matplotlib.pyplot as plt
 
 
 def correct_for_restart(location):
@@ -109,7 +110,7 @@ def check_for_trial_restarts(trial_indices):
         if index_difference > - 15000:
             continue
         else:
-            index = trial_indices[icount+1]
+            index = trial_indices[icount]
             new_trial_indices = np.append(new_trial_indices,index)
     return new_trial_indices
 
@@ -253,13 +254,27 @@ subtracted from the original location array.)
 
 def calculate_instant_velocity(position_data, prm):
     print('Calculating velocity...')
-    location = np.array(position_data['x_position_cm']) # Get the raw location from the movement channel
+    #location = np.array(position_data['x_position_cm']) # Get the raw location from the movement channel
+    #sampling_points_per200ms = int(prm.get_sampling_rate()/5)
+    #end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    #beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    #location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
+    #velocity = location - location_to_subtract_from
+    #velocity = fix_teleport(velocity, prm)
+    #position_data['velocity'] = velocity
+
+    location = np.array(position_data['x_position_cm'], dtype=np.float32)
+
+    for i in np.where(np.diff(location) < -10)[0]:
+        diff = abs(np.diff(location[i:i+2]))
+        location[i+1:] = np.add(location[i+1:], diff)
+
     sampling_points_per200ms = int(prm.get_sampling_rate()/5)
     end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
     velocity = location - location_to_subtract_from
-    velocity = fix_teleport(velocity, prm)
+
     position_data['velocity'] = velocity
     return position_data
 
@@ -327,7 +342,8 @@ def get_avg_speed_200ms(position_data, prm):
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
     sampling_points_per200ms = int(prm.get_sampling_rate()/5)
-    position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
+    #position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
+    position_data['speed_per200ms'] = velocity
     return position_data
 
 

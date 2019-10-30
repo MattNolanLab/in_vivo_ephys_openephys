@@ -67,6 +67,9 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
         bin_means = (np.histogram(trial_x_position_cm, bins, weights = trial_speeds)[0] /
                      np.histogram(trial_x_position_cm, bins)[0])
 
+        plt.plot(bin_means)
+        plt.close()
+
         speed_trials_binned.append(bin_means)
         speed_trial_numbers.append(trial_number)
 
