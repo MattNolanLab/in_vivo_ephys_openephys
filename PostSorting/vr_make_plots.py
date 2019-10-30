@@ -812,7 +812,7 @@ def plot_stops_on_track_offset_order(raw_position_data, processed_position_data,
     plt.close()
 
 def plot_binned_velocity(raw_position_data, processed_position_data, prm):
-    print('I am plotting stop rasta offset from the goal location...')
+    print('I am plotting binned velocity offset from the goal location...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -839,14 +839,19 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm):
     plot_utility.style_vr_plot_offset(ax, x_max)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
+    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
 
     max_speed = np.nanmax(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
     min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
 
     # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
-    normal = pl.Normalize(min_speed, max_speed)
+    normal = pl.Normalize(0, max_speed)
     cax, _ = cbar.make_axes(ax)
     cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
+    cax.set_ylabel('Speeds (cm/s)', fontsize=12, labelpad=10)
 
     for i in range(len(beaconed)):
         goal_location = processed_position_data.goal_location_beaconed[i]
@@ -864,17 +869,13 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm):
 
     # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
-    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
-    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
-    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
-    plt.xlim(-200, 200)
 
-    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+    #plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials' + '.png', dpi=200)
     plt.close()
 
 def plot_binned_velocity_non_beaconed(raw_position_data, processed_position_data, prm):
-    print('I am plotting stop rasta offset from the goal location...')
+    print('I am plotting binned velocity offset from the goal location...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -901,14 +902,19 @@ def plot_binned_velocity_non_beaconed(raw_position_data, processed_position_data
     plot_utility.style_vr_plot_offset(ax, x_max)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
+    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
 
     max_speed = np.nanmax(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
     min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
 
     # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
-    normal = pl.Normalize(min_speed, max_speed)
+    normal = pl.Normalize(0, max_speed)
     cax, _ = cbar.make_axes(ax)
     cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
+    cax.set_ylabel('Speeds (cm/s)', fontsize=12, labelpad=10)
 
     '''
     for i in range(len(beaconed)):
@@ -928,17 +934,13 @@ def plot_binned_velocity_non_beaconed(raw_position_data, processed_position_data
 
     # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
-    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
-    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
-    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
-    plt.xlim(-200, 200)
 
-    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials' + '.png', dpi=200)
+    #plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_nb' + '.png', dpi=200)
     plt.close()
 
 def plot_binned_velocity_beaconed(raw_position_data, processed_position_data, prm):
-    print('I am plotting stop rasta offset from the goal location...')
+    print('I am plotting stop binned velocity from the goal location...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -965,14 +967,19 @@ def plot_binned_velocity_beaconed(raw_position_data, processed_position_data, pr
     plot_utility.style_vr_plot_offset(ax, x_max)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
+    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+    plt.xlim(-200, 200)
 
     max_speed = np.nanmax(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
     min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
 
     # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
-    normal = pl.Normalize(min_speed, max_speed)
+    normal = pl.Normalize(0, max_speed)
     cax, _ = cbar.make_axes(ax)
     cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
+    cax.set_ylabel('Speeds (cm/s)', fontsize=12, labelpad=10)
 
     for i in range(len(beaconed)):
         goal_location = processed_position_data.goal_location_beaconed[i]
@@ -992,12 +999,8 @@ def plot_binned_velocity_beaconed(raw_position_data, processed_position_data, pr
 
     # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
     # ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
-    plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
-    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
-    # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
-    plt.xlim(-200, 200)
 
-    plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
+    #plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_beaconed' + '.png', dpi=200)
     plt.close()
 
