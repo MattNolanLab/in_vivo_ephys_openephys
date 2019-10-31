@@ -102,11 +102,51 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
 
 
 def calculate_stops(raw_position_data,processed_position_data, threshold):
-    all_stops = get_stop_times(raw_position_data,threshold)
-    track_beginnings = get_beginning_of_track_positions(raw_position_data)
-    processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+    #all_stops = get_stop_times(raw_position_data,threshold)
+    #track_beginnings = get_beginning_of_track_positions(raw_position_data)
+    #processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+
+    processed_position_data = get_stops_from_binned_speed(processed_position_data, threshold)
+
     return processed_position_data
 
+def get_stops_from_binned_speed(processed_position_data, threshold):
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+    n_probe_trials = int(processed_position_data.probe_total_trial_number[0])
+
+    n_total = n_beaconed_trials + n_nonbeaconed_trials + n_probe_trials
+
+    speed_trials_binned = list(processed_position_data.speed_trials_binned[:n_total])
+    speed_trial_numbers = list(processed_position_data.speed_trial_numbers[:n_total])
+    speed_trial_types = list(processed_position_data.speed_trial_types[:n_total])
+
+    stop_location_cm = []
+    stop_trial_number = []
+    stop_trial_types = []
+
+    last_was_stop = False
+    for i in range(len(speed_trials_binned)):
+        bin_counter = 0.5
+        for speed_in_bin in speed_trials_binned[i]:
+            if speed_in_bin<threshold and last_was_stop is False:
+                goal_location = processed_position_data.goal_location[i]
+                stop_location_cm.append(bin_counter-goal_location)
+                stop_trial_number.append(speed_trial_numbers[i])
+                stop_trial_types.append(speed_trial_types[i])
+                last_was_stop = True
+            elif speed_in_bin>threshold and last_was_stop is True:
+                last_was_stop = False
+            bin_counter+=1
+
+    print('stops extracted')
+
+    df1 = pd.DataFrame({"stop_location_cm": pd.Series(stop_location_cm),
+                        "stop_trial_number": pd.Series(stop_trial_number),
+                        "stop_trial_type": pd.Series(stop_trial_types)})
+    processed_position_data = pd.concat([processed_position_data, df1], axis=1)
+
+    return processed_position_data
 
 def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm):
     stop_threshold = prm.get_stop_threshold()

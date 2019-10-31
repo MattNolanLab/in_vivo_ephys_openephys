@@ -48,6 +48,7 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
 
     speed_trials_binned = []
     speed_trial_numbers = []
+    speed_trialtypes = []
 
     speed_trials_beaconed = []
     speed_trials_beaconed_trial_number = []
@@ -72,6 +73,7 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
 
         speed_trials_binned.append(bin_means)
         speed_trial_numbers.append(trial_number)
+        speed_trialtypes.append(trial_type)
 
         if trial_type == 0:
             speed_trials_beaconed.append(bin_means)
@@ -83,6 +85,7 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
 
     processed_position_data['speed_trials_binned'] = pd.Series(speed_trials_binned)
     processed_position_data['speed_trial_numbers'] = pd.Series(speed_trial_numbers)
+    processed_position_data['speed_trial_types'] = pd.Series(speed_trialtypes)
 
     # trial type specifics speed bins
     processed_position_data['speed_trials_beaconed'] = pd.Series(speed_trials_beaconed)
