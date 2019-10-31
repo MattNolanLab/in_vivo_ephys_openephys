@@ -1,3 +1,4 @@
+from astropy.stats import rayleightest
 import os
 import math
 import matplotlib.pylab as plt
@@ -62,6 +63,36 @@ def get_hd_score_for_cluster(hd_hist):
     toty = sum(dy * hd_hist)/sum(hd_hist)
     r = np.sqrt(totx*totx + toty*toty)
     return r
+
+
+'''
+This test is used to identify a non-uniform distribution, i.e. it is designed for detecting an unimodal deviation from 
+uniformity. More precisely, it assumes the following hypotheses: - H0 (null hypothesis): The population is distributed 
+uniformly around the circle. - H1 (alternative hypothesis): The population is not distributed uniformly around the 
+circle. Small p-values suggest to reject the null hypothesis.
+
+This is an alternative to using the population mean vector as a head-directions score.
+
+https://docs.astropy.org/en/stable/_modules/astropy/stats/circstats.html#rayleightest
+'''
+
+
+def get_rayleighscore_for_cluster(hd_hist):
+    bins_in_histogram = len(hd_hist)
+    values = np.radians(np.arange(0, 360, int(360 / bins_in_histogram)))
+    rayleigh_p = rayleightest(values, weights=hd_hist)
+    return rayleigh_p
+
+
+def add_rayleighscore_for_all_clusters(spatial_firing):
+    rayleigh_ps = []
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
+        p = get_rayleighscore_for_cluster(hd_hist)
+        rayleigh_ps.append(p)
+    spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
+    return spatial_firing
 
 
 def calculate_hd_score(spatial_firing):
@@ -237,6 +268,7 @@ def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
 
 def main():
     pass
+
 
 if __name__ == '__main__':
     main()
