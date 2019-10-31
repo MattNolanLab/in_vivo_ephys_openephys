@@ -41,11 +41,4 @@ def test_get_rayleighscore_for_cluster():
     assert np.allclose(result, expected_result, rtol=1e-05, atol=1e-08)
 
 
-def main():
-    test_get_rayleighscore_for_cluster()
-
-
-if __name__ == '__main__':
-    main()
-
 
