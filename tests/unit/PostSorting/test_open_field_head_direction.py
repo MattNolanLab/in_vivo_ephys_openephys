@@ -32,12 +32,12 @@ def test_get_rolling_sum():
 def test_get_rayleighscore_for_cluster():
     hd_hist = np.ones(360)
     expected_result = 1  # uniform distribution
-    result = PostSorting.open_field_head_direction.get_rayleighscore_for_cluster(hd_hist)
+    result = PostSorting.open_field_head_direction.get_rayleigh_score_for_cluster(hd_hist)
     assert np.allclose(result, expected_result, rtol=1e-05, atol=1e-08)
 
     hd_hist = np.ones(20) * 300
     expected_result = 1  # uniform distribution (different array shape)
-    result = PostSorting.open_field_head_direction.get_rayleighscore_for_cluster(hd_hist)
+    result = PostSorting.open_field_head_direction.get_rayleigh_score_for_cluster(hd_hist)
     assert np.allclose(result, expected_result, rtol=1e-05, atol=1e-08)
 
 
