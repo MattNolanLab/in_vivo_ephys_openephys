@@ -85,6 +85,7 @@ def get_rayleigh_score_for_cluster(hd_hist: np.ndarray) -> float:
 
 
 def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.DataFrame:
+    print('I will do the Rayleigh test to check if head-direction tuning is uniform.')
     rayleigh_ps = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
