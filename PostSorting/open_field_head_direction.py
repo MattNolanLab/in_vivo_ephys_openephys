@@ -77,19 +77,19 @@ https://docs.astropy.org/en/stable/_modules/astropy/stats/circstats.html#rayleig
 '''
 
 
-def get_rayleighscore_for_cluster(hd_hist):
+def get_rayleigh_score_for_cluster(hd_hist: np.ndarray) -> float:
     bins_in_histogram = len(hd_hist)
     values = np.radians(np.arange(0, 360, int(360 / bins_in_histogram)))
     rayleigh_p = rayleightest(values, weights=hd_hist)
     return rayleigh_p
 
 
-def add_rayleighscore_for_all_clusters(spatial_firing):
+def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.DataFrame:
     rayleigh_ps = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
         hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
-        p = get_rayleighscore_for_cluster(hd_hist)
+        p = get_rayleigh_score_for_cluster(hd_hist)
         rayleigh_ps.append(p)
     spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
     return spatial_firing
