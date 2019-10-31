@@ -365,7 +365,7 @@ def syncronise_position_data(recording_folder, prm):
 
     if prm.cue_conditioned_goal:
         raw_position_data = PostSorting.vr_cued.add_goal_location(recording_folder, raw_position_data, prm)
-        raw_position_data = PostSorting.vr_cued.offset_location_by_goal(raw_position_data)
+        #raw_position_data = PostSorting.vr_cued.offset_location_by_goal(raw_position_data)
 
     gc.collect()
     return raw_position_data
