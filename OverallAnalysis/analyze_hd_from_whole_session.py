@@ -177,7 +177,7 @@ def plot_watson_vs_rayleigh(df_all_cells, animal):
     ax.spines['right'].set_visible(False)
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_xlabel('Head-direction score', fontsize=30)
+    ax.set_xlabel('Watson U', fontsize=30)
     ax.set_ylabel('Rayleigh score', fontsize=30)
     plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
     plt.tight_layout()
