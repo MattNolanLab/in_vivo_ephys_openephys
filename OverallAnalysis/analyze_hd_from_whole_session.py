@@ -146,6 +146,45 @@ def plot_hd_vs_rayleigh(df_all_cells, animal):
     plt.close()
 
 
+def plot_watson_vs_rayleigh(df_all_cells, animal):
+    plt.cla()
+    marker_size = 45
+    good_cluster = df_all_cells.false_positive == False
+    grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
+    hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
+    conjunctive_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score >= 0.5)
+
+    fig, ax = plt.subplots()
+    plt.xscale('linear')
+    plt.yscale('linear')
+    watson_score = df_all_cells[good_cluster].watson_test_hd
+    rayleigh = df_all_cells[good_cluster].rayleigh_score
+    plt.scatter(watson_score, rayleigh, color='gray', marker='o', s=marker_size, alpha=0.7, label='Non-spatial')
+    watson_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
+    rayleigh_grid = df_all_cells[good_cluster & grid_cell].rayleigh_score
+
+    watson_hd = df_all_cells[good_cluster & hd_cell].watson_test_hd
+    rayleigh_hd = df_all_cells[good_cluster & hd_cell].rayleigh_score
+
+    watson_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
+    rayleigh_conj = df_all_cells[good_cluster & conjunctive_cell].rayleigh_score
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.scatter(watson_hd, rayleigh_hd, color='navy', marker='o', s=marker_size, label='HD')
+    plt.scatter(watson_grid, rayleigh_grid, color='red', marker='o', s=marker_size, label='Grid')
+    plt.scatter(watson_conj, rayleigh_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Head-direction score', fontsize=30)
+    ax.set_ylabel('Rayleigh score', fontsize=30)
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
+    plt.tight_layout()
+    plt.savefig(save_output_path + 'watson_vs_rayleigh_all_cells_' + animal + '.png')
+    plt.close()
+
+
 def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
     plt.cla()
     marker_size = 45
@@ -327,6 +366,7 @@ def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
 
 
 def make_descriptive_plots(all_cells, animal):
+    plot_watson_vs_rayleigh(all_cells, animal)
     plot_hd_vs_rayleigh(all_cells, animal)
     plot_hd_vs_watson_stat(all_cells, animal)
     plot_results_of_watson_test(all_cells, cell_type='grid', animal=animal)
