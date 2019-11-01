@@ -4,6 +4,7 @@ import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
+import PostSorting.vr_cued
 from numpy import inf
 import gc
 import math
@@ -413,9 +414,12 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
     plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
     criteria_plot_offset(processed_position_data, prm)
     plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
     #plot_stop_histogram(raw_position_data, processed_position_data, prm)
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
 
@@ -527,7 +531,7 @@ def plot_stops_on_track_offset_order(raw_position_data, processed_position_data,
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster_ordered' + '.png', dpi=200)
     plt.close()
 
-def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True):
+def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=False):
     print('I am plotting binned velocity offset from the goal location...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -535,15 +539,16 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
     stops_on_track = plt.figure(figsize=(6, 6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-    x_max = int(max(processed_position_data.stop_trial_number))
-
     trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+    if ordered:
+        processed_position_data = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
+        _, _, _, trial_bb_start, trial_bb_end = order_by_cue(trial_bb_start=trial_bb_start, trial_bb_end=trial_bb_end)
 
     fill_blackbox(trial_bb_start, ax)
     fill_blackbox(trial_bb_end, ax)
-
-    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
-    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
 
     beaconed = list(processed_position_data.speed_trials_beaconed[:n_beaconed_trials])
     beaconed_trial_numbers = np.array(processed_position_data.speed_trials_beaconed_trial_number[:n_beaconed_trials])
@@ -595,16 +600,24 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
     # plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.2, left=0.12, right=0.87, top=0.92)
 
     if plot_beaconed is True and plot_non_beaconed is not True:
-        plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_beaconed' + '.png', dpi=200)
+        if not ordered:
+            plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_beaconed' + '.png', dpi=200)
+        else:
+            plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_beaconed_ordered' + '.png', dpi=200)
     elif plot_beaconed is not True and plot_non_beaconed is True:
-        plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_nonbeaconed' + '.png', dpi=200)
+        if not ordered:
+            plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_nonbeaconed' + '.png', dpi=200)
+        else:
+            plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_nonbeaconed_ordered' + '.png', dpi=200)
     elif plot_beaconed is True and plot_non_beaconed is True:
-        plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials' + '.png', dpi=200)
-
+        if not ordered:
+            plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials' + '.png', dpi=200)
+        else:
+            plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_ordered' + '.png', dpi=200)
     plt.close()
 
 
-def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
+def order_by_cue(beaconed=None, non_beaconed=None, probe=None, trial_bb_start=None, trial_bb_end=None):
     '''
     :param beaconed: 2d np array, one stop/spike per row [stop/spike location, trial number, trial type]
     :param non_beaconed: ''
@@ -618,6 +631,9 @@ def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
 
     trial_bb_start = list(sortedtmp[1])
     trial_bb_end = list(sortedtmp[2])
+
+    if beaconed is None:
+        return beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end
 
     sorted_trial_numbers = sortedtmp[0]
     new_trial_numbers = np.arange(1,len(trial_bb_start)+1)
