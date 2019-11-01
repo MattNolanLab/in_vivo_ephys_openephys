@@ -12,7 +12,7 @@ def add_goal_location(recording_to_process, raw_position_data, prm):
     return raw_position_data
 
 def offset_location_by_goal(raw_position_data):
-    raw_position_data["x_position_cm"] = raw_position_data["x_position_cm"] - raw_position_data["goal_location_cm"]
+    raw_position_data["x_position_cm_offset"] = raw_position_data["x_position_cm"] - raw_position_data["goal_location_cm"]
     return raw_position_data
 
 def extract_goal_locations(recording_folder, prm):
@@ -63,6 +63,7 @@ def goal_binary2cm(raw_position_data, prm):
         goal_location = np.append(goal_location, trial_goal_location)
 
     raw_position_data["goal_location_cm"] = list(goal_location)
+    del raw_position_data["in_goal_binary"]
 
     return raw_position_data
 
