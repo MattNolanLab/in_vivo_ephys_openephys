@@ -18,37 +18,25 @@ def order_by_goal_location(processed_position_data):
     sortedtmp = tmp[:, tmp[0].argsort()]  # sorts by goal_location
     new_trial_numbers = np.arange(1, len(tmp[0]) + 1)
 
-    del processed_position_data['goal_location']
     del processed_position_data['goal_location_trial_numbers']
-    #del processed_position_data['goal_location_trial_types']
 
-    processed_position_data['goal_location'] = pd.Series(sortedtmp[0])
-    processed_position_data['goal_location_trial_numbers'] = pd.Series(sortedtmp[1])
-    #processed_position_data['goal_location_trial_types'] = pd.Series(sortedtmp[2])
+    processed_position_data['goal_location_new_trial_numbers'] = pd.Series(new_trial_numbers)
+    processed_position_data['goal_location_old_trial_numbers'] = pd.Series(sortedtmp[1])
 
     # now swap trial numbers for binned_speed
-    processed_position_data = order_speeds(processed_position_data)
-
-    return processed_position_data
-
-def order_speeds(processed_position_data):
     n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
     n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
     n_probe_trials = int(processed_position_data.probe_total_trial_number[0])
 
     n_total = n_beaconed_trials + n_nonbeaconed_trials + n_probe_trials
 
-    beacon_count = 0
-    non_beacon_count = 0
     for i in range(n_total):
-        processed_position_data['speed_trial_numbers'][int(processed_position_data['goal_location_trial_numbers'][i])] = i
+        old_trial_number = processed_position_data['goal_location_old_trial_numbers'][i]
+        new_trial_number = processed_position_data['goal_location_new_trial_numbers'][i]
 
-        if processed_position_data['speed_trial_types'][i] == 0.0:
-            processed_position_data['speed_trials_beaconed_trial_number'][int(processed_position_data['goal_location_trial_numbers'][i])] = beacon_count
-            beacon_count+=1
-        elif processed_position_data['speed_trial_types'][i] == 1.0:
-            processed_position_data['speed_trials_non_beaconed_trial_number'][int(processed_position_data['goal_location_trial_numbers'][i])] = non_beacon_count
-            non_beacon_count+=1
+        processed_position_data['speed_trial_numbers'][processed_position_data['speed_trial_numbers'] == old_trial_number] = new_trial_number
+        processed_position_data['speed_trials_beaconed_trial_number'][processed_position_data['speed_trials_beaconed_trial_number'] == old_trial_number] = new_trial_number
+        processed_position_data['speed_trials_non_beaconed_trial_number'][processed_position_data['speed_trials_non_beaconed_trial_number'] == old_trial_number] = new_trial_number
 
     return processed_position_data
 
