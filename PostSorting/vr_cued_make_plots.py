@@ -574,7 +574,9 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
             goal_location = processed_position_data.goal_location_beaconed[i]
             bin_counter = 0.5
             for j in range(len(beaconed[i])):
-                ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(beaconed[i][j]))))
+                speed = normal(beaconed[i][j])
+                if not math.isnan(speed):
+                    ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(speed)))
                 bin_counter+=1
 
     if plot_non_beaconed:
@@ -582,7 +584,9 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
             goal_location = processed_position_data.goal_location_non_beaconed[i]
             bin_counter = 0.5
             for j in range(len(non_beaconed[i])):
-                ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, non_beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(normal(non_beaconed[i][j]))))
+                speed = normal(non_beaconed[i][j])
+                if not math.isnan(speed):
+                    ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, non_beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(speed)))
                 bin_counter+=1
 
     # ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
