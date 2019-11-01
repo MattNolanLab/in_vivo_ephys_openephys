@@ -7,9 +7,10 @@ import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
 import os
+import PostSorting.open_field_head_direction
 
-import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
+# import rpy2.robjects as ro
+# from rpy2.robjects.packages import importr
 
 
 local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df.pkl'
@@ -341,6 +342,17 @@ def calculate_watson_from_half_session(all_cells, server_path, sampling_rate):
     return all_cells
 
 
+def add_rayleigh_score(spatial_firing):
+    print('I will do the Rayleigh test to check if head-direction tuning is uniform.')
+    rayleigh_ps = []
+    for index, cell in spatial_firing.iterrows():
+        hd_hist = cell.hd_spike_histogram.copy()
+        p = PostSorting.open_field_head_direction.get_rayleigh_score_for_cluster(hd_hist)
+        rayleigh_ps.append(p)
+    spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
+    return spatial_firing
+
+
 def process_data(animal):
     print('-------------------------------------------------------------')
     if animal == 'mouse':
@@ -363,8 +375,9 @@ def process_data(animal):
     all_cells = tag_false_positives(all_cells, animal)
     all_cells = add_cell_types_to_data_frame(all_cells)
     # correlation_between_first_and_second_halves_of_session(all_cells)
-    if animal == 'mouse':
-        all_cells = calculate_watson_from_half_session(all_cells, server_path_animal, sampling_rate=30000)
+    # if animal == 'mouse':
+        # all_cells = calculate_watson_from_half_session(all_cells, server_path_animal, sampling_rate=30000)
+    all_cells = add_rayleigh_score(all_cells)
 
     make_descriptive_plots(all_cells, animal)
 
