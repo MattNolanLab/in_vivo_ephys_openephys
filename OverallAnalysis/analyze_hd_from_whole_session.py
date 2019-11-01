@@ -170,6 +170,8 @@ def plot_watson_vs_rayleigh(df_all_cells, animal):
     rayleigh_conj = df_all_cells[good_cluster & conjunctive_cell].rayleigh_score
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
+    plt.xscale('log')
+    plt.yscale('log')
     plt.scatter(watson_hd, rayleigh_hd, color='navy', marker='o', s=marker_size, label='HD')
     plt.scatter(watson_grid, rayleigh_grid, color='red', marker='o', s=marker_size, label='Grid')
     plt.scatter(watson_conj, rayleigh_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
