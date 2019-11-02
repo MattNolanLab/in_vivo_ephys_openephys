@@ -239,6 +239,11 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         if os.path.exists(mountainsort_tmp_folder) is True:
             shutil.rmtree(mountainsort_tmp_folder)
 
+        if os.environ.get('SINGLE_RUN'):
+            print('Single run mode was active during the error. '
+                  'I will quit immediately with a nonzero exit status instead of continuing to the next recording.')
+            exit(1)  # an exit status of 1 means unsuccessful termination/program failure
+
 
 def delete_processed_line(list_to_read_path):
     with open(list_to_read_path, 'r') as file_in:
