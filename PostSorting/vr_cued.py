@@ -16,12 +16,12 @@ def order_by_goal_location(processed_position_data):
                     trial_types[~np.isnan(trial_types)]])
 
     sortedtmp = tmp[:, tmp[0].argsort()]  # sorts by goal_location
-    new_trial_numbers = np.arange(1, len(tmp[0]) + 1)
+    ordered_trial_numbers = np.arange(1, len(tmp[0]) + 1)
 
     del processed_position_data['goal_location_trial_numbers']
 
-    processed_position_data['goal_location_new_trial_numbers'] = pd.Series(new_trial_numbers)
-    processed_position_data['goal_location_old_trial_numbers'] = pd.Series(sortedtmp[1])
+    processed_position_data['goal_location_old_trial_numbers'] = pd.Series(ordered_trial_numbers)
+    processed_position_data['goal_location_new_trial_numbers'] = pd.Series(sortedtmp[1])
 
     # now swap trial numbers for binned_speed
     n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
@@ -34,9 +34,9 @@ def order_by_goal_location(processed_position_data):
         old_trial_number = processed_position_data['goal_location_old_trial_numbers'][i]
         new_trial_number = processed_position_data['goal_location_new_trial_numbers'][i]
 
-        processed_position_data['speed_trial_numbers'][processed_position_data['speed_trial_numbers'] == old_trial_number] = new_trial_number
-        processed_position_data['speed_trials_beaconed_trial_number'][processed_position_data['speed_trials_beaconed_trial_number'] == old_trial_number] = new_trial_number
-        processed_position_data['speed_trials_non_beaconed_trial_number'][processed_position_data['speed_trials_non_beaconed_trial_number'] == old_trial_number] = new_trial_number
+        processed_position_data['speed_trial_numbers'][processed_position_data['goal_location_old_trial_numbers'] == old_trial_number] = new_trial_number
+        processed_position_data['speed_trials_beaconed_trial_number'][processed_position_data['goal_location_beaconed_trial_number'] == old_trial_number] = new_trial_number
+        processed_position_data['speed_trials_non_beaconed_trial_number'][processed_position_data['goal_location_non_beaconed_trial_number'] == old_trial_number] = new_trial_number
 
     return processed_position_data
 
