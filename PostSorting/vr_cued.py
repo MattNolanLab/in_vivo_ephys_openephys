@@ -19,10 +19,10 @@ def order_by_goal_location(processed_position_data):
     ordered_trial_numbers = np.arange(1, len(tmp[0]) + 1)
     sortedtmp = np.flip(sortedtmp, axis=1)
 
-    del processed_position_data['goal_location_trial_numbers']
+    #del processed_position_data['goal_location_trial_numbers']
 
-    processed_position_data['goal_location_old_trial_numbers'] = pd.Series(ordered_trial_numbers)
-    processed_position_data['goal_location_new_trial_numbers'] = pd.Series(sortedtmp[1])
+    processed_position_data['goal_location_old_trial_numbers'] = pd.Series(sortedtmp[1])
+    processed_position_data['goal_location_new_trial_numbers'] = pd.Series(ordered_trial_numbers)
 
     # now swap trial numbers for binned_speed
     n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
