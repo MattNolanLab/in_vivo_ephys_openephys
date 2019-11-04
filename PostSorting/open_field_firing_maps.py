@@ -1,4 +1,5 @@
 from joblib import Parallel, delayed
+import os
 import multiprocessing
 import matplotlib.pylab as plt
 import pandas as pd
@@ -73,8 +74,8 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     smooth = 5 / 100 * prm.get_pixel_ratio()
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
-    num_cores = multiprocessing.cpu_count()
     clusters = range(len(firing_data_spatial))
+    num_cores = int(os.environ['HEATMAP_CONCURRENCY']) if os.environ.get('HEATMAP_CONCURRENCY') else multiprocessing.cpu_count()
     time_start = time.time()
     firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
     time_end = time.time()
