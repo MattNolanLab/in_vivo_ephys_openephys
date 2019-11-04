@@ -780,7 +780,7 @@ def process_circular_data(animal, tag=''):
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
     if animal == 'mouse':
         field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-    if animal == 'rat':
+    elif animal == 'rat':
         field_data = tag_accepted_fields_rat(field_data, accepted_fields)
     else:
         field_data['accepted_field'] = True
