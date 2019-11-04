@@ -302,7 +302,7 @@ def get_percentage_of_grid_cells_with_directional_nodes(fields):
     print(np.std(percentage_of_directional_corr))
 
 
-def get_number_of_directional_fields(fields):
+def get_number_of_directional_fields(fields, tag='grid'):
     percentiles_no_correction = []
     percentiles_correction = []
     for index, field in fields.iterrows():
@@ -312,7 +312,8 @@ def get_number_of_directional_fields(fields):
         percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
         percentiles_correction.append(percentile)
 
-    print('Number of grid fields: ' + str(len(fields)))
+    print(tag)
+    print('Number of fields: ' + str(len(fields)))
     print('Number of directional fields [without correction]: ')
     print(np.sum(np.array(percentiles_no_correction) > 95))
     fields['directional_no_correction'] = np.array(percentiles_no_correction) > 95
@@ -362,7 +363,8 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
     shuffled_field_data_conj = shuffled_field_data[conj_cells & accepted_field]
 
-    get_number_of_directional_fields(shuffled_field_data_grid)
+    get_number_of_directional_fields(shuffled_field_data_grid, tag='grid')
+    get_number_of_directional_fields(shuffled_field_data_conj, tag='conjunctive')
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
     plot_distributions_for_fields(shuffled_field_data_conj, 'conjunctive', animal=animal, shuffle_type=shuffle_type)
     if len(shuffled_field_data_not_classified) > 0:
