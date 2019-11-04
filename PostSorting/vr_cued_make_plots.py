@@ -569,7 +569,7 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
     min_speed = np.nanmin(np.concatenate(list(processed_position_data.speed_trials_binned[:int(max(processed_position_data.speed_trial_numbers))])).ravel())
 
     # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
-    normal = pl.Normalize(0, 20) # 0 to 25cm/s
+    normal = pl.Normalize(0, 15) # 0 to 15cm/s
     cax, _ = cbar.make_axes(ax)
     cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
     cax.set_ylabel('Speeds (cm/s)', fontsize=12, labelpad=10)
