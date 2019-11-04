@@ -301,9 +301,34 @@ def get_distances_all(field_data):
         return distances_all
 
 
+def get_highest_correlation_angles(field_data):
+    highest_corr_angles = []
+    '''
+    if len(field_data) > 0:
+        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+        list_of_cells = np.unique(list(field_data.unique_cell_id))
+        pearson_coefs_all = []
+        for cell in range(len(list_of_cells)):
+            cell_id = list_of_cells[cell]
+            field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
+            pearson_coefs_cell = []
+            for index1, field1 in enumerate(field_histograms):
+                for index2, field2 in enumerate(field_histograms):
+                    if index1 != index2:
+                        field1_clean_z, field2_clean_z = remove_nans(field1, field2)
+                        # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                        if len(field1_clean_z) > 1:
+                            pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
+                            pearson_coefs_cell.append(pearson_coef)
+            pearson_coefs_all.extend([pearson_coefs_cell])
+        '''
+    return highest_corr_angles
+
+
 def get_distance_vs_correlations(field_data, type='grid cells'):
     pearson_coefs_all = get_pearson_coefs_all(field_data)
     distances = get_distances_all(field_data)
+    highest_correlation_angles = get_highest_correlation_angles(field_data)
     coefs_list = np.asanyarray([item for sublist in pearson_coefs_all for item in sublist])
     distances_list = np.asanyarray([item for sublist in distances for item in sublist])
     # corr_clean, dist_clean = remove_nans(coefs_list, distances_list)
