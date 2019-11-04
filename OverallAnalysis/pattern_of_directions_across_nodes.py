@@ -272,7 +272,7 @@ def get_pearson_coefs_all(field_data):
                         if len(field1_clean_z) > 1:
                             pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
                             pearson_coefs_cell.append(pearson_coef)
-            pearson_coefs_all.append([pearson_coefs_cell])
+            pearson_coefs_all.extend([pearson_coefs_cell])
         return pearson_coefs_all
 
 
@@ -297,7 +297,7 @@ def get_distances_all(field_data):
 
                         distance = np.sqrt(np.square(np.abs(x2 - x1)) + np.square(np.abs(y2 - y1)))
                         distances_cell.append(distance)
-            distances_all.append([distances_cell])
+            distances_all.extend([distances_cell])
         return distances_all
 
 
@@ -306,17 +306,21 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
     distances = get_distances_all(field_data)
     coefs_list = np.asanyarray([item for sublist in pearson_coefs_all for item in sublist])
     distances_list = np.asanyarray([item for sublist in distances for item in sublist])
-    corr_clean, dist_clean = remove_nans(coefs_list, distances)
-    corr, p = scipy.stats.pearsonr(dist_clean, corr_clean)
+    # corr_clean, dist_clean = remove_nans(coefs_list, distances_list)
+    corr, p = scipy.stats.pearsonr(distances_list, coefs_list)
     print('number of fields: ' + str(len(coefs_list)))
     print('Correlation between distance between fields and correlation of field shape:')
     print(corr)
-    print('p' + str(p))
+    print('p: ' + str(p))
     return distances_list, coefs_list
 
 
-def plot_distances_vs_field_correlations(distances, in_between_coefs):
-    pass
+def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
+    plt.cla()
+    plt.scatter(distances, in_between_coefs)
+    plt.xlabel('Distance between fields')
+    plt.ylabel('Pearson correlation between fields')
+    plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
 
 
 def save_correlation_plot(corr, animal, cell_type, tag=''):
@@ -845,7 +849,7 @@ def process_circular_data(animal, tag=''):
     save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
 
     distances, in_between_coefs = get_distance_vs_correlations(all_accepted_grid_cells_df, type='grid cells ' + animal)
-    plot_distances_vs_field_correlations(distances, in_between_coefs)
+    plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
 
     grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
 
