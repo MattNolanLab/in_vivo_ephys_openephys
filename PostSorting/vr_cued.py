@@ -17,6 +17,7 @@ def order_by_goal_location(processed_position_data):
 
     sortedtmp = tmp[:, tmp[0].argsort()]  # sorts by goal_location
     ordered_trial_numbers = np.arange(1, len(tmp[0]) + 1)
+    sortedtmp = np.flip(sortedtmp, axis=1)
 
     del processed_position_data['goal_location_trial_numbers']
 
