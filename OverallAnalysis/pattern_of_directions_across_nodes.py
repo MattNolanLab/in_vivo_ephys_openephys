@@ -317,10 +317,13 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
 
 def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
     plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
     plt.scatter(distances, in_between_coefs)
-    plt.xlabel('Distance between fields')
-    plt.ylabel('Pearson correlation between fields')
+    ax.set_xlabel('Distance between fields', fontsize=25)
+    ax.set_ylabel('Pearson correlation between fields', fontsize=25)
+
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
+    plt.close()
 
 
 def save_correlation_plot(corr, animal, cell_type, tag=''):
@@ -928,7 +931,7 @@ def main():
     process_circular_data('rat')
     # process_circular_data('simulated', 'ventral_narrow')
     # process_circular_data('simulated', 'control_narrow')
-    compare_correlations_from_different_experiments()
+    # compare_correlations_from_different_experiments()
 
 
 if __name__ == '__main__':
