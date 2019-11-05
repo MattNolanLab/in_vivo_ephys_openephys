@@ -4,6 +4,7 @@ import glob
 from scipy.stats import circstd
 import scipy.stats
 import seaborn
+import math_utility
 import matplotlib.pylab as plt
 import numpy as np
 import os
@@ -19,7 +20,7 @@ prm = PostSorting.parameters.Parameters()
 prm.set_sorter_name('MountainSort')
 
 
-local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/'
+local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/pattern_of_directions/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
@@ -255,15 +256,130 @@ def compare_hd_histograms(field_data, type='cell'):
         return pearson_coefs_avg
 
 
-def save_hd_histograms_csv(field_data, file_name):
-    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
-    list_of_cells = np.unique(list(field_data.unique_cell_id))
+def get_pearson_coefs_all(field_data):
+    if len(field_data) > 0:
+        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+        list_of_cells = np.unique(list(field_data.unique_cell_id))
+        pearson_coefs_all = []
+        for cell in range(len(list_of_cells)):
+            cell_id = list_of_cells[cell]
+            field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
+            pearson_coefs_cell = []
+            for index1, field1 in enumerate(field_histograms):
+                for index2, field2 in enumerate(field_histograms):
+                    if index1 != index2:
+                        field1_clean_z, field2_clean_z = remove_nans(field1, field2)
+                        # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                        if len(field1_clean_z) > 1:
+                            pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
+                            pearson_coefs_cell.append(pearson_coef)
+            pearson_coefs_all.extend([pearson_coefs_cell])
+        return pearson_coefs_all
 
-    for cell in range(len(list_of_cells)):
-        cell_id = list_of_cells[cell]
-        field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
-        for index, field in enumerate(field_histograms):
-            np.savetxt(local_path + '/data_for_r/' + file_name + '_' + cell_id + '_' +  str(index) + '.csv', field, delimiter=',')
+
+def get_distances_all(field_data):
+    if len(field_data) > 0:
+        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+        list_of_cells = np.unique(list(field_data.unique_cell_id))
+        distances_all = []
+        for cell in range(len(list_of_cells)):
+            cell_id = list_of_cells[cell]
+            indices_rate_map = field_data.loc[field_data['unique_cell_id'] == cell_id].indices_rate_map
+            distances_cell = []
+            for index1, field1 in enumerate(indices_rate_map):
+                for index2, field2 in enumerate(indices_rate_map):
+                    if index1 != index2:
+                        # calculate distance between fields
+                        x1 = int(np.median(np.unique(field1[:, 0])))
+                        y1 = int(np.median(np.unique(field1[:, 1])))
+
+                        x2 = int(np.median(np.unique(field2[:, 0])))
+                        y2 = int(np.median(np.unique(field2[:, 1])))
+
+                        distance = np.sqrt(np.square(np.abs(x2 - x1)) + np.square(np.abs(y2 - y1)))
+                        distances_cell.append(distance)
+            distances_all.extend([distances_cell])
+        return distances_all
+
+
+# calculate rotation angle (rotating one of the fields) where the correlation is highest between the fields
+def calculate_highest_correlating_angle(field_hist1, field_hist2):
+    max = -1  # to find the maximum this is initialized at the lowest possible value
+    angle_of_max = None
+    for rotation in range(len(field_hist1)):
+        field1_clean, field2_clean = remove_nans(field_hist1, field_hist2)
+        if len(field1_clean) > 1:
+            pearson_coef = scipy.stats.pearsonr(field1_clean, field2_clean)[0]
+            if pearson_coef > max:
+                max = pearson_coef
+                angle_of_max = rotation * 360 / len(field_hist1)
+        field_hist1 = np.roll(field_hist1, 1)
+    return angle_of_max
+
+
+def get_highest_correlation_angles(field_data):
+    if len(field_data) > 0:
+        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
+        list_of_cells = np.unique(list(field_data.unique_cell_id))
+        highest_correlation_angles = []
+        for cell in range(len(list_of_cells)):
+            cell_id = list_of_cells[cell]
+            field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
+            angles_cell = []
+            for index1, field1 in enumerate(field_histograms):
+                for index2, field2 in enumerate(field_histograms):
+                    if index1 != index2:
+                        angle = calculate_highest_correlating_angle(field1, field2)
+                        angles_cell.append(angle)
+            highest_correlation_angles.extend([angles_cell])
+
+        return highest_correlation_angles
+
+
+def get_distance_vs_correlations(field_data, type='grid cells'):
+    pearson_coefs_all = get_pearson_coefs_all(field_data)
+    distances = get_distances_all(field_data)
+    highest_correlation_angles = get_highest_correlation_angles(field_data)
+    coefs_list = np.asanyarray([item for sublist in pearson_coefs_all for item in sublist])
+    distances_list = np.asanyarray([item for sublist in distances for item in sublist])
+    highest_correlation_angles_list = np.asanyarray([item for sublist in highest_correlation_angles for item in sublist])
+    # corr_clean, dist_clean = remove_nans(coefs_list, distances_list)
+    corr, p = scipy.stats.pearsonr(distances_list, coefs_list)
+    print('number of fields: ' + str(len(coefs_list)))
+    print('Correlation between distance between fields and correlation of field shape:')
+    print(corr)
+    print('p: ' + str(p))
+
+    # corr_lin, p_lin = scipy.stats.pearsonr(distances_list, highest_correlation_angles_list)
+    corr, p = math_utility.circ_corrcc(np.radians(highest_correlation_angles_list), distances_list)
+    print('number of fields: ' + str(len(distances_list)))
+    print('Correlation between distance between fields and highest correlating rotation angle:')
+    print(corr)
+    print('p: ' + str(p))
+    return distances_list, coefs_list, highest_correlation_angles_list
+
+
+def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
+    plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
+    plt.scatter(distances, in_between_coefs)
+    ax.set_xlabel('Distance between fields', fontsize=25)
+    ax.set_ylabel('Pearson correlation between fields', fontsize=25)
+
+    plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
+    plt.close()
+
+
+# plot distance between fields vs highest correlating rotation (one of the fields is rotated to find the highest corr)
+def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag):
+    plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
+    plt.scatter(distances, highest_corr_angles)
+    ax.set_xlabel('Distance between fields', fontsize=25)
+    ax.set_ylabel('Highest correlating rotation', fontsize=25)
+
+    plt.savefig(local_path + 'distance_between_fields_vs_highest_correlating_angle' + tag + '.png')
+    plt.close()
 
 
 def save_correlation_plot(corr, animal, cell_type, tag=''):
@@ -638,11 +754,11 @@ def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
 
 def compare_within_field_with_other_fields_stat(field_data, animal):
     correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
-    save_corr_coef_in_csv(correlation_values_in_between, correlation_p, 'in_between_fields_all_' + animal)
+    # save_corr_coef_in_csv(correlation_values_in_between, correlation_p, 'in_between_fields_all_' + animal)
     print('% of significant p values for in between field correlations:')
     print(sum(np.array(correlation_p) < 0.01) / len(correlation_p) * 100)
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
-    save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
+    # save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
     print('% of significant p values for within field correlations:')
     print('number of fields included: ' + str(len(correlation_p_within)))
     print(sum(correlation_p_within < 0.01) / len(correlation_p_within) * 100)
@@ -790,22 +906,24 @@ def process_circular_data(animal, tag=''):
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
     save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
+
+    distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df, type='grid cells ' + animal)
+    plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
+    plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
+
     grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
-    save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
+
     centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
     grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
-    save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
+
     border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
     grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
-    save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
     conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
-    save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
     # compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
     compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
 
     conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
-    save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
     conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
     compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal + tag)
     plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
@@ -868,9 +986,9 @@ def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
 def main():
     process_circular_data('mouse')
     process_circular_data('rat')
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
-    compare_correlations_from_different_experiments()
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
+    # compare_correlations_from_different_experiments()
 
 
 if __name__ == '__main__':
