@@ -89,7 +89,7 @@ def add_goal_location(recording_to_process, raw_position_data, prm):
     return raw_position_data
 
 def offset_location_by_goal(raw_position_data):
-    raw_position_data["x_position_cm_offset"] = raw_position_data["goal_location_cm"] - raw_position_data["x_position_cm"]
+    raw_position_data["x_position_cm_offset"] = raw_position_data["x_position_cm"] - raw_position_data["goal_location_cm"]
     return raw_position_data
 
 def extract_goal_locations(recording_folder, prm):

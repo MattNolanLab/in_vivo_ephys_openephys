@@ -204,7 +204,7 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad=10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
-        #plt.xlim(0, 200)
+        plt.xlim(-200, 200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
 
@@ -268,7 +268,7 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad=10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
-        #plt.xlim(0, 200)
+        plt.xlim(-200, 200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
 

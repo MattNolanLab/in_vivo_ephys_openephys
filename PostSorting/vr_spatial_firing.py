@@ -54,7 +54,9 @@ def add_position_x_offset(spike_data, spatial_data_x, spatial_data_goal_x):
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices] - spatial_data_goal_x[cluster_firing_indices])
+        #spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices] - spatial_data_goal_x[cluster_firing_indices])
+        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices])
+
     return spike_data
 
 
