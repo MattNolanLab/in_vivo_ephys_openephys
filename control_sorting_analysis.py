@@ -212,7 +212,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if paired_recording is not None:
             paired_recording = copy_recording_to_sort_to_local(paired_recording)
-            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recording)
+            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, sorting_folder+paired_recording)
 
         pre_process_ephys_data.pre_process_data(recording_to_sort)
 
