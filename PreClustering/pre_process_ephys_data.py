@@ -28,18 +28,22 @@ def stitch_recordings(recording_to_sort, paired_recording):
     init_params()
     file_utility.set_continuous_data_path(prm)
 
-    dir = [f.path for f in os.scandir(recording_to_sort) if f.is_dir()]
+    dir = [f.path for f in os.scandir(recording_to_sort)]
 
-    for filename in dir:
+    for filepath in dir:
+        filename = filepath.split("/")[-1]
+
         if filename.startswith(prm.get_continuous_file_name()):
-            ch = OpenEphys.loadContinuous(recording_to_sort+'/'+filename)
-            ch_p = OpenEphys.loadContinuous(paired_recording+'/'+filename)
-            combined = np.append(ch, ch_p)
-            split_point = len(ch)
+            ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
+            ch_p = OpenEphys.loadContinuous(paired_recording + '/' + filename)
+            stitch_point = len(ch['data'])
+            ch['data'] = np.append(ch['data'], ch_p['data'])
+            ch['timestamps'] = np.append(ch['timestamps'], ch_p['timestamps'])
+            ch['recordingNumber'] = np.append(ch['recordingNumber'], ch_p['recordingNumber'])
 
-            OpenEphys.write_continuousfile(combined)
+            OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
 
-    return recording_to_sort
+    return recording_to_sort, stitch_point
 
 # Prepares input for running spike sorting for the recording.
 def process_a_dir(dir_name):

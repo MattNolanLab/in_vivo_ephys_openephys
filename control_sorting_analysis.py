@@ -109,16 +109,16 @@ def get_tags_parameter_file(recording_directory):
 
 def check_for_paired(running_parameter_tags):
     paired_recording = None
-    paired_session_type = None
+    session_type_paired = None
 
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
         if tag.startswith('paired'):
             paired_recording = str(tag.split("=")[1])
-        elif tag.startswith('paired_session_type'):
-            paired_session_type = str(tag.split("=")[1])
+        elif tag.startswith('session_type_paired'):
+            session_type_paired = str(tag.split("=")[1])
 
-    return paired_recording, paired_session_type
+    return paired_recording, session_type_paired
 
 
 def write_param_file_for_matlab(file_to_sort, path_to_server, is_openfield, is_vr):
@@ -212,7 +212,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if paired_recording is not None:
             paired_recording = copy_recording_to_sort_to_local(paired_recording)
-            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, sorting_folder+paired_recording)
+            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, sorting_folder+paired_recording.split('/')[-1])
 
         pre_process_ephys_data.pre_process_data(recording_to_sort)
 
