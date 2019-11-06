@@ -267,7 +267,7 @@ def get_pearson_coefs_all(field_data):
             pearson_coefs_cell = []
             for index1, field1 in enumerate(field_histograms):
                 for index2, field2 in enumerate(field_histograms):
-                    if index1 != index2:
+                    if index1 < index2:
                         field1_clean_z, field2_clean_z = remove_nans(field1, field2)
                         # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
                         if len(field1_clean_z) > 1:
@@ -288,7 +288,7 @@ def get_distances_all(field_data):
             distances_cell = []
             for index1, field1 in enumerate(indices_rate_map):
                 for index2, field2 in enumerate(indices_rate_map):
-                    if index1 != index2:
+                    if index1 < index2:
                         # calculate distance between fields
                         x1 = int(np.median(np.unique(field1[:, 0])))
                         y1 = int(np.median(np.unique(field1[:, 1])))
@@ -328,7 +328,7 @@ def get_highest_correlation_angles(field_data):
             angles_cell = []
             for index1, field1 in enumerate(field_histograms):
                 for index2, field2 in enumerate(field_histograms):
-                    if index1 != index2:
+                    if index1 < index2:
                         angle = calculate_highest_correlating_angle(field1, field2)
                         angles_cell.append(angle)
             highest_correlation_angles.extend([angles_cell])
