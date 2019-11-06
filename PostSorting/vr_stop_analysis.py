@@ -102,11 +102,11 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
 
 
 def calculate_stops(raw_position_data,processed_position_data, prm):
-    #all_stops = get_stop_times(raw_position_data,threshold)
-    #track_beginnings = get_beginning_of_track_positions(raw_position_data)
-    #processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+    all_stops = get_stop_times(raw_position_data, prm.get_stop_threshold())
+    track_beginnings = get_beginning_of_track_positions(raw_position_data)
+    processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
 
-    processed_position_data = get_stops_from_binned_speed(processed_position_data, prm)
+    #processed_position_data = get_stops_from_binned_speed(processed_position_data, prm)
 
     return processed_position_data
 
