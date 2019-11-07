@@ -296,6 +296,7 @@ def get_percentage_of_grid_cells_with_directional_nodes(fields):
         percentage = number_of_directional_fields_correction / len(fields_of_cell) * 100
         percentage_of_directional_corr.append(percentage)
 
+    print('Total number of cells: ' + str(len(cell_ids)))
     print('avg % of directional fields in grid cells no correction: ' + str(np.mean(percentage_of_directional_no_corr)))
     print(np.std(percentage_of_directional_no_corr))
     print('avg % of directional fields in grid cells BH correction: ' + str(np.mean(percentage_of_directional_corr)))
