@@ -275,7 +275,7 @@ def calculate_instant_velocity(position_data, prm):
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
     velocity = location - location_to_subtract_from
 
-    position_data['velocity'] = velocity
+    position_data['velocity'] = velocity*5
     return position_data
 
 
