@@ -24,6 +24,21 @@ def init_params():
     prm.set_is_tetrode_by_tetrode(False)  # set to True if you want the spike sorting to be done tetrode by tetrode
     prm.set_is_all_tetrodes_together(True)  # set to True if you want the spike sorting done on all tetrodes combined
 
+def split_back(recording_to_sort, stitch_point):
+    dir = [f.path for f in os.scandir(recording_to_sort)]
+
+    for filepath in dir:
+        filename = filepath.split("/")[-1]
+
+        if filename.startswith(prm.get_continuous_file_name()):
+            ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
+            ch['data'] = ch['data'][:stitch_point]
+            ch['timestamps'] = ch['timestamps'][:stitch_point]
+            ch['recordingNumber'] = ch['recordingNumber'][:stitch_point]
+            OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
+
+    return recording_to_sort
+
 def stitch_recordings(recording_to_sort, paired_recording):
     init_params()
     file_utility.set_continuous_data_path(prm)

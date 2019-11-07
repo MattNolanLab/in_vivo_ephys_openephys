@@ -226,14 +226,24 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
+
+        if paired_recording is not None:
+            recording_to_sort = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
+            #if paired_session_type is "open_field":
+            #    post_process_sorted_data.post_process_recording(paired_recording, paired_session_type,
+            #                                                    running_parameter_tags=tags)
+            #elif paired_session_type is "vr":
+            #    post_process_sorted_data_vr.post_process_recording(paired_recording, paired_session_type,
+            #                                                    running_parameter_tags=tags)
+
         if is_open_field:
             post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
-        if is_vr:
+        elif is_vr:
             post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags)
+
 
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
-
 
         #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
