@@ -152,8 +152,8 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     ax.xaxis.set_ticks_position('bottom')
 
     plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
-    b_max = max(average_beaconed) + 0.1
-    nb_max = max(average_nonbeaconed) + 0.1
+    b_max = max(average_beaconed)
+    nb_max = max(average_nonbeaconed)
     x_max = max(b_max, nb_max)
     plot_utility.style_vr_plot_offset(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
