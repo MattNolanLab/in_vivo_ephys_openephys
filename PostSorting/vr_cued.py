@@ -152,6 +152,7 @@ def plot_goal_channel(goal_location, prm):
     plt.savefig(save_path + '/goal_location' + '.png')
     plt.close()
 
+
 def test_goal_binary2cm(prm):
 
     print(" ------- unit test one, goal location constant -----------")

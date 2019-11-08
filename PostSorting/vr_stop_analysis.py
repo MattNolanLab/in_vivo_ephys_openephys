@@ -236,23 +236,24 @@ def find_rewarded_positions_test(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def get_bin_size(spatial_data):
-    #bin_size_cm = 1
-    track_length = spatial_data.x_position_cm.max()
-    start_of_track = spatial_data.x_position_cm.min()
+def get_bin_size(spatial_data, prm):
+    bin_size_cm = 1
+    track_length = prm.get_track_length()
+    start_of_track = 0
     #number_of_bins = (track_length - start_of_track)/bin_size_cm
-    number_of_bins = 200
-    bin_size_cm = (track_length - start_of_track)/number_of_bins
-    bins = np.arange(start_of_track,track_length, 200)
-    return bin_size_cm,number_of_bins, bins
+    number_of_bins = int(track_length/bin_size_cm)
+    #bin_size_cm = (track_length - start_of_track)/number_of_bins
+    bins = np.arange(start_of_track,track_length, number_of_bins)
+    return bin_size_cm, number_of_bins, bins
 
 
-def calculate_average_stops(raw_position_data,processed_position_data):
+def calculate_average_stops(raw_position_data, processed_position_data, prm):
     stop_locations = processed_position_data.stop_location_cm.values
     stop_locations = stop_locations[~np.isnan(stop_locations)] #need to deal with
-    bin_size_cm,number_of_bins, bins = get_bin_size(raw_position_data)
+    bin_size_cm, number_of_bins, bins = get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     stops_in_bins = np.zeros((len(range(int(number_of_bins)))))
+
     for loc in range(int(number_of_bins)-1):
         stops_in_bin = len(stop_locations[np.where(np.logical_and(stop_locations > (loc), stop_locations <= (loc+1)))])/number_of_trials
         stops_in_bins[loc] = stops_in_bin
@@ -264,7 +265,7 @@ def calculate_average_stops(raw_position_data,processed_position_data):
 
 def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
     processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm)
-    processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
+    processed_position_data = calculate_average_stops(raw_position_data,processed_position_data, prm)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
     processed_position_data = find_rewarded_positions(raw_position_data,processed_position_data)
