@@ -132,7 +132,7 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
 
 
 def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
+    #snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
     spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250,
@@ -148,7 +148,8 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
     if opto_analysis:
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
+    #save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
+    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
     return synced_spatial_data, spatial_firing
 

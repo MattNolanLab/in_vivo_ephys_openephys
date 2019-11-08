@@ -128,26 +128,29 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
     beaconed, nonbeaconed, probe = split_stop_data_by_trial_type(processed_position_data)
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
 
     bins = np.arange(-200, 200, 1)
+    bin_centres = 0.5*(bins[1:]+bins[:-1])
 
-    average_beaconed = np.histogram(beaconed,bins)
-    average_nonbeaconed = np.histogram(nonbeaconed,bins)
+    average_beaconed = np.histogram(beaconed,bins)[0]/n_beaconed_trials
+    average_nonbeaconed = np.histogram(nonbeaconed,bins)[0]/n_nonbeaconed_trials
 
     #position_bins = np.array(processed_position_data["position_bins"])
     #average_stops = np.array(processed_position_data["average_stops"])
-    ax.plot(bins, average_beaconed, '-', color='Black')
-    ax.plot(bins, average_nonbeaconed, '-', color='Red')
+    ax.plot(bin_centres, average_beaconed[0], '-', color='Black')
+    ax.plot(bin_centres, average_nonbeaconed[0], '-', color='Red')
 
-    plt.ylabel('Stops (Stops/cm)', fontsize=12, labelpad = 10)
+    plt.ylabel('Average Stops per Trial', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(min(bins), max(bins))
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
 
     plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
-    b_max = max(processed_position_data.average_beaconed) + 0.1
-    nb_max = max(processed_position_data.average_nonbeaconed) + 0.1
+    b_max = max(average_beaconed[0]) + 0.1
+    nb_max = max(average_nonbeaconed[0]) + 0.1
     x_max = max(b_max, nb_max)
     plot_utility.style_vr_plot_offset(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
