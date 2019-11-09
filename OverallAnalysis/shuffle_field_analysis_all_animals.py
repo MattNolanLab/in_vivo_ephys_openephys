@@ -366,8 +366,8 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
     shuffled_field_data_conj = shuffled_field_data[conj_cells & accepted_field]
 
-    get_number_of_directional_fields(shuffled_field_data_grid, tag='grid')
-    get_number_of_directional_fields(shuffled_field_data_conj, tag='conjunctive')
+    get_number_of_directional_fields(shuffled_field_data_grid, tag='grid' + animal)
+    get_number_of_directional_fields(shuffled_field_data_conj, tag='conjunctive' + animal)
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
     plot_distributions_for_fields(shuffled_field_data_conj, 'conjunctive', animal=animal, shuffle_type=shuffle_type)
     if len(shuffled_field_data_not_classified) > 0:
