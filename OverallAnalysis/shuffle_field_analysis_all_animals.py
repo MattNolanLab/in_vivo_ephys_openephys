@@ -318,10 +318,12 @@ def get_number_of_directional_fields(fields, tag='grid'):
     print('Number of directional fields [without correction]: ')
     print(np.sum(np.array(percentiles_no_correction) > 95))
     fields['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+    np.save(analysis_path + tag + 'percentiles_no_correction.npy', np.array(percentiles_no_correction))
 
     print('Number of directional fields [with BH correction]: ')
     print(np.sum(np.array(percentiles_correction) > 95))
     fields['directional_correction'] = np.array(percentiles_correction) > 95
+    np.save(analysis_path + tag + 'percentiles_correction.npy', np.array(percentiles_correction))
 
     get_percentage_of_grid_cells_with_directional_nodes(fields)
 
