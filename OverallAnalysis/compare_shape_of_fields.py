@@ -625,6 +625,8 @@ def compare_within_field_with_other_fields(field_data, animal):
         print('Wilcoxon p value for correlations in between fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
         t, p = scipy.stats.wilcoxon(within_field_corr)
         print('Wilcoxon p value for correlations within fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
+        t, p = scipy.stats.ttest_1samp(within_field_corr, 0)
+        print('one sample t-test p value is ' + str(p) + ' T is ' + str(t))
         print('median of in-between fields: ' + str(np.median(in_between_fields[~np.isnan(in_between_fields)])) + ' sd: ' + str(np.std(in_between_fields[~np.isnan(in_between_fields)])))
         print('median of within fields: ' + str(np.median(within_field_corr[~np.isnan(within_field_corr)])) + ' sd: ' + str(np.std(within_field_corr[~np.isnan(within_field_corr)])))
 
