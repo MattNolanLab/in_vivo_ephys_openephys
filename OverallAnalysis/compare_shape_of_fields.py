@@ -561,14 +561,20 @@ def get_correlation_values_in_between_fields(field_data):
 
 
 def get_range_of_correlations_for_directional(field_data):
-    animal = 'rat'
+    animal = 'mouse'
     field_shuffle = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/grid' + animal + 'fields.pkl')
 
     directional = field_shuffle[field_shuffle.directional_correction == True]
 
     merged = pd.merge(field_data, directional, left_on='unique_id', right_on='unique_id')
 
-    directional_corr = merged[merged.directional_correction == True].correlation_values_within
+    significant = merged.correlation_within_p < 0.05
+    positive_corr = merged.correlation_values_within > 0
+    directional = merged.directional_correction == True
+    directional_corr = merged[significant & positive_corr & directional].correlation_values_within
+    dir_corr = np.array(directional_corr)
+
+
     print(min(directional_corr))
     print(max(directional_corr))
     dir_corr = np.array(directional_corr)
@@ -596,6 +602,7 @@ def get_correlation_values_within_fields(field_data):
 
     correlation_values_within = np.array(correlation_values)
     field_data['correlation_values_within'] = correlation_values_within
+    field_data['correlation_within_p'] = correlation_p
     correlation_p = np.array(correlation_p)
     # get_range_of_correlations_for_directional(field_data)
     return correlation_values_within, correlation_p
@@ -885,7 +892,7 @@ def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
 
 def main():
     process_circular_data('mouse')
-    process_circular_data('rat')
+    # process_circular_data('rat')
     process_circular_data('simulated', 'ventral_narrow')
     process_circular_data('simulated', 'control_narrow')
     compare_correlations_from_different_experiments()
