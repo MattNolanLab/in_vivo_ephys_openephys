@@ -560,6 +560,21 @@ def get_correlation_values_in_between_fields(field_data):
     return correlation_values_in_between, correlation_p
 
 
+def get_range_of_correlations_for_directional(field_data):
+    animal = 'rat'
+    field_shuffle = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/grid' + animal + 'fields.pkl')
+
+    directional = field_shuffle[field_shuffle.directional_correction == True]
+
+    merged = pd.merge(field_data, directional, left_on='unique_id', right_on='unique_id')
+
+    directional_corr = merged[merged.directional_correction == True].correlation_values_within
+    print(min(directional_corr))
+    print(max(directional_corr))
+    dir_corr = np.array(directional_corr)
+    print(np.std(dir_corr[~np.isnan(dir_corr)]))
+
+
 def get_correlation_values_within_fields(field_data):
     first_halves = field_data.hd_hist_first_half
     second_halves = field_data.hd_hist_second_half
@@ -580,7 +595,9 @@ def get_correlation_values_within_fields(field_data):
             correlation_p.append(np.nan)
 
     correlation_values_within = np.array(correlation_values)
+    field_data['correlation_values_within'] = correlation_values_within
     correlation_p = np.array(correlation_p)
+    # get_range_of_correlations_for_directional(field_data)
     return correlation_values_within, correlation_p
 
 
@@ -602,7 +619,6 @@ def compare_within_field_with_other_fields(field_data, animal):
     if len(field_data) > 1:
         in_between_fields, correlation_p = get_correlation_values_in_between_fields(field_data)
         within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
-
         fig, ax = plt.subplots()
         plt.axvline(x=0, linewidth=3, color='red')
         ax = format_bar_chart(ax, 'r', 'Proportion')
