@@ -3,6 +3,7 @@ import pandas as pd
 import PostSorting.parameters
 import gc
 import PostSorting.vr_stop_analysis
+import PostSorting.vr.time_analysis
 import PostSorting.vr_make_plots
 from scipy import stats
 import PostSorting.vr_speed_analysis
@@ -143,6 +144,7 @@ def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data, prm)
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
     processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data,prm, recording_to_process)
+    processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,prm, recording_to_process)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data, processed_position_data, prm, recording_to_process)
     gc.collect()
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
