@@ -43,10 +43,12 @@ def main():
     plt.cla()
     plt.imshow(firing_data_spatial_first.firing_maps.iloc[0])
     plt.savefig(local_path + 'first_half_rate_map.png')
+    print('max firing rate: ' + str(max(firing_data_spatial_first.firing_maps.iloc[0].flatten())))
 
     plt.cla()
     plt.imshow(firing_data_spatial_second.firing_maps.iloc[0])
     plt.savefig(local_path + 'second_half_rate_map.png')
+    print('max firing rate: ' + str(max(firing_data_spatial_second.firing_maps.iloc[0].flatten())))
 
     prm.set_output_path(local_path + 'scatter_first/')
     PostSorting.open_field_make_plots.plot_hd(firing_data_spatial_first, position_data_first_half, prm)

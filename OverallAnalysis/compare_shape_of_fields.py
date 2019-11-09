@@ -560,6 +560,27 @@ def get_correlation_values_in_between_fields(field_data):
     return correlation_values_in_between, correlation_p
 
 
+def get_range_of_correlations_for_directional(field_data):
+    animal = 'mouse'
+    field_shuffle = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/grid' + animal + 'fields.pkl')
+
+    directional = field_shuffle[field_shuffle.directional_correction == True]
+
+    merged = pd.merge(field_data, directional, left_on='unique_id', right_on='unique_id')
+
+    significant = merged.correlation_within_p < 0.05
+    positive_corr = merged.correlation_values_within > 0
+    directional = merged.directional_correction == True
+    directional_corr = merged[significant & positive_corr & directional].correlation_values_within
+    dir_corr = np.array(directional_corr)
+
+
+    print(min(directional_corr))
+    print(max(directional_corr))
+    dir_corr = np.array(directional_corr)
+    print(np.std(dir_corr[~np.isnan(dir_corr)]))
+
+
 def get_correlation_values_within_fields(field_data):
     first_halves = field_data.hd_hist_first_half
     second_halves = field_data.hd_hist_second_half
@@ -580,7 +601,10 @@ def get_correlation_values_within_fields(field_data):
             correlation_p.append(np.nan)
 
     correlation_values_within = np.array(correlation_values)
+    field_data['correlation_values_within'] = correlation_values_within
+    field_data['correlation_within_p'] = correlation_p
     correlation_p = np.array(correlation_p)
+    # get_range_of_correlations_for_directional(field_data)
     return correlation_values_within, correlation_p
 
 
@@ -602,7 +626,6 @@ def compare_within_field_with_other_fields(field_data, animal):
     if len(field_data) > 1:
         in_between_fields, correlation_p = get_correlation_values_in_between_fields(field_data)
         within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
-
         fig, ax = plt.subplots()
         plt.axvline(x=0, linewidth=3, color='red')
         ax = format_bar_chart(ax, 'r', 'Proportion')
@@ -625,6 +648,8 @@ def compare_within_field_with_other_fields(field_data, animal):
         print('Wilcoxon p value for correlations in between fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
         t, p = scipy.stats.wilcoxon(within_field_corr)
         print('Wilcoxon p value for correlations within fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
+        t, p = scipy.stats.ttest_1samp(within_field_corr[~np.isnan(within_field_corr)], 0)
+        print('one sample t-test p value is ' + str(p) + ' T is ' + str(t))
         print('median of in-between fields: ' + str(np.median(in_between_fields[~np.isnan(in_between_fields)])) + ' sd: ' + str(np.std(in_between_fields[~np.isnan(in_between_fields)])))
         print('median of within fields: ' + str(np.median(within_field_corr[~np.isnan(within_field_corr)])) + ' sd: ' + str(np.std(within_field_corr[~np.isnan(within_field_corr)])))
 
@@ -867,7 +892,7 @@ def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
 
 def main():
     process_circular_data('mouse')
-    process_circular_data('rat')
+    # process_circular_data('rat')
     process_circular_data('simulated', 'ventral_narrow')
     process_circular_data('simulated', 'control_narrow')
     compare_correlations_from_different_experiments()
