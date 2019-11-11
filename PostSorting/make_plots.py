@@ -147,6 +147,7 @@ def plot_waveforms(spike_data, prm):
         highest_value = np.max(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
         lowest_value = np.min(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
         fig = plt.figure(figsize=(5, 5))
+        plt.suptitle("Spike waveforms")
         grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
         for channel in range(4):
             plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, 'random_snippets')
