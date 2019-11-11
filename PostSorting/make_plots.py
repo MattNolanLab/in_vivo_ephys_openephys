@@ -136,6 +136,19 @@ def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, clust
     plt.xticks([0, 10, 30], [-10, 0, 20])
 
 
+def plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, snippet_column_name):
+    max_channel = spike_data.primary_channel[cluster]
+    sd = np.std(spike_data.random_snippets[cluster][max_channel - 1, :, :] * -1)
+    highest_value = np.median(spike_data.random_snippets[cluster][max_channel - 1, :, :] * -1) + (sd * 4)
+    lowest_value = np.median(spike_data.random_snippets[cluster][max_channel - 1, :, :] * -1) - (sd * 4)
+    snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
+    plt.ylim(lowest_value - 10, highest_value + 30)
+    plot_utility.style_plot(snippet_plot)
+    snippet_plot.plot(spike_data[snippet_column_name][cluster][channel, :, :] * -1, color='lightslategray')
+    snippet_plot.plot(np.mean(spike_data[snippet_column_name][cluster][channel, :, :], 1) * -1, color='red')
+    plt.xticks([0, 10, 30], [-10, 0, 20])
+
+
 def plot_waveforms(spike_data, prm):
     print('I will plot the waveform shapes for each cluster.')
     save_path = prm.get_output_path() + '/Figures/firing_properties'
@@ -143,14 +156,11 @@ def plot_waveforms(spike_data, prm):
         os.makedirs(save_path)
     for cluster in range(len(spike_data)):
         cluster = spike_data.cluster_id.values[cluster] - 1
-        max_channel = spike_data.primary_channel[cluster]
-        highest_value = np.max(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
-        lowest_value = np.min(spike_data.random_snippets[cluster][max_channel-1, :, :] * -1)
         fig = plt.figure(figsize=(5, 5))
         plt.suptitle("Spike waveforms")
         grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
         for channel in range(4):
-            plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, 'random_snippets')
+            plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, 'random_snippets')
 
         plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.pdf', bbox_inches='tight', pad_inches=0)
