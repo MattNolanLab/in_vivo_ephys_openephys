@@ -195,6 +195,9 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
               'I could not resolve, but the files are actually copied successfully.')
         pass
 
+def copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort, stitch_point):
+    shutil.copytree(recording_to_sort+"/Electrophysiology", paired_recording_to_sort)
+    return paired_recording_to_sort
 
 def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Figures')
@@ -212,7 +215,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if paired_recording is not None:
             paired_recording = copy_recording_to_sort_to_local(paired_recording)
-            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, sorting_folder+paired_recording.split('/')[-1])
+            paired_recording_to_sort = sorting_folder + paired_recording.split('/')[-1]
+            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recording_to_sort)
 
         pre_process_ephys_data.pre_process_data(recording_to_sort)
 
@@ -229,12 +233,14 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if paired_recording is not None:
             recording_to_sort = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
-            #if paired_session_type is "open_field":
-            #    post_process_sorted_data.post_process_recording(paired_recording, paired_session_type,
-            #                                                    running_parameter_tags=tags)
-            #elif paired_session_type is "vr":
-            #    post_process_sorted_data_vr.post_process_recording(paired_recording, paired_session_type,
-            #                                                    running_parameter_tags=tags)
+            paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort, stitch_point)
+
+            if paired_session_type is "open_field":
+                post_process_sorted_data.post_process_recording(paired_recording, paired_session_type,
+                                                                running_parameter_tags=tags)
+            elif paired_session_type is "vr":
+                post_process_sorted_data_vr.post_process_recording(paired_recording, paired_session_type,
+                                                                running_parameter_tags=tags)
 
         if is_open_field:
             post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
