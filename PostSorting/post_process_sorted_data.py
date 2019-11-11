@@ -214,15 +214,8 @@ def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
 
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-15_17-23-36_of'
-
-    spike_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl')
-    synced_spatial_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/position.pkl')
-    angles_whole_session = (np.array(synced_spatial_data.hd) + 180) * np.pi / 180
-    hd_histogram = PostSorting.open_field_head_direction.get_hd_histogram(angles_whole_session)
-    hd_histogram /= prm.get_sampling_rate()
-    prm.set_output_path(recording_folder + '/MountainSort')
-    PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spike_data, prm)
+    recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
+    post_process_recording(recording_folder, 'open_field')
 
 
 if __name__ == '__main__':
