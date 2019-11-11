@@ -196,7 +196,7 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
         pass
 
 def copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort, stitch_point):
-    shutil.copytree(recording_to_sort+"/Electrophysiology", paired_recording_to_sort)
+    shutil.copytree(recording_to_sort+"/Electrophysiology", paired_recording_to_sort+"/Electrophysiology")
     return paired_recording_to_sort
 
 def copy_output_to_server(recording_to_sort, location_on_server):
@@ -235,10 +235,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
             recording_to_sort = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
             paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort, stitch_point)
 
-            if paired_session_type is "open_field":
+            if paired_session_type == "openfield":
                 post_process_sorted_data.post_process_recording(paired_recording, paired_session_type,
                                                                 running_parameter_tags=tags)
-            elif paired_session_type is "vr":
+            elif paired_session_type == "vr":
                 post_process_sorted_data_vr.post_process_recording(paired_recording, paired_session_type,
                                                                 running_parameter_tags=tags)
 
