@@ -1,4 +1,5 @@
 import os
+import pickle
 import PostSorting.curation
 import PostSorting.load_firing_data
 import PostSorting.load_snippet_data
@@ -131,6 +132,15 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
         bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 
 
+def save_data_for_plots(position_heat_map, hd_histogram, prm):
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    np.save(prm.get_output_path() + '/DataFrames/position_heat_map.npy')
+    np.save(prm.get_output_path() + '/DataFrames/hd_histogram.npy')
+    file_handler = open(prm.get_output_path() + '/DataFrames/prm', 'w')
+    pickle.dump(object, file_handler)
+
+
 def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
@@ -149,6 +159,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
+    save_data_for_plots(position_heat_map, hd_histogram, prm)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
     return synced_spatial_data, spatial_firing
 
