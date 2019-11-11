@@ -135,10 +135,10 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
 def save_data_for_plots(position_heat_map, hd_histogram, prm):
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
-    np.save(prm.get_output_path() + '/DataFrames/position_heat_map.npy')
-    np.save(prm.get_output_path() + '/DataFrames/hd_histogram.npy')
-    file_handler = open(prm.get_output_path() + '/DataFrames/prm', 'w')
-    pickle.dump(object, file_handler)
+    np.save(prm.get_output_path() + '/DataFrames/position_heat_map.npy', position_heat_map)
+    np.save(prm.get_output_path() + '/DataFrames/hd_histogram.npy', hd_histogram)
+    file_handler = open(prm.get_output_path() + '/DataFrames/prm', 'wb')
+    pickle.dump(prm, file_handler)
 
 
 def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
