@@ -90,7 +90,7 @@ def process_running_parameter_tag(running_parameter_tags):
         elif tag.startswith('cue_conditioned_goal'):
             cue_conditioned_goal = bool(tag.split('=')[1])
         else:
-            print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
+            print('Unexpected / incorrect tag in the third line of parameters file: ')
             unexpected_tag = True
     return stop_threshold, track_length, cue_conditioned_goal
 
