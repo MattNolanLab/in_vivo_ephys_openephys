@@ -215,7 +215,7 @@ def main():
     prm.set_sampling_rate(30000)
 
     recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-    post_process_recording(recording_folder, 'open_field')
+    post_process_recording(recording_folder, 'openfield')
 
 
 if __name__ == '__main__':
