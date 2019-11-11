@@ -146,7 +146,11 @@ def plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, snippet
     plot_utility.style_plot(snippet_plot)
     snippet_plot.plot(spike_data[snippet_column_name][cluster][channel, :, :] * -1, color='lightslategray')
     snippet_plot.plot(np.mean(spike_data[snippet_column_name][cluster][channel, :, :], 1) * -1, color='red')
-    plt.xticks([0, 10, 30], [-10, 0, 20])
+    plt.xticks([0, 30], [0, 1])
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('Time (ms)', fontsize=14)
+    plt.ylabel('Voltage (µV)', fontsize=14)
 
 
 def plot_waveforms(spike_data, prm):
@@ -157,8 +161,8 @@ def plot_waveforms(spike_data, prm):
     for cluster in range(len(spike_data)):
         cluster = spike_data.cluster_id.values[cluster] - 1
         fig = plt.figure(figsize=(5, 5))
-        plt.suptitle("Spike waveforms")
-        grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
+        plt.suptitle("Spike waveforms", fontsize=24)
+        grid = plt.GridSpec(2, 2, wspace=1, hspace=0.5)
         for channel in range(4):
             plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, 'random_snippets')
 
