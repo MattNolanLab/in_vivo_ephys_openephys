@@ -322,8 +322,6 @@ def make_combined_figure(prm, spatial_firing):
         speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
         firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
         autocorrelograms = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelograms.png'
-        # todo remve this plot
-        autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
         rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
         speed_vs_firing_rate_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_vs_firing_rate.png'
@@ -341,7 +339,7 @@ def make_combined_figure(prm, spatial_firing):
             waveforms_plot.imshow(waveforms)
         if os.path.exists(spike_histogram_path):
             spike_hist = mpimg.imread(spike_histogram_path)
-            spike_hist_plot = plt.subplot(grid[0, 3])
+            spike_hist_plot = plt.subplot(grid[0, 2])
             spike_hist_plot.axis('off')
             spike_hist_plot.imshow(spike_hist)
         if os.path.exists(speed_histogram_path):
@@ -354,16 +352,16 @@ def make_combined_figure(prm, spatial_firing):
             autocorrelogram_10_plot = plt.subplot(grid[0, 1])
             autocorrelogram_10_plot.axis('off')
             autocorrelogram_10_plot.imshow(autocorrelogram_10)
-        if os.path.exists(autocorrelogram_250_path):
-            autocorrelogram_250 = mpimg.imread(autocorrelogram_250_path)
-            autocorrelogram_250_plot = plt.subplot(grid[0, 2])
-            autocorrelogram_250_plot.axis('off')
-            autocorrelogram_250_plot.imshow(autocorrelogram_250)
         if os.path.exists(speed_vs_firing_rate_path):
             speed_vs_rate = mpimg.imread(speed_vs_firing_rate_path)
-            speed_vs_rate_plot = plt.subplot(grid[0, 5])
+            speed_vs_rate_plot = plt.subplot(grid[0, 3])
             speed_vs_rate_plot.axis('off')
             speed_vs_rate_plot.imshow(speed_vs_rate)
+        if os.path.exists(coverage_path):
+            coverage = mpimg.imread(coverage_path)
+            coverage_plot = plt.subplot(grid[0, 4])
+            coverage_plot.axis('off')
+            coverage_plot.imshow(coverage)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
             spike_scatter_plot = plt.subplot(grid[1, 0])
@@ -379,19 +377,14 @@ def make_combined_figure(prm, spatial_firing):
             rate_map_autocorr_plot = plt.subplot(grid[1, 2])
             rate_map_autocorr_plot.axis('off')
             rate_map_autocorr_plot.imshow(rate_map_autocorr)
-        if os.path.exists(coverage_path):
-            coverage = mpimg.imread(coverage_path)
-            coverage_plot = plt.subplot(grid[1, 3])
-            coverage_plot.axis('off')
-            coverage_plot.imshow(coverage)
         if os.path.exists(head_direction_polar_path):
             polar_hd = mpimg.imread(head_direction_polar_path)
-            polar_hd_plot = plt.subplot(grid[1, 4])
+            polar_hd_plot = plt.subplot(grid[1, 3])
             polar_hd_plot.axis('off')
             polar_hd_plot.imshow(polar_hd)
         if os.path.exists(head_direction_map_path):
             hd_map = mpimg.imread(head_direction_map_path)
-            hd_map_plot = plt.subplot(grid[1, 5])
+            hd_map_plot = plt.subplot(grid[1, 4])
             hd_map_plot.axis('off')
             hd_map_plot.imshow(hd_map)
         if os.path.exists(firing_fields_rate_map_path):
