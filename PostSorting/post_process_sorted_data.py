@@ -213,9 +213,22 @@ def main():
     prm = PostSorting.parameters.Parameters()
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
+    path_to_recordings = '/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
+    path_to_recordings = 'C:/Users/s1466507/Documents/Ephys/recordings/test_figures'
+    prm.set_output_path(path_to_recordings + '/MountainSort/')
 
-    recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-    post_process_recording(recording_folder, 'openfield')
+    position_data = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/position.pkl')
+    spatial_firing = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/spatial_firing.pkl')
+    position_heat_map = np.load(path_to_recordings + '/MountainSort/DataFrames/position_heat_map.npy')
+    hd_histogram = np.load(path_to_recordings + '/MountainSort/DataFrames/hd_histogram.npy')
+
+    # filehandler = open('/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/prm', 'rb')
+    # prm = pickle.load(filehandler)
+
+    make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
+
+    # recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
+    # post_process_recording(recording_folder, 'openfield')
 
 
 if __name__ == '__main__':
