@@ -285,7 +285,7 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.plot(median_x, percentile_25, color='black', linewidth=5)
         plt.plot(median_x, percentile_75, color='black', linewidth=5)
         plt.scatter(median_x, median_y, color='black', s=100)
-        plt.title('speed score: ' + str(np.round(cell.speed_score, 4)))
+        plt.title('Speed score: ' + str(np.round(cell.speed_score, 4)), fontsize=24)
         plt.xlim(0, 50)
         plt.ylim(0, None)
         plt.savefig(save_path + '/' + cell.session_id + '_' + str(cell.cluster_id) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
