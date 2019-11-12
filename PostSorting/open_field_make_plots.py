@@ -180,7 +180,7 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
 
 
 def mark_firing_field_with_scatter(field, plot, colors, field_id, rate_map):
-    y_max = rate_map.shape[1] -1
+    y_max = rate_map.shape[0] -1
     for bin in field:
         plot.scatter(bin[0], y_max - bin[1], color=colors[field_id], marker='o', s=25)
     return plot
