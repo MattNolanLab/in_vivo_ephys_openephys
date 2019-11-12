@@ -61,9 +61,9 @@ def plot_coverage(position_heat_map, prm):
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax = plot_utility.style_open_field_plot(ax)
     ax.imshow(position_heat_map, cmap=cmocean.cm.thermal, interpolation='nearest')
-    plt.title('coverage', y=1.08)
+    plt.title('Coverage', y=1.08, fontsize=24)
     plt.savefig(save_path + '/heatmap.png', dpi=300)
-    plt.savefig(save_path + '/heatmap.pdf')
+    # plt.savefig(save_path + '/heatmap.pdf')
     plt.close()
 
 
