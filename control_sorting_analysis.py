@@ -250,11 +250,13 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
+        if os.path.exists(paired_recording_to_sort + '/Figures') is True:
+            copy_output_to_server(paired_recording_to_sort, location_on_server)
+            shutil.rmtree(paired_recording_to_sort)
 
         #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
         shutil.rmtree(mountainsort_tmp_folder)
-
     
     except Exception as ex:
         print('There is a problem with this file. '
