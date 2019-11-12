@@ -71,7 +71,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         plt.ylabel('firing rate [Hz]')
         plt.xlim(0, 30)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.pdf', bbox_inches='tight', pad_inches=0)
+        # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
