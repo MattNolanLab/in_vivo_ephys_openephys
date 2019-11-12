@@ -331,7 +331,7 @@ def make_combined_figure(prm, spatial_firing):
             number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
 
-        grid = plt.GridSpec(number_of_rows, 6, wspace=0.2, hspace=0.2)
+        grid = plt.GridSpec(number_of_rows, 5, wspace=0.025, hspace=0.05)
         if os.path.exists(waveforms_path):
             waveforms = mpimg.imread(waveforms_path)
             waveforms_plot = plt.subplot(grid[0, 0])
@@ -342,11 +342,6 @@ def make_combined_figure(prm, spatial_firing):
             spike_hist_plot = plt.subplot(grid[0, 2])
             spike_hist_plot.axis('off')
             spike_hist_plot.imshow(spike_hist)
-        if os.path.exists(speed_histogram_path):
-            speed_hist = mpimg.imread(speed_histogram_path)
-            speed_hist_plot = plt.subplot(grid[0, 4])
-            speed_hist_plot.axis('off')
-            speed_hist_plot.imshow(speed_hist)
         if os.path.exists(autocorrelograms):
             autocorrelogram_10 = mpimg.imread(autocorrelograms)
             autocorrelogram_10_plot = plt.subplot(grid[0, 1])
@@ -396,7 +391,7 @@ def make_combined_figure(prm, spatial_firing):
             path = firing_field_path + str(field + 1) + '.png'
             firing_field_polar = mpimg.imread(path)
             row = math.floor((field+1)/5) + 2
-            col = (field+1) % 5
+            col = (field+1) % 4
             firing_fields_polar_plot = plt.subplot(grid[row, col])
             firing_fields_polar_plot.axis('off')
             firing_fields_polar_plot.imshow(firing_field_polar)
