@@ -580,6 +580,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
             gc.collect()
             plot_firing_rate_maps(spike_data, prm, prefix='_all')
+            plot_spikes_on_track(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
             #plot_convolved_rates_in_time(spike_data, prm)
             #plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             #make_combined_figure(prm, spike_data, prefix='_all')

@@ -236,10 +236,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
             paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort, stitch_point)
 
             if paired_session_type == "openfield":
-                post_process_sorted_data.post_process_recording(paired_recording, paired_session_type,
+                post_process_sorted_data.post_process_recording(paired_recording_to_sort, paired_session_type,
                                                                 running_parameter_tags=tags)
             elif paired_session_type == "vr":
-                post_process_sorted_data_vr.post_process_recording(paired_recording, paired_session_type,
+                post_process_sorted_data_vr.post_process_recording(paired_recording_to_sort, paired_session_type,
                                                                 running_parameter_tags=tags)
 
         if is_open_field:
