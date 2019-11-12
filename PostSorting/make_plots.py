@@ -148,6 +148,7 @@ def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data
     plt.yticks(fontsize=14)
     plt.xlabel('Time (ms)', fontsize=14)
     plt.ylabel('Probability', fontsize=14)
+    plt.xticks([-250, 0, 250], [-250, 0, 250])
     plt.bar(time_250, corr_250, align='center', width=1, color='black')
     plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelograms.png',
                 dpi=300, bbox_inches='tight', pad_inches=0)
