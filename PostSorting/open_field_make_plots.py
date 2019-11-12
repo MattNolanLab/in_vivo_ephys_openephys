@@ -404,7 +404,7 @@ def make_combined_figure(prm, spatial_firing):
             path = firing_field_path + str(field + 1) + '.png'
             firing_field_polar = mpimg.imread(path)
             row = math.floor((field+1)/5) + 2
-            col = (field+1) % 4
+            col = (field+1) % 5
             firing_fields_polar_plot = plt.subplot(grid[row, col])
             firing_fields_polar_plot.axis('off')
             firing_fields_polar_plot.imshow(firing_field_polar)
