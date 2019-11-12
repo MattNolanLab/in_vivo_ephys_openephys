@@ -142,7 +142,7 @@ def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data
 
 def plot_autocorrelograms(spike_data: pd.DataFrame, prm: object) -> None:
     plt.close()
-    print('I will plot autocorrelograms for each cluster.')
+    print('I will plot autocorrelograms for each cluster (10 ms and 250 ms windows).')
     save_path = prm.get_output_path() + '/Figures/firing_properties'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
