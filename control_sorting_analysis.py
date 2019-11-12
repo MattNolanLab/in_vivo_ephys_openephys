@@ -354,10 +354,12 @@ def monitor_to_sort():
     time_to_wait = 60.0
     while True:
         print('I am checking whether there is something to sort.')
-        recording_to_sort = check_folder(sorting_folder)
-        tags = get_tags_parameter_file(recording_to_sort)
-        paired_recording, paired_session_type = check_for_paired(tags)
-
+        try:
+            recording_to_sort = check_folder(sorting_folder)
+            tags = get_tags_parameter_file(recording_to_sort)
+            paired_recording, paired_session_type = check_for_paired(tags)
+        except:
+            print("passing")
         if recording_to_sort is not False:
             call_spike_sorting_analysis_scripts(recording_to_sort,
                                                 tags,
@@ -373,7 +375,8 @@ def monitor_to_sort():
 
             recording_to_sort = get_next_recording_on_server_to_sort()
             if recording_to_sort is not False:
-                call_spike_sorting_analysis_scripts(recording_to_sort)
+                tags = get_tags_parameter_file(recording_to_sort)
+                call_spike_sorting_analysis_scripts(recording_to_sort, tags)
             else:
                 time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
 
