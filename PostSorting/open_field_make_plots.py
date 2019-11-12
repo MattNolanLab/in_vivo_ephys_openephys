@@ -321,7 +321,8 @@ def make_combined_figure(prm, spatial_firing):
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
         firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
-        autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
+        autocorrelograms = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelograms.png'
+        # todo remve this plot
         autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
         rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
@@ -348,8 +349,8 @@ def make_combined_figure(prm, spatial_firing):
             speed_hist_plot = plt.subplot(grid[0, 4])
             speed_hist_plot.axis('off')
             speed_hist_plot.imshow(speed_hist)
-        if os.path.exists(autocorrelogram_10_path):
-            autocorrelogram_10 = mpimg.imread(autocorrelogram_10_path)
+        if os.path.exists(autocorrelograms):
+            autocorrelogram_10 = mpimg.imread(autocorrelograms)
             autocorrelogram_10_plot = plt.subplot(grid[0, 1])
             autocorrelogram_10_plot.axis('off')
             autocorrelogram_10_plot.imshow(autocorrelogram_10)
