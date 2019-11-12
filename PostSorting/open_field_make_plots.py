@@ -205,9 +205,14 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
     hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
     hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
     plt.tight_layout()
+    if 'field_max_firing_rate' in spatial_firing:
+        field_max_firing_rate = round(spatial_firing.field_max_firing_rate[cluster][field_id], 2)
+    else:
+        field_max_firing_rate = '?'
+
     plt.title(str(spatial_firing.number_of_spikes_in_fields[cluster][field_id]) + ' spikes'
               + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2))
-              +' seconds\n max fr: ' + str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2)) + 'Hz \n',
+              +' seconds\n max fr: ' + str(field_max_firing_rate) + 'Hz \n',
               y=1.08, fontsize=24)
 
     plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
