@@ -30,10 +30,10 @@ def plot_spike_histogram(spatial_firing, prm):
             center = (bins[:-1] + bins[1:]) / 2
             plt.bar(center, hist, align='center', width=width, color='black')
         plt.title('Spike histogram \n total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', \n mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08, fontsize=24)
-        plt.xlabel('Time (min)', fontsize=14)
-        plt.ylabel('Number of spikes', fontsize=14)
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
+        plt.xlabel('Time (min)', fontsize=25)
+        plt.ylabel('Number of spikes', fontsize=25)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
 
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', bbox_inches='tight', pad_inches=0)
@@ -106,7 +106,55 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     return corr, time
 
 
-def plot_autocorrelograms(spike_data, prm):
+def plot_10ms_autocorr(spike_data, firing_times_cluster, prm, cluster, save_path):
+    plt.figure()
+    corr1, time1 = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / prm.get_sampling_rate(), 1, 20)
+    plt.xlim(-10, 10)
+    plt.bar(time1, corr1, align='center', width=1, color='black')
+    plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png',
+                dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()
+    return corr1, time1
+
+
+def plot_250ms_autocorr(spike_data, firing_times_cluster, prm, cluster, save_path):
+    plt.figure()
+    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / prm.get_sampling_rate(), 1, 500)
+    plt.xlim(-250, 250)
+    plt.bar(time, corr, align='center', width=1, color='black')
+    plt.savefig(
+        save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png',
+        dpi=300, bbox_inches='tight', pad_inches=0)
+    # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.pdf', bbox_inches='tight', pad_inches=0)
+    plt.close()
+    return corr, time
+
+
+def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, save_path, cluster):
+    grid = plt.GridSpec(2, 1, hspace=0.5)
+    autocorr_plot = plt.subplot(grid[0, 0])
+    plt.suptitle("Autocorrelograms", fontsize=24)
+    plt.xlabel('Time (ms)', fontsize=14)
+    plt.ylabel('Probability', fontsize=14)
+    plt.xlim(-10, 10)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xticks([-10, 0, 10], [-10, 0, 10])
+    plt.bar(time_10, corr_10, align='center', width=1, color='black')
+
+    autocorr_plot2 = plt.subplot(grid[1, 0])
+    plt.xlim(-250, 250)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('Time (ms)', fontsize=14)
+    plt.ylabel('Probability', fontsize=14)
+    plt.bar(time_250, corr_250, align='center', width=1, color='black')
+    plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelograms.png',
+                dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+
+def plot_autocorrelograms(spike_data: pd.DataFrame, prm: object) -> None:
     plt.close()
     print('I will plot autocorrelograms for each cluster.')
     save_path = prm.get_output_path() + '/Figures/firing_properties'
@@ -115,19 +163,9 @@ def plot_autocorrelograms(spike_data, prm):
     for cluster in range(len(spike_data)):
         cluster = spike_data.cluster_id.values[cluster] - 1
         firing_times_cluster = spike_data.firing_times[cluster]
-        #lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
-        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 20)
-        plt.xlim(-10, 10)
-        plt.bar(time, corr, align='center', width=1, color='black')
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.close()
-        plt.figure()
-        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 500)
-        plt.xlim(-250, 250)
-        plt.bar(time, corr, align='center', width=1, color='black')
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.pdf', bbox_inches='tight', pad_inches=0)
-        plt.close()
+        corr_10, time_10 = plot_10ms_autocorr(spike_data, firing_times_cluster, prm, cluster, save_path)
+        corr_250, time_250 = plot_250ms_autocorr(spike_data, firing_times_cluster, prm, cluster, save_path)
+        make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, save_path, cluster)
 
 
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, snippet_column_name):
