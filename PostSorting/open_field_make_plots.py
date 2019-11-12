@@ -132,7 +132,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
         plt.tight_layout()
         #  + '\nKuiper p: ' + str(spatial_firing.hd_p[cluster])
-        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.preferred_HD[cluster][0], 0)) + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)), y=1.08, fontsize=12)
+        plt.title('Head direction \n max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)) + '\n', y=1.08, fontsize=24)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
@@ -179,9 +179,10 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
         plt.close()
 
 
-def mark_firing_field_with_scatter(field, plot, colors, field_id):
+def mark_firing_field_with_scatter(field, plot, colors, field_id, rate_map):
+    y_max = rate_map.shape[1] -1
     for bin in field:
-        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=25)
+        plot.scatter(bin[0], y_max - bin[1], color=colors[field_id], marker='o', s=25)
     return plot
 
 
@@ -205,7 +206,9 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
     hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
     plt.tight_layout()
     plt.title(str(spatial_firing.number_of_spikes_in_fields[cluster][field_id]) + ' spikes'
-              + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2)) +' seconds', y=1.08, fontsize=12)
+              + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2))
+              +' seconds\n max fr: ' + str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2)) + 'Hz \n',
+              y=1.08, fontsize=24)
 
     plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.pdf', bbox_inches="tight")
@@ -225,17 +228,18 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
-                plt.title('hd in detected firing fields')
+                plt.title('HD in detected fields', fontsize=24)
                 of_figure.set_size_inches(5, 5, forward=True)
                 of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
-                of_plot.imshow(firing_rate_map)
+                firing_rate_map_90 = np.rot90(firing_rate_map)
+                of_plot.imshow(firing_rate_map_90)
 
                 firing_fields_cluster = spatial_firing.firing_fields[cluster]
                 colors = generate_colors(number_of_firing_fields)
 
                 for field_id, field in enumerate(firing_fields_cluster):
-                    of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id)
+                    of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id, firing_rate_map_90)
                     hd_hist_session = spatial_firing.firing_fields_hd_session[cluster][field_id]
                     hd_hist_session = np.array(hd_hist_session) / prm.get_sampling_rate()
                     hd_hist_cluster = np.array(spatial_firing.firing_fields_hd_cluster[cluster][field_id])
