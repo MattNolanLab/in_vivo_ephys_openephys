@@ -18,22 +18,25 @@ def plot_spike_histogram(spatial_firing, prm):
         os.makedirs(save_path)
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firings_cluster = spatial_firing.firing_times[cluster]
+        number_of_bins = int((spatial_firing.firing_times[cluster][-1] - spatial_firing.firing_times[cluster][0]) / (5 * sampling_rate))
+        firings_cluster = spatial_firing.firing_times[cluster] / sampling_rate / 60
         spike_hist = plt.figure()
         spike_hist.set_size_inches(5, 5, forward=True)
         ax = spike_hist.add_subplot(1, 1, 1)
         spike_hist, ax = plot_utility.style_plot(ax)
-        number_of_bins = int((firings_cluster[-1] - firings_cluster[0]) / (5*sampling_rate))
         if number_of_bins > 0:
             hist, bins = np.histogram(firings_cluster, bins=number_of_bins)
             width = bins[1] - bins[0]
             center = (bins[:-1] + bins[1:]) / 2
             plt.bar(center, hist, align='center', width=width, color='black')
-        plt.title('total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08)
-        plt.xlabel('time (sampling points)')
-        plt.ylabel('number of spikes')
+        plt.title('Spike histogram \n total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', \n mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08, fontsize=24)
+        plt.xlabel('Time (min)', fontsize=14)
+        plt.ylabel('Number of spikes', fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', bbox_inches='tight', pad_inches=0)
+        # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
