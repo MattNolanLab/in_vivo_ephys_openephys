@@ -185,10 +185,10 @@ def plot_waveforms_opto(spike_data, prm):
             fig = plt.figure(figsize=(5, 5))
             grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
             for channel in range(4):
-                plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, 'random_snippets_opto')
+                plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, 'random_snippets_opto')
 
             plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
-            plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.pdf', bbox_inches='tight', pad_inches=0)
+            # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.pdf', bbox_inches='tight', pad_inches=0)
             plt.close()
 
 
