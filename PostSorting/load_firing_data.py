@@ -1,6 +1,7 @@
 import mdaio
 import numpy as np
 import os
+from pathlib import Path
 import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
@@ -8,7 +9,6 @@ import data_frame_utility
 
 def get_firing_info(file_path, prm):
     firing_times_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/firings.mda'
-
     units_list = None
     firing_info = None
     if os.path.exists(firing_times_path):
@@ -17,8 +17,12 @@ def get_firing_info(file_path, prm):
     else:
         print('I could not find the MountainSort output [firing.mda] file. I will check if the data was sorted earlier.')
         spatial_firing_path = file_path + '/MountainSort/DataFrames/spatial_firing.pkl'
-        spatial_firing = pd.read_pickle(spatial_firing_path)
-        return [], [], spatial_firing
+        if os.path.exists(spatial_firing_path):
+            spatial_firing = pd.read_pickle(spatial_firing_path)
+            Path('file_path/sorted_data_exists.txt').touch()
+            return units_list, firing_info, spatial_firing
+        else:
+            print('There are no sorting results available for this recording.')
     return units_list, firing_info, False
 
 
@@ -42,7 +46,9 @@ def correct_for_dead_channels(primary_channels, prm):
 def process_firing_times(recording_to_process, session_type, prm):
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, prm)
-    return spatial_firing
+    if isinstance(spatial_firing, pd.DataFrame):
+        firing_data = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto']].copy()
+        return firing_data
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
