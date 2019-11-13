@@ -13,7 +13,7 @@ from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
 
-skip_sorting = True
+skip_sorting = False
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
