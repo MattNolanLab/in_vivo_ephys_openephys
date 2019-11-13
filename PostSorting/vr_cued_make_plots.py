@@ -320,7 +320,7 @@ def plot_spikes_on_track_cue(spike_data,raw_position_data,processed_position_dat
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_cue_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
 
 
