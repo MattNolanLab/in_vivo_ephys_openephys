@@ -13,6 +13,8 @@ from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
 
+skip_sorting = True
+
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
 to_sort_folder = '/home/nolanlab/to_sort/'
@@ -20,7 +22,8 @@ if os.environ.get('SERVER_PATH_FIRST_HALF'):
     server_path_first_half = os.environ['SERVER_PATH_FIRST_HALF']
     print(f'Using a custom server path: {server_path_first_half}')
 else:
-    server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
+    # server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
+    server_path_first_half = '/mnt/datastore/'
 #server_path_first_half = 'smb://ardbeg.mvm.ed.ac.uk/nolanlab/'
 #server_path_first_half = '/home/nolanlab/ardbeg/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
@@ -198,15 +201,16 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
-        pre_process_ephys_data.pre_process_data(recording_to_sort)
+        if not skip_sorting:
+            pre_process_ephys_data.pre_process_data(recording_to_sort)
 
-        print('I finished pre-processing the first recording. I will call MountainSort now.')
-        os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
+            print('I finished pre-processing the first recording. I will call MountainSort now.')
+            os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
 
-        subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
-        os.remove('/home/nolanlab/to_sort/run_sorting.sh')
+            subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
+            os.remove('/home/nolanlab/to_sort/run_sorting.sh')
 
-        print('MS is done')
+            print('MS is done')
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
@@ -281,6 +285,11 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         num_cores = multiprocessing.cpu_count()
         Parallel(n_jobs=num_cores)(delayed(copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
 
+        spatial_firing_path = path_server + '/MountainSort/DataFrames/spatial_firing.pkl'
+        if os.path.isfile(spatial_firing_path) is True:
+            if not os.path.isdir(path_local + '/MountainSort/DataFrames/'):
+                os.makedirs(path_local + '/MountainSort/DataFrames/')
+            shutil.copy(spatial_firing_path, path_local + '/MountainSort/DataFrames/spatial_firing.pkl')
         print('Copying is done, I will attempt to sort.')
 
     except Exception as ex:
@@ -340,6 +349,7 @@ def monitor_to_sort():
 
 
 def main():
+    print('v - 0')
     print('-------------------------------------------------------------')
     print('This is a script that controls running the spike sorting analysis.')
     print('-------------------------------------------------------------')
