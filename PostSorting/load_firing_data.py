@@ -15,8 +15,11 @@ def get_firing_info(file_path, prm):
         firing_info = mdaio.readmda(firing_times_path)
         units_list = np.unique(firing_info[2])
     else:
-        print('I could not find the MountainSort output [firing.mda] file.')
-    return units_list, firing_info
+        print('I could not find the MountainSort output [firing.mda] file. I will check if the data was sorted earlier.')
+        spatial_firing_path = file_path + '/MountainSort/DataFrames/spatial_firing.pkl'
+        spatial_firing = pd.read_pickle(spatial_firing_path)
+        return [], [], spatial_firing
+    return units_list, firing_info, False
 
 
 # if the recording has dead channels, detected channels need to be shifted to get read channel ids
@@ -38,7 +41,8 @@ def correct_for_dead_channels(primary_channels, prm):
 
 def process_firing_times(recording_to_process, session_type, prm):
     session_id = recording_to_process.split('/')[-1]
-    units_list, firing_info = get_firing_info(recording_to_process, prm)
+    units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, prm)
+    return spatial_firing
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
