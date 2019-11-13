@@ -53,8 +53,8 @@ def reshape_spike_histogram(spike_histogram):
     return reshaped_spike_histogram
 
 
-def reshape_to_average_over_trials(array, number_of_trials, number_of_trial_type_trials):
-    reshaped_spike_histogram = np.reshape(array, (int(number_of_trials), 200))
+def reshape_to_average_over_trials(array, number_of_trials, number_of_trial_type_trials, number_of_bins=200):
+    reshaped_spike_histogram = np.reshape(array, (int(number_of_trials), number_of_bins))
     avg_spike_histogram = np.sum(reshaped_spike_histogram, axis=0)/number_of_trial_type_trials
     plt.plot(avg_spike_histogram)
     return avg_spike_histogram
@@ -158,7 +158,7 @@ def normalise_spike_number_by_time_all(firing_rate_map, processed_position_data_
 
 
 def plot_rate_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_index):
-    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_num_on_trials']), number_of_trials, np.max(number_of_trials))
+    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_num_on_trials']), number_of_trials, np.max(number_of_trials), number_of_bins=prm.track_length)
     save_path = prm.get_output_path() + '/Figures/spike_data'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -168,7 +168,7 @@ def plot_rate_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_i
 
 
 def plot_rate_norm_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_index):
-    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_rate_on_trials']), number_of_trials, np.max(number_of_trials))
+    data = reshape_to_average_over_trials(np.array(firing_rate_map['spike_rate_on_trials']), number_of_trials, np.max(number_of_trials), number_of_bins=prm.track_length)
     save_path = prm.get_output_path() + '/Figures/spike_data'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
