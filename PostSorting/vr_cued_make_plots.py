@@ -201,7 +201,7 @@ def plot_stop_cumulative_histogram(raw_position_data, processed_position_data, p
     x_max = max(b_max, nb_max)
     plot_utility.style_vr_plot_offset(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.22, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_cummulative_histogram' + '.png', dpi=200)
     plt.close()
 
 def plot_speed_histogram(raw_position_data, processed_position_data, prm):
@@ -358,7 +358,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
-        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index)
+        avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index, prm)
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax.plot(avg_beaconed_spike_rate, '-', color='Black')
@@ -480,12 +480,12 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
     plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
     criteria_plot_offset(processed_position_data, prm)
     plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
     plot_stop_histogram(raw_position_data, processed_position_data, prm)
     plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
@@ -500,7 +500,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
 
-        # plot_firing_rate_maps(spike_data, prm, prefix='_all')
+        plot_firing_rate_maps(spike_data, prm, prefix='_all')
         # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
         # make_combined_figure(prm, spike_data, prefix='_all')
 
