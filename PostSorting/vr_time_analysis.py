@@ -46,16 +46,16 @@ def calculate_binned_time(raw_position_data,processed_position_data, prm):
             time_trials_non_beaconed_trial_number.append(trial_number)
 
 
-    processed_position_data['speed_trials_binned'] = pd.Series(time_trials_binned)
-    processed_position_data['speed_trial_numbers'] = pd.Series(time_trial_numbers)
-    processed_position_data['speed_trial_types'] = pd.Series(time_trialtypes)
+    processed_position_data['time_trials_binned'] = pd.Series(time_trials_binned)
+    processed_position_data['time_trial_numbers'] = pd.Series(time_trial_numbers)
+    processed_position_data['time_trial_types'] = pd.Series(time_trialtypes)
 
     # trial type specifics speed bins
-    processed_position_data['speed_trials_beaconed'] = pd.Series(time_trials_beaconed)
-    processed_position_data['speed_trials_beaconed_trial_number'] = pd.Series(time_trials_beaconed_trial_number)
+    processed_position_data['time_trials_beaconed'] = pd.Series(time_trials_beaconed)
+    processed_position_data['time_trials_beaconed_trial_number'] = pd.Series(time_trials_beaconed_trial_number)
 
-    processed_position_data['speed_trials_non_beaconed'] = pd.Series(time_trials_non_beaconed)
-    processed_position_data['speed_trials_non_beaconed_trial_number'] = pd.Series(time_trials_non_beaconed_trial_number)
+    processed_position_data['time_trials_non_beaconed'] = pd.Series(time_trials_non_beaconed)
+    processed_position_data['time_trials_non_beaconed_trial_number'] = pd.Series(time_trials_non_beaconed_trial_number)
 
     return processed_position_data
 

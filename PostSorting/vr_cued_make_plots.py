@@ -345,6 +345,10 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
         plt.close()
 
 
+
+        return spike_data
+
+
 def plot_firing_rate_maps(spike_data, prm, prefix):
     print('I am plotting firing rate maps...')
     save_path = prm.get_output_path() + '/Figures/spike_rate'
@@ -492,7 +496,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
         gc.collect()
         plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
 
