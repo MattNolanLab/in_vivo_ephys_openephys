@@ -7,6 +7,7 @@ prm = PostSorting.parameters.Parameters()
 
 def add_columns_to_dataframe(spike_data):
     spike_data["x_position_cm"] = ""
+    spike_data["x_position_cm_offset"] = ""
     spike_data["trial_number"] = ""
     spike_data["trial_type"] = ""
     spike_data["speed_per200ms"] = ""
@@ -49,14 +50,12 @@ def add_position_x(spike_data, spatial_data_x):
         spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices])
     return spike_data
 
-def add_position_x_offset(spike_data, spatial_data_x, spatial_data_goal_x):
+def add_position_x_offset(spike_data, spatial_data_x):
     # Only called for cue conditioned goal positions, this function offsets the spike data relative to the goal location per trial
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        #spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices] - spatial_data_goal_x[cluster_firing_indices])
-        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices])
-
+        spike_data.x_position_cm_offset[cluster_index] = list(spatial_data_x[cluster_firing_indices])
     return spike_data
 
 
@@ -80,9 +79,8 @@ def find_firing_location_indices(spike_data, spatial_data, prm=None):
     print('I am extracting firing locations for each cluster...')
     spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
     if prm.cue_conditioned_goal:
-        spike_data = add_position_x_offset(spike_data, spatial_data.x_position_cm_offset, spatial_data.goal_location_cm)
-    else:
-        spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
+        spike_data = add_position_x_offset(spike_data, spatial_data.x_position_cm_offset)
+    spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
     spike_data = add_trial_number(spike_data, spatial_data.trial_number)
     spike_data = add_trial_type(spike_data, spatial_data.trial_type)
     return spike_data
