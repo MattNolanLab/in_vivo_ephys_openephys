@@ -54,7 +54,7 @@ def reshape_spike_histogram(spike_histogram):
 
 
 def reshape_to_average_over_trials(array, number_of_trials, number_of_trial_type_trials, number_of_bins=200):
-    reshaped_spike_histogram = np.reshape(array, (int(number_of_trials), number_of_bins))
+    reshaped_spike_histogram = np.reshape(array, (int(number_of_trials), int(number_of_bins)))
     avg_spike_histogram = np.sum(reshaped_spike_histogram, axis=0)/number_of_trial_type_trials
     plt.plot(avg_spike_histogram)
     return avg_spike_histogram
@@ -179,7 +179,7 @@ def plot_rate_norm_data(prm, firing_rate_map, spike_data, number_of_trials, clus
 
 
 def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index, prm):
-    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials,1) # array of unique trial numbers
     firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), number_of_bins,array_of_trials)
