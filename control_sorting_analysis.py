@@ -376,7 +376,12 @@ def monitor_to_sort():
             recording_to_sort = get_next_recording_on_server_to_sort()
             if recording_to_sort is not False:
                 tags = get_tags_parameter_file(recording_to_sort)
-                call_spike_sorting_analysis_scripts(recording_to_sort, tags)
+                paired_recording, paired_session_type = check_for_paired(tags)
+                call_spike_sorting_analysis_scripts(recording_to_sort,
+                                                    tags,
+                                                    paired_recording=paired_recording,
+                                                    paired_session_type=paired_session_type)
+
             else:
                 time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
 
