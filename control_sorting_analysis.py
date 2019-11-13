@@ -1,4 +1,5 @@
 from joblib import Parallel, delayed
+import datetime
 import gc
 import glob
 import os
@@ -194,7 +195,8 @@ def copy_output_to_server(recording_to_sort, location_on_server):
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
-
+    print('I will analyze ' + recording_to_sort)
+    print(datetime.datetime.now())
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
@@ -334,7 +336,6 @@ def monitor_to_sort():
         recording_to_sort = check_folder(sorting_folder)
 
         if recording_to_sort is not False:
-            print('I will analyze ' + recording_to_sort)
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
