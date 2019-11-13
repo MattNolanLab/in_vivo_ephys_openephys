@@ -50,7 +50,6 @@ def split_stop_data_by_trial_type(spatial_data, first_stops=False):
     probe = np.delete(stop_data, np.where(stop_data[:,2]!=2),0)
     return beaconed, nonbeaconed, probe
 
-
 def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
     print('I am plotting stop rasta offset from the goal location...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
@@ -240,9 +239,6 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
-    #rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))  #
-    #rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
-
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
@@ -254,15 +250,14 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
         fill_blackbox(trial_bb_start, ax)
         fill_blackbox(trial_bb_end, ax)
 
-        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm,
+        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm_offset,
                 spike_data.loc[cluster_index].beaconed_trial_number,
                 '|', color='Black', markersize=4)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm,
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm_offset,
                 spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
         #ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number,
         #        '|',
         #        color='Blue', markersize=4)
-        #ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
 
         plt.ylabel('Spikes on trials', fontsize=12, labelpad=10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
@@ -288,9 +283,6 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
-    #rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0))  #
-    #rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
-
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
@@ -300,11 +292,11 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
         # fill in black box locations
         trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
 
-        beaconed = np.array([spike_data.loc[cluster_index].beaconed_position_cm,
+        beaconed = np.array([spike_data.loc[cluster_index].beaconed_position_cm_offset,
                              spike_data.loc[cluster_index].beaconed_trial_number,
                              np.zeros(len(spike_data.loc[cluster_index].beaconed_trial_number))]).transpose()
 
-        nonbeaconed = np.array([spike_data.loc[cluster_index].nonbeaconed_position_cm,
+        nonbeaconed = np.array([spike_data.loc[cluster_index].nonbeaconed_position_cm_offset,
                                  spike_data.loc[cluster_index].nonbeaconed_trial_number,
                                  np.zeros(len(spike_data.loc[cluster_index].nonbeaconed_trial_number))]).transpose()
 
@@ -315,11 +307,6 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
 
         fill_blackbox(trial_bb_start, ax)
         fill_blackbox(trial_bb_end, ax)
-
-        # uncomment if you want to plot stops
-        # ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-        # ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-        # ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
         ax.plot(beaconed[:,0], beaconed[:,1], '|', color='Black', markersize=4)
         ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], '|', color='Red', markersize=4)
@@ -500,7 +487,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
 
-        plot_firing_rate_maps(spike_data, prm, prefix='_all')
+        #plot_firing_rate_maps(spike_data, prm, prefix='_all')
         # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
         # make_combined_figure(prm, spike_data, prefix='_all')
 
