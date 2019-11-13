@@ -84,13 +84,17 @@ def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
 
-def find_blackboxes_to_plot(raw_position_data, prm):
+def find_blackboxes_to_plot(raw_position_data, prm, offset=True):
     trial_bb_start = []
     trial_bb_end = []
     for trial_number in range(1, max(raw_position_data["trial_number"]) + 1):
         trial_goal_pos = np.asarray(raw_position_data["goal_location_cm"][raw_position_data["trial_number"] == trial_number])[0]
-        trial_bb_start.append(15-trial_goal_pos)
-        trial_bb_end.append(285-trial_goal_pos)
+        if offset:
+            trial_bb_start.append(15-trial_goal_pos)
+            trial_bb_end.append(285-trial_goal_pos)
+        else:
+            trial_bb_start.append(15)
+            trial_bb_end.append(285)
 
     # returns the centres of the black boxes for each trial
     return trial_bb_start, trial_bb_end
@@ -266,6 +270,50 @@ def plot_spikes_on_track_cue_offset(spike_data,raw_position_data,processed_posit
         ax.xaxis.set_ticks_position('bottom')
 
         plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+        plot_utility.style_vr_plot_offset(ax, x_max)
+        plt.locator_params(axis='y', nbins=4)
+        try:
+            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        except ValueError:
+            continue
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
+        plt.close()
+
+
+def plot_spikes_on_track_cue(spike_data,raw_position_data,processed_position_data, prm, prefix):
+    # only called for cue conditioning PI task
+    print('plotting spike rastas with...')
+    save_path = prm.get_output_path() + '/Figures/spike_trajectories'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        spikes_on_track = plt.figure(figsize=(6,6))
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        # fill in black box locations
+        trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm, offset=False)
+        fill_blackbox(trial_bb_start, ax)
+        fill_blackbox(trial_bb_end, ax)
+
+        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm,
+                spike_data.loc[cluster_index].beaconed_trial_number,
+                '|', color='Black', markersize=4)
+        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm,
+                spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+        #ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number,
+        #        '|',
+        #        color='Blue', markersize=4)
+
+        plt.ylabel('Spikes on trials', fontsize=12, labelpad=10)
+        plt.xlabel('Location (cm)', fontsize=12, labelpad=10)
+        plt.xlim(0, 300)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+
+        #plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
         plot_utility.style_vr_plot_offset(ax, x_max)
         plt.locator_params(axis='y', nbins=4)
         try:
@@ -484,6 +532,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         gc.collect()
         plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
 
