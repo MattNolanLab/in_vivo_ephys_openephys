@@ -196,6 +196,9 @@ def quick_spike_plot(spike_data, prm, trials, locations, cluster_index):
     plt.close()
     return
 
+def bin_spike_counts(firing_rate_map, spike_data, prm):
+
+    return firing_rate_map
 
 def make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm):
     print('I am calculating the average firing rate ...')
@@ -209,8 +212,10 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map = smooth_spike_rate(firing_rate_map)
         plot_rate_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         plot_rate_norm_data(prm, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
-        #firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
+
+        if prm.cue_conditioned_goal:
+            firing_rate_map = bin_spike_counts(firing_rate_map, spike_data, prm)
 
     print('-------------------------------------------------------------')
     print('firing field maps processed for all trials')
