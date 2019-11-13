@@ -334,6 +334,7 @@ def monitor_to_sort():
         recording_to_sort = check_folder(sorting_folder)
 
         if recording_to_sort is not False:
+            print('I will analyze ' + recording_to_sort)
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
