@@ -47,7 +47,7 @@ def process_firing_times(recording_to_process, session_type, prm):
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, prm)
     if isinstance(spatial_firing, pd.DataFrame):
-        firing_data = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto', 'isolation', 'noise_overlap', 'peak_snr', 'mean_firing_rate']].copy()
+        firing_data = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto', 'isolation', 'noise_overlap', 'peak_snr', 'mean_firing_rate', 'random_snippets']].copy()
         return firing_data
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
