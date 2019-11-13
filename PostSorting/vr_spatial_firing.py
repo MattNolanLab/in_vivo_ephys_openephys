@@ -158,16 +158,10 @@ def split_spatial_firing_by_trial_type_cued(spike_data):
         beaconed_locations = np.take(locations, np.where(trial_type == 0)[1]) #split location and trial number
         nonbeaconed_locations = np.take(locations,np.where(trial_type == 1)[1])
         probe_locations = np.take(locations, np.where(trial_type == 2)[1])
-        beaconed_trials = np.take(trials, np.where(trial_type == 0)[1])
-        nonbeaconed_trials = np.take(trials, np.where(trial_type == 1)[1])
-        probe_trials = np.take(trials, np.where(trial_type == 2)[1])
 
-        spike_data.at[cluster_index, 'beaconed_position_cm'] = list(beaconed_locations)
-        spike_data.at[cluster_index, 'beaconed_trial_number'] = list(beaconed_trials)
-        spike_data.at[cluster_index, 'nonbeaconed_position_cm'] = list(nonbeaconed_locations)
-        spike_data.at[cluster_index, 'nonbeaconed_trial_number'] = list(nonbeaconed_trials)
-        spike_data.at[cluster_index, 'probe_position_cm'] = list(probe_locations)
-        spike_data.at[cluster_index, 'probe_trial_number'] = list(probe_trials)
+        spike_data.at[cluster_index, 'beaconed_position_cm_offset'] = list(beaconed_locations)
+        spike_data.at[cluster_index, 'nonbeaconed_position_cm_offset'] = list(nonbeaconed_locations)
+        spike_data.at[cluster_index, 'probe_position_cm_offset'] = list(probe_locations)
 
     return spike_data
 
@@ -202,6 +196,7 @@ def process_spatial_firing(spike_data, spatial_data, prm=None):
     spike_data_movement = split_spatial_firing_by_trial_type(spike_data_movement)
     spike_data_stationary = split_spatial_firing_by_trial_type(spike_data_stationary)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
+    spike_data = split_spatial_firing_by_trial_type_cued(spike_data)
     print('-------------------------------------------------------------')
     print('spatial firing processed')
     print('-------------------------------------------------------------')
