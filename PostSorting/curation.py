@@ -40,6 +40,8 @@ def load_curation_metrics(spike_data_frame, prm):
 
 
 def curate_data(spike_data_frame, prm):
+    if 'isolation' in spike_data_frame:
+        return spike_data_frame
     spike_data_frame = load_curation_metrics(spike_data_frame, prm)
     isolation_threshold = 0.9
     noise_overlap_threshold = 0.05
