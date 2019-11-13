@@ -13,7 +13,8 @@ from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
 
-skip_sorting = False
+# set this to true if you want to skip the spike sorting step and use ths data from the server
+skip_sorting = True
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
@@ -225,7 +226,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
-        shutil.rmtree(mountainsort_tmp_folder)
+        if not skip_sorting:
+            shutil.rmtree(mountainsort_tmp_folder)
 
     
     except Exception as ex:
