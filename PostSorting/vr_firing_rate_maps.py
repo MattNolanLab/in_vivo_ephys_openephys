@@ -196,9 +196,24 @@ def quick_spike_plot(spike_data, prm, trials, locations, cluster_index):
     plt.close()
     return
 
-def bin_spike_counts(firing_rate_map, spike_data, prm):
+# added 14/11/2019
+def bin_spike_counts(firing_rate_map, raw_position_data, spike_data, cluster_index, prm):
+    bin_size_cm, number_of_bins = get_bin_size(raw_position_data) # get bin info
+    number_of_trials = raw_position_data.trial_number.max() # total number of trials
+    array_of_trials = np.arange(1, number_of_trials+1, 1) # array of unique trial numbers
 
-    return firing_rate_map
+    spike_num_hist   = create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'trial_number']),             np.array(spike_data.at[cluster_index, 'x_position_cm']),           number_of_bins, array_of_trials)
+    b_spike_num_hist = create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'beaconed_trial_number']),    np.array(spike_data.at[cluster_index, 'beaconed_position_cm']),    number_of_bins, array_of_trials)
+    nb_spike_num_hist= create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'nonbeaconed_trial_number']), np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm']), number_of_bins, array_of_trials)
+    p_spike_num_hist = create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'probe_trial_number']),       np.array(spike_data.at[cluster_index, 'probe_position_cm']),       number_of_bins, array_of_trials)
+
+    spike_data.at[cluster_index,'spike_num_hist']    = spike_num_hist.tolist()
+    spike_data.at[cluster_index,'b_spike_num_hist']  = b_spike_num_hist.tolist()
+    spike_data.at[cluster_index,'nb_spike_num_hist'] = nb_spike_num_hist.tolist()
+    spike_data.at[cluster_index,'p_spike_num_hist']  = p_spike_num_hist.tolist()
+
+    return firing_rate_map, spike_data
+
 
 def make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm):
     print('I am calculating the average firing rate ...')
@@ -215,13 +230,13 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         spike_data = add_data_to_dataframe(cluster_index, firing_rate_map, spike_data)
 
         if prm.cue_conditioned_goal:
-            firing_rate_map = bin_spike_counts(firing_rate_map, spike_data, prm)
+            firing_rate_map, spike_data = bin_spike_counts(firing_rate_map, raw_position_data, spike_data, cluster_index, prm)
+
 
     print('-------------------------------------------------------------')
     print('firing field maps processed for all trials')
     print('-------------------------------------------------------------')
     return spike_data
-
 
 
 '''
