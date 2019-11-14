@@ -110,13 +110,13 @@ def get_tags_parameter_file(recording_directory):
 def check_for_paired(running_parameter_tags):
     paired_recording = None
     session_type_paired = None
-
-    tags = [x.strip() for x in running_parameter_tags.split('*')]
-    for tag in tags:
-        if tag.startswith('paired'):
-            paired_recording = str(tag.split("=")[1])
-        elif tag.startswith('session_type_paired'):
-            session_type_paired = str(tag.split("=")[1])
+    if running_parameter_tags is not False:
+        tags = [x.strip() for x in running_parameter_tags.split('*')]
+        for tag in tags:
+            if tag.startswith('paired'):
+                paired_recording = str(tag.split("=")[1])
+            elif tag.startswith('session_type_paired'):
+                session_type_paired = str(tag.split("=")[1])
 
     return paired_recording, session_type_paired
 
@@ -354,13 +354,11 @@ def monitor_to_sort():
     time_to_wait = 60.0
     while True:
         print('I am checking whether there is something to sort.')
-        try:
-            recording_to_sort = check_folder(sorting_folder)
+
+        recording_to_sort = check_folder(sorting_folder)
+        if recording_to_sort is not False:
             tags = get_tags_parameter_file(recording_to_sort)
             paired_recording, paired_session_type = check_for_paired(tags)
-        except:
-            print("passing")
-        if recording_to_sort is not False:
             call_spike_sorting_analysis_scripts(recording_to_sort,
                                                 tags,
                                                 paired_recording=paired_recording,
