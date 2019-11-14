@@ -51,6 +51,7 @@ def split_stop_data_by_trial_type(spatial_data, first_stops=False):
     return beaconed, nonbeaconed, probe
 
 def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
+
     print('I am plotting stop rasta offset from the goal location...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -510,12 +511,12 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
     plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
     criteria_plot_offset(processed_position_data, prm)
     plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
+    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
     plot_stop_histogram(raw_position_data, processed_position_data, prm)
     plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
@@ -528,6 +529,8 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
 
@@ -638,7 +641,7 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
     n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
 
     if ordered:
-        processed_position_data = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
+        processed_position_data, _, = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
         _, _, _, trial_bb_start, trial_bb_end = order_by_cue(trial_bb_start=trial_bb_start, trial_bb_end=trial_bb_end)
 
     fill_blackbox(trial_bb_start, ax)
@@ -710,6 +713,83 @@ def plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_b
             plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_on_trials_ordered' + '.png', dpi=200)
     plt.close()
 
+def plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True):
+    print('plotting spike ratstas with...')
+    save_path = prm.get_output_path() + '/Figures/spike_ratstas'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        spikes_on_track = plt.figure(figsize=(6,6))
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+        n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+        n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+        if ordered:
+            processed_position_data, trial_numbers_conversions = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
+            _, _, _, trial_bb_start, trial_bb_end = order_by_cue(trial_bb_start=trial_bb_start, trial_bb_end=trial_bb_end)
+
+        fill_blackbox(trial_bb_start, ax)
+        fill_blackbox(trial_bb_end, ax)
+
+        beaconed = list(processed_position_data.time_trials_beaconed[:n_beaconed_trials])
+        beaconed_trial_numbers = np.array(processed_position_data.time_trials_beaconed_trial_number[:n_beaconed_trials])
+        non_beaconed = list(processed_position_data.time_trials_non_beaconed[:n_nonbeaconed_trials])
+        non_beaconed_trial_numbers = np.array(processed_position_data.time_trials_non_beaconed_trial_number[:n_nonbeaconed_trials])
+
+        plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+        x_max = max(raw_position_data.trial_number) + 0.5
+        plot_utility.style_vr_plot_offset(ax, x_max)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plt.ylabel('Speeds on trials', fontsize=12, labelpad=10)
+        plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+        # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+        plt.xlim(-200, 200)
+
+        # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
+        normal = pl.Normalize(0, 100) # 0 to 75cm/s
+        cax, _ = cbar.make_axes(ax)
+        cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
+        cax.set_ylabel('Speeds (cm/s)', fontsize=12, labelpad=10)
+
+        if plot_beaconed:
+            for i in range(len(beaconed)):
+                new_trial_number = beaconed_trial_numbers[i]
+                old_trial_number = trial_numbers_conversions[:,0][trial_numbers_conversions[:,1] == new_trial_number]
+                # this calls some funky masking to find the alternative trial number
+                trial_spikes = spike_data.at[cluster_index,'spike_num_hist'][int(old_trial_number)-1]
+
+                goal_location = processed_position_data.goal_location_beaconed[i]
+                bin_counter = 0.5
+                for j in range(len(beaconed[i])):
+                    tmp = trial_spikes[j]/beaconed[i][j]
+                    speed = normal(tmp)
+                    if not math.isnan(speed):
+                        ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(speed)))
+                    bin_counter+=1
+
+        if plot_non_beaconed:
+            for i in range(len(non_beaconed)):
+                new_trial_number = non_beaconed_trial_numbers[i]
+                old_trial_number = trial_numbers_conversions[:,0][trial_numbers_conversions[:,1] == new_trial_number]
+                trial_spikes = spike_data.at[cluster_index,'spike_num_hist'][int(old_trial_number)-1]
+
+                goal_location = processed_position_data.goal_location_non_beaconed[i]
+                bin_counter = 0.5
+                for j in range(len(non_beaconed[i])):
+                    tmp = trial_spikes[j]/non_beaconed[i][j]
+                    speed = normal(tmp)
+                    if not math.isnan(speed):
+                        ax.add_patch(plt.Rectangle((bin_counter-goal_location-0.5, non_beaconed_trial_numbers[i]-0.5), 1, 1, fc='r', color=pl.cm.jet(speed)))
+                    bin_counter+=1
+
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_ratsta_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
+        plt.close()
 
 def order_by_cue(beaconed=None, non_beaconed=None, probe=None, trial_bb_start=None, trial_bb_end=None):
     '''

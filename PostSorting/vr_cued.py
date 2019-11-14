@@ -31,6 +31,8 @@ def order_by_goal_location(processed_position_data):
 
     n_total = n_beaconed_trials + n_nonbeaconed_trials + n_probe_trials
 
+    trial_number_conversions = []
+
     for i in range(n_total):
         old_trial_number = processed_position_data['goal_location_old_trial_numbers'][i]
         new_trial_number = processed_position_data['goal_location_new_trial_numbers'][i]
@@ -42,7 +44,9 @@ def order_by_goal_location(processed_position_data):
         processed_position_data['time_trials_beaconed_trial_number'][processed_position_data['goal_location_beaconed_trial_number'] == old_trial_number] = new_trial_number
         processed_position_data['time_trials_non_beaconed_trial_number'][processed_position_data['goal_location_non_beaconed_trial_number'] == old_trial_number] = new_trial_number
 
-    return processed_position_data
+        trial_number_conversions.append([old_trial_number, new_trial_number])
+
+    return processed_position_data, np.array(trial_number_conversions)
 
 def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
     # in the process of replacing this function with order_by_goal
