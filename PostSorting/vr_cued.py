@@ -38,6 +38,9 @@ def order_by_goal_location(processed_position_data):
         processed_position_data['speed_trial_numbers'][processed_position_data['goal_location_old_trial_numbers'] == old_trial_number] = new_trial_number
         processed_position_data['speed_trials_beaconed_trial_number'][processed_position_data['goal_location_beaconed_trial_number'] == old_trial_number] = new_trial_number
         processed_position_data['speed_trials_non_beaconed_trial_number'][processed_position_data['goal_location_non_beaconed_trial_number'] == old_trial_number] = new_trial_number
+        processed_position_data['time_trial_numbers'][processed_position_data['goal_location_old_trial_numbers'] == old_trial_number] = new_trial_number
+        processed_position_data['time_trials_beaconed_trial_number'][processed_position_data['goal_location_beaconed_trial_number'] == old_trial_number] = new_trial_number
+        processed_position_data['time_trials_non_beaconed_trial_number'][processed_position_data['goal_location_non_beaconed_trial_number'] == old_trial_number] = new_trial_number
 
     return processed_position_data
 
