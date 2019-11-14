@@ -32,6 +32,14 @@ def add_columns_to_dataframe(spike_data):
     spike_data["b_spike_rate_on_trials"] = ""
     spike_data["nb_spike_rate_on_trials"] = ""
     spike_data["p_spike_rate_on_trials"] = ""
+    spike_data['spike_num_hist'] = ""
+    spike_data['b_spike_num_hist'] = ""
+    spike_data['nb_spike_num_hist'] = ""
+    spike_data['p_spike_num_hist'] = ""
+    spike_data['beaconed_position_cm_offset'] = ""
+    spike_data['nonbeaconed_position_cm_offset'] = ""
+    spike_data['probe_position_cm_offset'] = ""
+
     return spike_data
 
 

@@ -229,7 +229,6 @@ def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
 
-
 '''
 # Plot spatial firing info:
 > spikes per trial
@@ -459,10 +458,6 @@ def plot_gc_firing_rate_maps(spike_data, prm, prefix):
         plt.close()
 
 
-'''
-plot gaussian convolved firing rate in time against similarly convolved speed and location. 
-'''
-
 def plot_convolved_rates_in_time(spike_data, prm):
     print('plotting spike rastas...')
     save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
@@ -535,10 +530,6 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
-
-        #plot_firing_rate_maps(spike_data, prm, prefix='_all')
-        # plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
-        # make_combined_figure(prm, spike_data, prefix='_all')
 
 
 def criteria_plot_offset(processed_position_data, prm):
