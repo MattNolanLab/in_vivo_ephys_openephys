@@ -42,7 +42,7 @@ def load_sync_data_ephys(recording_to_process, prm):
 
 
 def get_video_sync_on_and_off_times(spatial_data):
-    threshold = np.median(spatial_data['syncLED']) + 2 * np.std(spatial_data['syncLED'])
+    threshold = np.median(spatial_data['syncLED']) + 4 * np.std(spatial_data['syncLED'])
     spatial_data['sync_pulse_on'] = spatial_data['syncLED'] > threshold
     spatial_data['sync_pulse_on_diff'] = np.append([None], np.diff(spatial_data['sync_pulse_on'].values))
     return spatial_data
