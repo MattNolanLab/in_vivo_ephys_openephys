@@ -216,6 +216,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         if paired_recording is not None:
             paired_recording = copy_recording_to_sort_to_local(paired_recording)
             paired_recording_to_sort = sorting_folder + paired_recording.split('/')[-1]
+            paired_location_on_server = get_location_on_server(paired_recording_to_sort)
             recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recording_to_sort)
 
         pre_process_ephys_data.pre_process_data(recording_to_sort)
@@ -247,12 +248,13 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         elif is_vr:
             post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags)
 
-
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
-        if os.path.exists(paired_recording_to_sort + '/Figures') is True:
-            copy_output_to_server(paired_recording_to_sort, location_on_server)
-            shutil.rmtree(paired_recording_to_sort)
+
+        if paired_recording is not None:
+            if os.path.exists(paired_recording_to_sort + '/Figures') is True:
+                copy_output_to_server(paired_recording_to_sort, paired_location_on_server)
+                shutil.rmtree(paired_recording_to_sort)
 
         #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
