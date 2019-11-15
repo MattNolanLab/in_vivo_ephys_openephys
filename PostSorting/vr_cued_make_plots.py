@@ -752,10 +752,10 @@ def plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm
         plt.xlim(-200, 200)
 
         # https://stackoverflow.com/questions/10533929/colors-of-rectangles-in-python
-        normal = pl.Normalize(0, 100) # 0 to 75cm/s
+        normal = pl.Normalize(0, 50) # 0 to 50 hz
         cax, _ = cbar.make_axes(ax)
         cb2 = cbar.ColorbarBase(cax, cmap=pl.cm.jet, norm=normal)
-        cax.set_ylabel('Speeds (cm/s)', fontsize=12, labelpad=10)
+        cax.set_ylabel('Firing Rate (Hz)', fontsize=12, labelpad=10)
 
         if plot_beaconed:
             for i in range(len(beaconed)):
