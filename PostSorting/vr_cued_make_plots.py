@@ -164,6 +164,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
+
 def plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
@@ -206,6 +207,47 @@ def plot_stop_cumulative_histogram(raw_position_data, processed_position_data, p
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_cummulative_histogram' + '.png', dpi=200)
     plt.close()
 
+def plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm):
+    print('plotting stop histogram...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    stop_histogram = plt.figure(figsize=(6,4))
+    ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    beaconed, nonbeaconed, probe = split_stop_data_by_trial_type(processed_position_data)
+    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+    bins = np.arange(-70, 70, 1)
+    bin_centres = 0.5*(bins[1:]+bins[:-1])
+
+    average_beaconed = np.histogram(beaconed[:,0],bins)[0]/n_beaconed_trials
+    average_nonbeaconed = np.histogram(nonbeaconed[:,0],bins)[0]/n_nonbeaconed_trials
+
+    average_beaconed = average_beaconed/np.sum(average_beaconed)
+    average_nonbeaconed = average_nonbeaconed/np.sum(average_nonbeaconed)
+
+    average_beaconed = np.cumsum(average_beaconed)
+    average_nonbeaconed = np.cumsum(average_nonbeaconed)
+
+    ax.plot(bin_centres, average_beaconed, '-', color='Black')
+    ax.plot(bin_centres, average_nonbeaconed, '-', color='Red')
+
+    plt.ylabel('P(Stop after Cue)', fontsize=12, labelpad = 10)
+    plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad = 10)
+    plt.xlim(min(bins), max(bins))
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+
+    plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+    b_max = max(average_beaconed)
+    nb_max = max(average_nonbeaconed)
+    x_max = max(b_max, nb_max)
+    plot_utility.style_vr_plot_offset(ax, x_max)
+    plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.22, right = 0.87, top = 0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_cummulative_histogram_post_cue' + '.png', dpi=200)
+    plt.close()
 
 def plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm):
     print('plotting stop histogram...')
@@ -234,7 +276,7 @@ def plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_posit
     ax.plot(bin_centres, average_beaconed, '-', color='Black')
     ax.plot(bin_centres, average_nonbeaconed, '-', color='Red')
 
-    plt.ylabel('P(Stop)', fontsize=12, labelpad = 10)
+    plt.ylabel('P(First Stop)', fontsize=12, labelpad = 10)
     plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad = 10)
     plt.xlim(min(bins), max(bins))
     ax.yaxis.set_ticks_position('left')
@@ -561,6 +603,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
     plot_stop_histogram(raw_position_data, processed_position_data, prm)
     plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
     plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm)
+    plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm)
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
 
     if spike_data is not None:
