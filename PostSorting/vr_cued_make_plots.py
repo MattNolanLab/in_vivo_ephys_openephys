@@ -236,7 +236,7 @@ def plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position
 
     plt.ylabel('P(Stop after Cue)', fontsize=12, labelpad = 10)
     plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(min(bins), max(bins))
+    plt.xlim(-200, 200)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
 
