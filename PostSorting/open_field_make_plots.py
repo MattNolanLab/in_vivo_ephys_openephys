@@ -45,7 +45,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
             labelleft=False,
             labelbottom=False)  # labels along the bottom edge are off
         ax.set_aspect('equal')
-        plt.title('spikes on trajectory', y=1.08)
+        plt.title('Spikes on trajectory', y=1.08, fontsize=24)
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.pdf', bbox_inches='tight')
         plt.close()
@@ -60,10 +60,12 @@ def plot_coverage(position_heat_map, prm):
     coverage.set_size_inches(5, 5, forward=True)
     ax = coverage.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     ax = plot_utility.style_open_field_plot(ax)
-    ax.imshow(position_heat_map, cmap=cmocean.cm.thermal, interpolation='nearest')
-    plt.title('coverage', y=1.08)
+    position_heat_map = np.rot90(position_heat_map)
+    coverage_fig = ax.imshow(position_heat_map, cmap=cmocean.cm.thermal, interpolation='nearest')
+    coverage.colorbar(coverage_fig)
+    plt.title('Coverage', y=1.08, fontsize=24)
     plt.savefig(save_path + '/heatmap.png', dpi=300)
-    plt.savefig(save_path + '/heatmap.pdf')
+    # plt.savefig(save_path + '/heatmap.pdf')
     plt.close()
 
 
@@ -80,8 +82,9 @@ def plot_firing_rate_maps(spatial_firing, prm):
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
-        ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz', y=1.08)
+        rate_map_img = ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
+        firing_rate_map_fig.colorbar(rate_map_img)
+        plt.title('Firing rate map \n max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz', y=1.08, fontsize=24)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png', dpi=300)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.pdf')
         plt.close()
@@ -105,7 +108,7 @@ def plot_hd(spatial_firing, position_data, prm):
                 alpha=0.2)
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot, fraction=0.046, pad=0.04)
-        plt.title('head-direction', y=1.08)
+        plt.title('Head direction at spikes', y=1.08, fontsize=24)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
@@ -129,7 +132,7 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
         plt.tight_layout()
         #  + '\nKuiper p: ' + str(spatial_firing.hd_p[cluster])
-        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', preferred HD: ' + str(round(spatial_firing.preferred_HD[cluster][0], 0)) + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)), y=1.08, fontsize=12)
+        plt.title('Head direction \n max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)) + '\n', y=1.08, fontsize=24)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
@@ -167,17 +170,19 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
         if rate_map_autocorr.size:
             ax = plt.subplot(1, 1, 1)
             ax = plot_utility.style_open_field_plot(ax)
-            ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
+            autocorr_img = ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
+            rate_map_autocorr_fig.colorbar(autocorr_img)
             plt.tight_layout()
-            plt.title('grid score: ' + str(round(spatial_firing.grid_score[cluster], 2)))
+            plt.title('Autocorrelogram \n grid score: ' + str(round(spatial_firing.grid_score[cluster], 2)), fontsize=24)
             plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
             # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
 
 
-def mark_firing_field_with_scatter(field, plot, colors, field_id):
+def mark_firing_field_with_scatter(field, plot, colors, field_id, rate_map):
+    y_max = rate_map.shape[0] -1
     for bin in field:
-        plot.scatter(bin[1], bin[0], color=colors[field_id], marker='o', s=25)
+        plot.scatter(bin[0], y_max - bin[1], color=colors[field_id], marker='o', s=25)
     return plot
 
 
@@ -200,8 +205,15 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
     hd_plot_field.plot(theta[:-1], hd_hist_session*(max(hd_hist_cluster)/max(hd_hist_session)), color='black', linewidth=2, alpha=0.9)
     hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
     plt.tight_layout()
+    if 'field_max_firing_rate' in spatial_firing:
+        field_max_firing_rate = str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2))
+    else:
+        field_max_firing_rate = '?'
+
     plt.title(str(spatial_firing.number_of_spikes_in_fields[cluster][field_id]) + ' spikes'
-              + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2)) +' seconds', y=1.08, fontsize=12)
+              + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2))
+              +' seconds\n max fr: ' + field_max_firing_rate + 'Hz \n',
+              y=1.08, fontsize=24)
 
     plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.pdf', bbox_inches="tight")
@@ -221,17 +233,18 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
-                plt.title('hd in detected firing fields')
+                plt.title('HD in detected fields', fontsize=24)
                 of_figure.set_size_inches(5, 5, forward=True)
                 of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
-                of_plot.imshow(firing_rate_map)
+                firing_rate_map_90 = np.rot90(firing_rate_map)
+                of_plot.imshow(firing_rate_map_90)
 
                 firing_fields_cluster = spatial_firing.firing_fields[cluster]
                 colors = generate_colors(number_of_firing_fields)
 
                 for field_id, field in enumerate(firing_fields_cluster):
-                    of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id)
+                    of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id, firing_rate_map_90)
                     hd_hist_session = spatial_firing.firing_fields_hd_session[cluster][field_id]
                     hd_hist_session = np.array(hd_hist_session) / prm.get_sampling_rate()
                     hd_hist_cluster = np.array(spatial_firing.firing_fields_hd_cluster[cluster][field_id])
@@ -321,8 +334,7 @@ def make_combined_figure(prm, spatial_firing):
         spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
         speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
         firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
-        autocorrelogram_10_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png'
-        autocorrelogram_250_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_250ms.png'
+        autocorrelograms = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelograms.png'
         waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
         rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
         speed_vs_firing_rate_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_vs_firing_rate.png'
@@ -332,7 +344,7 @@ def make_combined_figure(prm, spatial_firing):
             number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
         number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
 
-        grid = plt.GridSpec(number_of_rows, 6, wspace=0.2, hspace=0.2)
+        grid = plt.GridSpec(number_of_rows, 5, wspace=0.025, hspace=0.05)
         if os.path.exists(waveforms_path):
             waveforms = mpimg.imread(waveforms_path)
             waveforms_plot = plt.subplot(grid[0, 0])
@@ -340,29 +352,24 @@ def make_combined_figure(prm, spatial_firing):
             waveforms_plot.imshow(waveforms)
         if os.path.exists(spike_histogram_path):
             spike_hist = mpimg.imread(spike_histogram_path)
-            spike_hist_plot = plt.subplot(grid[0, 3])
+            spike_hist_plot = plt.subplot(grid[0, 2])
             spike_hist_plot.axis('off')
             spike_hist_plot.imshow(spike_hist)
-        if os.path.exists(speed_histogram_path):
-            speed_hist = mpimg.imread(speed_histogram_path)
-            speed_hist_plot = plt.subplot(grid[0, 4])
-            speed_hist_plot.axis('off')
-            speed_hist_plot.imshow(speed_hist)
-        if os.path.exists(autocorrelogram_10_path):
-            autocorrelogram_10 = mpimg.imread(autocorrelogram_10_path)
+        if os.path.exists(autocorrelograms):
+            autocorrelogram_10 = mpimg.imread(autocorrelograms)
             autocorrelogram_10_plot = plt.subplot(grid[0, 1])
             autocorrelogram_10_plot.axis('off')
             autocorrelogram_10_plot.imshow(autocorrelogram_10)
-        if os.path.exists(autocorrelogram_250_path):
-            autocorrelogram_250 = mpimg.imread(autocorrelogram_250_path)
-            autocorrelogram_250_plot = plt.subplot(grid[0, 2])
-            autocorrelogram_250_plot.axis('off')
-            autocorrelogram_250_plot.imshow(autocorrelogram_250)
         if os.path.exists(speed_vs_firing_rate_path):
             speed_vs_rate = mpimg.imread(speed_vs_firing_rate_path)
-            speed_vs_rate_plot = plt.subplot(grid[0, 5])
+            speed_vs_rate_plot = plt.subplot(grid[0, 3])
             speed_vs_rate_plot.axis('off')
             speed_vs_rate_plot.imshow(speed_vs_rate)
+        if os.path.exists(coverage_path):
+            coverage = mpimg.imread(coverage_path)
+            coverage_plot = plt.subplot(grid[0, 4])
+            coverage_plot.axis('off')
+            coverage_plot.imshow(coverage)
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
             spike_scatter_plot = plt.subplot(grid[1, 0])
@@ -378,19 +385,14 @@ def make_combined_figure(prm, spatial_firing):
             rate_map_autocorr_plot = plt.subplot(grid[1, 2])
             rate_map_autocorr_plot.axis('off')
             rate_map_autocorr_plot.imshow(rate_map_autocorr)
-        if os.path.exists(coverage_path):
-            coverage = mpimg.imread(coverage_path)
-            coverage_plot = plt.subplot(grid[1, 3])
-            coverage_plot.axis('off')
-            coverage_plot.imshow(coverage)
         if os.path.exists(head_direction_polar_path):
             polar_hd = mpimg.imread(head_direction_polar_path)
-            polar_hd_plot = plt.subplot(grid[1, 4])
+            polar_hd_plot = plt.subplot(grid[1, 3])
             polar_hd_plot.axis('off')
             polar_hd_plot.imshow(polar_hd)
         if os.path.exists(head_direction_map_path):
             hd_map = mpimg.imread(head_direction_map_path)
-            hd_map_plot = plt.subplot(grid[1, 5])
+            hd_map_plot = plt.subplot(grid[1, 4])
             hd_map_plot.axis('off')
             hd_map_plot.imshow(hd_map)
         if os.path.exists(firing_fields_rate_map_path):
