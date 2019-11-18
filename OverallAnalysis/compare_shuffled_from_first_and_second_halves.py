@@ -112,6 +112,7 @@ def split_in_two(cell):
     first = pd.DataFrame()
     first['session_id'] = cell.session_id.iloc[0]
     first['cluster_id'] = cell.cluster_id.iloc[0]
+    first['number_of_spikes'] = [len(spike_data_cluster_first.firing_times)]
     first['firing_times'] = [spike_data_cluster_first.firing_times]
     first['position_x'] = [spike_data_cluster_first.position_x]
     first['position_y'] = [spike_data_cluster_first.position_y]
@@ -127,6 +128,7 @@ def split_in_two(cell):
     second = pd.DataFrame()
     second['session_id'] = cell.session_id.iloc[0]
     first['cluster_id'] = cell.cluster_id.iloc[0]
+    second['number_of_spikes'] = [len(spike_data_cluster_second.firing_times)]
     second['firing_times'] = [spike_data_cluster_second.firing_times]
     second['position_x'] = [spike_data_cluster_second.position_x]
     second['position_y'] = [spike_data_cluster_second.position_y]
@@ -158,7 +160,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
         position_heat_map_second, second_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_second, second_half, prm)
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy')
-
+        print('shuffled')
         # compare
 
 
