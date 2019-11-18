@@ -1,10 +1,12 @@
 import glob
+import numpy as np
 import os
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.false_positives
 import pandas as pd
 import OverallAnalysis.shuffle_cell_analysis
 import PostSorting.compare_first_and_second_half
+import PostSorting.open_field_firing_maps
 import PostSorting.parameters
 
 prm = PostSorting.parameters.Parameters()
@@ -90,53 +92,80 @@ def load_data(path):
     return first_half_spatial_firing, second_half_spatial_firing, first_position, second_position
 
 
+def split_in_two(cell):
+    cell['position_x_pixels'] = [np.array(cell.position_x.iloc[0]) * prm.get_pixel_ratio() / 100]
+    cell['position_y_pixels'] = [np.array(cell.position_y.iloc[0]) * prm.get_pixel_ratio() / 100]
+    spike_data_in = cell
+    synced_spatial_data_in = pd.DataFrame()
+    synced_spatial_data_in['position_x'] = cell.trajectory_x.iloc[0]
+    synced_spatial_data_in['position_y'] = cell.trajectory_y.iloc[0]
+    synced_spatial_data_in['synced_time'] = cell.trajectory_times.iloc[0]
+    synced_spatial_data_in['hd'] = cell.trajectory_hd.iloc[0]
+    spike_data_cluster_first, synced_spatial_data_first_half = PostSorting.compare_first_and_second_half.get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half')
+    spike_data_cluster_second, synced_spatial_data_second_half = PostSorting.compare_first_and_second_half.get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='second_half')
+
+    synced_spatial_data_first_half['position_x_pixels'] = np.array(synced_spatial_data_first_half.position_x) * prm.get_pixel_ratio() / 100
+    synced_spatial_data_first_half['position_y_pixels'] = np.array(synced_spatial_data_first_half.position_y) * prm.get_pixel_ratio() / 100
+    synced_spatial_data_second_half['position_x_pixels'] = np.array(synced_spatial_data_second_half.position_x) * prm.get_pixel_ratio() / 100
+    synced_spatial_data_second_half['position_y_pixels'] = np.array(synced_spatial_data_second_half.position_y) * prm.get_pixel_ratio() / 100
+
+    first = pd.DataFrame()
+    first['session_id'] = cell.session_id.iloc[0]
+    first['cluster_id'] = cell.cluster_id.iloc[0]
+    first['firing_times'] = [spike_data_cluster_first.firing_times]
+    first['position_x'] = [spike_data_cluster_first.position_x]
+    first['position_y'] = [spike_data_cluster_first.position_y]
+    first['position_x_pixels'] = [spike_data_cluster_first.position_x_pixels]
+    first['position_y_pixels'] = [spike_data_cluster_first.position_y_pixels]
+    first['hd'] = [spike_data_cluster_first.hd]
+
+    first['trajectory_x'] = [synced_spatial_data_first_half.position_x]
+    first['trajectory_y'] = [synced_spatial_data_first_half.position_y]
+    first['trajectory_hd'] = [synced_spatial_data_first_half.hd]
+    first['trajectory_times'] = [synced_spatial_data_first_half.synced_time]
+
+    second = pd.DataFrame()
+    second['session_id'] = cell.session_id.iloc[0]
+    first['cluster_id'] = cell.cluster_id.iloc[0]
+    second['firing_times'] = [spike_data_cluster_second.firing_times]
+    second['position_x'] = [spike_data_cluster_second.position_x]
+    second['position_y'] = [spike_data_cluster_second.position_y]
+    second['position_x_pixels'] = [spike_data_cluster_second.position_x_pixels]
+    second['position_y_pixels'] = [spike_data_cluster_second.position_y_pixels]
+    second['hd'] = [spike_data_cluster_second.hd]
+
+    second['trajectory_x'] = [synced_spatial_data_second_half.position_x]
+    second['trajectory_y'] = [synced_spatial_data_second_half.position_y]
+    second['trajectory_hd'] = [synced_spatial_data_second_half.hd]
+    second['trajectory_times'] = [synced_spatial_data_second_half.synced_time]
+    return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
+
+
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames'):
-    for recording_folder in glob.glob(server_path + '*'):
-        print(recording_folder)
-        firing_data_frame_path = recording_folder + spike_sorter + df_path + '/spatial_firing.pkl'
-        if os.path.exists(firing_data_frame_path):
-            print('I found a firing data frame.')
-            try:
-                spatial_firing = pd.read_pickle(firing_data_frame_path)
-            except:
-                print('could not read pickle')
-            if 'grid_score' in spatial_firing:
-                spatial_firing = add_cell_types_to_data_frame(spatial_firing)
-                if 'grid' not in list(spatial_firing['cell type']):
-                    print('no grid cells here')
-                    continue
-                # os.path.isdir(recording_folder)
-                first_half_spatial_firing, second_half_spatial_firing, first_position, second_position = load_data(recording_folder)
-                if first_half_spatial_firing is None:
-                    continue
-                first_half = tag_false_positives(first_half_spatial_firing)
-                second_half = tag_false_positives(second_half_spatial_firing)
-                first_half['cell type'] = spatial_firing['cell type']
-                first_half['trajectory_hd'] = [first_position.hd] * len(first_half)
-                first_half['trajectory_x'] = [first_position.position_x] * len(first_half)
-                first_half['trajectory_y'] = [first_position.position_y] * len(first_half)
-                first_half['trajectory_times'] = [first_position.synced_time] * len(first_half)
+    all_data = pd.read_pickle(local_path + 'all_mice_df.pkl')
+    all_data = add_cell_types_to_data_frame(all_data)
+    grid_cells = all_data['cell type'] == 'grid'
+    grid_data = all_data[grid_cells]
 
-                second_half['cell type'] = spatial_firing['cell type']
-                second_half['trajectory_hd'] = [second_position.hd] * len(second_half)
-                second_half['trajectory_x'] = [second_position.position_x] * len(second_half)
-                second_half['trajectory_y'] = [second_position.position_y] * len(second_half)
-                second_half['trajectory_times'] = [second_position.synced_time] * len(second_half)
+    iterator = 0
+    for index, cell in grid_data.iterrows():
+        first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[:iterator + 1])
+        iterator += 1
+        # add rate map to dfs
+        # shuffle
+        position_heat_map_first, first_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_first, first_half, prm)
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy')
 
-                spatial_firing = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy')
+        position_heat_map_second, second_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_second, second_half, prm)
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal='mouse', shuffle_type='occupancy')
 
-                for index, cluster in first_half_spatial_firing.iterrows():
+        # compare
 
-                    pass
-                        # generate shuffled data for both halves
-                        # bin / make hd histograms
-
-                        # get 1000 correlation values between first and second halves
-                        # save correlation values in df + save mean and sd locally
 
 
 def main():
     prm.set_pixel_ratio(440)
+    prm.set_sampling_rate(30000)
     process_data(server_path_mouse)
 
 
