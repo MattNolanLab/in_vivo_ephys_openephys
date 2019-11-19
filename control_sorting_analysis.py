@@ -243,9 +243,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
 
-        shutil.rmtree(recording_to_sort)
-        if os.path.exists(mountainsort_tmp_folder) is True:
-            shutil.rmtree(mountainsort_tmp_folder)
+        if not os.environ.get('DEBUG'): # Keep the recording files during debug run
+            shutil.rmtree(recording_to_sort)
+            if os.path.exists(mountainsort_tmp_folder) is True:
+                shutil.rmtree(mountainsort_tmp_folder)
 
         if os.environ.get('SINGLE_RUN'):
             print('Single run mode was active during the error. '
