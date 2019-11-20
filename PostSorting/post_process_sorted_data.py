@@ -154,11 +154,12 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort'):
+                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
         running_parameter_tags)
+    prm.set_stitch_point(stitchpoint)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)

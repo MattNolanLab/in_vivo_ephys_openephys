@@ -20,6 +20,7 @@ class Parameters:
     total_length_sampling_points = 0
     dead_channels = []
     sorter_name = []
+    stitchpoint = None
 
     # vr parameters
     first_trial_channel = ''  # vr
@@ -212,4 +213,10 @@ class Parameters:
 
     def set_goal_location_chennl(self, goal_location_channel):
         Parameters.goal_location_channel = goal_location_channel
+
+    def set_stitch_point(self, stitchpoint):
+        Parameters.stitchpoint = stitchpoint
+
+    def get_stitch_point(self):
+        return Parameters.stitchpoint
 
