@@ -191,6 +191,33 @@ def find_first_stop_in_series(processed_position_data):
     processed_position_data['first_series_trial_type'] = pd.Series(trial_types)
     return processed_position_data
 
+def find_first_stops_after_cue(processed_position_data):
+
+    trial_numbers = np.array([])
+    trial_stops = np.array([])
+    trial_types = np.array([])
+
+    unique_trial_numbers = np.unique(np.array(processed_position_data['stop_trial_number']))
+    unique_trial_numbers = unique_trial_numbers[~np.isnan(unique_trial_numbers)]  # remove nans
+
+    for trial_number in unique_trial_numbers:
+        stops = np.array(processed_position_data['stop_location_cm'])[
+            np.array(processed_position_data['stop_trial_number']) == trial_number]
+        trial_type = np.array(processed_position_data['stop_trial_type'])[
+            np.array(processed_position_data['stop_trial_number']) == trial_number][0]
+
+        stops[stops < -70] = np.nan # if a stop is before the cue, change it to after the cue as were only taking the first
+        first_trial_stop = np.nanmin(stops)
+
+        if first_trial_stop != np.nan:
+            trial_numbers = np.append(trial_numbers, trial_number)
+            trial_stops = np.append(trial_stops, first_trial_stop)
+            trial_types = np.append(trial_types, trial_type)
+
+    processed_position_data['first_series_location_cm_postcue'] = pd.Series(trial_stops)
+    processed_position_data['first_series_trial_number_postcue'] = pd.Series(trial_numbers)
+    processed_position_data['first_series_trial_type_postcue'] = pd.Series(trial_types)
+    return processed_position_data
 
 def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     locations=[]
@@ -269,6 +296,9 @@ def process_stops(raw_position_data,processed_position_data, prm, recording_dire
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
     processed_position_data = find_rewarded_positions(raw_position_data,processed_position_data)
+
+    if prm.get_cue_conditioned_goal():
+        processed_position_data = find_first_stops_after_cue(processed_position_data)
     return processed_position_data
 
 
