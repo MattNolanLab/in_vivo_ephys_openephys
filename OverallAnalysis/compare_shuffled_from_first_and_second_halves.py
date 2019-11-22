@@ -155,7 +155,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     corr_stds = []
     for iterator in range(len(grid_data)):
         print(iterator)
-        print(grid_data.iloc[0].session_id)
+        print(grid_data.iloc[iterator].session_id)
         first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1])
         # add rate map to dfs
         # shuffle
