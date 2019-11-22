@@ -21,6 +21,7 @@ class Parameters:
     dead_channels = []
     sorter_name = []
     stitchpoint = None
+    paired_order = None
 
     # vr parameters
     first_trial_channel = ''  # vr
@@ -219,4 +220,10 @@ class Parameters:
 
     def get_stitch_point(self):
         return Parameters.stitchpoint
+
+    def set_paired_order(self, paired_order):
+        Parameters.paired_order = paired_order
+
+    def get_paired_order(self):
+        return Parameters.paired_order
 

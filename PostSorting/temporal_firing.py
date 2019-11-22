@@ -16,3 +16,17 @@ def add_temporal_firing_properties_to_df(spatial_firing, prm):
     spatial_firing['mean_firing_rate'] = mean_firing_rates
 
     return spatial_firing
+
+def correct_for_stitch(spatial_firing, prm):
+    if prm.paired_order is not None:
+        for cluster in range(len(spatial_firing)):
+            cluster = spatial_firing.cluster_id.values[cluster] - 1
+            firing_times = spatial_firing.firing_times[cluster]
+
+            if prm.paired_order == "first":
+                spatial_firing.firing_times[cluster] = firing_times[firing_times > 0]
+            elif prm.paired_order == "second":
+                spatial_firing.firing_times[cluster] = firing_times[firing_times < prm.stitchpoint]
+
+    return spatial_firing
+
