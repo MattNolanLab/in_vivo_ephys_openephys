@@ -145,7 +145,7 @@ def split_in_two(cell):
     return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
 
 
-def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30):
+def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
     all_data = pd.read_pickle(local_path + 'all_mice_df.pkl')
     all_data = add_cell_types_to_data_frame(all_data)
     grid_cells = all_data['cell type'] == 'grid'
@@ -162,11 +162,11 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         # add rate map to dfs
         # shuffle
         position_heat_map_first, first_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_first, first_half, prm)
-        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal='mouse_first_half', shuffle_type='occupancy')
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='occupancy')
         spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
 
         position_heat_map_second, second_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_second, second_half, prm)
-        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal='mouse_second_half', shuffle_type='occupancy')
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='occupancy')
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
 
 
@@ -215,7 +215,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    process_data(server_path_mouse)
+    process_data(server_path_mouse, tag='mouse')
+    process_data(server_path_rat, tag='rat')
 
 
 if __name__ == '__main__':
