@@ -8,6 +8,7 @@ import OverallAnalysis.shuffle_cell_analysis
 import PostSorting.compare_first_and_second_half
 import PostSorting.open_field_firing_maps
 import PostSorting.parameters
+import scipy.stats
 from scipy import signal
 
 prm = PostSorting.parameters.Parameters()
@@ -144,7 +145,7 @@ def split_in_two(cell):
     return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
 
 
-def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames'):
+def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30):
     all_data = pd.read_pickle(local_path + 'all_mice_df.pkl')
     all_data = add_cell_types_to_data_frame(all_data)
     grid_cells = all_data['cell type'] == 'grid'
@@ -153,6 +154,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     iterator = 0
     corr_coefs_mean = []
     corr_stds = []
+    percentiles = []
     for iterator in range(len(grid_data)):
         print(iterator)
         print(grid_data.iloc[iterator].session_id)
@@ -161,23 +163,52 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         # shuffle
         position_heat_map_first, first_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_first, first_half, prm)
         spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal='mouse_first_half', shuffle_type='occupancy')
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
 
         position_heat_map_second, second_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_second, second_half, prm)
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal='mouse_second_half', shuffle_type='occupancy')
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
+
+
         print('shuffled')
         # compare
         first_shuffles = spatial_firing_first.shuffled_data[0]
+        # todo get time_spent_in_bins added to df somehow
+        time_spent_in_bins_first = spatial_firing_first.time_spent_in_bins  # based on trajectory
+        # normalize shuffled data
+        shuffled_histograms_hz_first = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_first
         second_shuffles = spatial_firing_second.shuffled_data[0]
-        # look at correlations between rows of the two arrays above
+        time_spent_in_bins_second = spatial_firing_first.time_spent_in_bins  # based on trajectory
+        # normalize shuffled data
+        shuffled_histograms_hz_second = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_second
+
+        # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
         corr = np.corrcoef(first_shuffles, second_shuffles)[1000:, :1000]
         corr_mean = corr.mean()
         corr_std = corr.std()
+        # check what percentile real value is relative to distribution of shuffled correlations
+        corr_observed = scipy.stats.pearsonr(spatial_firing_first.hd_histogram_real_data_hz[0], spatial_firing_second.hd_histogram_real_data_hz[0])[0]
+        percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
+        percentiles.append(percentile)
 
         corr_coefs_mean.append(corr_mean)
         corr_stds.append(corr_std)
 
     #todo print and plot results (corr coefs and std)
+    print('***********MOUSE***************')
     print('avg corr correlations ')
+    print(corr_coefs_mean)
+    print('mean:')
+    print(np.mean(corr_coefs_mean))
+    print('std:')
+    print(np.std(corr_coefs_mean))
+
+    print('percentiles')
+    print(percentiles)
+    print('mean percentiles: ' + str(np.mean(percentiles)))
+    print('sd percentiles: ' + str(np.std(percentiles)))
+    print('number of cells in 95 percentile: ' + str(len(np.where(np.array(percentiles) > 95)[0])))
+    print('number of all grid cells: ' + str(len(percentiles)))
 
 
 
