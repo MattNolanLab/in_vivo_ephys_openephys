@@ -146,7 +146,7 @@ def split_in_two(cell):
 
 
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
-    all_data = pd.read_pickle(local_path + 'all_mice_df.pkl')
+    all_data = pd.read_pickle(local_path + 'all_' + tag + '_df.pkl')
     all_data = add_cell_types_to_data_frame(all_data)
     grid_cells = all_data['cell type'] == 'grid'
     grid_data = all_data[grid_cells]
@@ -183,7 +183,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         shuffled_histograms_hz_second = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_second
 
         # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
-        corr = np.corrcoef(first_shuffles, second_shuffles)[1000:, :1000]
+        corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
         corr_mean = corr.mean()
         corr_std = corr.std()
         # check what percentile real value is relative to distribution of shuffled correlations
@@ -195,7 +195,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         corr_stds.append(corr_std)
 
     #todo print and plot results (corr coefs and std)
-    print('***********MOUSE***************')
+    print('***********' + tag + '***************')
     print('avg corr correlations ')
     print(corr_coefs_mean)
     print('mean:')
@@ -215,8 +215,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    process_data(server_path_mouse, tag='mouse')
-    process_data(server_path_rat, tag='rat')
+    process_data(server_path_mouse, tag='mice')
+    process_data(server_path_rat, tag='rats')
 
 
 if __name__ == '__main__':
