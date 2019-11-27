@@ -3,6 +3,7 @@ import numpy as np
 import os
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.false_positives
+import OverallAnalysis.open_field_firing_maps_processed_data
 import pandas as pd
 import OverallAnalysis.shuffle_cell_analysis
 import PostSorting.compare_first_and_second_half
@@ -161,22 +162,20 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1])
         # add rate map to dfs
         # shuffle
-        position_heat_map_first, first_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_first, first_half, prm)
+        position_heat_map_first, first_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_first, first_half, prm)
         spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='distributive')
         spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
         spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_first, local_path, sampling_rate_video, tag + str(iterator) + 'first',
                                                number_of_bins=20, shuffle_type='distributive')
 
-        OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
+        # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
 
-        position_heat_map_second, second_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_second, second_half, prm)
+        position_heat_map_second, second_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_second, second_half, prm)
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='distributive')
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_second, local_path, sampling_rate_video, tag + str(iterator) + 'second',
                                                number_of_bins=20, shuffle_type='distributive')
-        OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
-
-
+        # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
 
         print('shuffled')
         # compare
