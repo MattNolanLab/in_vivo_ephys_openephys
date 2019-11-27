@@ -5,26 +5,32 @@ import setting
 import numpy as np 
 import json
 import os
+from pathlib import Path
 
 #%%
 outFolder = 'testData'
-debug_folder = 'E:\\pipeline_testing_data\\M1_D31_2018-11-01_12-28-25'
+debug_folder = '/media/data2/pipeline_testing_data/M1_D31_2018-11-01_12-28-25'
 
 #%%
-def load_OpenEphysRecording(folder,num_tetrodes=setting.num_tetrodes,
-     data_file_prefix=setting.data_file_prefix, data_file_suffix=setting.data_file_suffix):
+def load_OpenEphysRecording4BinaryFile(folder,num_tetrodes=setting.num_tetrodes,
+     data_file_prefix=setting.data_file_prefix, data_file_suffix=setting.data_file_suffix,
+     dtype=float):
     signal = []
+    headers = []
     for i in range(num_tetrodes*4):
         fname = folder+'/'+data_file_prefix+str(i+1)+data_file_suffix+'.continuous'
-        x = OpenEphys.loadContinuousFast(fname)['data']
+        dataFile = OpenEphys.loadContinuousFast(fname, dtype=dtype)
+        x= dataFile['data']
+        headers.append(dataFile['header'])
+
         if i==0:
             #preallocate array on first run
-            signal = np.zeros((num_tetrodes*4,x.shape[0]))
+            signal = np.zeros((num_tetrodes*4,x.shape[0]),dtype=dtype)
         signal[i,:] = x
-    return signal
+    return signal,headers
 
 # %%
-# data = load_OpenEphysRecording(debug_folder,4)
+data,headers = load_OpenEphysRecording4BinaryFile(debug_folder,4,dtype=np.int16)
 
 # %% Make some test data
 Fs = 30000
@@ -41,13 +47,33 @@ with open(datapath+'/continuous.dat','wb') as f:
 
 np.save(datapath+'/timestamps.npy',np.arange(signals.shape[0],dtype='i8'))
 
+# %%
+def writeData(parentFolder,signals):
+    #signals should be in time x channel format
+    if signals.shape[0] < signals.shape[1]:
+        signals = signals.T
+
+    # make parent folders
+    folderpath = Path(parentFolder) / 'continuous' / 'open-ephys'
+    folderpath.mkdir(parents=True, exist_ok=True)
+
+    # write data file
+    with (folderpath / 'continuous.dat').open('wb') as f:
+        f.write(signals.tobytes())
+
+    # create and write timestamp
+    timestamps = np.arange(signals.shape[0],dtype='i8')
+    np.save(str(folderpath/'timestamps.npy'), timestamps)
+
+writeData('testData',data)
+
 #%% Make the structure json file
-def writeStructFile(filename,Fs=30000,nChan=16,bit_volts=0.05):
+def writeStructFile(filename,headers):
     structDict = {'GUI version':'0.4.5','continuous':[], 'events':[], 'spikes':[]}
 
     structDict['continuous'] = [{
         "folder_name":"open-ephys/",
-        "sample_rate":Fs,
+        "sample_rate":headers[0]['sampleRate'],
         "source_processor_name":"Demo source",
         "source_processor_id":100,
         "source_processor_sub_idx":0,
@@ -59,14 +85,14 @@ def writeStructFile(filename,Fs=30000,nChan=16,bit_volts=0.05):
 
     #assemble channel data
     channels = []
-    for i in range(nChan):
+    for i,h in enumerate(headers):
         channels.append({
             
-            "channel_name":f"CH{i}",
+            "channel_name": h['channel'],
             "description":"Demo data channel",
             "identifier":"genericdata.continuous",
             "history":"Demo source",
-            "bit_volts":bit_volts,
+            "bit_volts":h['bitVolts'],
             "units":"uV",
             "source_processor_index":i,
             "recorded_processor_index":i
@@ -78,5 +104,5 @@ def writeStructFile(filename,Fs=30000,nChan=16,bit_volts=0.05):
     with open(filename,'w') as f:
         f.write(json.dumps(structDict,indent=4))
 
-writeStructFile('testData/structure.oebin')
+writeStructFile('testData/structure.oebin',headers)
 # %%
