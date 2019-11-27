@@ -106,6 +106,8 @@ def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_st
 
 
 def split_spatial_firing_by_trial_type(spike_data):
+    #trial type: 0: beconed, 1: non-beaconed, 2: probe
+    
     print('I am splitting firing locations by trial type...')
     for cluster_index in range(len(spike_data)):
         cluster_df = spike_data.loc[[cluster_index]] # dataframe for that cluster
