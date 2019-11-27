@@ -642,31 +642,31 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.close()
 
 def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):
-    #plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
-    #criteria_plot_offset(processed_position_data, prm)
-    #plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
+    plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
+    criteria_plot_offset(processed_position_data, prm)
+    plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
     #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
     #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
     #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
     #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
     #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
     #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
-    #plot_stop_histogram(raw_position_data, processed_position_data, prm)
-    #plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
-    #plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm)
-    #plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm)
-    #plot_stop_cumulative_histogram_first_stop_postcue(raw_position_data, processed_position_data, prm)
+    plot_stop_histogram(raw_position_data, processed_position_data, prm)
+    plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
+    plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm)
+    plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm)
+    plot_stop_cumulative_histogram_first_stop_postcue(raw_position_data, processed_position_data, prm)
 
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
 
     if spike_data is not None:
-        #PostSorting.make_plots.plot_waveforms(spike_data, prm)
-        #PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-        #PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+        PostSorting.make_plots.plot_waveforms(spike_data, prm)
+        PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+        PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
         gc.collect()
-        #plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        #spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        #plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
         #plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True)
         plot_spike_rates_normalised(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
 
@@ -1019,6 +1019,7 @@ def plot_spike_rates_normalised(raw_position_data, processed_position_data, spik
         non_beaconed_rate = np.histogram(non_beaconed_locations, bins, weights=non_beaconed_normalised_spikes_in_bin)[0]/\
                                  np.histogram(non_beaconed_locations, bins)[0]
 
+        '''
         b_means = np.array([])
         for i in np.digitize(beaconed_locations,bins):
             if i>len(bins)-2:
@@ -1037,18 +1038,19 @@ def plot_spike_rates_normalised(raw_position_data, processed_position_data, spik
                             / np.histogram(beaconed_normalised_spikes_in_bin, bins)[0])
         non_beaconed_variance = np.sqrt(np.histogram(non_beaconed_normalised_spikes_in_bin, bins, weights=np.square(nb_means-non_beaconed_normalised_spikes_in_bin))[0] \
                                 / np.histogram(non_beaconed_normalised_spikes_in_bin, bins)[0])
+        
+        beaconed_variance = convolve_and_smooth(beaconed_variance, 5)
+        non_beaconed_variance = convolve_and_smooth(non_beaconed_variance, 5)
+        '''
 
         beaconed_rate = convolve_and_smooth(beaconed_rate, 5)
         non_beaconed_rate = convolve_and_smooth(non_beaconed_rate, 5)
 
-        beaconed_variance = convolve_and_smooth(beaconed_variance, 5)
-        non_beaconed_variance = convolve_and_smooth(non_beaconed_variance, 5)
-
         ax.plot(bin_centres, beaconed_rate, "r-", label="beaconed")
-        ax.fill_between(bin_centres, beaconed_rate-beaconed_variance, beaconed_rate+beaconed_variance, facecolor="red", alpha=0.3)
+        #ax.fill_between(bin_centres, beaconed_rate-beaconed_variance, beaconed_rate+beaconed_variance, facecolor="red", alpha=0.3)
 
         ax.plot(bin_centres, non_beaconed_rate, "b-", label="non beaconed")
-        ax.fill_between(bin_centres, non_beaconed_rate-non_beaconed_variance, non_beaconed_rate+non_beaconed_variance, facecolor="blue", alpha=0.3)
+        #ax.fill_between(bin_centres, non_beaconed_rate-non_beaconed_variance, non_beaconed_rate+non_beaconed_variance, facecolor="blue", alpha=0.3)
 
         x_max = np.nanmax(beaconed_rate) + 0.5
         plot_utility.style_vr_plot_offset(ax, x_max)
