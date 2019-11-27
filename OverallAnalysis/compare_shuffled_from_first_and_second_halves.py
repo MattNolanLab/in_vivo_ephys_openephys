@@ -112,8 +112,8 @@ def split_in_two(cell):
     synced_spatial_data_second_half['position_y_pixels'] = np.array(synced_spatial_data_second_half.position_y) * prm.get_pixel_ratio() / 100
 
     first = pd.DataFrame()
-    first['session_id'] = cell.session_id.iloc[0]
-    first['cluster_id'] = cell.cluster_id.iloc[0]
+    first['session_id'] = [cell.session_id.iloc[0]]
+    first['cluster_id'] = [cell.cluster_id.iloc[0]]
     first['number_of_spikes'] = [len(spike_data_cluster_first.firing_times)]
     first['firing_times'] = [spike_data_cluster_first.firing_times]
     first['position_x'] = [spike_data_cluster_first.position_x]
@@ -128,8 +128,8 @@ def split_in_two(cell):
     first['trajectory_times'] = [synced_spatial_data_first_half.synced_time]
 
     second = pd.DataFrame()
-    second['session_id'] = cell.session_id.iloc[0]
-    second['cluster_id'] = cell.cluster_id.iloc[0]
+    second['session_id'] = [cell.session_id.iloc[0]]
+    second['cluster_id'] = [cell.cluster_id.iloc[0]]
     second['number_of_spikes'] = [len(spike_data_cluster_second.firing_times)]
     second['firing_times'] = [spike_data_cluster_second.firing_times]
     second['position_x'] = [spike_data_cluster_second.position_x]
@@ -162,12 +162,20 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         # add rate map to dfs
         # shuffle
         position_heat_map_first, first_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_first, first_half, prm)
-        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='occupancy')
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='distributive')
         spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_first, local_path, sampling_rate_video, tag + str(iterator) + 'first',
+                                               number_of_bins=20, shuffle_type='distributive')
+
+        OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
 
         position_heat_map_second, second_half = PostSorting.open_field_firing_maps.make_firing_field_maps(position_second, second_half, prm)
-        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='occupancy')
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='distributive')
         spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_second, local_path, sampling_rate_video, tag + str(iterator) + 'second',
+                                               number_of_bins=20, shuffle_type='distributive')
+        OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
+
 
 
         print('shuffled')
