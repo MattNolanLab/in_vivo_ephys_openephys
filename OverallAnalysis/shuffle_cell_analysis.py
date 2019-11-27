@@ -327,6 +327,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
+        plt.title('Number of spikes' + str(cell.number_of_spikes))
         plt.savefig(local_path + 'shuffle_analysis_' + animal + '_' + shuffle_type + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile')
         plt.close()
         counter += 1
@@ -476,7 +477,7 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
     spatial_firing = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firing, sampling_rate_video, number_of_bars=20)
     # plot_bar_chart_for_cells(spatial_firing, save_path, animal, shuffle_type=shuffle_type)
     plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, save_path, animal, shuffle_type=shuffle_type)
-    spatial_firing.to_pickle(save_path)
+    # spatial_firing.to_pickle(save_path)
     return spatial_firing
 
 
