@@ -140,7 +140,7 @@ def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=np.flo
     
     f.close()
     
-def loadContinuousFast(filepath, dtype = float):
+def loadContinuousFast(filepath, dtype=float):
     #A much faster implementation for loading continous file
     #load all data at once rather than by chunks
 
