@@ -106,7 +106,7 @@ def get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='
     synced_spatial_data_half = None
     spike_data_half = None
     end_of_first_half_seconds = (synced_spatial_data.synced_time.max() - synced_spatial_data.synced_time.min()) / 2
-    end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * 30000
+    end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * prm.get_sampling_rate()
 
     if half == 'first_half':
         first_half_synced_data_indices = synced_spatial_data.synced_time < end_of_first_half_seconds
