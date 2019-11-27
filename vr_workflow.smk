@@ -30,6 +30,7 @@ rule sort_spikes:
         sorter_df = sorterPrefix +'/sorter_df.pkl',
         sorter_curated = sorterPrefix +'/sorter_curated.pkl',
         sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl',
+        waveform_figure = directory(sorterPrefix + '/waveform/')
     script:
         '01_sorting.py'
 
