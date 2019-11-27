@@ -537,7 +537,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
-        plt.xlim(0,200)
+        plt.xlim(0,300)
         avg_beaconed_spike_rate[avg_beaconed_spike_rate == inf] = 0
         avg_nonbeaconed_spike_rate[avg_nonbeaconed_spike_rate == inf] = 0
         avg_probe_spike_rate[avg_probe_spike_rate == inf] = 0
@@ -545,12 +545,12 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
         p_x_max = np.nanmax(avg_probe_spike_rate)
         if b_x_max > nb_x_max and b_x_max > p_x_max:
-            plot_utility.style_vr_plot(ax, b_x_max)
+            plot_utility.style_vr_plot_offset(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
-            plot_utility.style_vr_plot(ax, nb_x_max)
+            plot_utility.style_vr_plot_offset(ax, nb_x_max)
         elif b_x_max > nb_x_max and b_x_max < p_x_max:
-            plot_utility.style_vr_plot(ax, p_x_max)
-        plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_vr_plot_offset(ax, p_x_max)
+        plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
@@ -642,32 +642,33 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.close()
 
 def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):
-    plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
-    criteria_plot_offset(processed_position_data, prm)
-    plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
-    plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
-    plot_stop_histogram(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram_first_stop_postcue(raw_position_data, processed_position_data, prm)
+    #plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
+    #criteria_plot_offset(processed_position_data, prm)
+    #plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
+    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
+    #plot_stop_histogram(raw_position_data, processed_position_data, prm)
+    #plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
+    #plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm)
+    #plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm)
+    #plot_stop_cumulative_histogram_first_stop_postcue(raw_position_data, processed_position_data, prm)
 
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
 
     if spike_data is not None:
-        PostSorting.make_plots.plot_waveforms(spike_data, prm)
-        PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-        PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+        #PostSorting.make_plots.plot_waveforms(spike_data, prm)
+        #PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+        #PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
         gc.collect()
-        plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
-        plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+        #plot_spikes_on_track_cue_offset(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        #spike_data = plot_spikes_on_track_cue_offset_order(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        #plot_spikes_on_track_cue(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+        #plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True)
+        plot_spike_rates_normalised(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
 
         gc.collect()
         plot_convolved_rates_in_time(spike_data, prm)
@@ -929,6 +930,137 @@ def plot_binned_rate(raw_position_data, processed_position_data, spike_data, prm
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_ratsta_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
 
+def plot_spike_rates_normalised(raw_position_data, processed_position_data, spike_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True):
+    print('plotting spike ratstas with...')
+    save_path = prm.get_output_path() + '/Figures/spike_rates_new'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index in range(len(spike_data)):
+        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+        spikes_on_track = plt.figure(figsize=(6,6))
+        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
+        n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+        if ordered:
+            processed_position_data, trial_numbers_conversions = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
+
+        beaconed_times = list(processed_position_data.time_trials_beaconed[:n_beaconed_trials])
+        beaconed_trial_numbers = np.array(processed_position_data.time_trials_beaconed_trial_number[:n_beaconed_trials])
+        non_beaconed_times = list(processed_position_data.time_trials_non_beaconed[:n_nonbeaconed_trials])
+        non_beaconed_trial_numbers = np.array(processed_position_data.time_trials_non_beaconed_trial_number[:n_nonbeaconed_trials])
+
+        plot_utility.style_track_plot_cue_conditioned(ax, prm.get_track_length())
+        #x_max = max(raw_position_data.trial_number) + 0.5
+        #plot_utility.style_vr_plot_offset(ax, x_max)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plt.ylabel('Firing Rate (Hz)', fontsize=12, labelpad=10)
+        plt.xlabel('Location relative to goal (cm)', fontsize=12, labelpad=10)
+        # plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
+        plt.xlim(-200, 200)
+
+        beaconed_normalised_spikes_in_bin = []
+        beaconed_locations = []
+        beaconed_trial_numbers2 = []
+
+        for i in range(len(beaconed_times)):
+            new_trial_number = beaconed_trial_numbers[i]
+            old_trial_number = trial_numbers_conversions[:,0][trial_numbers_conversions[:,1] == new_trial_number]
+            # this calls some funky masking to find the alternative trial number
+            trial_spikes = spike_data.at[cluster_index,'spike_num_hist'][int(old_trial_number)-1]
+
+            goal_location = processed_position_data.goal_location_beaconed[i]
+            bin_counter = 0.5
+            for j in range(len(beaconed_times[i])):
+                tmp = trial_spikes[j]/beaconed_times[i][j]
+                if math.isnan(tmp):
+                    tmp = 0
+                beaconed_normalised_spikes_in_bin.append(tmp)
+                beaconed_locations.append(bin_counter-goal_location-0.5)
+                beaconed_trial_numbers2.append(beaconed_trial_numbers[i])
+                bin_counter+=1
+
+        non_beaconed_normalised_spikes_in_bin = []
+        non_beaconed_locations = []
+        non_beaconed_trial_numbers2 = []
+
+        for i in range(len(non_beaconed_times)):
+            new_trial_number = non_beaconed_trial_numbers[i]
+            old_trial_number = trial_numbers_conversions[:,0][trial_numbers_conversions[:,1] == new_trial_number]
+            trial_spikes = spike_data.at[cluster_index,'spike_num_hist'][int(old_trial_number)-1]
+
+            goal_location = processed_position_data.goal_location_non_beaconed[i]
+            bin_counter = 0.5
+            for j in range(len(non_beaconed_times[i])):
+                tmp = trial_spikes[j]/non_beaconed_times[i][j]
+                if math.isnan(tmp):
+                    tmp = 0
+                non_beaconed_normalised_spikes_in_bin.append(tmp)
+                non_beaconed_locations.append(bin_counter-goal_location-0.5)
+                non_beaconed_trial_numbers2.append(non_beaconed_trial_numbers[i])
+                bin_counter+=1
+
+        non_beaconed_normalised_spikes_in_bin = np.array(non_beaconed_normalised_spikes_in_bin)
+        non_beaconed_locations = np.array(non_beaconed_locations)
+        non_beaconed_trial_numbers2 = np.array(non_beaconed_trial_numbers2)
+        beaconed_normalised_spikes_in_bin = np.array(beaconed_normalised_spikes_in_bin)
+        beaconed_locations = np.array(beaconed_locations)
+        beaconed_trial_numbers2 = np.array(beaconed_trial_numbers2)
+
+        bins = np.arange(-200, 200, 1)
+        bin_centres = 0.5*(bins[1:]+bins[:-1])
+
+        beaconed_rate = np.histogram(beaconed_locations, bins, weights=beaconed_normalised_spikes_in_bin)[0]/\
+                             np.histogram(beaconed_locations, bins)[0]
+        non_beaconed_rate = np.histogram(non_beaconed_locations, bins, weights=non_beaconed_normalised_spikes_in_bin)[0]/\
+                                 np.histogram(non_beaconed_locations, bins)[0]
+
+        b_means = np.array([])
+        for i in np.digitize(beaconed_locations,bins):
+            if i>len(bins)-2:
+                b_means = np.append(b_means, beaconed_rate[-1])
+            else:
+                b_means = np.append(b_means, beaconed_rate[i])
+
+        nb_means =np.array([])
+        for i in np.digitize(non_beaconed_locations, bins):
+            if i>len(bins)-2:
+                b_means = np.append(b_means, beaconed_rate[-1])
+            else:
+                nb_means = np.append(nb_means, non_beaconed_rate[i])
+
+        beaconed_variance = np.sqrt(np.histogram(beaconed_normalised_spikes_in_bin, bins, weights=np.square(b_means-beaconed_normalised_spikes_in_bin))[0] \
+                            / np.histogram(beaconed_normalised_spikes_in_bin, bins)[0])
+        non_beaconed_variance = np.sqrt(np.histogram(non_beaconed_normalised_spikes_in_bin, bins, weights=np.square(nb_means-non_beaconed_normalised_spikes_in_bin))[0] \
+                                / np.histogram(non_beaconed_normalised_spikes_in_bin, bins)[0])
+
+        beaconed_rate = convolve_and_smooth(beaconed_rate, 5)
+        non_beaconed_rate = convolve_and_smooth(non_beaconed_rate, 5)
+
+        beaconed_variance = convolve_and_smooth(beaconed_variance, 5)
+        non_beaconed_variance = convolve_and_smooth(non_beaconed_variance, 5)
+
+        ax.plot(bin_centres, beaconed_rate, "r-", label="beaconed")
+        ax.fill_between(bin_centres, beaconed_rate-beaconed_variance, beaconed_rate+beaconed_variance, facecolor="red", alpha=0.3)
+
+        ax.plot(bin_centres, non_beaconed_rate, "b-", label="non beaconed")
+        ax.fill_between(bin_centres, non_beaconed_rate-non_beaconed_variance, non_beaconed_rate+non_beaconed_variance, facecolor="blue", alpha=0.3)
+
+        x_max = np.nanmax(beaconed_rate) + 0.5
+        plot_utility.style_vr_plot_offset(ax, x_max)
+        ax.legend()
+        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_normalised_rates_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
+        plt.close()
+
+def convolve_and_smooth(y, N):
+    y_padded = np.pad(y, (N//2, N-1-N//2), mode='edge')
+    y_smooth = np.convolve(y_padded, np.ones((N,))/N, mode='valid')
+    return y_smooth
+
 def order_by_cue(beaconed=None, non_beaconed=None, probe=None, trial_bb_start=None, trial_bb_end=None):
     '''
     :param beaconed: 2d np array, one stop/spike per row [stop/spike location, trial number, trial type]
@@ -985,30 +1117,8 @@ def main():
     raw_position_data =       pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\raw_position_data.pkl')  # m4
     processed_position_data = pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\processed_position_data.pkl') #m4
     spatial_firing =          pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\spatial_firing.pkl') #m4
-    #m2 processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D21_2019-10-01_13-00-22\MountainSort\DataFrames\processed_position_data.pkl') #m2
 
     make_plots(raw_position_data, processed_position_data, spike_data=spatial_firing, prm=params)
-    #criteria_plot_offset(processed_position_data, prm=params)
-    #beaconed = np.array([[0.1, 1, 0],
-    #                     [0.1, 2, 0],
-    #                     [0.2, 2, 0],
-    #                     [0.7, 3, 0],
-    #                     [0.4, 3, 0],
-    #                     [0.5, 4, 0]])
-    #non_beaconed = np.array([[0.12, 5, 1],
-    #                         [0.41, 7, 1],
-    #                         [0.25, 7, 1],
-    #                         [0.47, 8, 1],
-    #                         [0.94, 9, 1],
-    #                         [0.15, 9, 1]])
-
-    #trial_bb_start = [0.1, 0.5, 0.11, 0.4, 0.2, 0.5, 0.1, 0.123, 0.421]
-    #trial_bb_end = [0.4, 0.8, 0.41, 0.7, 0.5, 0.8, 0.4, 0.423, 0.721]
-    #probe = 0
-    #new_beaconed, new_non_beaconed, _, new_trial_bb_start, new_trial_bb_end = order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end)
-    #print("hello there")
-
-
 
 if __name__ == '__main__':
     main()
