@@ -56,7 +56,8 @@ def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationar
     if spatial_firing is not None:
         spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
     if raw_position_data is not None:
-        raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+        print(" I am not saving the raw positional pickle at the moment")
+        #raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
     if processed_position_data is not None:
         processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
     if bad_clusters is not None:
