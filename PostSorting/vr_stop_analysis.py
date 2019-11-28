@@ -128,8 +128,13 @@ def get_stops_from_binned_speed(processed_position_data, prm):
     stop_trial_number = []
     stop_trial_types = []
 
+    cue_rewarded_positions = []
+    cue_rewarded_trial_number = []
+    cue_rewarded_trial_type = []
+
     last_was_stop = False
     for i in range(len(speed_trials_binned)):
+        rewarded=False
         bin_counter = 0.5
         for speed_in_bin in speed_trials_binned[i]:
             if speed_in_bin<stop_threshold and last_was_stop is False:
@@ -143,6 +148,14 @@ def get_stops_from_binned_speed(processed_position_data, prm):
                 last_was_stop = True
             elif speed_in_bin>stop_threshold and last_was_stop is True:
                 last_was_stop = False
+
+            if cue_conditioned and speed_in_bin<stop_threshold and rewarded==False \
+                    and (bin_counter-goal_location>=prm.cue_goal_min) and (bin_counter-goal_location<=prm.cue_goal_max):
+                rewarded = True
+                cue_rewarded_positions.append(bin_counter-goal_location)
+                cue_rewarded_trial_number.append(speed_trial_numbers[i])
+                cue_rewarded_trial_type.append(speed_trial_types[i])
+
             bin_counter+=1
 
     print('stops extracted')
@@ -150,6 +163,12 @@ def get_stops_from_binned_speed(processed_position_data, prm):
     df1 = pd.DataFrame({"stop_location_cm": pd.Series(stop_location_cm),
                         "stop_trial_number": pd.Series(stop_trial_number),
                         "stop_trial_type": pd.Series(stop_trial_types)})
+    processed_position_data = pd.concat([processed_position_data, df1], axis=1)
+
+    if cue_conditioned:
+        df1 = pd.DataFrame({"cue_rewarded_positions": pd.Series(cue_rewarded_positions),
+                            "cue_rewarded_trial_number": pd.Series(cue_rewarded_trial_number),
+                            "cue_rewarded_trial_type": pd.Series(cue_rewarded_trial_type)})
     processed_position_data = pd.concat([processed_position_data, df1], axis=1)
 
     return processed_position_data
