@@ -13,7 +13,7 @@ import pandas as pd
 from matplotlib.lines import Line2D
 import matplotlib.colorbar as cbar
 import pylab as pl
-from scipy import stats
+import scipy
 
 '''
 
@@ -113,9 +113,19 @@ def fill_blackbox(blackbox_centres, ax):
     og_blackbox_centres_len = len(blackbox_centres)
     blackbox_centres = blackbox_centres[0:-2]
 
-    # check if blackboxes are all in same place
-    if np.std(blackbox_centres) > 5:
-        # fills in black boxes per trial
+    mode_stats = scipy.stats.mode(np.round(np.array(blackbox_centres), decimals=0))
+    mode_counts = mode_stats[1][0]
+    if mode_counts>(og_blackbox_centres_len/4):
+        offset=False
+    else:
+        offset=True
+
+    if not offset:
+        mean_pos = np.mean(blackbox_centres)
+        x = [mean_pos - 15, mean_pos + 15, mean_pos + 15, mean_pos - 15]
+        y = [0.5, 0.5, og_blackbox_centres_len, og_blackbox_centres_len]
+        ax.fill(x, y, alpha=0.25, color="k")
+    else:
         for trial_number in range(1, len(blackbox_centres)+1):
             x = [blackbox_centres[trial_number - 1]-15,
                  blackbox_centres[trial_number - 1]+15,
@@ -123,11 +133,6 @@ def fill_blackbox(blackbox_centres, ax):
                  blackbox_centres[trial_number - 1]-15]
             y = [trial_number-0.5, trial_number-0.5, trial_number+0.5, trial_number+0.5]
             ax.fill(x, y, alpha=0.25, color="k")
-    else:
-        mean_pos = np.mean(blackbox_centres)
-        x = [mean_pos - 15, mean_pos + 15, mean_pos + 15, mean_pos - 15]
-        y = [0.5, 0.5, og_blackbox_centres_len, og_blackbox_centres_len]
-        ax.fill(x, y, alpha=0.25, color="k")
 
     return ax
 
@@ -944,6 +949,14 @@ def plot_spike_rates_normalised(raw_position_data, processed_position_data, spik
 
         n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
         n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
+
+
+        trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
+        # takes all plottables and reorders according to blackbox locations
+        fill_blackbox(trial_bb_start, ax)
+        fill_blackbox(trial_bb_end, ax)
+
+
 
         if ordered:
             processed_position_data, trial_numbers_conversions = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
