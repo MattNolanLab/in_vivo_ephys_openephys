@@ -108,7 +108,7 @@ def find_blackboxes_to_plot(raw_position_data, prm, offset=True):
     # returns the centres of the black boxes for each trial
     return trial_bb_start, trial_bb_end
 
-def fill_blackbox(blackbox_centres, ax):
+def fill_blackbox(blackbox_centres, ax, plot_only_if_not_shifted=False):
     # remove last 2 trials in case of inaccuracies as is inaccurate
     og_blackbox_centres_len = len(blackbox_centres)
     blackbox_centres = blackbox_centres[0:-2]
@@ -132,7 +132,8 @@ def fill_blackbox(blackbox_centres, ax):
                  blackbox_centres[trial_number - 1]+15,
                  blackbox_centres[trial_number - 1]-15]
             y = [trial_number-0.5, trial_number-0.5, trial_number+0.5, trial_number+0.5]
-            ax.fill(x, y, alpha=0.25, color="k")
+            if not plot_only_if_not_shifted:
+                ax.fill(x, y, alpha=0.25, color="k")
 
     return ax
 
@@ -950,13 +951,10 @@ def plot_spike_rates_normalised(raw_position_data, processed_position_data, spik
         n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
         n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
 
-
         trial_bb_start, trial_bb_end = find_blackboxes_to_plot(raw_position_data, prm)
         # takes all plottables and reorders according to blackbox locations
-        fill_blackbox(trial_bb_start, ax)
-        fill_blackbox(trial_bb_end, ax)
-
-
+        fill_blackbox(trial_bb_start, ax, plot_only_if_not_shifted=True)
+        fill_blackbox(trial_bb_end, ax, plot_only_if_not_shifted=True)
 
         if ordered:
             processed_position_data, trial_numbers_conversions = PostSorting.vr_cued.order_by_goal_location(processed_position_data)
