@@ -57,4 +57,5 @@ bonsai_sampling_rate = 30
 
 ############
 # Debug
-debug_folder = 'testData/M6_2018-03-06_16-10-00_of' #recording for debug purpose
+# debug_folder = 'testData/M6_2018-03-06_16-10-00_of' #recording for debug purpose
+debug_folder ='/media/data2/pipeline_testing_data/M1_D31_2018-11-01_12-28-25'

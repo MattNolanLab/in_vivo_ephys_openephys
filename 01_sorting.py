@@ -18,7 +18,7 @@ import spikeinterfaceHelper
 from tqdm import tqdm
 import numpy as np
 import setting
-from SnakeIOHelper import getSnake
+import SnakeIOHelper
 from PreClustering.pre_process_ephys_data import filterRecording
 import logging
 from PostSorting.make_plots import plot_waveforms
@@ -28,15 +28,8 @@ from PostSorting.make_plots import plot_waveforms
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
-if 'snakemake' not in locals(): 
-    targetname = setting.debug_folder+'/processed/'+setting.sorterName+'/sorter_curated_df.pkl'
-    smk = getSnake('op_workflow.smk',[targetname],
-        'sort_spikes' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
+    'sort_spikes')
 
 #%% Load data and create recording extractor
 

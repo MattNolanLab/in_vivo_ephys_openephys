@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import snakemake
 import sys
+from pathlib import Path
 
 def makeFolders(output):
     # make folders used by the output varialbe if not exist
@@ -32,14 +33,24 @@ def makeFolders(output):
                 os.makedirs(path.parent)
                 print('Created folder:' + str(path.parent))
 
-def getSnake(snakefile:str, targets:list, rule:str, createFolder:bool = True):
+def getSnake(locals:dict,snakefile:str, targets:list, rule:str, createFolder:bool = True):
     # determine the running environment and return the snake object appropriately
-    parser = IOParser(snakefile, targets)
-    io = parser.getInputOutput4rule(rule)
-    
-    if createFolder:
-        makeFolders(io.output)
-    return io
+
+    if 'snakemake' not in locals: 
+        parser = IOParser(snakefile, targets)
+        io = parser.getInputOutput4rule(rule)
+        if createFolder:
+            makeFolders(io.output)
+        return (io.input, io.output)
+    else:
+        if createFolder:
+            makeFolders(locals['snakemake'].output)
+        return (locals['snakemake'].input, locals['snakemake'].output)
+
+
+def makeDummpyOutput(output):
+    for o in output:
+        Path(o).touch()
 
 class IOParser:
     def __init__(self, snakefile:str, targets:list):
