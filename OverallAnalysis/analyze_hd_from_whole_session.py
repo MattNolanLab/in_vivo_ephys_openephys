@@ -7,9 +7,10 @@ import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.analyze_field_correlations
 import os
+import PostSorting.open_field_head_direction
 
-import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
+# import rpy2.robjects as ro
+# from rpy2.robjects.packages import importr
 
 
 local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/watson_two_test_cells/all_mice_df.pkl'
@@ -104,6 +105,86 @@ def load_spatial_firing(output_path, server_path, animal, spike_sorter='', df_pa
 
     spatial_firing_data.to_pickle(output_path)
     return spatial_firing_data
+
+
+def plot_hd_vs_rayleigh(df_all_cells, animal):
+    plt.cla()
+    marker_size = 45
+    good_cluster = df_all_cells.false_positive == False
+    grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
+    hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
+    conjunctive_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score >= 0.5)
+
+    fig, ax = plt.subplots()
+    plt.xscale('linear')
+    plt.yscale('linear')
+    hd_score = df_all_cells[good_cluster].hd_score
+    rayleigh = df_all_cells[good_cluster].rayleigh_score
+    plt.scatter(hd_score, rayleigh, color='gray', marker='o', s=marker_size, alpha=0.7, label='Non-spatial')
+    hd_score_grid = df_all_cells[good_cluster & grid_cell].hd_score
+    rayleigh_grid = df_all_cells[good_cluster & grid_cell].rayleigh_score
+
+    hd_score_hd = df_all_cells[good_cluster & hd_cell].hd_score
+    rayleigh_hd = df_all_cells[good_cluster & hd_cell].rayleigh_score
+
+    hd_score_conj = df_all_cells[good_cluster & conjunctive_cell].hd_score
+    rayleigh_conj = df_all_cells[good_cluster & conjunctive_cell].rayleigh_score
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.scatter(hd_score_hd, rayleigh_hd, color='navy', marker='o', s=marker_size, label='HD')
+    plt.scatter(hd_score_grid, rayleigh_grid, color='red', marker='o', s=marker_size, label='Grid')
+    plt.scatter(hd_score_conj, rayleigh_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Head-direction score', fontsize=30)
+    ax.set_ylabel('Rayleigh score', fontsize=30)
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
+    plt.tight_layout()
+    plt.savefig(save_output_path + 'hd_vs_rayleigh_all_cells_' + animal + '.png')
+    plt.close()
+
+
+def plot_watson_vs_rayleigh(df_all_cells, animal):
+    plt.cla()
+    marker_size = 45
+    good_cluster = df_all_cells.false_positive == False
+    grid_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score < 0.5)
+    hd_cell = (df_all_cells.grid_score < 0.4) & (df_all_cells.hd_score >= 0.5)
+    conjunctive_cell = (df_all_cells.grid_score >= 0.4) & (df_all_cells.hd_score >= 0.5)
+
+    fig, ax = plt.subplots()
+    plt.xscale('linear')
+    plt.yscale('linear')
+    watson_score = df_all_cells[good_cluster].watson_test_hd
+    rayleigh = df_all_cells[good_cluster].rayleigh_score
+    plt.scatter(watson_score, rayleigh, color='gray', marker='o', s=marker_size, alpha=0.7, label='Non-spatial')
+    watson_grid = df_all_cells[good_cluster & grid_cell].watson_test_hd
+    rayleigh_grid = df_all_cells[good_cluster & grid_cell].rayleigh_score
+
+    watson_hd = df_all_cells[good_cluster & hd_cell].watson_test_hd
+    rayleigh_hd = df_all_cells[good_cluster & hd_cell].rayleigh_score
+
+    watson_conj = df_all_cells[good_cluster & conjunctive_cell].watson_test_hd
+    rayleigh_conj = df_all_cells[good_cluster & conjunctive_cell].rayleigh_score
+    ax.xaxis.set_tick_params(labelsize=20)
+    ax.yaxis.set_tick_params(labelsize=20)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.scatter(watson_hd, rayleigh_hd, color='navy', marker='o', s=marker_size, label='HD')
+    plt.scatter(watson_grid, rayleigh_grid, color='red', marker='o', s=marker_size, label='Grid')
+    plt.scatter(watson_conj, rayleigh_conj, color='orange', marker='o', s=marker_size, label='Conjunctive')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.set_xlabel('Watson U', fontsize=30)
+    ax.set_ylabel('Rayleigh score', fontsize=30)
+    plt.legend(loc='upper left', scatterpoints=1, frameon=False, handletextpad=0.05, prop={'size': 20})
+    plt.tight_layout()
+    plt.savefig(save_output_path + 'watson_vs_rayleigh_all_cells_' + animal + '.png')
+    plt.close()
 
 
 def plot_hd_vs_watson_stat(df_all_cells, animal='mouse'):
@@ -287,6 +368,8 @@ def plot_hd_histograms(df_all_animals, cell_type='grid', animal='mouse'):
 
 
 def make_descriptive_plots(all_cells, animal):
+    plot_watson_vs_rayleigh(all_cells, animal)
+    plot_hd_vs_rayleigh(all_cells, animal)
     plot_hd_vs_watson_stat(all_cells, animal)
     plot_results_of_watson_test(all_cells, cell_type='grid', animal=animal)
     plot_results_of_watson_test(all_cells, cell_type='hd', animal=animal)
@@ -341,6 +424,17 @@ def calculate_watson_from_half_session(all_cells, server_path, sampling_rate):
     return all_cells
 
 
+def add_rayleigh_score(spatial_firing):
+    print('I will do the Rayleigh test to check if head-direction tuning is uniform.')
+    rayleigh_ps = []
+    for index, cell in spatial_firing.iterrows():
+        hd_hist = cell.hd_spike_histogram.copy()
+        p = PostSorting.open_field_head_direction.get_rayleigh_score_for_cluster(hd_hist)
+        rayleigh_ps.append(p)
+    spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
+    return spatial_firing
+
+
 def process_data(animal):
     print('-------------------------------------------------------------')
     if animal == 'mouse':
@@ -363,8 +457,9 @@ def process_data(animal):
     all_cells = tag_false_positives(all_cells, animal)
     all_cells = add_cell_types_to_data_frame(all_cells)
     # correlation_between_first_and_second_halves_of_session(all_cells)
-    if animal == 'mouse':
-        all_cells = calculate_watson_from_half_session(all_cells, server_path_animal, sampling_rate=30000)
+    # if animal == 'mouse':
+        # all_cells = calculate_watson_from_half_session(all_cells, server_path_animal, sampling_rate=30000)
+    all_cells = add_rayleigh_score(all_cells)
 
     make_descriptive_plots(all_cells, animal)
 

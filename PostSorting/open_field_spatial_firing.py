@@ -40,5 +40,7 @@ def add_firing_locations(spike_data, spatial_data):
 
 
 def process_spatial_firing(spike_data, spatial_data):
+    if 'position_x' in spike_data:
+        return spike_data
     spatial_spike_data = add_firing_locations(spike_data, spatial_data)
     return spatial_spike_data

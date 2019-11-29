@@ -114,6 +114,14 @@ def process_data():
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
     grid_cells = spatial_firing['cell type'] == 'grid'
     good_cell = spatial_firing.false_positive == False
+    print('number of cells ' + str(len(spatial_firing[good_cell].speed_score)))
+    median_speed_score = np.median(spatial_firing[good_cell].speed_score)
+    print('[mouse] median speed score for all cells: ' + str(median_speed_score))
+    print(np.std(spatial_firing[good_cell].speed_score))
+    median_speed_score_grid = np.median(spatial_firing[grid_cells & good_cell].speed_score)
+    print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
+    print('median speed score for grid cells: ' + str(median_speed_score_grid))
+    print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'mouse', 'grid')
     plot_speed_dependence(spatial_firing[good_cell], 'mouse', 'all', color='gray')
 
@@ -122,6 +130,14 @@ def process_data():
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
     grid_cells = spatial_firing['cell type'] == 'grid'
     good_cell = spatial_firing.false_positive == False
+    median_speed_score = np.median(spatial_firing[good_cell].speed_score)
+    print('number of cells ' + str(len(spatial_firing[good_cell].speed_score)))
+    print('[rat] median speed score for all cells: ' + str(median_speed_score))
+    print(np.std(spatial_firing[good_cell].speed_score))
+    median_speed_score_grid = np.median(spatial_firing[grid_cells & good_cell].speed_score)
+    print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
+    print('median speed score for grid cells: ' + str(median_speed_score_grid))
+    print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'rat', 'grid')
     plot_speed_dependence(spatial_firing[good_cell], 'rat', 'all', color='gray')
 

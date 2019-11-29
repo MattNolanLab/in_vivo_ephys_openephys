@@ -131,7 +131,7 @@ def correlation_between_first_and_second_halves_of_session(df_all_animals, anima
     t, p = scipy.stats.wilcoxon(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell])
     print('Wilcoxon p value is ' + str(p) + ' T is ' + str(t))
 
-    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell], save_output_path + 'correlation_hd_session_' + animal + '.png', y_axis_label='Number of cells')
+    OverallAnalysis.analyze_field_correlations.plot_correlation_coef_hist(df_all_animals.hd_correlation_first_vs_second_half[good_cluster & grid_cell], save_output_path + 'correlation_hd_session_' + animal + '.png', y_axis_label='Cumulative probability')
 
 
 def process_data(animal):

@@ -202,8 +202,8 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xlabel('Significant bars / field', size=30)
-    ax.set_ylabel('Proportion', size=30)
+    ax.set_xlabel('Significant bars / field', size=20)
+    ax.set_ylabel('Proportion', size=20)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20)
     plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_ ' + shuffle_type + type + '.png', bbox_inches="tight")
@@ -230,8 +230,8 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
-    ax.set_xlabel('Significant bars / field', size=30)
-    ax.set_ylabel('Cumulative probability', size=30)
+    ax.set_xlabel('Significant bars / field', size=25)
+    ax.set_ylabel('Cumulative probability', size=25)
     plt.savefig(analysis_path + 'distribution_of_rejects_significant_p_' + shuffle_type + type + '_cumulative.png', bbox_inches="tight")
     plt.close()
 
@@ -276,11 +276,55 @@ def compare_shuffled_to_real_data_mw_test(field_data, analysis_type='bh', shuffl
 
 
 def plot_distributions_for_fields(shuffled_field_data, tag='grid', animal='mouse', shuffle_type='occupancy'):
-    plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal, shuffle_type=shuffle_type)
-    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal, shuffle_type=shuffle_type)
+    plot_histogram_of_number_of_rejected_bars(shuffled_field_data, animal + tag, shuffle_type=shuffle_type)
+    plot_histogram_of_number_of_rejected_bars_shuffled(shuffled_field_data, animal + tag, shuffle_type=shuffle_type)
     plot_number_of_significant_p_values(shuffled_field_data, type='bh_' + tag + '_' + animal, shuffle_type=shuffle_type)
     plot_number_of_significant_p_values(shuffled_field_data, type='holm_' + tag + '_' + animal, shuffle_type=shuffle_type)
     make_combined_plot_of_distributions(shuffled_field_data, tag=tag + '_' + animal, shuffle_type=shuffle_type)
+
+
+def get_percentage_of_grid_cells_with_directional_nodes(fields):
+    percentage_of_directional_no_corr = []
+    percentage_of_directional_corr = []
+    cell_ids = fields.unique_cell_id.unique()
+    for cell in range(len(cell_ids)):
+        fields_of_cell = fields[fields.unique_cell_id == cell_ids[cell]]
+        number_of_directional_fields_no_correction = np.sum(fields_of_cell.directional_no_correction)
+        percentage = number_of_directional_fields_no_correction / len(fields_of_cell) * 100
+        percentage_of_directional_no_corr.append(percentage)
+        number_of_directional_fields_correction = np.sum(fields_of_cell.directional_correction)
+        percentage = number_of_directional_fields_correction / len(fields_of_cell) * 100
+        percentage_of_directional_corr.append(percentage)
+
+    print('Total number of cells: ' + str(len(cell_ids)))
+    print('avg % of directional fields in grid cells no correction: ' + str(np.mean(percentage_of_directional_no_corr)))
+    print(np.std(percentage_of_directional_no_corr))
+    print('avg % of directional fields in grid cells BH correction: ' + str(np.mean(percentage_of_directional_corr)))
+    print(np.std(percentage_of_directional_corr))
+
+
+def get_number_of_directional_fields(fields, tag='grid'):
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, field in fields.iterrows():
+        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled, field.number_of_different_bins)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
+        percentiles_correction.append(percentile)
+
+    print(tag)
+    print('Number of fields: ' + str(len(fields)))
+    print('Number of directional fields [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    fields['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional fields [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    fields['directional_correction'] = np.array(percentiles_correction) > 95
+    fields.to_pickle(analysis_path + tag + 'fields.pkl')
+
+    get_percentage_of_grid_cells_with_directional_nodes(fields)
 
 
 def analyze_data(animal, server_path, shuffle_type='occupancy'):
@@ -313,13 +357,18 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     hd = shuffled_field_data.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
     grid_cells = np.logical_and(grid, np.logical_not(hd))
+    conj_cells = np.logical_and(grid, hd)
 
     accepted_field = shuffled_field_data.accepted_field == True
 
     shuffled_field_data_grid = shuffled_field_data[grid_cells & accepted_field]
     shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
+    shuffled_field_data_conj = shuffled_field_data[conj_cells & accepted_field]
 
+    get_number_of_directional_fields(shuffled_field_data_grid, tag='grid' + animal)
+    get_number_of_directional_fields(shuffled_field_data_conj, tag='conjunctive' + animal)
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
+    plot_distributions_for_fields(shuffled_field_data_conj, 'conjunctive', animal=animal, shuffle_type=shuffle_type)
     if len(shuffled_field_data_not_classified) > 0:
         plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
@@ -338,15 +387,22 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh', shuffle_type=shuffle_type)
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile', shuffle_type=shuffle_type)
     print('__________________________________')
+    print('__________________________________')
+    print('Conjunctive cells: ')
+    print('Number of conjunctive fields: ' + str(len(shuffled_field_data_conj)))
+    print('Number of conjunctive cells: ' + str(len(np.unique(list(shuffled_field_data_conj.unique_cell_id)))))
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_conj, analysis_type='bh', shuffle_type=shuffle_type)
+    compare_shuffled_to_real_data_mw_test(shuffled_field_data_conj, analysis_type='percentile', shuffle_type=shuffle_type)
+    print('__________________________________')
 
 
 def main():
-    #analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
-    #analyze_data('rat', sever_path_rat, shuffle_type='distributive')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
-    server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
-    analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control_narrow')
+    analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
+    analyze_data('rat', server_path_rat, shuffle_type='distributive')
+    # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
+    # analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
+    # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
+    # analyze_data('simulated', server_path_simulated, shuffle_type='distributive_control_narrow')
 
 
 if __name__ == '__main__':
