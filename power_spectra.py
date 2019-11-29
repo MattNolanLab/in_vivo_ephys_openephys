@@ -2,7 +2,7 @@ from __future__ import division
 import numpy as np
 
 
-def power_spectrum(data, prm):
+def power_spectrum(data):
     # data = np.random.rand(301) - 0.5
     ps = np.abs(np.fft.fft(data))**2
 

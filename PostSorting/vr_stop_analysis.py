@@ -3,7 +3,23 @@ import os
 import pandas as pd
 import math
 import gc
-import PostSorting.parameters
+from tqdm import tqdm
+import setting
+from DataframeHelper import *
+
+def check_stop_threshold(recording_directory):
+    parameters_path = recording_directory + '/parameters.txt'
+    try:
+        param_file_reader = open(parameters_path, 'r')
+        parameters = param_file_reader.readlines()
+        parameters = list([x.strip() for x in parameters])
+        threshold = parameters[2]
+
+    except Exception as ex:
+        print('There is a problem with the parameter file.')
+        print(ex)
+    return np.float(threshold)
+
 
 def keep_first_from_close_series(array, threshold):
     num_delete = 1
@@ -17,24 +33,17 @@ def keep_first_from_close_series(array, threshold):
     return array
 
 
-def get_beginning_of_track_positions(raw_position_data):
-    #location = np.array(raw_position_data["x_position_cm"]) # Get the raw location from the movement channel
-    #position = 0
-    #beginning_of_track = np.where((location >= position) & (location <= position + 4))
-    #beginning_of_track = np.asanyarray(beginning_of_track)
-    #beginning_plus_one = beginning_of_track + 1
-    #beginning_plus_one = np.asanyarray(beginning_plus_one)
-    #track_beginnings = np.setdiff1d(beginning_of_track, beginning_plus_one)
+def get_beginning_of_track_positions(raw_position_data, skip):
+    location = np.array(raw_position_data['x_position_cm']) # Get the raw location from the movement channel
+    position = 0
+    beginning_of_track = (location >= position) & (location <= position + 4)
+    track_beginnings = findTransitWithHyst(beginning_of_track,skip)
 
-    #track_beginnings = keep_first_from_close_series(track_beginnings, 30000)
-    #return track_beginnings
+    # beginning_plus_one = beginning_of_track + 1
+    # track_beginnings = np.setdiff1d(beginning_of_track, beginning_plus_one)
 
-    #return track_beginnings
-
-    # track beginnings is returned as the start of a new trial surely?
-    # so why aren't we using new_trial_indices from raw?
-    new_trial_indices = raw_position_data["new_trial_indices"][~np.isnan(raw_position_data["new_trial_indices"])]
-    return new_trial_indices
+    # track_beginnings = keep_first_from_close_series(track_beginnings, hysterisis)
+    return track_beginnings
 
 
 def remove_extra_stops(min_distance, stops):
@@ -46,22 +55,21 @@ def remove_extra_stops(min_distance, stops):
             to_remove.append(stop+1)
 
     filtered_stops = np.asanyarray(stops)
-    filtered_stops = np.delete(filtered_stops, to_remove)
+    np.delete(filtered_stops, to_remove)
     return filtered_stops
 
 
 def get_stop_times(raw_position_data, stop_threshold):
     stops = np.array([])
-    speed = np.array(raw_position_data["speed_per200ms"])
-
-    threshold = stop_threshold*1000
+    speed = raw_position_data['speed_per200ms']
+    threshold = stop_threshold
     low_speed = np.where(speed < threshold)
     low_speed = np.asanyarray(low_speed)
     low_speed_plus_one = low_speed + 1
     intersect = np.intersect1d(low_speed, low_speed_plus_one)
     stops = np.setdiff1d(low_speed, intersect)
 
-    stops = remove_extra_stops(10, stops)
+    stops = remove_extra_stops(5, stops)
     return stops
 
 
@@ -70,80 +78,62 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     stop_locations = []
     stop_trials = []
     stop_trial_types = []
-    location = np.array(raw_position_data["x_position_cm"])
-    trial_type = np.array(raw_position_data["trial_type"])
+    location = np.array(raw_position_data['x_position_cm'].tolist())
+    trial_type = np.array(raw_position_data['trial_type'].tolist())
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
-    all_stops = np.asanyarray(all_stops)
+    all_stops = np.asanyarray(all_stops) #stop indices
     track_beginnings = np.asanyarray(track_beginnings)
+    try:
+        for trial in range(1,int(number_of_trials)-1):
+            # Find the stop location in each trial
+            beginning = track_beginnings[trial]
+            end = track_beginnings[trial + 1]
+            # all_stops = np.asanyarray(all_stops)
+            stops_on_trial = all_stops[(beginning <= all_stops) & (all_stops <= end)]
 
-    for trial in range(0,int(number_of_trials)):
-        beginning = track_beginnings[trial]
-        if trial == int(number_of_trials)-1: #if last trial
-            end = len(location)-1 # this returns the last index
-        else:
-            end = track_beginnings[trial + 1] # end of trial index
+            if len(stops_on_trial) > 0:
+                stops = location[stops_on_trial]
+                trial_types = trial_type[stops_on_trial]
 
-        stops_on_trial_indices = (np.where((beginning <= all_stops) & (all_stops <= end)))
-
-        stops_on_trial = np.take(all_stops, stops_on_trial_indices)
-        if len(stops_on_trial) > 0:
-            stops = np.take(location, stops_on_trial)
-            trial_types = np.take(trial_type, stops_on_trial)
-
-            stop_locations=np.append(stop_locations,stops[0])
-            stop_trial_types=np.append(stop_trial_types,trial_types[0])
-            stop_trials=np.append(stop_trials,np.repeat(trial+1, len(stops[0])))
+                stop_locations=np.append(stop_locations,stops)
+                stop_trial_types=np.append(stop_trial_types,trial_types)
+                stop_trials=np.append(stop_trials,np.repeat(trial, len(stops)))
+    except IndexError:
+        print('indexerror')
 
     print('stops extracted')
 
-    df1 = pd.DataFrame({"stop_location_cm": pd.Series(stop_locations), "stop_trial_number": pd.Series(stop_trials), "stop_trial_type": pd.Series(stop_trial_types)})
-    processed_position_data = pd.concat([processed_position_data, df1], axis=1)
+    data = {"stop_location_cm": stop_locations,
+         "stop_trial_number": stop_trials, 
+         "stop_trial_type": stop_trial_types}
+    
+    processed_position_data = addCol2dataframe(processed_position_data, data)
     return processed_position_data
 
 
-def calculate_stops(raw_position_data,processed_position_data, threshold):
-    all_stops = get_stop_times(raw_position_data,threshold)
-    track_beginnings = get_beginning_of_track_positions(raw_position_data)
+def calculate_stops(raw_position_data,processed_position_data, stop_threshold, detect_hysterisis):
+    all_stops = get_stop_times(raw_position_data,stop_threshold)
+    track_beginnings = get_beginning_of_track_positions(raw_position_data,detect_hysterisis)
     processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
     return processed_position_data
 
 
-def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm):
-    stop_threshold = prm.get_stop_threshold()
-    processed_position_data = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
+def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory):
+    stop_threshold = check_stop_threshold(recording_directory)
+    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
+    processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
+    processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
+    processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
     return processed_position_data
 
 
 def find_first_stop_in_series(processed_position_data):
-    #stop_difference = np.array(processed_position_data['stop_location_cm'].diff())
-    #first_in_series_indices = np.where(stop_difference > 1)[0]
-    #print('Finding first stops in series')
-    #processed_position_data['first_series_location_cm'] = pd.Series(processed_position_data.stop_location_cm[first_in_series_indices].values)
-    #processed_position_data['first_series_trial_number'] = pd.Series(processed_position_data.stop_trial_number[first_in_series_indices].values)
-    #processed_position_data['first_series_trial_type'] = pd.Series(processed_position_data.stop_trial_type[first_in_series_indices].values)
-    #return processed_position_data
-
-    trial_numbers = np.array([])
-    trial_stops = np.array([])
-    trial_types = np.array([])
-
-    unique_trial_numbers = np.unique(np.array(processed_position_data['stop_trial_number']))
-    unique_trial_numbers = unique_trial_numbers[~np.isnan(unique_trial_numbers)]  # remove nans
-
-    for trial_number in unique_trial_numbers:
-        stops = np.array(processed_position_data['stop_location_cm'])[
-            np.array(processed_position_data['stop_trial_number']) == trial_number]
-        trial_type = np.array(processed_position_data['stop_trial_type'])[
-            np.array(processed_position_data['stop_trial_number']) == trial_number][0]
-        first_trial_stop = min(stops)
-
-        trial_numbers = np.append(trial_numbers, trial_number)
-        trial_stops = np.append(trial_stops, first_trial_stop)
-        trial_types = np.append(trial_types, trial_type)
-
-    processed_position_data['first_series_location_cm'] = pd.Series(trial_stops)
-    processed_position_data['first_series_trial_number'] = pd.Series(trial_numbers)
-    processed_position_data['first_series_trial_type'] = pd.Series(trial_types)
+    stop_difference = np.diff(processed_position_data['stop_location_cm'].values)
+    first_in_series_indices = np.where(stop_difference > 1)[0]
+    print('Finding first stops in series')
+    processed_position_data['first_series_location_cm'] = pd.Series(processed_position_data.stop_location_cm[first_in_series_indices].values)
+    processed_position_data['first_series_trial_number'] = pd.Series(processed_position_data.stop_trial_number[first_in_series_indices].values)
+    processed_position_data['first_series_trial_type'] = pd.Series(processed_position_data.stop_trial_type[first_in_series_indices].values)
     return processed_position_data
 
 
@@ -151,7 +141,7 @@ def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     locations=[]
     trials=[]
     for tcount, trial in enumerate(np.unique(rewarded_trials)):
-        trial_locations = np.take(rewarded_stop_locations, np.where(rewarded_trials == trial)[0])
+        trial_locations = rewarded_stop_locations[rewarded_trials == trial]
         if len(trial_locations) ==1:
             locations = np.append(locations,trial_locations)
             trials = np.append(trials,trial)
@@ -161,11 +151,11 @@ def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     return np.array(locations), np.array(trials)
 
 
-def find_rewarded_positions(raw_position_data,processed_position_data):
+def find_rewarded_positions(raw_position_data,processed_position_data,reward_start=setting.reward_start, reward_stop=setting.reward_end):
     stop_locations = np.array(processed_position_data['first_series_location_cm'])
     stop_trials = np.array(processed_position_data['first_series_trial_number'])
-    rewarded_stop_locations = np.take(stop_locations, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
-    rewarded_trials = np.take(stop_trials, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
+    rewarded_stop_locations = stop_locations[(stop_locations >= reward_start) & (stop_locations < reward_stop)]
+    rewarded_trials = stop_trials[(stop_locations >= reward_start) & (stop_locations < reward_stop)]
 
     locations, trials = take_first_reward_on_trial(rewarded_stop_locations, rewarded_trials)
     processed_position_data['rewarded_stop_locations'] = pd.Series(locations)
@@ -217,8 +207,8 @@ def calculate_average_stops(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
-    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm)
+def process_stops(raw_position_data,processed_position_data):
+    processed_position_data = calculate_stops(raw_position_data, processed_position_data, 10.7)
     processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)

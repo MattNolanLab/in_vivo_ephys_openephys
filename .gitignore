@@ -1,15 +1,16 @@
 /testData
 *.pyc
 *.pkl
-.snakemake
-.vscode
-.idea
-notebooks
+/.snakemake
+/.vscode
+/.idea
 *.mda
 .DS_Store
-.ipynb_checkpoints
+.github
+/.ipynb_checkpoints
 
 __pycache__/
 *.py[cod]
 *$py.class
-.vscode/settings.json
+
+.pytest_cache/

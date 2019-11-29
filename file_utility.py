@@ -1,6 +1,27 @@
 import glob
 import os
+import setting
+import OpenEphys
+import numpy as np
+import setting
 
+
+def load_OpenEphysRecording(folder):
+    signal = []
+    for i in range(setting.num_tetrodes*4):
+        fname = folder+'/'+setting.data_file_prefix+str(i+1)+setting.data_file_suffix+'.continuous'
+        x = OpenEphys.loadContinuousFast(fname)['data']
+        if i==0:
+            #preallocate array on first run
+            signal = np.zeros((setting.num_tetrodes*4,x.shape[0]))
+        signal[i,:] = x
+    return signal
+
+def getDeadChannel(deadChannelFile):
+    with open(deadChannelFile,'r') as f:
+        deadChannels = [int(s) for s in f.readlines()]
+    
+    return deadChannels
 
 def find_the_file(file_path, pattern, type):
     name = None
@@ -44,7 +65,6 @@ def set_continuous_data_path(prm):
     recording_path = file_path + continuous_file_name_2 + str(1) + continuous_file_name_end_2 + '.continuous'
     if os.path.isfile(recording_path) is True:
         init_data_file_names(prm, continuous_file_name_2, continuous_file_name_end_2)
-
 
 def set_dead_channel_path(prm):
     file_path = prm.get_filepath()
@@ -134,3 +154,15 @@ def create_folder_structure(prm):
     create_ephys_folder_structure(prm)
 
 
+def convertContinuous2Binary(continuousFolder, binaryFolder):
+    """Convert continuous files to float binary format
+    
+    Arguments:
+        continuousFolder {str} -- folder of continuous files
+        binaryFolder {str} -- target folder of flat binary format
+    """
+
+    data,headers = OpenEphys.load_OpenEphysRecording4BinaryFile(continuousFolder,setting.num_tetrodes, setting.data_file_prefix,
+        setting.data_file_suffix, dtype=np.int16)
+    OpenEphys.writeBinaryData(binaryFolder,data)
+    OpenEphys.writeStructFile(binaryFolder+'/structure.oebin',headers)

@@ -5,6 +5,7 @@ import pandas as pd
 prm = PostSorting.parameters.Parameters()
 
 
+
 def add_columns_to_dataframe(spike_data):
     spike_data["x_position_cm"] = ""
     spike_data["trial_number"] = ""
@@ -34,19 +35,18 @@ def add_columns_to_dataframe(spike_data):
     return spike_data
 
 
-def add_speed(spike_data, spatial_data_speed):
+#TODO synchronize the kinematics metrics to position instead of spike
+def add_speed(spike_data, spatial_data_speed,ds_factor=1):
     for cluster_index in range(len(spike_data)):
-        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.speed_per200ms[cluster_index] = list(spatial_data_speed[cluster_firing_indices])
+        spike_data.speed_per200ms[cluster_index] = list(spatial_data_speed[cluster_firing_indices//ds_factor])
     return spike_data
 
 
-def add_position_x(spike_data, spatial_data_x):
+def add_position_x(spike_data, spatial_data_x,ds_factor=1):
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices])
+        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices//ds_factor])
     return spike_data
 
 def add_position_x_offset(spike_data, spatial_data_x, spatial_data_goal_x):
@@ -58,31 +58,28 @@ def add_position_x_offset(spike_data, spatial_data_x, spatial_data_goal_x):
     return spike_data
 
 
-def add_trial_number(spike_data, spatial_data_trial_number):
+def add_trial_number(spike_data, spatial_data_trial_number,ds_factor=1):
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_number[cluster_index] = list(spatial_data_trial_number[cluster_firing_indices].values.astype(np.uint16))
+        spike_data.trial_number[cluster_index] = list(spatial_data_trial_number[cluster_firing_indices//ds_factor].values.astype(np.uint16))
     return spike_data
 
 
-def add_trial_type(spike_data, spatial_data_trial_type):
+def add_trial_type(spike_data, spatial_data_trial_type,ds_factor=1):
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_type[cluster_index] = list(spatial_data_trial_type[cluster_firing_indices].values.astype(np.uint8))
+        spike_data.trial_type[cluster_index] = list(spatial_data_trial_type[cluster_firing_indices//ds_factor].values.astype(np.uint8))
     return spike_data
 
 
-def find_firing_location_indices(spike_data, spatial_data, prm=None):
+def find_firing_location_indices(spike_data, spatial_data, downsample_ratio):
+    # Add the corresponding kinematics data corresponding to spike timing
+    
     print('I am extracting firing locations for each cluster...')
-    spike_data = add_speed(spike_data, spatial_data.speed_per200ms)
-    #if prm.cue_conditioned_goal:
-    #    spike_data = add_position_x_offset(spike_data, spatial_data.x_position_cm, spatial_data.goal_location_cm)
-    #else:
-    spike_data = add_position_x(spike_data, spatial_data.x_position_cm)
-    spike_data = add_trial_number(spike_data, spatial_data.trial_number)
-    spike_data = add_trial_type(spike_data, spatial_data.trial_type)
+    spike_data = add_speed(spike_data, spatial_data.speed_per200ms,downsample_ratio)
+    spike_data = add_position_x(spike_data, spatial_data.x_position_cm,downsample_ratio)
+    spike_data = add_trial_number(spike_data, spatial_data.trial_number,downsample_ratio)
+    spike_data = add_trial_type(spike_data, spatial_data.trial_type,downsample_ratio)
     return spike_data
 
 
@@ -106,9 +103,8 @@ def split_and_add_trial_type(cluster_index, spike_data_movement, spike_data_stat
 
 
 def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_stationary):
-    movement_threshold=2.5 # 5 cm / second
+    movement_threshold=1.5 # 5 cm / second
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         above_threshold_indices = np.where(np.array(spike_data.speed_per200ms[cluster_index]) >= movement_threshold)[0]
         below_threshold_indices = np.where(np.array(spike_data.speed_per200ms[cluster_index]) < movement_threshold)[0]
 
@@ -119,9 +115,10 @@ def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_st
 
 
 def split_spatial_firing_by_trial_type(spike_data):
+    #trial type: 0: beconed, 1: non-beaconed, 2: probe
+    
     print('I am splitting firing locations by trial type...')
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_df = spike_data.loc[[cluster_index]] # dataframe for that cluster
         trials = np.array(cluster_df['trial_number'].tolist())
         locations = np.array(cluster_df['x_position_cm'].tolist())
@@ -165,12 +162,12 @@ def split_spatial_firing_by_trial_type_test(spike_data):
     return spike_data
 
 
-def process_spatial_firing(spike_data, spatial_data, prm=None):
+def process_spatial_firing(spike_data, spatial_data, downsample_ratio = 1):
     spike_data = add_columns_to_dataframe(spike_data)
     spike_data_movement = spike_data.copy()
     spike_data_stationary = spike_data.copy()
 
-    spike_data = find_firing_location_indices(spike_data, spatial_data, prm)
+    spike_data = find_firing_location_indices(spike_data, spatial_data, downsample_ratio)
 
     spike_data_movement,spike_data_stationary = split_spatial_firing_by_speed(spike_data, spike_data_movement,spike_data_stationary)
     spike_data_movement = split_spatial_firing_by_trial_type(spike_data_movement)

@@ -86,6 +86,7 @@ def convert_all_tetrodes_to_mda(prm):
         for channel in range(16):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
+                
                 if os.path.exists(file_path):
                     channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.int16)
                 else:

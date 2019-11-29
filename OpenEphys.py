@@ -8,16 +8,19 @@ Usage:
     data = OpenEphys.load(pathToFile) # returns a dict with data, timestamps, etc.
 """
 
-import os
 import math
-import numpy as np
-import scipy.signal
-import scipy.io
-import time
+import os
 import struct
+import sys
+import time
 from copy import deepcopy
+from pathlib import Path
+import json
 
 import matplotlib.pylab as plt
+import numpy as np
+import scipy.io
+import scipy.signal
 
 # constants
 NUM_HEADER_BYTES = 1024
@@ -139,8 +142,104 @@ def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=np.flo
             writeFrame(f,timestamp[i],0,x[i*1024:(i+1)*1024])
     
     f.close()
+
+def writeBinaryData(parentFolder,signals):
+    """Write data in the flat binary format of openephys
     
-def loadContinuousFast(filepath, dtype = float):
+    Arguments:
+        parentFolder {str} -- base folder of the binary file
+        signals {np.darray} -- input signal, should be in np.int16 format
+    """
+    #signals should be in time x channel format
+    if signals.shape[0] < signals.shape[1]:
+        signals = signals.T
+
+    if signals.dtype != np.int16:
+        raise TypeError('The input signals should be of type np.int16')
+
+    # make parent folders
+    folderpath = Path(parentFolder) / 'continuous' / 'open-ephys'
+    folderpath.mkdir(parents=True, exist_ok=True)
+
+    # write data file
+    print('Writing binary file...')
+    with (folderpath / 'continuous.dat').open('wb') as f:
+        f.write(signals.tobytes())
+
+    # create and write timestamp
+    timestamps = np.arange(signals.shape[0],dtype='i8')
+    np.save(str(folderpath/'timestamps.npy'), timestamps)
+
+def load_OpenEphysRecording4BinaryFile(folder,num_tetrodes,
+     data_file_prefix, data_file_suffix,dtype=float):
+    """Load continuous data to be converted to flat binary files
+
+    Arguments:
+        folder {str} -- folder containing the continuous files
+        num_tetrodes {int} -- number of tetrode in recording
+        data_file_prefix {str} -- prefix of data file
+        data_file_suffix {str} -- suffix of data file
+
+    Keyword Arguments:
+        dtype {np.dtype} -- dtype of the data in the continuous files (default: {float})
+    """
+    signal = []
+    headers = []
+    for i in range(num_tetrodes*4):
+        fname = folder+'/'+data_file_prefix+str(i+1)+data_file_suffix+'.continuous'
+        dataFile = loadContinuousFast(fname, dtype=dtype)
+        x= dataFile['data']
+        headers.append(dataFile['header'])
+
+        if i==0:
+            #preallocate array on first run
+            signal = np.zeros((num_tetrodes*4,x.shape[0]),dtype=dtype)
+        signal[i,:] = x
+    return signal,headers
+
+def writeStructFile(filename,headers):
+    """Write the structure file for loading binary files in open-ephys GUI
+    
+    Arguments:
+        filename {str} -- name of the structure file, using structure.oebin
+        headers {list} -- list of headers returned from load_OpenEphysRecording4BinaryFile
+    """
+    structDict = {'GUI version':'0.4.5','continuous':[], 'events':[], 'spikes':[]}
+
+    structDict['continuous'] = [{
+        "folder_name":"open-ephys/",
+        "sample_rate":headers[0]['sampleRate'],
+        "source_processor_name":"Demo source",
+        "source_processor_id":100,
+        "source_processor_sub_idx":0,
+        "recorded_processor":"Demo source",
+        "recorded_processor_id":100,
+        "num_channels":16,
+        "channels":[]
+    }]
+
+    #assemble channel data
+    channels = []
+    for i,h in enumerate(headers):
+        channels.append({
+            
+            "channel_name": h['channel'],
+            "description":"Demo data channel",
+            "identifier":"genericdata.continuous",
+            "history":"Demo source",
+            "bit_volts":h['bitVolts'],
+            "units":"uV",
+            "source_processor_index":i,
+            "recorded_processor_index":i
+                
+        })
+
+    structDict['continuous'][0]['channels'] = channels
+
+    with open(filename,'w') as f:
+        f.write(json.dumps(structDict,indent=4))
+    
+def loadContinuousFast(filepath, dtype=float):
     #A much faster implementation for loading continous file
     #load all data at once rather than by chunks
 
@@ -498,10 +597,6 @@ def pack(folderpath,source='100',**kwargs):
     print(''.join(('order: ',str(channelOrder))))
     print(''.join(('.dat saved to ',outpath)))
 
-#**********************************************************
-# progress bar class used to show progress of pack()
-#stolen from some post on stack overflow
-import sys
 try:
     from IPython.display import clear_output
     have_ipython = True

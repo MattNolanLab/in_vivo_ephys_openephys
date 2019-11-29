@@ -1,29 +1,39 @@
 import PreClustering.dead_channels
 import PreClustering.make_sorting_database
-import PreClustering.parameters
-
+import parameters
+from scipy.signal import butter,filtfilt
+from tqdm import tqdm
 import file_utility
+import numpy as np
 from PreClustering import convert_open_ephys_to_mda
 
-prm = PreClustering.parameters.Parameters()
+prm = parameters.Parameters()
 
+
+def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
+    fn = sampling_freq / 2.
+    band = np.array([lp_freq, hp_freq]) / fn
+
+    b, a = butter(order, band, btype='bandpass')
+
+    if not (np.all(np.abs(np.roots(a)) < 1) and np.all(np.abs(np.roots(a)) < 1)):
+        raise ValueError('Filter is not stable')
+    
+    for i in tqdm(range(recording._timeseries.shape[0])):
+        recording._timeseries[i,:] = filtfilt(b,a,recording._timeseries[i,:])
+
+    return recording
 
 def init_params():
-    prm.set_sampling_rate(30000)
-    prm.set_num_tetrodes(4)
-    prm.set_movement_ch('100_ADC2.continuous')
-    prm.set_opto_ch('100_ADC3.continuous')
+    
     # file_utility.init_data_file_names(prm, '105_CH', '_0')  # old files
     file_utility.init_data_file_names(prm, '100_CH', '')  # currently used (2018)
-    prm.set_waveform_size(40)
 
-    # These are not exclusive, both can be True for the same recording - that way it'll be sorted twice
-    prm.set_is_tetrode_by_tetrode(False)  # set to True if you want the spike sorting to be done tetrode by tetrode
-    prm.set_is_all_tetrodes_together(True)  # set to True if you want the spike sorting done on all tetrodes combined
+    return prm
 
 
 # Prepares input for running spike sorting for the recording.
-def process_a_dir(dir_name):
+def process_a_dir(prm,dir_name):
     print('')
     print('I am pre-processing data in {} before spike sorting.'.format(dir_name))
     prm.set_date(dir_name.rsplit('/', 2)[-2])

@@ -36,7 +36,7 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, prm):
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm,recording_to_process)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
     return raw_position_data, processed_position_data
 
 
@@ -47,23 +47,43 @@ def process_firing_properties(recording_to_process, session_type, prm):
     return spike_data, bad_clusters
 
 
-def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationary=None, spatial_firing=None, raw_position_data=None, processed_position_data=None, snippet_data=None, bad_clusters=None):
+def make_plots(spike_data, raw_position_data, processed_position_data):
+    PostSorting.vr_make_plots.plot_stops_on_track(raw_position_data, processed_position_data, prm)
+    PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_position_data, prm)
+    PostSorting.vr_make_plots.plot_speed_histogram(raw_position_data, processed_position_data, prm)
+    PostSorting.make_plots.plot_waveforms(spike_data, prm)
+    PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
+    PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+    gc.collect()
+    PostSorting.vr_make_plots.plot_spikes_on_track(spike_data,raw_position_data, processed_position_data, prm, prefix='_movement')
+    gc.collect()
+    PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, prm, prefix='_all')
+    PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, prm)
+    #PostSorting.vr_make_plots.plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
+    #PostSorting.vr_make_plots.make_combined_figure(prm, spike_data, prefix='_all')
+
+
+def save_data_frames(prm, spatial_firing_movement, spatial_firing_stationary, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
-    if spatial_firing_movement is not None:
-        spatial_firing_movement.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_movement.pkl')
-    if spatial_firing_stationary is not None:
-        spatial_firing_stationary.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_stationary.pkl')
-    if spatial_firing is not None:
-        spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
-    if raw_position_data is not None:
-        raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
-    if processed_position_data is not None:
-        processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
-    if bad_clusters is not None:
-        bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
-    if snippet_data is not None:
-        snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
+    spatial_firing_movement.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
+    spatial_firing_stationary.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_stationary.pkl')
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_all.pkl')
+    raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+    processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
+    bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
+    snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
+
+
+def save_noisy_cluster_frames(prm, spatial_firing, raw_position_data, processed_position_data, bad_clusters):
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_all.pkl')
+    raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+    processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
+    bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
+
+
 
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
@@ -108,58 +128,31 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
-    #Process position
-    print('process position')
-    raw_position_data, processed_position_data = process_position_data(recording_to_process, prm)
-    print('process file properties')
-
-    #save data
-    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-        os.makedirs(prm.get_output_path() + '/DataFrames')
-    # raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
-    # processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
-    # processed_position_data = pd.read_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
-
-    #Process firing
-    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
+    raw_position_data, processed_position_data = process_position_data(recording_to_process, prm) #process spatial data for session
+    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm) #process firing properties for all clusters in session
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-        save_data_frames(prm,
-                         spatial_firing=spike_data,
-                         raw_position_data=raw_position_data,
-                         processed_position_data=processed_position_data,
-                         snippet_data=snippet_data,
-                         bad_clusters=bad_clusters)
-        PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
-
+        save_noisy_cluster_frames(prm, spike_data, raw_position_data,processed_position_data, bad_clusters)
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
-        print('No curated clusters found. Saving dataframe for noisy clusters...')
+        print('No curated clusters found. Saving dataframe for noisy clusters')
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         return
-    
+    gc.collect()
+
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
     print(str(len(spike_data)), ' curated clusters found. Processing spatial firing...')
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
-    spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
-
-    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm) #load waveform data
+    spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 
-    save_data_frames(prm,
-                     spatial_firing_movement=spike_data_movement,
-                     spatial_firing_stationary=spike_data_stationary,
-                     spatial_firing=spike_data,
-                     raw_position_data=raw_position_data,
-                     processed_position_data=processed_position_data,
-                     snippet_data=snippet_data,
-                     bad_clusters=bad_clusters)
-    PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=spike_data, prm=prm)
+    save_data_frames(prm, spike_data_movement, spike_data_stationary, spike_data, raw_position_data, processed_position_data, bad_clusters)
+    make_plots(spike_data, raw_position_data, processed_position_data)
     gc.collect()
 
 

@@ -5,10 +5,10 @@ from pathlib import Path
 import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
+import pickle
+import setting
 
-
-def get_firing_info(file_path, prm):
-    firing_times_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/firings.mda'
+def get_firing_info(firing_times_path):
     units_list = None
     firing_info = None
     if os.path.exists(firing_times_path):
@@ -24,6 +24,7 @@ def get_firing_info(file_path, prm):
         else:
             print('There are no sorting results available for this recording.')
     return units_list, firing_info, False
+        print('I could not find the MountainSort output [firing.mda] file.')
 
 
 # if the recording has dead channels, detected channels need to be shifted to get read channel ids
@@ -42,17 +43,48 @@ def correct_for_dead_channels(primary_channels, prm):
         primary_channels = correct_detected_ch_for_dead_channels(dead_channels, primary_channels)
     return primary_channels
 
+def process_firing_times2(session_id, sorted_data_path, session_type):
+    #Read from sorter and create a dataframe to store the experiments values
 
-def process_firing_times(recording_to_process, session_type, prm):
-    session_id = recording_to_process.split('/')[-1]
-    units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, prm)
-    if isinstance(spatial_firing, pd.DataFrame):
-        firing_data = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto', 'isolation', 'noise_overlap', 'peak_snr', 'mean_firing_rate', 'random_snippets', 'position_x', 'position_y', 'hd', 'position_x_pixels', 'position_y_pixels', 'speed']].copy()
-        return firing_data
+    sorted_result = pd.read_pickle(sorted_data_path)
+    
+    if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
+        #TODO implement the openfield processing
+        pass
+    else:
+        dataframeList = []
+        # firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 
+        #     'primary_channel', 'firing_times', 'trial_number', 'trial_type', 'number_of_spikes', 'mean_firing_rate'], 
+        #     dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16, np.float, np.float])
+
+        for i in range(len(sorted_result)):
+            cluster_firings = sorted_result.spike_train[i]
+            ch = sorted_result.max_channel[i]
+            tetrode  = ch//setting.num_tetrodes
+            num_spikes = sorted_result.number_of_spikes[i]
+            mean_rate = sorted_result.mean_firing_rate[i]
+            unit_id = sorted_result.unit_id[i]
+
+            dataframeList.append({
+                    "session_id": session_id,
+                    "cluster_id":  unit_id,
+                    "tetrode": tetrode,
+                    "primary_channel": ch,
+                    "firing_times": cluster_firings,
+                    'number_of_spikes': num_spikes,
+                    'mean_firing_rate': mean_rate
+                })
+
+    return pd.DataFrame(dataframeList)
+
+def process_firing_times(session_id,firing_data_path, session_type):
+    #TODO probably easier to use the sorterextractor object directly
+    session_id = session_id
+    units_list, firing_info = get_firing_info(firing_data_path)
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
-    primary_channel = correct_for_dead_channels(primary_channel, prm)
+    # primary_channel = correct_for_dead_channels(primary_channel, prm)
     if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
         firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
         for cluster in units_list:

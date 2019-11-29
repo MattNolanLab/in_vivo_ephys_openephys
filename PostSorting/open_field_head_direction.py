@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 import PostSorting.open_field_firing_maps
-
+import setting
 
 def moving_sum(array, window):
     ret = np.cumsum(array, dtype=float)
@@ -99,7 +99,6 @@ def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.Data
 def calculate_hd_score(spatial_firing):
     hd_scores = []
     for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
         hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
         r = get_hd_score_for_cluster(hd_hist)
         hd_scores.append(r)
@@ -157,24 +156,23 @@ def put_stat_results_in_spatial_df(spatial_firing, prm):
     return spatial_firing
 
 
-def process_hd_data(spatial_firing, spatial_data, prm):
+def process_hd_data(spatial_firing, spatial_data, sampling_rate = setting.sampling_rate):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)
-    hd_histogram /= prm.get_sampling_rate()
+    hd_histogram /= sampling_rate
 
     hd_spike_histograms = []
     for index, cluster in spatial_firing.iterrows():
-        # cluster = spatial_firing.cluster_id.values[index] - 1
         try:
             angles_spike = (cluster.hd + 180) * np.pi / 180
         except:
             angles_spike = (np.array(cluster.hd) + 180) * np.pi / 180
 
-        if prm.get_is_stable() is False:
-            print('The watson test is not going to run. If you need this data, you can run it on the dataframes later.')
-            # save_hd_for_r(angles_whole_session, angles_spike, index, prm)
-            # analyze_hd_r(prm, index)
+        # if prm.get_is_stable() is False:
+        #     print('The watson test is not going to run. If you need this data, you can run it on the dataframes later.')
+        #     # save_hd_for_r(angles_whole_session, angles_spike, index, prm)
+        #     # analyze_hd_r(prm, index)
 
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram

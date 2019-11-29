@@ -67,23 +67,25 @@ def process_running_parameter_tag(running_parameter_tags):
     return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 
 
-def process_position_data(recording_to_process, session_type, prm):
+def process_position_data(recording_to_process, session_type):
     spatial_data = None
     is_found = False
     if session_type == 'openfield':
         # dataframe contains time, position coordinates: x, y, head-direction (degrees)
-        spatial_data, is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm)
+        spatial_data, is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process)
         # PostSorting.open_field_make_plots.plot_position(spatial_data)
     return spatial_data, is_found
 
 
-def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
-    opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
-    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-        os.makedirs(prm.get_output_path() + '/DataFrames')
-    opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
-    return opto_on, opto_off, is_found
+def process_light_stimulation(recording_to_process, file_path):
+    opto_on, opto_off, is_found, opto_tagging_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process)  # indices
+    if is_found:
+        opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
+        opto_data_frame.to_pickle(file_path)
+    else:
+        df = pd.DataFrame()
+        df.to_pickle(file_path)
+    return opto_on, opto_off, opto_tagging_start_index,is_found
 
 
 def sync_data(recording_to_process, prm, spatial_data):
@@ -164,8 +166,9 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
     return synced_spatial_data, spatial_firing
 
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort'):
+
+
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default', analysis_type='default', sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(

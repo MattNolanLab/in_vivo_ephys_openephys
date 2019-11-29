@@ -2,6 +2,7 @@ import pandas as pd
 
 
 def calculate_corresponding_indices(spike_data, spatial_data):
+    # find the corresponding bonsai data index of each spike
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     avg_sampling_rate_open_ephys = 30000  # Hz
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
@@ -13,7 +14,6 @@ def find_firing_location_indices(spike_data, spatial_data):
     spike_data = calculate_corresponding_indices(spike_data, spatial_data)
     spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed'])
     for cluster in range(len(spike_data)):
-        cluster = spike_data.cluster_id.values[cluster] - 1
         bonsai_indices_cluster = spike_data.bonsai_indices[cluster]
         bonsai_indices_cluster_round = bonsai_indices_cluster.round(0)
         spatial_firing = spatial_firing.append({

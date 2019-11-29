@@ -11,6 +11,7 @@ import matplotlib.image as mpimg
 import pandas as pd
 from matplotlib.lines import Line2D
 from scipy import stats
+from tqdm import tqdm
 
 '''
 
@@ -21,27 +22,24 @@ from scipy import stats
 '''
 
 # plot the raw movement channel to check all is good
-def plot_movement_channel(location, prm):
-    save_path = prm.get_output_path() + '/Figures'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+def plot_movement_channel(location, get_local_recording_folder_path):
     plt.plot(location)
-    plt.savefig(save_path + '/movement' + '.png')
+    plt.savefig(get_local_recording_folder_path + '/Figures/movement' + '.png')
     plt.close()
 
 # plot the trials to check all is good
-def plot_trials(trials, prm):
+def plot_trials(trials, filename):
     plt.plot(trials)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials' + '.png')
+    plt.savefig(filename)
     plt.close()
 
 # plot the raw trial channels to check all is good
-def plot_trial_channels(trial1, trial2, prm):
-    plt.plot(trial1[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type1' + '.png')
+def plot_trial_channels(trial1, trial2, type1_filename, type2_filename):
+    plt.plot(trial1)
+    plt.savefig(type1_filename)
     plt.close()
-    plt.plot(trial2[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2' + '.png')
+    plt.plot(trial2)
+    plt.savefig(type2_filename)
     plt.close()
 
 
@@ -80,11 +78,11 @@ def split_stop_data_by_trial_type(spatial_data, first_stops=False):
     return beaconed, nonbeaconed, probe
 
 
-def plot_stops_on_track(raw_position_data, processed_position_data, prm):
+def plot_stops_on_track(raw_position_data, processed_position_data, figure_path):
     print('I am plotting stop rasta...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+    # save_path = prm.get_output_path() + '/Figures/behaviour'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
     stops_on_track = plt.figure(figsize=(6,6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -103,10 +101,10 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(raw_position_data.trial_number)+0.5
+    x_max = raw_position_data.trial_number.max()+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
+    plt.savefig(figure_path,dpi=200)
     plt.close()
 
 def plot_stops_on_track_offset(raw_position_data, processed_position_data, prm):
@@ -177,11 +175,8 @@ def fill_blackbox(blackbox_centres, ax):
 
     return ax
 
-def plot_stop_histogram(raw_position_data, processed_position_data, prm):
+def plot_stop_histogram(raw_position_data, processed_position_data, figure_path):
     print('plotting stop histogram...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
     ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     position_bins = np.array(processed_position_data["position_bins"])
@@ -192,19 +187,16 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     plt.xlim(0,prm.get_track_length())
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, prm.get_track_length())
-    x_max = max(processed_position_data.average_stops)+0.1
+    plot_utility.style_track_plot(ax, 200)
+    x_max = processed_position_data.average_stops.max()+0.1
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
+    plt.savefig(figure_path, dpi=200)
     plt.close()
 
 
-def plot_speed_histogram(raw_position_data, processed_position_data, prm):
+def plot_speed_histogram(processed_position_data, figure_path):
     print('plotting speed histogram...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
@@ -215,19 +207,16 @@ def plot_speed_histogram(raw_position_data, processed_position_data, prm):
     plt.xlim(0,prm.get_track_length())
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, prm.get_track_length())
-    x_max = max(processed_position_data.binned_speed_ms)+0.5
+    plot_utility.style_track_plot(ax, 200)
+    x_max = processed_position_data.binned_speed_ms.max()+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
+    plt.savefig(figure_path, dpi=200)
     plt.close()
 
 
-def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
+def plot_combined_behaviour(raw_position_data,processed_position_data, figure_path):
     print('making combined behaviour plot...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
     combined = plt.figure(figsize=(6,9))
     ax = combined.add_subplot(3, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -399,17 +388,18 @@ def plot_spikes_on_track_cue_offset_order(spike_data,raw_position_data,processed
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_orded_Cluster_' + str(cluster_index + 1) + '.png', dpi=200)
         plt.close()
 
-def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm, prefix):
+def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, figure_folder_path, prefix):
     print('plotting spike rastas...')
-    save_path = prm.get_output_path() + '/Figures/spike_trajectories'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+    # save_path = prm.get_output_path() + '/Figures/spike_trajectories'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
 
     rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0)) #
     rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
 
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_id = spike_data.cluster_id[cluster_index]
         x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
         spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -437,17 +427,18 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 
-def plot_firing_rate_maps(spike_data, prm, prefix):
+def plot_firing_rate_maps(spike_data,figure_folder_path, prefix):
     print('I am plotting firing rate maps...')
-    save_path = prm.get_output_path() + '/Figures/spike_rate'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+    # save_path = prm.get_output_path() + '/Figures/spike_rate'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_id = spike_data.cluster_id[cluster_index]
         avg_spikes_on_track = plt.figure(figsize=(6,4))
 
         avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index)
@@ -467,6 +458,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         nb_x_max = np.nanmax(avg_beaconed_spike_rate)
         b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
         p_x_max = np.nanmax(avg_probe_spike_rate)
+        
         if b_x_max > nb_x_max and b_x_max > p_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max and b_x_max > p_x_max:
@@ -476,7 +468,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 
@@ -521,20 +513,21 @@ def plot_gc_firing_rate_maps(spike_data, prm, prefix):
 plot gaussian convolved firing rate in time against similarly convolved speed and location. 
 '''
 
-def plot_convolved_rates_in_time(spike_data, prm):
-    print('plotting spike rastas...')
-    save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+def plot_convolved_rates_in_time(spike_data, figure_folder_path):
+    print('plotting spike rasters...')
+    # save_path = prm.get_output_path() + '/Figures/ConvolvedRates_InTime'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
 
-    for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+    for cluster_index in tqdm(range(len(spike_data))):
+        # cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        cluster_id = spike_data.cluster_id[cluster_index]
         spikes_on_track = plt.figure(figsize=(4,5))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        firing_rate = spike_data.loc[cluster_index].spike_rate_in_time
-        speed = spike_data.loc[cluster_index].speed_rate_in_time
+        firing_rate = spike_data.spike_rate_in_time[cluster_index]
+        speed = spike_data.speed_rate_in_time[cluster_index]
         x_max= np.max(firing_rate)
-        ax.plot(firing_rate, speed, '|', color='Black', markersize=4)
+        ax.plot(speed,firing_rate, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Speed (cm/sec)', fontsize=12, labelpad = 10)
         #plt.xlim(0,200)
@@ -547,13 +540,13 @@ def plot_convolved_rates_in_time(spike_data, prm):
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_SPEED_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path +  spike_data.session_id[cluster_index] + '_rate_versus_SPEED_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
         spikes_on_track = plt.figure(figsize=(4,5))
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        position = spike_data.loc[cluster_index].position_rate_in_time
-        ax.plot(firing_rate, position, '|', color='Black', markersize=4)
+        position = spike_data.position_rate_in_time[cluster_index]
+        ax.plot(position,firing_rate, '|', color='Black', markersize=4)
         plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
         # ]polt.xlim(0,200)
@@ -566,7 +559,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
             plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         except ValueError:
             continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(figure_folder_path + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=None):

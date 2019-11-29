@@ -32,6 +32,7 @@ class Parameters:
     movement_ch = '100_ADC2.continuous'
     opto_ch = '100_ADC3.continuous'
     waveform_size = 40
+    
 
 
     def __init__(self):

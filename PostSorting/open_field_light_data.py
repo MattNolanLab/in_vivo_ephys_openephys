@@ -4,17 +4,18 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 import PostSorting.parameters
-
+import setting
 import PostSorting.open_field_make_plots
+import OpenEphys
 
-
-def load_opto_data(recording_to_process, prm):
+def load_opto_data(recording_to_process):
     is_found = False
     opto_data = None
     print('loading opto channel...')
-    file_path = recording_to_process + '/' + prm.get_opto_channel()
+    file_path = recording_to_process +'/'+setting.opto_ch
+    print(file_path)
     if os.path.exists(file_path):
-        opto_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        opto_data = OpenEphys.loadContinuousFast(file_path)['data']
         is_found = True
     else:
         print('Opto data was not found.')
@@ -30,22 +31,22 @@ def get_ons_and_offs(opto_data):
     return opto_on, opto_off
 
 
-def process_opto_data(recording_to_process, prm):
+def process_opto_data(recording_to_process):
     opto_on = opto_off = None
-    opto_data, is_found = load_opto_data(recording_to_process, prm)
+    opto_data, is_found = load_opto_data(recording_to_process)
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
         if not np.asarray(opto_on).size:
-            prm.set_opto_tagging_start_index(None)
+            opto_tagging_start_index = None
             is_found = None
         else:
             first_opto_pulse_index = min(opto_on[0])
-            prm.set_opto_tagging_start_index(first_opto_pulse_index)
+            opto_tagging_start_index=first_opto_pulse_index
 
     else:
-        prm.set_opto_tagging_start_index(None)
+        opto_tagging_start_index = None
 
-    return opto_on, opto_off, is_found
+    return opto_on, opto_off, is_found, opto_tagging_start_index
 
 
 def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:

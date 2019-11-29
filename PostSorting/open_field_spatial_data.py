@@ -5,7 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import math_utility
-
+import setting
 
 import PostSorting.parameters
 
@@ -86,9 +86,8 @@ def calculate_central_speed(position_data):
     return position_data
 
 
-def remove_jumps(position_data, prm):
+def remove_jumps(position_data, pixel_ratio = setting.pixel_ratio):
     max_speed = 1  # m/s, anything above this is not realistic
-    pixel_ratio = prm.get_pixel_ratio()
     max_speed_pixels = max_speed * pixel_ratio
     speed_exceeded_left = position_data['speed_left'] > max_speed_pixels
     position_data['x_left_without_jumps'] = position_data.x_left[speed_exceeded_left == False]
@@ -121,8 +120,8 @@ def remove_points_where_beads_are_far_apart(position_data):
     return position_data
 
 
-def curate_position(position_data, prm):
-    position_data = remove_jumps(position_data, prm)
+def curate_position(position_data):
+    position_data = remove_jumps(position_data)
     position_data = remove_points_where_beads_are_far_apart(position_data)
     return position_data
 
@@ -144,8 +143,7 @@ def calculate_head_direction(position):
     return position
 
 
-def convert_to_cm(position_data, params):
-    pixel_ratio = params.get_pixel_ratio()
+def convert_to_cm(position_data, pixel_ratio = setting.pixel_ratio):
     position_data['position_x_pixels'] = position_data.position_x
     position_data['position_y_pixels'] = position_data.position_y
     position_data['position_x'] = position_data.position_x / pixel_ratio * 100
@@ -220,7 +218,7 @@ def remove_position_outlier_rows(position_data):
     return position_data
 
 
-def process_position_data(recording_folder, params):
+def process_position_data(recording_folder):
     position_of_mouse = None
     path_to_position_file, is_found = find_bonsai_file(recording_folder)
     if is_found:
@@ -231,15 +229,14 @@ def process_position_data(recording_folder, params):
             is_found = True
     if is_found:
         position_data = calculate_speed(position_data)
-        position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart
+        position_data = curate_position(position_data)  # remove jumps from data, and when the beads are far apart
         position_data = calculate_position(position_data)  # get central position and interpolate missing data
         position_data = calculate_head_direction(position_data)  # use coord from the two beads to get hd and interpolate
         position_data = shift_to_start_from_zero_at_bottom_left(position_data)
         # position_data = remove_position_outlier_rows(position_data)
-        position_data = convert_to_cm(position_data, params)
+        position_data = convert_to_cm(position_data)
         position_data = calculate_central_speed(position_data)
         position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
-        hd_sampling_analysis.check_if_hd_sampling_was_high_enough(position_of_mouse, params)
     return position_of_mouse, is_found
 
 

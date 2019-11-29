@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pylab as plt
 import scipy.stats
 import gc
+from tqdm import tqdm
 
 def nextpow2(x):
     """ Return the smallest integral power of 2 that >= x """
@@ -37,7 +38,7 @@ def fftkernel(x, w):
     K = np.exp(-0.5 * (w * 2 * np.pi * f)**2)
     y = np.fft.ifft(X * K, n)
     y = y[:L].copy()
-    return y
+    return np.absolute(y) #only return the real value
 
 
 """
@@ -117,8 +118,8 @@ def control_convolution_in_time(spike_data,raw_spatial_data):
     spike_data["speed_rate_in_time"] = ""
     spike_data["position_rate_in_time"] = ""
 
-    for cluster in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster] - 1
+    for cluster_index in tqdm(range(len(spike_data))):
+        # cluster_index = spike_data.cluster_id.values[cluster] - 1
         spike_data, number_of_bins = convolve_speed_in_time(spike_data, cluster_index,raw_spatial_data)
         spike_data = convolve_spikes_in_time(spike_data, cluster_index,number_of_bins)
         spike_data = convolve_position_in_time(spike_data, cluster_index,raw_spatial_data, number_of_bins)
