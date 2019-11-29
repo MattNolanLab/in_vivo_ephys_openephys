@@ -42,6 +42,8 @@ def extract_all_snippets(filtered_data, firing_times, tetrode, prm):
 
 
 def get_snippets(firing_data, prm, random_snippets=True):
+    if 'random_snippets' in firing_data:
+        return firing_data
     print('I will get some random snippets now for each cluster.')
     file_path = prm.get_local_recording_folder_path()
     filtered_data_path = []

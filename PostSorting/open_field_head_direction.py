@@ -1,3 +1,4 @@
+from astropy.stats import rayleightest
 import os
 import math
 import matplotlib.pylab as plt
@@ -27,11 +28,11 @@ def get_rolling_sum(array_in, window):
     return array_out
 
 
-def get_hd_histogram(angles):
+def get_hd_histogram(angles, window_size=23):
     angles = angles[~np.isnan(angles)]
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
-    smooth_hd = get_rolling_sum(binned_hd, window=23)
+    smooth_hd = get_rolling_sum(binned_hd, window=window_size)
     return smooth_hd
 
 
@@ -62,6 +63,37 @@ def get_hd_score_for_cluster(hd_hist):
     toty = sum(dy * hd_hist)/sum(hd_hist)
     r = np.sqrt(totx*totx + toty*toty)
     return r
+
+
+'''
+This test is used to identify a non-uniform distribution, i.e. it is designed for detecting an unimodal deviation from 
+uniformity. More precisely, it assumes the following hypotheses: - H0 (null hypothesis): The population is distributed 
+uniformly around the circle. - H1 (alternative hypothesis): The population is not distributed uniformly around the 
+circle. Small p-values suggest to reject the null hypothesis.
+
+This is an alternative to using the population mean vector as a head-directions score.
+
+https://docs.astropy.org/en/stable/_modules/astropy/stats/circstats.html#rayleightest
+'''
+
+
+def get_rayleigh_score_for_cluster(hd_hist: np.ndarray) -> float:
+    bins_in_histogram = len(hd_hist)
+    values = np.radians(np.arange(0, 360, int(360 / bins_in_histogram)))
+    rayleigh_p = rayleightest(values, weights=hd_hist)
+    return rayleigh_p
+
+
+def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.DataFrame:
+    print('I will do the Rayleigh test to check if head-direction tuning is uniform.')
+    rayleigh_ps = []
+    for cluster in range(len(spatial_firing)):
+        cluster = spatial_firing.cluster_id.values[cluster] - 1
+        hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
+        p = get_rayleigh_score_for_cluster(hd_hist)
+        rayleigh_ps.append(p)
+    spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
+    return spatial_firing
 
 
 def calculate_hd_score(spatial_firing):
@@ -152,6 +184,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
     spatial_firing['hd_spike_histogram'] = hd_spike_histograms
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
+    spatial_firing = add_rayleigh_score_for_all_clusters(spatial_firing)
     return hd_histogram, spatial_firing
 
 
@@ -237,6 +270,7 @@ def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
 
 def main():
     pass
+
 
 if __name__ == '__main__':
     main()

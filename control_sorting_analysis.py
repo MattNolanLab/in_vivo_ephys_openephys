@@ -1,4 +1,5 @@
 from joblib import Parallel, delayed
+import datetime
 import gc
 import glob
 import os
@@ -13,10 +14,18 @@ from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
 
+# set this to true if you want to skip the spike sorting step and use ths data from the server
+skip_sorting = False
+
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
 to_sort_folder = '/home/nolanlab/to_sort/'
-server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
+if os.environ.get('SERVER_PATH_FIRST_HALF'):
+    server_path_first_half = os.environ['SERVER_PATH_FIRST_HALF']
+    print(f'Using a custom server path: {server_path_first_half}')
+else:
+    # server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
+    server_path_first_half = '/mnt/datastore/'
 #server_path_first_half = 'smb://ardbeg.mvm.ed.ac.uk/nolanlab/'
 #server_path_first_half = '/home/nolanlab/ardbeg/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
@@ -186,7 +195,8 @@ def copy_output_to_server(recording_to_sort, location_on_server):
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort):
-
+    print('I will analyze ' + recording_to_sort)
+    print(datetime.datetime.now())
     try:
         is_vr, is_open_field = get_session_type(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
@@ -194,15 +204,16 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
-        pre_process_ephys_data.pre_process_data(recording_to_sort)
+        if not skip_sorting:
+            pre_process_ephys_data.pre_process_data(recording_to_sort)
 
-        print('I finished pre-processing the first recording. I will call MountainSort now.')
-        os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
+            print('I finished pre-processing the first recording. I will call MountainSort now.')
+            os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
 
-        subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
-        os.remove('/home/nolanlab/to_sort/run_sorting.sh')
+            subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
+            os.remove('/home/nolanlab/to_sort/run_sorting.sh')
 
-        print('MS is done')
+            print('MS is done')
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
@@ -217,7 +228,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
-        shutil.rmtree(mountainsort_tmp_folder)
+        if not skip_sorting:
+            shutil.rmtree(mountainsort_tmp_folder)
 
     
     except Exception as ex:
@@ -234,6 +246,11 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         shutil.rmtree(recording_to_sort)
         if os.path.exists(mountainsort_tmp_folder) is True:
             shutil.rmtree(mountainsort_tmp_folder)
+
+        if os.environ.get('SINGLE_RUN'):
+            print('Single run mode was active during the error. '
+                  'I will quit immediately with a nonzero exit status instead of continuing to the next recording.')
+            exit(1)  # an exit status of 1 means unsuccessful termination/program failure
 
 
 def delete_processed_line(list_to_read_path):
@@ -272,6 +289,11 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         num_cores = multiprocessing.cpu_count()
         Parallel(n_jobs=num_cores)(delayed(copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
 
+        spatial_firing_path = path_server + '/MountainSort/DataFrames/spatial_firing.pkl'
+        if os.path.isfile(spatial_firing_path) is True:
+            if not os.path.isdir(path_local + '/MountainSort/DataFrames/'):
+                os.makedirs(path_local + '/MountainSort/DataFrames/')
+            shutil.copy(spatial_firing_path, path_local + '/MountainSort/DataFrames/spatial_firing.pkl')
         print('Copying is done, I will attempt to sort.')
 
     except Exception as ex:
@@ -317,6 +339,10 @@ def monitor_to_sort():
             call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
+            if os.environ.get('SINGLE_RUN'):
+                print('Single run mode was active, so I will exit instead of monitoring the folders.')
+                break
+
             print('Nothing urgent to sort. I will check if there is anything waiting on the server.')
 
             recording_to_sort = get_next_recording_on_server_to_sort()
@@ -327,6 +353,7 @@ def monitor_to_sort():
 
 
 def main():
+    print('v - 0')
     print('-------------------------------------------------------------')
     print('This is a script that controls running the spike sorting analysis.')
     print('-------------------------------------------------------------')

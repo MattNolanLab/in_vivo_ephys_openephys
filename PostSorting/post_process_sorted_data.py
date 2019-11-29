@@ -1,4 +1,5 @@
 import os
+import pickle
 import PostSorting.curation
 import PostSorting.load_firing_data
 import PostSorting.load_snippet_data
@@ -131,6 +132,15 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
         bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
 
 
+def save_data_for_plots(position_heat_map, hd_histogram, prm):
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    np.save(prm.get_output_path() + '/DataFrames/position_heat_map.npy', position_heat_map)
+    np.save(prm.get_output_path() + '/DataFrames/hd_histogram.npy', hd_histogram)
+    file_handler = open(prm.get_output_path() + '/DataFrames/prm', 'wb')
+    pickle.dump(prm, file_handler)
+
+
 def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
@@ -149,6 +159,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
+    save_data_for_plots(position_heat_map, hd_histogram, prm)
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
     return synced_spatial_data, spatial_firing
 
@@ -202,16 +213,22 @@ def main():
     prm = PostSorting.parameters.Parameters()
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
+    path_to_recordings = '/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
+    path_to_recordings = 'C:/Users/s1466507/Documents/Ephys/recordings/test_figures'
+    prm.set_output_path(path_to_recordings + '/MountainSort/')
 
-    recording_folder = '//ardbeg.mvm.ed.ac.uk/nolanlab/Klara/Open_field_opto_tagging_p038/M5_2018-02-15_17-23-36_of'
+    position_data = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/position.pkl')
+    spatial_firing = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/spatial_firing.pkl')
+    position_heat_map = np.load(path_to_recordings + '/MountainSort/DataFrames/position_heat_map.npy')
+    hd_histogram = np.load(path_to_recordings + '/MountainSort/DataFrames/hd_histogram.npy')
 
-    spike_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/spatial_firing.pkl')
-    synced_spatial_data = pd.read_pickle(recording_folder + '/MountainSort/DataFrames/position.pkl')
-    angles_whole_session = (np.array(synced_spatial_data.hd) + 180) * np.pi / 180
-    hd_histogram = PostSorting.open_field_head_direction.get_hd_histogram(angles_whole_session)
-    hd_histogram /= prm.get_sampling_rate()
-    prm.set_output_path(recording_folder + '/MountainSort')
-    PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spike_data, prm)
+    # filehandler = open('/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/prm', 'rb')
+    # prm = pickle.load(filehandler)
+
+    make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
+
+    # recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
+    # post_process_recording(recording_folder, 'openfield')
 
 
 if __name__ == '__main__':
