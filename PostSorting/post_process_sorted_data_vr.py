@@ -11,6 +11,7 @@ import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
 import PostSorting.vr_FiringMaps_InTime
+import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
 
@@ -34,7 +35,7 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, prm):
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm,recording_to_process)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
     return raw_position_data, processed_position_data
 
 
@@ -56,7 +57,8 @@ def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationar
     if spatial_firing is not None:
         spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
     if raw_position_data is not None:
-        raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+        print(" I am not saving the raw positional pickle at the moment")
+        #raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
     if processed_position_data is not None:
         processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
     if bad_clusters is not None:
@@ -138,7 +140,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
 
-    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 
     save_data_frames(prm,

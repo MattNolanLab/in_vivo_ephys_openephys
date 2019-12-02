@@ -30,6 +30,8 @@ class Parameters:
     stop_threshold = 10.7  # vr
     track_length = 200  # vr
     cue_conditioned_goal = False
+    cue_goal_min = -10
+    cue_goal_max = 10
 
     def __init__(self):
         return
@@ -226,4 +228,5 @@ class Parameters:
 
     def get_paired_order(self):
         return Parameters.paired_order
+
 
