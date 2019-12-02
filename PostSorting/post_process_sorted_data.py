@@ -155,11 +155,13 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort'):
+                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
         running_parameter_tags)
+    prm.set_stitch_point(stitchpoint)
+    prm.set_paired_order(paired_order)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
@@ -180,6 +182,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             # analyze spike data
             spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
             spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+            spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
             if analysis_type is 'default':
                 spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
                 snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)

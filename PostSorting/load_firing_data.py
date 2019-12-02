@@ -41,6 +41,8 @@ def process_firing_times(recording_to_process, session_type, prm):
     units_list, firing_info = get_firing_info(recording_to_process, prm)
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
+    if prm.stitchpoint is not None and prm.paired_order == "first":
+        firing_times = firing_times - prm.stitchpoint
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, prm)
     if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:

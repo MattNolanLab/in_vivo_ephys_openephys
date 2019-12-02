@@ -24,3 +24,8 @@ RUN conda config --append channels conda-forge && \
 RUN add-apt-repository -y ppa:magland/mountainlab && \
     apt-get update && \
     apt-get install -y --no-install-recommends mountainlab mlpipeline mountainsort mountainview
+
+### Add new dependencies after here ###
+
+RUN conda activate env && \
+    conda install -y astropy
