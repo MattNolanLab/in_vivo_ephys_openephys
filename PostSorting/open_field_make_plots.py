@@ -81,7 +81,8 @@ def plot_firing_rate_maps(spatial_firing, prm):
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
         ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
-        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz', y=1.08)
+        plt.title('max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz,'+
+                  "stability:"+ str(np.round(spatial_firing.rate_map_correlation_first_vs_second_half[cluster], decimals=4)), y=1.08)
         plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png', dpi=300)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.pdf')
         plt.close()

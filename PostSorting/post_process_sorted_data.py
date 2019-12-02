@@ -150,8 +150,8 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
 
     #save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None)
-    make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
-    return synced_spatial_data, spatial_firing
+    #make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
+    return synced_spatial_data, spatial_firing, position_heat_map, hd_histogram
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
@@ -187,11 +187,14 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                     save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
                     return
 
-            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
+            synced_spatial_data, spatial_firing, \
+            position_heat_map, hd_histogram = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
 
             spike_data = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
                                                                                                    synced_spatial_data,
                                                                                                    spatial_firing)
+
+            make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
             save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 
 
