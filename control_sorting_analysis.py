@@ -21,7 +21,8 @@ if os.environ.get('SERVER_PATH_FIRST_HALF'):
     print(f'Using a custom server path: {server_path_first_half}')
 else:
     server_path_first_half = '/run/user/1000/gvfs/smb-share:server=cmvm.datastore.ed.ac.uk,share=cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/'
-#server_path_first_half = 'smb://ardbeg.mvm.ed.ac.uk/nolanlab/'
+    server_path_first_half= '/mnt/datastore/'
+    #server_path_first_half = 'smb://ardbeg.mvm.ed.ac.uk/nolanlab/'
 #server_path_first_half = '/home/nolanlab/ardbeg/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
 downtime_lists_path = '/home/nolanlab/to_sort/sort_downtime/'
@@ -286,6 +287,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
             copy_output_to_server(recording_to_sort, location_on_server)
 
         shutil.rmtree(recording_to_sort)
+
+        if os.path.exists(paired_recording_to_sort) is True:
+            shutil.rmtree(paired_recording_to_sort)
+
         if os.path.exists(mountainsort_tmp_folder) is True:
             shutil.rmtree(mountainsort_tmp_folder)
 
