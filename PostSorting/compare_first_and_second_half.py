@@ -229,7 +229,7 @@ def correlate_rate_maps_session(first_half, second_half, spike_data):
             pearson_rs.append(pearson_r)
             ps.append(p)
         else:
-            pearson_r.append(np.nan)
+            pearson_rs.append(np.nan)
             ps.append(np.nan)
     spike_data['rate_map_correlation_first_vs_second_half'] = pearson_rs
     spike_data['rate_map_correlation_first_vs_second_half_p'] = ps
