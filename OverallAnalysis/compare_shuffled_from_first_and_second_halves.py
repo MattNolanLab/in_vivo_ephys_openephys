@@ -1,4 +1,5 @@
 import glob
+import matplotlib.pylab as plt
 import numpy as np
 import os
 import OverallAnalysis.folder_path_settings
@@ -146,6 +147,16 @@ def split_in_two(cell):
     return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
 
 
+def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
+    hd_polar_fig = plt.figure()
+    hd_polar_fig.set_size_inches(5, 5, forward=True)
+    ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    plt.hist(shuffled.flatten(), color='navy', alpha=0.8)
+    ax.axvline(observed, color='red')
+    plt.savefig(local_path + cell.session_id[0] + str(cell.cluster_id[0]) + '_corr_coefs.png')
+    plt.close()
+
+
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
     all_data = pd.read_pickle(local_path + 'all_' + tag + '_df.pkl')
     all_data = add_cell_types_to_data_frame(all_data)
@@ -195,6 +206,9 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         corr_std = corr.std()
         # check what percentile real value is relative to distribution of shuffled correlations
         corr_observed = scipy.stats.pearsonr(spatial_firing_first.hd_histogram_real_data_hz[0], spatial_firing_second.hd_histogram_real_data_hz[0])[0]
+
+        plot_observed_vs_shuffled_correlations(corr_observed, corr, spatial_firing_first)
+
         percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
         percentiles.append(percentile)
 
@@ -223,7 +237,8 @@ def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
     process_data(server_path_mouse, tag='mice')
-    process_data(server_path_rat, tag='rats')
+
+    # process_data(server_path_rat, tag='rats')
 
 
 if __name__ == '__main__':
