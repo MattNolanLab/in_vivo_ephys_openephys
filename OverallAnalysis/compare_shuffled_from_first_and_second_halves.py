@@ -151,8 +151,11 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     hd_polar_fig = plt.figure()
     hd_polar_fig.set_size_inches(5, 5, forward=True)
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    plt.hist(shuffled.flatten(), color='navy', alpha=0.8)
-    ax.axvline(observed, color='red')
+    plt.hist(shuffled.flatten(), color='gray', alpha=0.8)
+    ax.axvline(observed, color='navy')
+    plt.xlim(-1, 1)
+    plt.xlabel('Pearson correlation coef', font=30)
+    plt.ylabel('Number of shuffled cells')
     plt.savefig(local_path + cell.session_id[0] + str(cell.cluster_id[0]) + '_corr_coefs.png')
     plt.close()
 
