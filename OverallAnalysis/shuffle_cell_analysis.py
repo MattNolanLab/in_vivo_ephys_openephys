@@ -341,6 +341,7 @@ def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle, shuffle_typ
     else:
         rates = cell.rate_map_values_session  # normalize to make sure it adds up to 1
         rates /= sum(rates)
+        rates = np.nan_to_num(rates)  # replaces Nan with 0 in unexplored bins
         shuffle_indices = np.random.choice(range(0, length_of_recording), size=(number_of_times_to_shuffle, number_of_spikes_in_field), p=rates)
     return shuffle_indices
 
