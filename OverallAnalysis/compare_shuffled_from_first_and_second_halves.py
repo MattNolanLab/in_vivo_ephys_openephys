@@ -235,14 +235,30 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     print('number of cells in 95 percentile: ' + str(len(np.where(np.array(percentiles) > 95)[0])))
     print('number of all grid cells: ' + str(len(percentiles)))
 
+    plt.cla()
+    plt.scatter(grid_data.hd_score, percentiles, color='navy')
+    plt.xlabel('Head direction score', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + 'pearson_coef_percentile_vs_hd_score.png')
+    plt.close()
+
+    plt.cla()
+    plt.scatter(grid_data.number_of_spikes, percentiles, color='navy')
+    plt.xlabel('Number of spikes', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + 'pearson_coef_percentile_vs_number_of_spikes.png')
+    plt.close()
 
 
 def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    process_data(server_path_mouse, tag='mice')
-
-    # process_data(server_path_rat, tag='rats')
+    # process_data(server_path_mouse, tag='mice')
+    prm.set_pixel_ratio(100)
+    prm.set_sampling_rate(1)  # firing times are in seconds for rat data
+    process_data(server_path_rat, tag='rats')
 
 
 if __name__ == '__main__':
