@@ -161,9 +161,9 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     plt.close()
 
 
-def plot_summary_stats(animal, grid_data, percentiles):
+def plot_summary_stats(animal, grid_data, percentiles, hd_scores, number_of_spikes):
     plt.cla()
-    plt.scatter(grid_data.hd_score, percentiles, color='navy')
+    plt.scatter(hd_scores, percentiles, color='navy')
     plt.xlabel('Head direction score', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
@@ -171,7 +171,7 @@ def plot_summary_stats(animal, grid_data, percentiles):
     plt.close()
 
     plt.cla()
-    plt.scatter(grid_data.number_of_spikes, percentiles, color='navy')
+    plt.scatter(number_of_spikes, percentiles, color='navy')
     plt.xlabel('Number of spikes', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
@@ -206,6 +206,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     corr_coefs_mean = []
     corr_stds = []
     percentiles = []
+    number_of_spikes = []
+    hd_scores = []
     for iterator in range(len(grid_data)):
         try:
             print(iterator)
@@ -251,6 +253,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
             percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
             percentiles.append(percentile)
+            number_of_spikes.append(grid_data.iloc[iterator].number_of_spikes)
+            hd_scores.append(grid_data.iloc[iterator].hd_score)
 
             corr_coefs_mean.append(corr_mean)
             corr_stds.append(corr_std)
@@ -258,7 +262,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             print('i failed to analyze this')
 
     print_summary_stat_results(corr_coefs_mean, percentiles, tag)
-    plot_summary_stats(tag, grid_data, percentiles)
+    plot_summary_stats(tag, grid_data, percentiles, hd_scores, number_of_spikes)
 
 
 def main():
