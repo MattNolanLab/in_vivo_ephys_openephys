@@ -2,9 +2,11 @@ import glob
 import matplotlib.pylab as plt
 import numpy as np
 import os
+import OverallAnalysis.compare_shuffled_from_first_and_second_halves
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.false_positives
 import OverallAnalysis.open_field_firing_maps_processed_data
+import OverallAnalysis.shuffle_field_analysis
 import OverallAnalysis.shuffle_field_analysis_all_animals
 import pandas as pd
 import OverallAnalysis.shuffle_cell_analysis
@@ -124,33 +126,41 @@ def split_in_two(cell):
     first['session_id'] = [cell.session_id.iloc[0]]
     first['cluster_id'] = [cell.cluster_id.iloc[0]]
     first['number_of_spikes'] = [len(spike_data_cluster_first.firing_times)]
+    first['number_of_spikes_in_field'] = [len(spike_data_cluster_first.firing_times)]
     first['firing_times'] = [spike_data_cluster_first.firing_times]
     first['position_x'] = [spike_data_cluster_first.position_x]
     first['position_y'] = [spike_data_cluster_first.position_y]
     first['position_x_pixels'] = [spike_data_cluster_first.position_x_pixels]
     first['position_y_pixels'] = [spike_data_cluster_first.position_y_pixels]
     first['hd'] = [spike_data_cluster_first.hd]
+    first['hd_in_field_spikes'] = [spike_data_cluster_first.hd]
 
     first['trajectory_x'] = [synced_spatial_data_first_half.position_x]
     first['trajectory_y'] = [synced_spatial_data_first_half.position_y]
     first['trajectory_hd'] = [synced_spatial_data_first_half.hd]
+    first['hd_in_field_session'] = [synced_spatial_data_first_half.hd]
     first['trajectory_times'] = [synced_spatial_data_first_half.synced_time]
+    first['time_spent_in_field'] = [len(synced_spatial_data_first_half.synced_time)]
 
     second = pd.DataFrame()
     second['session_id'] = [cell.session_id.iloc[0]]
     second['cluster_id'] = [cell.cluster_id.iloc[0]]
     second['number_of_spikes'] = [len(spike_data_cluster_second.firing_times)]
+    second['number_of_spikes_in_field'] = [len(spike_data_cluster_second.firing_times)]
     second['firing_times'] = [spike_data_cluster_second.firing_times]
     second['position_x'] = [spike_data_cluster_second.position_x]
     second['position_y'] = [spike_data_cluster_second.position_y]
     second['position_x_pixels'] = [spike_data_cluster_second.position_x_pixels]
     second['position_y_pixels'] = [spike_data_cluster_second.position_y_pixels]
     second['hd'] = [spike_data_cluster_second.hd]
+    second['hd_in_field_spikes'] = [spike_data_cluster_second.hd]
 
     second['trajectory_x'] = [synced_spatial_data_second_half.position_x.reset_index(drop=True)]
     second['trajectory_y'] = [synced_spatial_data_second_half.position_y.reset_index(drop=True)]
     second['trajectory_hd'] = [synced_spatial_data_second_half.hd.reset_index(drop=True)]
+    second['hd_in_field_session'] = [synced_spatial_data_second_half.hd.reset_index(drop=True)]
     second['trajectory_times'] = [synced_spatial_data_second_half.synced_time.reset_index(drop=True)]
+    second['time_spent_in_field'] = [len(synced_spatial_data_second_half.synced_time.reset_index(drop=True))]
     return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
 
 
@@ -168,13 +178,98 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     plt.close()
 
 
+def print_summary_stats(tag, corr_coefs_mean, percentiles):
+    print('***********' + tag + '***************')
+    print('avg corr correlations ')
+    print(corr_coefs_mean)
+    print('mean:')
+    print(np.mean(corr_coefs_mean))
+    print('std:')
+    print(np.std(corr_coefs_mean))
+
+    print('percentiles')
+    print(percentiles)
+    print('mean percentiles: ' + str(np.mean(percentiles)))
+    print('sd percentiles: ' + str(np.std(percentiles)))
+    print('number of cells in 95 percentile: ' + str(len(np.where(np.array(percentiles) > 95)[0])))
+    print('number of all grid cells: ' + str(len(percentiles)))
+
+
+def make_summary_plots(grid_data, percentiles):
+    plt.cla()
+    plt.scatter(grid_data.hd_score, percentiles, color='navy')
+    plt.xlabel('Head direction score', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + 'pearson_coef_percentile_vs_hd_score.png')
+    plt.close()
+
+    plt.cla()
+    plt.scatter(grid_data.number_of_spikes, percentiles, color='navy')
+    plt.xlabel('Number of spikes', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + 'pearson_coef_percentile_vs_number_of_spikes.png')
+    plt.close()
+
+
+def get_half_rate_map_from_whole_cell(spatial_firing_all, session_id, cluster_id):
+    cell = spatial_firing_all[(spatial_firing_all.session_id == session_id[0]) & (spatial_firing_all.cluster_id == cluster_id[0])]
+    first_half, second_half, position_first, position_second = OverallAnalysis.compare_shuffled_from_first_and_second_halves.split_in_two(cell)
+    position_heat_map_first, first_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_first, first_half, prm)
+    position_heat_map_second, second_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_second, second_half, prm)
+    return first_half, second_half, position_first, position_second
+
+
+def add_rate_map_values_to_field(spatial_firing, field):
+    spike_data_field = pd.DataFrame()
+    spike_data_field['x'] = field.trajectory_x[0]
+    spike_data_field['y'] = field.trajectory_y[0]
+    spike_data_field['hd'] = field.trajectory_hd[0]
+    spike_data_field['synced_time'] = field.trajectory_times[0]
+
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    spike_data_field['rate_map_x'] = (field.trajectory_x[0] // bin_size_pixels).astype(int)
+    spike_data_field['rate_map_y'] = (field.trajectory_y[0] // bin_size_pixels).astype(int)
+    rates = []
+    cluster = spatial_firing.cluster_id == field.cluster_id
+    rate_map = spatial_firing.firing_maps[cluster].iloc[0]
+    for sample in range(len(spike_data_field)):
+        rate = rate_map[spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample]]
+        rates.append(rate)
+
+    field['rate_map_values_session'] = [np.round(rates, 2)]
+    return field
+
+
+def distributive_shuffle(field_data, number_of_bins=20, number_of_times_to_shuffle=1000):
+    field_histograms_all = []
+    shuffled_hd_all = []
+    for index, field in field_data.iterrows():
+        print('I will shuffle data in the fields.')
+        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+        shuffle_indices = OverallAnalysis.shuffle_field_analysis.get_random_indices_for_shuffle(field, number_of_times_to_shuffle, shuffle_type='distributive')
+        shuffled_hd_field = []
+        for shuffle in range(number_of_times_to_shuffle):
+            shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            shuffled_hd_field.extend(shuffled_hd)
+            hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
+            field_histograms[shuffle, :] = hist
+        field_histograms_all.append(field_histograms)
+        shuffled_hd_all.append(shuffled_hd_field)
+    field_data['shuffled_data'] = field_histograms_all
+    field_data['shuffled_hd_distribution'] = shuffled_hd_all
+    return field_data
+
+
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
     if tag == 'mouse':
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
-    elif tag == 'rat':
+        all_cells = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_path() + '/compare_first_and_second_shuffled/all_mice_df.pkl')
+    else:  # rat data
         accepted_fields = pd.read_excel(local_path + 'included_fields_detector2_sargolini.xlsx')
-    else:
-        accepted_fields = True
+        all_cells = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_path() + '/compare_first_and_second_shuffled/all_rats_df.pkl')
+
 
     all_data = pd.read_pickle(local_path + 'all_' + tag + '_df.pkl')
     all_data = add_cell_types_to_data_frame(all_data)
@@ -193,14 +288,11 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         print(iterator)
         print(grid_data.iloc[iterator].session_id)
         first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1])
-        # add rate map to dfs
-        # shuffle
-        # todo replace these with the one for fields, need to add rate map from whole session (?)
-        position_heat_map_first, first_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_first, first_half, prm)
-        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='distributive')
-        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
-        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_first, local_path, sampling_rate_video, tag + str(iterator) + 'first',
-                                               number_of_bins=20, shuffle_type='distributive')
+        first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(all_cells, first_half.session_id, first_half.cluster_id)
+        first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
+        first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
+        first_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(first_half, local_path, sampling_rate_video, number_of_bins=20, shuffle_type='distributive')
+
 
         # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
 
@@ -238,37 +330,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         corr_coefs_mean.append(corr_mean)
         corr_stds.append(corr_std)
 
-    #todo print and plot results (corr coefs and std)
-    print('***********' + tag + '***************')
-    print('avg corr correlations ')
-    print(corr_coefs_mean)
-    print('mean:')
-    print(np.mean(corr_coefs_mean))
-    print('std:')
-    print(np.std(corr_coefs_mean))
-
-    print('percentiles')
-    print(percentiles)
-    print('mean percentiles: ' + str(np.mean(percentiles)))
-    print('sd percentiles: ' + str(np.std(percentiles)))
-    print('number of cells in 95 percentile: ' + str(len(np.where(np.array(percentiles) > 95)[0])))
-    print('number of all grid cells: ' + str(len(percentiles)))
-
-    plt.cla()
-    plt.scatter(grid_data.hd_score, percentiles, color='navy')
-    plt.xlabel('Head direction score', fontsize=20)
-    plt.ylabel('Percentile of correlation coef.', fontsize=20)
-    plt.tight_layout()
-    plt.savefig(local_path + 'pearson_coef_percentile_vs_hd_score.png')
-    plt.close()
-
-    plt.cla()
-    plt.scatter(grid_data.number_of_spikes, percentiles, color='navy')
-    plt.xlabel('Number of spikes', fontsize=20)
-    plt.ylabel('Percentile of correlation coef.', fontsize=20)
-    plt.tight_layout()
-    plt.savefig(local_path + 'pearson_coef_percentile_vs_number_of_spikes.png')
-    plt.close()
+    print_summary_stats(tag, corr_coefs_mean, percentiles)
+    make_summary_plots(grid_data, percentiles)
 
 
 def main():
