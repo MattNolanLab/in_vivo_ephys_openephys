@@ -1,3 +1,4 @@
+import array_utility
 import glob
 import matplotlib.pylab as plt
 import numpy as np
@@ -13,6 +14,7 @@ import OverallAnalysis.shuffle_cell_analysis
 import OverallAnalysis.shuffle_field_analysis
 import PostSorting.compare_first_and_second_half
 import PostSorting.open_field_firing_maps
+import PostSorting.open_field_head_direction
 import PostSorting.parameters
 import scipy.stats
 from scipy import signal
@@ -100,28 +102,17 @@ def load_data(path):
     return first_half_spatial_firing, second_half_spatial_firing, first_position, second_position
 
 
-def split_in_two(cell):
+def add_more_columns_to_cell_df(cell):
     cell['position_x_pixels'] = [np.array(cell.position_x_spikes.iloc[0]) * prm.get_pixel_ratio() / 100]
     cell['position_y_pixels'] = [np.array(cell.position_y_spikes.iloc[0]) * prm.get_pixel_ratio() / 100]
     cell['position_x'] = [np.array(cell.position_x_spikes.iloc[0])]
     cell['position_y'] = [np.array(cell.position_y_spikes.iloc[0])]
     cell['hd'] = [np.array(cell.hd_in_field_spikes.iloc[0])]
     cell['firing_times'] = [np.array(cell.spike_times.iloc[0])]
-    spike_data_in = cell
-    synced_spatial_data_in = pd.DataFrame()
-    synced_spatial_data_in['position_x'] = cell.position_x_session.iloc[0]
-    synced_spatial_data_in['position_y'] = cell.position_y_session.iloc[0]
-    synced_spatial_data_in['synced_time'] = cell.times_session.iloc[0]
-    synced_spatial_data_in['hd'] = cell.hd_in_field_session.iloc[0]
-    spike_data_in.set_index([spike_data_in.cluster_id - 1], inplace=True)
-    spike_data_cluster_first, synced_spatial_data_first_half = PostSorting.compare_first_and_second_half.get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half')
-    spike_data_cluster_second, synced_spatial_data_second_half = PostSorting.compare_first_and_second_half.get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='second_half')
+    return cell
 
-    synced_spatial_data_first_half['position_x_pixels'] = np.array(synced_spatial_data_first_half.position_x) * prm.get_pixel_ratio() / 100
-    synced_spatial_data_first_half['position_y_pixels'] = np.array(synced_spatial_data_first_half.position_y) * prm.get_pixel_ratio() / 100
-    synced_spatial_data_second_half['position_x_pixels'] = np.array(synced_spatial_data_second_half.position_x) * prm.get_pixel_ratio() / 100
-    synced_spatial_data_second_half['position_y_pixels'] = np.array(synced_spatial_data_second_half.position_y) * prm.get_pixel_ratio() / 100
 
+def get_data_for_first_half(cell, spike_data_cluster_first, synced_spatial_data_first_half):
     first = pd.DataFrame()
     first['session_id'] = [cell.session_id.iloc[0]]
     first['cluster_id'] = [cell.cluster_id.iloc[0]]
@@ -141,7 +132,10 @@ def split_in_two(cell):
     first['hd_in_field_session'] = [synced_spatial_data_first_half.hd]
     first['trajectory_times'] = [synced_spatial_data_first_half.synced_time]
     first['time_spent_in_field'] = [len(synced_spatial_data_first_half.synced_time)]
+    return first
 
+
+def get_data_for_second_half(cell, spike_data_cluster_second, synced_spatial_data_second_half):
     second = pd.DataFrame()
     second['session_id'] = [cell.session_id.iloc[0]]
     second['cluster_id'] = [cell.cluster_id.iloc[0]]
@@ -161,6 +155,42 @@ def split_in_two(cell):
     second['hd_in_field_session'] = [synced_spatial_data_second_half.hd.reset_index(drop=True)]
     second['trajectory_times'] = [synced_spatial_data_second_half.synced_time.reset_index(drop=True)]
     second['time_spent_in_field'] = [len(synced_spatial_data_second_half.synced_time.reset_index(drop=True))]
+    return second
+
+
+def add_hd_histogram_of_observed_data_to_df(fields):
+    angles_session = np.array(fields.trajectory_hd[0])
+    hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(angles_session)
+    hd_hist_session /= prm.get_sampling_rate()
+    angles_spike = fields.hd[0]
+    hd_hist_spikes = PostSorting.open_field_head_direction.get_hd_histogram(angles_spike)
+    fields['hd_histogram_real_data_hz'] = [hd_hist_spikes / hd_hist_session / 1000]
+    return fields
+
+
+def split_in_two(cell):
+    cell = add_more_columns_to_cell_df(cell)
+    spike_data_in = cell
+    synced_spatial_data_in = pd.DataFrame()
+    synced_spatial_data_in['position_x'] = cell.position_x_session.iloc[0]
+    synced_spatial_data_in['position_y'] = cell.position_y_session.iloc[0]
+    synced_spatial_data_in['synced_time'] = cell.times_session.iloc[0]
+    synced_spatial_data_in['hd'] = cell.hd_in_field_session.iloc[0]
+    spike_data_in.set_index([spike_data_in.cluster_id - 1], inplace=True)
+    spike_data_cluster_first, synced_spatial_data_first_half = PostSorting.compare_first_and_second_half.get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half')
+    spike_data_cluster_second, synced_spatial_data_second_half = PostSorting.compare_first_and_second_half.get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='second_half')
+
+    synced_spatial_data_first_half['position_x_pixels'] = np.array(synced_spatial_data_first_half.position_x) * prm.get_pixel_ratio() / 100
+    synced_spatial_data_first_half['position_y_pixels'] = np.array(synced_spatial_data_first_half.position_y) * prm.get_pixel_ratio() / 100
+    synced_spatial_data_second_half['position_x_pixels'] = np.array(synced_spatial_data_second_half.position_x) * prm.get_pixel_ratio() / 100
+    synced_spatial_data_second_half['position_y_pixels'] = np.array(synced_spatial_data_second_half.position_y) * prm.get_pixel_ratio() / 100
+
+    first = get_data_for_first_half(cell, spike_data_cluster_first, synced_spatial_data_first_half)
+    second = get_data_for_second_half(cell, spike_data_cluster_second, synced_spatial_data_second_half)
+
+    first = add_hd_histogram_of_observed_data_to_df(first)
+    second = add_hd_histogram_of_observed_data_to_df(second)
+
     return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
 
 
@@ -317,7 +347,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         corr_mean = corr.mean()
         corr_std = corr.std()
         # check what percentile real value is relative to distribution of shuffled correlations
-        corr_observed = scipy.stats.pearsonr(first_half.hd_histogram_real_data_hz[0], second_half.hd_histogram_real_data_hz[0])[0]
+        first_half_hd_hist_hz, second_half_hd_hist_hz = array_utility.remove_nans_and_inf_from_both_arrays(first_half.hd_histogram_real_data_hz[0], second_half.hd_histogram_real_data_hz[0])
+        corr_observed = scipy.stats.pearsonr(first_half_hd_hist_hz, second_half_hd_hist_hz)[0]
 
         plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
 
