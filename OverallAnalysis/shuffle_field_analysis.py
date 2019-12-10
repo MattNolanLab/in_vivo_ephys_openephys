@@ -249,7 +249,7 @@ def plot_bar_chart_for_fields(field_data, sampling_rate_video, path, shuffle_typ
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD.png')
+        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['session_id']) + str(field['cluster_id']) + '_field_' + str(index) + '_SD.png')
         plt.close()
 
 
@@ -270,7 +270,7 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_vid
         plt.xticks(x_pos, x_labels)
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='navy', s=40)
-        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile.png')
+        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['session_id']) + str(field['cluster_id']) + '_field_' + str(index) + '_percentile.png')
         plt.close()
 
 
