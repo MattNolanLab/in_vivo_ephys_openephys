@@ -238,9 +238,9 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             # normalize shuffled data
             shuffled_histograms_hz_first = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_first
             second_shuffles = spatial_firing_second.shuffled_data[0]
-            time_spent_in_bins_second = spatial_firing_first.time_spent_in_bins  # based on trajectory
+            time_spent_in_bins_second = spatial_firing_second.time_spent_in_bins  # based on trajectory
             # normalize shuffled data
-            shuffled_histograms_hz_second = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_second
+            shuffled_histograms_hz_second = spatial_firing_second.shuffled_data * sampling_rate_video / time_spent_in_bins_second
 
             # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
             corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
