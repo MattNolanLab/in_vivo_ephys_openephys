@@ -291,38 +291,35 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(all_cells, first_half.session_id, first_half.cluster_id)
         first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
         first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
-        first_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(first_half, local_path, sampling_rate_video, number_of_bins=20, shuffle_type='distributive')
+        first_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(first_half, local_path + '/first/', sampling_rate_video, number_of_bins=20, shuffle_type='distributive')
 
+        second_half = add_rate_map_values_to_field(second_half_whole_cell, second_half)
+        second_half = distributive_shuffle(second_half, number_of_bins=20, number_of_times_to_shuffle=1000)
+        second_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(second_half, local_path + '/second/',
+                                                                                  sampling_rate_video,
+                                                                                  number_of_bins=20,
+                                                                                  shuffle_type='distributive')
 
-        # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
-
-        position_heat_map_second, second_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_second, second_half, prm)
-        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='distributive')
-        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
-        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_second, local_path, sampling_rate_video, tag + str(iterator) + 'second',
-                                               number_of_bins=20, shuffle_type='distributive')
         # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
 
         print('shuffled')
         # compare
-        first_shuffles = spatial_firing_first.shuffled_data[0]
         # todo get time_spent_in_bins added to df somehow
-        time_spent_in_bins_first = spatial_firing_first.time_spent_in_bins  # based on trajectory
+        time_spent_in_bins_first = first_half.time_spent_in_bins  # based on trajectory
         # normalize shuffled data
-        shuffled_histograms_hz_first = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_first
-        second_shuffles = spatial_firing_second.shuffled_data[0]
-        time_spent_in_bins_second = spatial_firing_first.time_spent_in_bins  # based on trajectory
+        shuffled_histograms_hz_first = first_half.shuffled_data * sampling_rate_video / time_spent_in_bins_first
+        time_spent_in_bins_second = second_half.time_spent_in_bins   # based on trajectory
         # normalize shuffled data
-        shuffled_histograms_hz_second = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_second
+        shuffled_histograms_hz_second = second_half.shuffled_data * sampling_rate_video / time_spent_in_bins_second
 
         # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
         corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
         corr_mean = corr.mean()
         corr_std = corr.std()
         # check what percentile real value is relative to distribution of shuffled correlations
-        corr_observed = scipy.stats.pearsonr(spatial_firing_first.hd_histogram_real_data_hz[0], spatial_firing_second.hd_histogram_real_data_hz[0])[0]
+        corr_observed = scipy.stats.pearsonr(first_half.hd_histogram_real_data_hz[0], second_half.hd_histogram_real_data_hz[0])[0]
 
-        plot_observed_vs_shuffled_correlations(corr_observed, corr, spatial_firing_first)
+        plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
 
         percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
         percentiles.append(percentile)
