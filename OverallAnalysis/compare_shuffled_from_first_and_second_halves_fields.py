@@ -205,6 +205,7 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     plt.xticks([-1, 0, 1])
     plt.xlabel('Pearson correlation coef', fontsize=20)
     plt.ylabel('Number of shuffles', fontsize=20)
+    plt.title(str(cell.number_of_spikes_in_field[0]))
     plt.tight_layout()
     plt.savefig(local_path + cell.session_id[0] + str(cell.cluster_id[0]) + str(cell.field_id[0]) + '_corr_coefs.png')
     plt.close()
@@ -237,8 +238,8 @@ def make_summary_plots(grid_data, percentiles):
     plt.close()
 
     plt.cla()
-    plt.scatter(grid_data.number_of_spikes, percentiles, color='navy')
-    plt.xlabel('Number of spikes', fontsize=20)
+    plt.scatter(grid_data.number_of_spikes_in_field, percentiles, color='navy')
+    plt.xlabel('Number of spikes in field', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
     plt.savefig(local_path + 'pearson_coef_percentile_vs_number_of_spikes.png')
