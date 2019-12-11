@@ -268,7 +268,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    # process_data(server_path_mouse, tag='mice')
+    process_data(server_path_mouse, tag='mice')
     prm.set_pixel_ratio(100)
     prm.set_sampling_rate(1)  # firing times are in seconds for rat data
     process_data(server_path_rat, tag='rats')
