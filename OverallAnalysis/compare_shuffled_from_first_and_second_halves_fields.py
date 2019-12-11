@@ -228,13 +228,13 @@ def print_summary_stats(tag, corr_coefs_mean, percentiles):
     print('number of all grid cells: ' + str(len(percentiles)))
 
 
-def make_summary_plots(grid_data, percentiles):
+def make_summary_plots(grid_data, percentiles, tag):
     plt.cla()
     plt.scatter(grid_data.hd_score, percentiles, color='navy')
     plt.xlabel('Head direction score', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
-    plt.savefig(local_path + 'pearson_coef_percentile_vs_hd_score.png')
+    plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_hd_score.png')
     plt.close()
 
     plt.cla()
@@ -242,7 +242,7 @@ def make_summary_plots(grid_data, percentiles):
     plt.xlabel('Number of spikes in field', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
-    plt.savefig(local_path + 'pearson_coef_percentile_vs_number_of_spikes.png')
+    plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_number_of_spikes.png')
     plt.close()
 
 
@@ -365,7 +365,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         corr_stds.append(corr_std)
 
     print_summary_stats(tag, corr_coefs_mean, percentiles)
-    make_summary_plots(grid_data, percentiles)
+    make_summary_plots(grid_data, percentiles, tag)
 
 
 def main():
