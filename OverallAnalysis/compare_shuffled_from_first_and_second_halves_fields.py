@@ -116,6 +116,7 @@ def get_data_for_first_half(cell, spike_data_cluster_first, synced_spatial_data_
     first = pd.DataFrame()
     first['session_id'] = [cell.session_id.iloc[0]]
     first['cluster_id'] = [cell.cluster_id.iloc[0]]
+    first['field_id'] = [cell.field_id.iloc[0]]
     first['number_of_spikes'] = [len(spike_data_cluster_first.firing_times)]
     first['number_of_spikes_in_field'] = [len(spike_data_cluster_first.firing_times)]
     first['firing_times'] = [spike_data_cluster_first.firing_times]
@@ -139,6 +140,7 @@ def get_data_for_second_half(cell, spike_data_cluster_second, synced_spatial_dat
     second = pd.DataFrame()
     second['session_id'] = [cell.session_id.iloc[0]]
     second['cluster_id'] = [cell.cluster_id.iloc[0]]
+    second['field_id'] = [cell.field_id.iloc[0]]
     second['number_of_spikes'] = [len(spike_data_cluster_second.firing_times)]
     second['number_of_spikes_in_field'] = [len(spike_data_cluster_second.firing_times)]
     second['firing_times'] = [spike_data_cluster_second.firing_times]
@@ -197,14 +199,14 @@ def split_in_two(cell):
 def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    plt.hist(shuffled.flatten(), color='gray', alpha=0.8)
+    plt.hist(shuffled, color='gray', alpha=0.8)
     ax.axvline(observed, color='navy')
     plt.xlim(-1, 1)
     plt.xticks([-1, 0, 1])
     plt.xlabel('Pearson correlation coef', fontsize=20)
-    plt.ylabel('Number of shuffled cells', fontsize=20)
+    plt.ylabel('Number of shuffles', fontsize=20)
     plt.tight_layout()
-    plt.savefig(local_path + cell.session_id[0] + str(cell.cluster_id[0]) + '_corr_coefs.png')
+    plt.savefig(local_path + cell.session_id[0] + str(cell.cluster_id[0]) + str(cell.field_id[0]) + '_corr_coefs.png')
     plt.close()
 
 
@@ -343,7 +345,10 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         shuffled_histograms_hz_second = second_half.shuffled_data * sampling_rate_video / time_spent_in_bins_second
 
         # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
-        corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
+        # corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
+        first_shuffled_df = pd.DataFrame(shuffled_histograms_hz_first[0])
+        second_shuffled_df = pd.DataFrame(shuffled_histograms_hz_second[0])
+        corr = first_shuffled_df.corrwith(second_shuffled_df, axis=1, drop=True)
         corr_mean = corr.mean()
         corr_std = corr.std()
         # check what percentile real value is relative to distribution of shuffled correlations
@@ -352,7 +357,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
         plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
 
-        percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
+        percentile = scipy.stats.percentileofscore(corr, corr_observed)
         percentiles.append(percentile)
 
         corr_coefs_mean.append(corr_mean)
