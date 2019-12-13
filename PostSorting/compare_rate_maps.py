@@ -6,6 +6,13 @@ import PostSorting.open_field_firing_maps
 
 def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, excluded_bins, path):
     print('Plot rate maps.')
+    plt.cla()
+    fig, axs = plt.subplots(2)
+    fig.suptitle('Spatial corr ' + str(round(corr_score)) + ' % of excluded bins ' + str(round(excluded_bins)) + ' %')
+    axs[0].imshow(rate_map_1)
+    axs[1].imshow(rate_map_2)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(path)
 
 
 def make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y, prm):
