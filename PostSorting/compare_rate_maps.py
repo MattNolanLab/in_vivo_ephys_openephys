@@ -67,7 +67,8 @@ def calculate_spatial_correlation_between_rate_maps(first, second, position_firs
     """
     This function accepts two sets of data (so for example first and second halves of the recording), makes a rate map
     for both halves in a way that the rate maps correspond, and correlates these rate maps to obtain a spatial correlation
-    score.
+    score. It will also return what percentage of rate map bins had to be excluded from the analysis due to no
+    trajectory sampling.
 
     first : spatial firing data frame containing data for rate map # 1
     second: spatial firing data frame with data for rate map # 2
