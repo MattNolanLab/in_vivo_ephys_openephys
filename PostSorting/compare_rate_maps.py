@@ -1,6 +1,11 @@
+import matplotlib.pylab as plt
 import numpy as np
 from scipy.stats.stats import pearsonr
 import PostSorting.open_field_firing_maps
+
+
+def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, excluded_bins, path):
+    print('Plot rate maps.')
 
 
 def make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y, prm):
@@ -80,7 +85,7 @@ def calculate_spatial_correlation_between_rate_maps(first, second, position_firs
     rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2 = make_same_sized_rate_maps(position_first, position_second, first, second, prm)
     # possibly need to remove nans here and maybe count how many there are and return that number as well
     pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
-    return pearson_r, percentage_of_excluded_bins
+    return pearson_r, percentage_of_excluded_bins, rate_map_first, rate_map_second
 
 
 def main():
