@@ -13,6 +13,7 @@ import pandas as pd
 import OverallAnalysis.shuffle_cell_analysis
 import OverallAnalysis.shuffle_field_analysis
 import PostSorting.compare_first_and_second_half
+import PostSorting.compare_rate_maps
 import PostSorting.open_field_firing_maps
 import PostSorting.open_field_head_direction
 import PostSorting.parameters
@@ -235,7 +236,7 @@ def print_summary_stats(tag, corr_coefs_mean, percentiles):
     print('number of all grid cells: ' + str(len(percentiles)))
 
 
-def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, tag):
+def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, tag):
     plt.cla()
     plt.scatter(hd_scores_all, percentiles, color='navy')
     plt.xlabel('Head direction score', fontsize=20)
@@ -252,7 +253,24 @@ def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, tag):
     plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_number_of_spikes.png')
     plt.close()
 
+    plt.cla()
+    plt.scatter(spatial_scores, percentiles, color='navy')
+    plt.xlabel('Spatial correlation of rate maps', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_spatial_corr_half_rate_maps.png')
+    plt.close()
 
+    plt.cla()
+    plt.scatter(percentages_of_excluded_bins, percentiles, color='navy')
+    plt.xlabel('Percentage of excluded bins', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_percentages_of_excluded_bins_from_rate_map.png')
+    plt.close()
+
+
+# todo maybe change this to make sure the rate maps correspond
 def get_half_rate_map_from_whole_cell(spatial_firing_all, session_id, cluster_id):
     cell = spatial_firing_all[(spatial_firing_all.session_id == session_id[0]) & (spatial_firing_all.cluster_id == cluster_id[0])]
     first_half, second_half, position_first, position_second = OverallAnalysis.compare_shuffled_from_first_and_second_halves.split_in_two(cell)
@@ -302,6 +320,13 @@ def distributive_shuffle(field_data, number_of_bins=20, number_of_times_to_shuff
     return field_data
 
 
+def check_how_much_rate_maps_correlate(first_half, second_half, position_first, position_second):
+    save_path = local_path + 'rate_maps_' + first_half.session_id[0] + str(first_half.cluster_id[0]) + '.png'
+    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first_half, second_half, position_first, position_second, prm)
+    PostSorting.compare_rate_maps.plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, spatial_correlation, percentage_of_excluded_bins, save_path)
+    return spatial_correlation, percentage_of_excluded_bins
+
+
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
     if tag == 'mouse':
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
@@ -326,12 +351,16 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     percentiles = []
     hd_scores_all = []
     number_of_spikes_all = []
+    spatial_scores = []
+    percentages_of_excluded_bins = []
     for iterator in range(len(grid_data)):
         try:
             print(iterator)
             print(grid_data.iloc[iterator].session_id)
             first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1], sampling_rate_video=sampling_rate_video)
             first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(all_cells, first_half.session_id, first_half.cluster_id)
+            spatial_correlation_between_halves, percentage_of_excluded_bins = check_how_much_rate_maps_correlate(first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell )
+
             first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
             first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
             first_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(first_half, local_path + '/first/', sampling_rate_video, number_of_bins=20, shuffle_type='distributive')
@@ -375,17 +404,20 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             corr_stds.append(corr_std)
             hd_scores_all.append(grid_data.iloc[iterator].hd_score)
             number_of_spikes_all.append(grid_data.iloc[iterator].number_of_spikes_in_field)
+            spatial_scores.append(spatial_correlation_between_halves)
+            percentages_of_excluded_bins.append(percentage_of_excluded_bins)
+
         except:
             print('I failed to do this one.')
 
     print_summary_stats(tag, corr_coefs_mean, percentiles)
-    make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, tag)
+    make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, tag)
 
 
 def main():
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
-    # process_data(server_path_mouse, tag='mouse', sampling_rate_video=30)
+    process_data(server_path_mouse, tag='mouse', sampling_rate_video=30)
     prm.set_pixel_ratio(100)
     prm.set_sampling_rate(1)  # firing times are in seconds for rat data
     process_data(server_path_rat, tag='rat', sampling_rate_video=50)
