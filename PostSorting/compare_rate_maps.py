@@ -13,6 +13,9 @@ def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, ex
     axs[1].imshow(rate_map_2)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(path)
+    plt.clf()
+    plt.cla()
+    plt.close()
 
 
 def make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y, prm):

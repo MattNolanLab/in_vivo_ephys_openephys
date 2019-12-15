@@ -238,6 +238,7 @@ def print_summary_stats(tag, corr_coefs_mean, percentiles):
 
 def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, tag):
     plt.cla()
+    plt.plot()
     plt.scatter(hd_scores_all, percentiles, color='navy')
     plt.xlabel('Head direction score', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
@@ -246,6 +247,7 @@ def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial
     plt.close()
 
     plt.cla()
+    plt.plot()
     plt.scatter(number_of_spikes_all, percentiles, color='navy')
     plt.xlabel('Number of spikes in field', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
@@ -254,6 +256,7 @@ def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial
     plt.close()
 
     plt.cla()
+    plt.plot()
     plt.scatter(spatial_scores, percentiles, color='navy')
     plt.xlabel('Spatial correlation of rate maps', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
@@ -262,6 +265,7 @@ def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial
     plt.close()
 
     plt.cla()
+    plt.plot()
     plt.scatter(percentages_of_excluded_bins, percentiles, color='navy')
     plt.xlabel('Percentage of excluded bins', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
@@ -322,7 +326,11 @@ def distributive_shuffle(field_data, number_of_bins=20, number_of_times_to_shuff
 
 def check_how_much_rate_maps_correlate(first_half, second_half, position_first, position_second):
     save_path = local_path + 'rate_maps_' + first_half.session_id[0] + str(first_half.cluster_id[0]) + '.png'
-    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first_half, second_half, position_first, position_second, prm)
+    first = first_half.copy()
+    second = second_half.copy()
+    first_pos = position_first.copy()
+    second_pos = position_second.copy()
+    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first, second, first_pos, second_pos, prm)
     PostSorting.compare_rate_maps.plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, spatial_correlation, percentage_of_excluded_bins, save_path)
     return spatial_correlation, percentage_of_excluded_bins
 
