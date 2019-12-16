@@ -166,7 +166,9 @@ def add_hd_histogram_of_observed_data_to_df(fields, sampling_rate_video, number_
         angles_session = np.array(fields.trajectory_hd[0])
         hd_hist_session = np.histogram(angles_session, bins=number_of_bins)[0]
         angles_spike = fields.hd[0]
-        real_data_hz = np.histogram(angles_spike, bins=number_of_bins)[0] * sampling_rate_video / hd_hist_session
+        low_end = angles_spike[~np.isnan(angles_spike)].min()
+        high_end = angles_spike[~np.isnan(angles_spike)].max()
+        real_data_hz = np.histogram(angles_spike, bins=number_of_bins, range=(low_end, high_end))[0] * sampling_rate_video / hd_hist_session
         fields['hd_histogram_real_data_hz'] = [real_data_hz]
     else:
         angles_session = np.array(fields.trajectory_hd[0])
