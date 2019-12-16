@@ -164,7 +164,9 @@ def get_data_for_second_half(cell, spike_data_cluster_second, synced_spatial_dat
 def add_hd_histogram_of_observed_data_to_df(fields, sampling_rate_video, number_of_bins=20, binning='not_smooth'):
     if binning == 'not_smooth':
         angles_session = np.array(fields.trajectory_hd[0])
-        hd_hist_session = np.histogram(angles_session, bins=number_of_bins)[0]
+        low_end = angles_session[~np.isnan(angles_session)].min()
+        high_end = angles_session[~np.isnan(angles_session)].max()
+        hd_hist_session = np.histogram(angles_session, bins=number_of_bins, range=(low_end, high_end))[0]
         angles_spike = fields.hd[0]
         low_end = angles_spike[~np.isnan(angles_spike)].min()
         high_end = angles_spike[~np.isnan(angles_spike)].max()
