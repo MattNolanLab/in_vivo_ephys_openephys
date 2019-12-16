@@ -8,6 +8,7 @@ import OverallAnalysis.open_field_firing_maps_processed_data
 import pandas as pd
 import OverallAnalysis.shuffle_cell_analysis
 import PostSorting.compare_first_and_second_half
+import PostSorting.open_field_head_direction
 import PostSorting.open_field_firing_maps
 import PostSorting.parameters
 import scipy.stats
@@ -196,6 +197,23 @@ def print_summary_stat_results(corr_coefs_mean, percentiles, tag):
     print('number of all grid cells: ' + str(len(percentiles)))
 
 
+def add_hd_histogram_of_observed_data_to_df(cells, sampling_rate_video, number_of_bins=20, binning='not_smooth'):
+    if binning == 'not_smooth':
+        angles_session = np.array(cells.trajectory_hd[0])
+        hd_hist_session = np.histogram(angles_session, bins=number_of_bins)[0]
+        angles_spike = cells.hd[0]
+        real_data_hz = np.histogram(angles_spike, bins=number_of_bins)[0] * sampling_rate_video / hd_hist_session
+        cells['hd_histogram_real_data_hz'] = [real_data_hz]
+    else:
+        angles_session = np.array(cells.trajectory_hd[0])
+        hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(angles_session)
+        hd_hist_session /= prm.get_sampling_rate()
+        angles_spike = cells.hd[0]
+        hd_hist_spikes = PostSorting.open_field_head_direction.get_hd_histogram(angles_spike)
+        cells['hd_histogram_real_data_hz'] = [hd_hist_spikes / hd_hist_session / 1000]
+    return cells
+
+
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
     all_data = pd.read_pickle(local_path + 'all_' + tag + '_df.pkl')
     all_data = add_cell_types_to_data_frame(all_data)
@@ -247,6 +265,10 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             corr_mean = corr.mean()
             corr_std = corr.std()
             # check what percentile real value is relative to distribution of shuffled correlations
+            spatial_firing_first = add_hd_histogram_of_observed_data_to_df(spatial_firing_first, sampling_rate_video,
+                                                                           number_of_bins=20, binning='not_smooth')
+            spatial_firing_second = add_hd_histogram_of_observed_data_to_df(spatial_firing_second, sampling_rate_video,
+                                                                            number_of_bins=20, binning='not_smooth')
             corr_observed = scipy.stats.pearsonr(spatial_firing_first.hd_histogram_real_data_hz[0], spatial_firing_second.hd_histogram_real_data_hz[0])[0]
 
             plot_observed_vs_shuffled_correlations(corr_observed, corr, spatial_firing_first)
