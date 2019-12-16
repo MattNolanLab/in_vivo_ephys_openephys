@@ -251,12 +251,9 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
         print('shuffled')
         # compare
-        first_shuffles = spatial_firing_first.shuffled_data[0]
-        # todo get time_spent_in_bins added to df somehow
         time_spent_in_bins_first = spatial_firing_first.time_spent_in_bins  # based on trajectory
         # normalize shuffled data
         shuffled_histograms_hz_first = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_first
-        second_shuffles = spatial_firing_second.shuffled_data[0]
         time_spent_in_bins_second = spatial_firing_second.time_spent_in_bins  # based on trajectory
         # normalize shuffled data
         shuffled_histograms_hz_second = spatial_firing_second.shuffled_data * sampling_rate_video / time_spent_in_bins_second
@@ -281,8 +278,6 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
         corr_coefs_mean.append(corr_mean)
         corr_stds.append(corr_std)
-
-        # print('i failed to analyze this')
 
     print_summary_stat_results(corr_coefs_mean, percentiles, tag)
     plot_summary_stats(tag, grid_data, percentiles, hd_scores, number_of_spikes)
