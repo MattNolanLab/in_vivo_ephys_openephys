@@ -12,7 +12,7 @@ A clear and concise description of what the bug is.
 
 **Running environment**
 - Data in datastore: [e.g. Teris/testData/M1_D2_2019-11-12_13-26-39]
-- Branch (preferrably also with the hash of the commit) [e.g. master ad4df16 (Get the hash by running `git rev-parse --short HEAD` in terminal in your code folder. Make sure the commit has been pushed so that it can checkout by the others and reproduce your bug ):]
+- Branch (preferrably also with the hash of the commit) [e.g. master ad4df16 (Get the hash by running `git rev-parse --short HEAD` in terminal in your code folder. Make sure the commit has been pushed so that it can be checked-out by the others and reproduce your bug ):]
 - Platform [e.g. Eleanor/Sorting Computer 1 etc.]
 
 **To Reproduce**
