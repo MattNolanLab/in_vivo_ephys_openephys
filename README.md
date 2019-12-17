@@ -1,5 +1,5 @@
 
-Snakefile pipeline for processing open-ephys data
+Snakemake pipeline for processing open-ephys data
 
 ### Code structure
 A workflow is defined in a snakefile. Currently, two snakefiles are provided, namely `vr_workflow.smk` and `op_workflow.smk` for VR and openfield experiment respectively.
