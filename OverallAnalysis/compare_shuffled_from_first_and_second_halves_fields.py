@@ -240,7 +240,7 @@ def print_summary_stats(tag, corr_coefs_mean, percentiles):
     print('number of all grid cells: ' + str(len(percentiles)))
 
 
-def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, tag):
+def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, spatial_scores_field, percentages_of_excluded_bins_field, tag):
     plt.cla()
     plt.plot()
     plt.scatter(hd_scores_all, percentiles, color='navy')
@@ -275,6 +275,25 @@ def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
     plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_percentages_of_excluded_bins_from_rate_map.png')
+    plt.close()
+
+
+    plt.cla()
+    plt.plot()
+    plt.scatter(spatial_scores_field, percentiles, color='navy')
+    plt.xlabel('Spatial correlation of field rate maps', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_spatial_corr_half_rate_maps_field.png')
+    plt.close()
+
+    plt.cla()
+    plt.plot()
+    plt.scatter(percentages_of_excluded_bins_field, percentiles, color='navy')
+    plt.xlabel('Percentage of excluded bins in field', fontsize=20)
+    plt.ylabel('Percentile of correlation coef.', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_percentages_of_excluded_bins_from_rate_map_field.png')
     plt.close()
 
 
@@ -339,6 +358,7 @@ def check_how_much_rate_maps_correlate(first_half, second_half, position_first, 
     return spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2
 
 
+# check how much rates in fields correlate and how many bins are lost
 def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indices):
     print('write this function')
     number_of_bins = len(indices)
@@ -354,11 +374,11 @@ def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indic
     non_zero_1 = np.nonzero(rate_map_values_1)
     non_zero_2 = np.nonzero(rate_map_values_2)
     non_zero_combined = np.intersect1d(non_zero_1, non_zero_2)
-    #todo non_zero_combined is tuple, it needs to be int lis t- onvett
+    non_zero_combined_list = list(non_zero_combined)
+    pearson = scipy.stats.pearsonr(np.take(rate_map_values_1, non_zero_combined_list), np.take(rate_map_values_2, non_zero_combined_list))[0]
+    percentage_of_bins_excluded = (len(rate_map_values_1) - len(non_zero_combined)) / len(rate_map_values_1) * 100
 
-    pearson_2 = scipy.stats.pearsonr(rate_map_values_1[non_zero_combined], rate_map_values_2[non_zero_combined])
-
-
+    return pearson, percentage_of_bins_excluded
 
 
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
@@ -387,6 +407,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     number_of_spikes_all = []
     spatial_scores = []
     percentages_of_excluded_bins = []
+    spatial_scores_field = []
+    percentages_of_excluded_bins_field = []
     for iterator in range(len(grid_data)):
         print(iterator)
         print(grid_data.iloc[iterator].session_id)
@@ -441,10 +463,11 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         number_of_spikes_all.append(grid_data.iloc[iterator].number_of_spikes_in_field)
         spatial_scores.append(spatial_correlation_between_halves)
         percentages_of_excluded_bins.append(percentage_of_excluded_bins)
-
+        spatial_scores_field.append(spatial_correlation_field)
+        percentages_of_excluded_bins_field.append(percentage_of_excluded_bins_in_field)
 
     print_summary_stats(tag, corr_coefs_mean, percentiles)
-    make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, tag)
+    make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, spatial_scores_field, percentages_of_excluded_bins_field, tag)
 
 
 def main():
