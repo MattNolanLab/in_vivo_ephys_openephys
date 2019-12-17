@@ -351,7 +351,13 @@ def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indic
         rate_2 = rate_map_2[bin_x, bin_y]
         rate_map_values_1.append(rate_1)
         rate_map_values_2.append(rate_2)
-    print('cat')
+    non_zero_1 = np.nonzero(rate_map_values_1)
+    non_zero_2 = np.nonzero(rate_map_values_2)
+    non_zero_combined = np.intersect1d(non_zero_1, non_zero_2)
+    #todo non_zero_combined is tuple, it needs to be int lis t- onvett
+
+    pearson_2 = scipy.stats.pearsonr(rate_map_values_1[non_zero_combined], rate_map_values_2[non_zero_combined])
+
 
 
 
