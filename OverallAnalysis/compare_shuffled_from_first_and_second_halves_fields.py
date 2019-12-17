@@ -336,7 +336,23 @@ def check_how_much_rate_maps_correlate(first_half, second_half, position_first, 
     second_pos = position_second.copy()
     spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first, second, first_pos, second_pos, prm)
     PostSorting.compare_rate_maps.plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, spatial_correlation, percentage_of_excluded_bins, save_path)
-    return spatial_correlation, percentage_of_excluded_bins
+    return spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2
+
+
+def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indices):
+    print('write this function')
+    number_of_bins = len(indices)
+    rate_map_values_1 = []
+    rate_map_values_2 = []
+    for bin_index in range(number_of_bins):
+        bin_x = indices[bin_index, 0]
+        bin_y = indices[bin_index, 1]
+        rate_1 = rate_map_1[bin_x, bin_y]
+        rate_2 = rate_map_2[bin_x, bin_y]
+        rate_map_values_1.append(rate_1)
+        rate_map_values_2.append(rate_2)
+    print('cat')
+
 
 
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
@@ -370,7 +386,9 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
         print(grid_data.iloc[iterator].session_id)
         first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1], sampling_rate_video=sampling_rate_video)
         first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(all_cells, first_half.session_id, first_half.cluster_id)
-        spatial_correlation_between_halves, percentage_of_excluded_bins = check_how_much_rate_maps_correlate(first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell )
+        spatial_correlation_between_halves, percentage_of_excluded_bins, rate_map_1, rate_map_2 = check_how_much_rate_maps_correlate(first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell )
+        # todo find field indices here and white function
+        spatial_correlation_field, percentage_of_excluded_bins_in_field = check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, grid_data.iloc[iterator].indices_rate_map)
 
         first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
         first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
