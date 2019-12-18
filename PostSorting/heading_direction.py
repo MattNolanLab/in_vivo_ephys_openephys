@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calculate_heading_direction(position_x, position_y, pad_fist_value=True):
+def calculate_heading_direction(position_x, position_y, pad_first_value=True):
 
     '''
     Calculate heading direction of animal based on the central position of the tracking markers.
@@ -25,14 +25,16 @@ def calculate_heading_direction(position_x, position_y, pad_fist_value=True):
     return heading_direction_deg
 
 
-def add_heading_direction_to_data_frame(spatial_firing):
-    pass
+def add_heading_direction_to_data_frame(position):
+    x = position.position_x
+    y = position.position_x
+    heading_direction = calculate_heading_direction(x, y, pad_first_value=True)
 
 
 def main():
     x = [0, 1, 2, 2, 1]
     y = [0, 1, 1, 0, 1]
-    calculate_heading_direction(x, y)
+    heading_direction_deg = calculate_heading_direction(x, y)
 
 
 if __name__ == '__main__':
