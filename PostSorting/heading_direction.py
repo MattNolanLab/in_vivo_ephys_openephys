@@ -19,7 +19,7 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
     delta_y = np.diff(position_y)
     heading_direction = np.arctan(delta_y / delta_x)
     heading_direction_deg = np.degrees(heading_direction)
-    if pad_fist_value:
+    if pad_first_value:
         heading_direction_deg = np.insert(heading_direction_deg, 0, heading_direction_deg[0])
 
     return heading_direction_deg
@@ -29,12 +29,15 @@ def add_heading_direction_to_data_frame(position):
     x = position.position_x
     y = position.position_x
     heading_direction = calculate_heading_direction(x, y, pad_first_value=True)
+    position['heading_direction'] = heading_direction
+    return position
 
 
 def main():
     x = [0, 1, 2, 2, 1]
     y = [0, 1, 1, 0, 1]
     heading_direction_deg = calculate_heading_direction(x, y)
+
 
 
 if __name__ == '__main__':
