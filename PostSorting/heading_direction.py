@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calculate_heading_direction(position_x, position_y):
+def calculate_heading_direction(position_x, position_y, pad_fist_value=True):
 
     '''
     Calculate heading direction of animal based on the central position of the tracking markers.
@@ -9,7 +9,9 @@ def calculate_heading_direction(position_x, position_y):
     https://doi.org/10.1016/j.brainres.2014.10.053
 
     input : position_x and position_y of the animal (arrays)
-    output : heading direction of animal (the length of this array will be n-1 since it is calculated
+            pad_first_value - if True, the first value will be repeated so the output array's shape is the
+            same as the input
+    output : heading direction of animal
     based on the vector from consecutive samples
     '''
 
@@ -17,6 +19,9 @@ def calculate_heading_direction(position_x, position_y):
     delta_y = np.diff(position_y)
     heading_direction = np.arctan(delta_y / delta_x)
     heading_direction_deg = np.degrees(heading_direction)
+    if pad_fist_value:
+        heading_direction_deg = np.insert(heading_direction_deg, 0, heading_direction_deg[0])
+
     return heading_direction_deg
 
 
