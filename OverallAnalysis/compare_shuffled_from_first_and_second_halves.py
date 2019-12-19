@@ -268,7 +268,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
             corr_mean = corr.mean()
             corr_std = corr.std()
-            shuffled_corr_median = corr.median()
+            shuffled_corr_median = np.median(corr)
             # check what percentile real value is relative to distribution of shuffled correlations
             spatial_firing_first = add_hd_histogram_of_observed_data_to_df(spatial_firing_first, sampling_rate_video,
                                                                            number_of_bins=20, binning='not_smooth')
@@ -289,13 +289,12 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             aggregated_data = aggregated_data.append({
                 "session_id": grid_data.iloc[iterator].session_id,
                 "cluster_id":  grid_data.iloc[iterator].cluster_id,
-                "field_id": grid_data.iloc[iterator].field_id,
                 "corr_coefs_mean": corr_mean,
                 "shuffled_corr_median": shuffled_corr_median,
                 "corr_stds": corr_std,
                 "percentiles": percentile,
                 "hd_scores_all": grid_data.iloc[iterator].hd_score,
-                "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes_in_field
+                "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes
             }, ignore_index=True)
         except:
             print('i failed...')
