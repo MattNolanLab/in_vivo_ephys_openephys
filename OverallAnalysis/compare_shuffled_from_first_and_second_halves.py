@@ -230,6 +230,9 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     percentiles = []
     number_of_spikes = []
     hd_scores = []
+    col_names = ['session_id', 'cluster_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'hd_scores_all',
+                 'number_of_spikes_all']
+    aggregated_data = pd.DataFrame(columns=col_names)
     for iterator in range(len(grid_data)):
         try:
             print(iterator)
@@ -265,6 +268,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
             corr_mean = corr.mean()
             corr_std = corr.std()
+            shuffled_corr_median = corr.median()
             # check what percentile real value is relative to distribution of shuffled correlations
             spatial_firing_first = add_hd_histogram_of_observed_data_to_df(spatial_firing_first, sampling_rate_video,
                                                                            number_of_bins=20, binning='not_smooth')
@@ -281,11 +285,24 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
             corr_coefs_mean.append(corr_mean)
             corr_stds.append(corr_std)
+
+            aggregated_data = aggregated_data.append({
+                "session_id": grid_data.iloc[iterator].session_id,
+                "cluster_id":  grid_data.iloc[iterator].cluster_id,
+                "field_id": grid_data.iloc[iterator].field_id,
+                "corr_coefs_mean": corr_mean,
+                "shuffled_corr_median": shuffled_corr_median,
+                "corr_stds": corr_std,
+                "percentiles": percentile,
+                "hd_scores_all": grid_data.iloc[iterator].hd_score,
+                "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes_in_field
+            }, ignore_index=True)
         except:
             print('i failed...')
 
     print_summary_stat_results(corr_coefs_mean, percentiles, tag)
     plot_summary_stats(tag, grid_data, percentiles, hd_scores, number_of_spikes)
+    aggregated_data.to_pickle(local_path + tag + '_aggregated_data.pkl')
 
 
 def main():
