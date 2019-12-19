@@ -299,7 +299,7 @@ def make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial
     plt.cla()
     plt.plot()
     plt.scatter(unsampled_hds, percentiles, color='navy')
-    plt.xlabel('Percentage of unsampled head directions in field', fontsize=20)
+    plt.xlabel('Percentage of unsampled head directions', fontsize=20)
     plt.ylabel('Percentile of correlation coef.', fontsize=20)
     plt.tight_layout()
     plt.savefig(local_path + tag + 'pearson_coef_percentile_vs_percentages_of_unsampled_hd_field.png')
@@ -409,16 +409,10 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     accepted = all_data['accepted_field'] == True
     grid_data = all_data[grid_cells & accepted]
 
-    corr_coefs_mean = []
-    corr_stds = []
-    percentiles = []
-    hd_scores_all = []
-    number_of_spikes_all = []
-    spatial_scores = []
-    percentages_of_excluded_bins = []
-    spatial_scores_field = []
-    percentages_of_excluded_bins_field = []
-    unsampled_hds = []
+    col_names = ['session_id', 'cluster_id', 'field_id', 'corr_coefs_mean', 'corr_stds', 'percentiles', 'hd_scores_all',
+                 'number_of_spikes_all', 'spatial_scores', 'percentages_of_excluded_bins', 'spatial_scores_field',
+                 'percentages_of_excluded_bins_field', 'unsampled_hds']
+    aggregated_data = pd.DataFrame(columns=col_names)
     for iterator in range(len(grid_data)):
         try:
             print(iterator)
@@ -440,8 +434,6 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
                                                                                       number_of_bins=20,
                                                                                       shuffle_type='distributive')
 
-            # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
-
             print('shuffled')
             # compare
             # todo get time_spent_in_bins added to df somehow
@@ -451,9 +443,6 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             time_spent_in_bins_second = second_half.time_spent_in_bins   # based on trajectory
             # normalize shuffled data
             shuffled_histograms_hz_second = second_half.shuffled_data * sampling_rate_video / time_spent_in_bins_second
-
-            # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
-            # corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
             first_shuffled_df = pd.DataFrame(shuffled_histograms_hz_first[0])
             second_shuffled_df = pd.DataFrame(shuffled_histograms_hz_second[0])
             corr = first_shuffled_df.corrwith(second_shuffled_df, axis=1, drop=True)
@@ -466,22 +455,30 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
 
             percentile = scipy.stats.percentileofscore(corr, corr_observed)
-            percentiles.append(percentile)
 
-            corr_coefs_mean.append(corr_mean)
-            corr_stds.append(corr_std)
-            hd_scores_all.append(grid_data.iloc[iterator].hd_score)
-            number_of_spikes_all.append(grid_data.iloc[iterator].number_of_spikes_in_field)
-            spatial_scores.append(spatial_correlation_between_halves)
-            percentages_of_excluded_bins.append(percentage_of_excluded_bins)
-            spatial_scores_field.append(spatial_correlation_field)
-            percentages_of_excluded_bins_field.append(percentage_of_excluded_bins_in_field)
-            unsampled_hds.append(percentage_of_unsampled_hd)
+            aggregated_data = aggregated_data.append({
+                "session_id": grid_data.iloc[iterator].session_id,
+                "cluster_id":  grid_data.iloc[iterator].cluster_id,
+                "field_id": grid_data.iloc[iterator].field_id,
+                "corr_coefs_mean": corr_mean,
+                "corr_stds": corr_std,
+                "percentiles": percentile,
+                "hd_scores_all": grid_data.iloc[iterator].hd_score,
+                "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes_in_field,
+                "spatial_scores": spatial_correlation_between_halves,
+                "percentages_of_excluded_bins": percentage_of_excluded_bins,
+                "spatial_scores_field": spatial_correlation_field,
+                "percentages_of_excluded_bins_field": percentage_of_excluded_bins_in_field,
+                "unsampled_hds": percentage_of_unsampled_hd
+
+            }, ignore_index=True)
+
         except:
             print('I failed to analyze this one.')
 
-    print_summary_stats(tag, corr_coefs_mean, percentiles)
-    make_summary_plots(percentiles, hd_scores_all, number_of_spikes_all, spatial_scores, percentages_of_excluded_bins, spatial_scores_field, percentages_of_excluded_bins_field, unsampled_hds, tag)
+    print_summary_stats(tag, aggregated_data.corr_coefs_mean, aggregated_data.percentiles)
+    make_summary_plots(aggregated_data.percentiles, aggregated_data.hd_scores_all, aggregated_data.number_of_spikes_all, aggregated_data.spatial_scores, aggregated_data.percentages_of_excluded_bins, aggregated_data.spatial_scores_field, aggregated_data.percentages_of_excluded_bins_field, aggregated_data.unsampled_hds, tag)
+    aggregated_data.to_pickle(local_path + tag + '_aggregated_data.pkl')
 
 
 def main():

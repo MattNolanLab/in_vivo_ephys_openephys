@@ -42,6 +42,7 @@ def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
         position = add_heading_direction_to_position_data_frame(position)
 
     # add corresponding MD for each cluster
+    return spatial_firing, position
 
 
 def main():
@@ -55,6 +56,7 @@ def main():
     spatial_firing_path = path + 'spatial_firing.pkl'
     spatial_firing = pd.read_pickle(spatial_firing_path)
     position = add_heading_direction_to_position_data_frame(position)
+    spatial_firing, position = add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
 
 
 
