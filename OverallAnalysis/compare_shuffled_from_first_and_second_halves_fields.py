@@ -409,7 +409,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     accepted = all_data['accepted_field'] == True
     grid_data = all_data[grid_cells & accepted]
 
-    col_names = ['session_id', 'cluster_id', 'field_id', 'corr_coefs_mean', 'corr_stds', 'percentiles', 'hd_scores_all',
+    col_names = ['session_id', 'cluster_id', 'field_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'hd_scores_all',
                  'number_of_spikes_all', 'spatial_scores', 'percentages_of_excluded_bins', 'spatial_scores_field',
                  'percentages_of_excluded_bins_field', 'unsampled_hds']
     aggregated_data = pd.DataFrame(columns=col_names)
@@ -446,6 +446,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             first_shuffled_df = pd.DataFrame(shuffled_histograms_hz_first[0])
             second_shuffled_df = pd.DataFrame(shuffled_histograms_hz_second[0])
             corr = first_shuffled_df.corrwith(second_shuffled_df, axis=1, drop=True)
+            shuffled_corr_median = corr.median()
             corr_mean = corr.mean()
             corr_std = corr.std()
             # check what percentile real value is relative to distribution of shuffled correlations
@@ -461,6 +462,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
                 "cluster_id":  grid_data.iloc[iterator].cluster_id,
                 "field_id": grid_data.iloc[iterator].field_id,
                 "corr_coefs_mean": corr_mean,
+                "shuffled_corr_median": shuffled_corr_median,
                 "corr_stds": corr_std,
                 "percentiles": percentile,
                 "hd_scores_all": grid_data.iloc[iterator].hd_score,
