@@ -35,13 +35,20 @@ server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 def make_summary_figures(tag):
     if os.path.exists(local_path + tag + '_aggregated_data.pkl'):
         stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
-        print('cat')
         percentiles_vs_shuffled_plot = plt.figure()
         percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
         ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
+
+        plt.cla()
+        stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
+        percentiles_vs_shuffled_plot = plt.figure()
+        percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
+        ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
+        plt.savefig(local_path + tag + 'percentiles_corr.png')
 
 
 def add_cell_types_to_data_frame(spatial_firing):
