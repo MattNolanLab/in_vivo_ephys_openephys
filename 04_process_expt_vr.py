@@ -9,28 +9,6 @@ from types import SimpleNamespace
 import SnakeIOHelper
 
 # #%% define sinput and output
-# if 'snakemake' not in locals():
-#     #Define some variable to run the script standalone
-#     sinput = SimpleNamespace()
-#     output = SimpleNamespace()
-
-#     sinput.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25_short'
-#     sinput.spatial_firing = sinput.recording_to_sort + '/processed/spatial_firing.hdf'
-#     sinput.raw_position = sinput.recording_to_sort + '/processed/raw_position.hdf'
-#     sinput.processed_position_data = sinput.recording_to_sort + '/processed/processed_position.hdf'
-
-#     output.spatial_firing_vr = sinput.recording_to_sort + '/processed/spatial_firing_vr.hdf'
-#     output.cluster_spike_plot = sinput.recording_to_sort + '/processed/figures/spike_number/'
-#     output.spike_data = sinput.recording_to_sort +'/processed/figures/spike_data/'
-    
-
-#     SnakeIOHelper.makeFolders(output)
-# else:
-#     #in snakemake environment, the sinput and output will be provided by the workflow
-#     sinput = snakemake.sinput
-#     output = snakemake.output
-
-
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_vr.pkl'],
     'process_expt')
 
