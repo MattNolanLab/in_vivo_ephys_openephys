@@ -1,8 +1,9 @@
-# in_vivo_ephys_openephys
-Analysis for in vivo electrophysiology recordings saved in open ephys format. 
 
-The current pipeline runs on a linux computer and uses MountainSort 3 to automatically sort data. The analysis is set up to minimize user interaction as much as possible, and analyses are initiated by copying files to a designated computer.
+Snakemake pipeline for processing open-ephys data
 
-Sorted clusteres are automatically curated and output plots of spatial firing properties are generated. Spatial scores (grid score, HD score, speed score) are calculated and saved in pickle (pandas) data frames.
+### Code structure
+A workflow is defined in a snakefile. Currently, two snakefiles are provided, namely `vr_workflow.smk` and `op_workflow.smk` for VR and openfield experiment respectively.
 
-Please see wiki for more detailed information https://github.com/MattNolanLab/in_vivo_ephys_openephys/wiki/Pipeline-overview
+Script files used in the workflow begin with a number (e.g. 01_sorting.py). They are numbered in the order of their execution.
+
+Each script will read in some data file and always save some output in the end. The input and output files in each scripts are defined in snakefile that uses them.
