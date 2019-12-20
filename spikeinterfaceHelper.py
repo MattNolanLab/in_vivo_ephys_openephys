@@ -27,7 +27,7 @@ def sorter2dataframe(sorter, session_id):
             propertyDict[p] = sorter.get_unit_spike_features(i,p)
 
         propertyDict['spike_train'] = sorter.get_unit_spike_train(i)
-        propertyDict['unit_id'] = i
+        propertyDict['cluster_id'] = i
         propertyDict['sampling_frequency'] = sorter.get_sampling_frequency()
         propertyDict['session_id'] = session_id
         clusterList.append(propertyDict)
