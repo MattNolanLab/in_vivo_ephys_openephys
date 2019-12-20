@@ -1,17 +1,21 @@
-import os
-import matplotlib.pylab as plt
-import plot_utility
-import numpy as np
-import PostSorting.vr_stop_analysis
-import PostSorting.vr_extract_data
-from numpy import inf
 import gc
 import math
+import os
+
 import matplotlib.image as mpimg
+import matplotlib.pylab as plt
+import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
+from numpy import inf
 from scipy import stats
 from tqdm import tqdm
+
+import plot_utility
+import PostSorting.vr_extract_data
+import PostSorting.vr_stop_analysis
+import setting
+
 
 '''
 
@@ -21,20 +25,23 @@ from tqdm import tqdm
 
 '''
 
-# plot the raw movement channel to check all is good
 def plot_movement_channel(location, get_local_recording_folder_path):
+    # plot the raw movement channel to check all is good
+
     plt.plot(location)
     plt.savefig(get_local_recording_folder_path + '/Figures/movement' + '.png')
     plt.close()
 
-# plot the trials to check all is good
 def plot_trials(trials, filename):
+    # plot the trials to check all is good
+
     plt.plot(trials)
     plt.savefig(filename)
     plt.close()
 
-# plot the raw trial channels to check all is good
 def plot_trial_channels(trial1, trial2, type1_filename, type2_filename):
+    # plot the raw trial channels to check all is good
+
     plt.plot(trial1)
     plt.savefig(type1_filename)
     plt.close()
@@ -54,9 +61,9 @@ def plot_trial_channels(trial1, trial2, type1_filename, type2_filename):
 '''
 
 def load_stop_data(spatial_data):
-    locations = spatial_data['stop_location_cm'].values
-    trials = spatial_data['stop_trial_number'].values
-    trial_type = spatial_data['stop_trial_type'].values
+    locations = spatial_data['stop_location_cm'].dropna().values
+    trials = spatial_data['stop_trial_number'].dropna().values
+    trial_type = spatial_data['stop_trial_type'].dropna().values
     return locations,trials,trial_type
 
 def load_first_stop_data(spatial_data):
@@ -80,9 +87,7 @@ def split_stop_data_by_trial_type(spatial_data, first_stops=False):
 
 def plot_stops_on_track(raw_position_data, processed_position_data, figure_path):
     print('I am plotting stop rasta...')
-    # save_path = prm.get_output_path() + '/Figures/behaviour'
-    # if os.path.exists(save_path) is False:
-    #     os.makedirs(save_path)
+
     stops_on_track = plt.figure(figsize=(6,6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -175,7 +180,8 @@ def fill_blackbox(blackbox_centres, ax):
 
     return ax
 
-def plot_stop_histogram(raw_position_data, processed_position_data, figure_path):
+def plot_stop_histogram(raw_position_data, processed_position_data, 
+    figure_path,track_length = setting.track_length):
     print('plotting stop histogram...')
     stop_histogram = plt.figure(figsize=(6,4))
     ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -184,7 +190,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, figure_path)
     ax.plot(position_bins,average_stops, '-', color='Black')
     plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,prm.get_track_length())
+    plt.xlim(0, track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
@@ -195,7 +201,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, figure_path)
     plt.close()
 
 
-def plot_speed_histogram(processed_position_data, figure_path):
+def plot_speed_histogram(processed_position_data, figure_path, track_length = setting.track_length):
     print('plotting speed histogram...')
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -204,7 +210,7 @@ def plot_speed_histogram(processed_position_data, figure_path):
     ax.plot(position_bins,average_speed, '-', color='Black')
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,prm.get_track_length())
+    plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
