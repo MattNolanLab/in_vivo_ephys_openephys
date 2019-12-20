@@ -107,6 +107,7 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
          "stop_trial_number": stop_trials, 
          "stop_trial_type": stop_trial_types}
     
+    #FIXME: stop_location is shorter than the total location, so there will be nan when the column is accessed
     processed_position_data = addCol2dataframe(processed_position_data, data)
     return processed_position_data
 
@@ -128,7 +129,8 @@ def calculate_stop_data_from_parameters(raw_position_data, processed_position_da
 
 
 def find_first_stop_in_series(processed_position_data):
-    stop_difference = np.diff(processed_position_data['stop_location_cm'].values)
+    #FIXME stop_location_cm contains nan due to different column length
+    stop_difference = np.diff(processed_position_data['stop_location_cm'].dropna().values)
     first_in_series_indices = np.where(stop_difference > 1)[0]
     print('Finding first stops in series')
     processed_position_data['first_series_location_cm'] = pd.Series(processed_position_data.stop_location_cm[first_in_series_indices].values)
@@ -152,8 +154,9 @@ def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
 
 
 def find_rewarded_positions(raw_position_data,processed_position_data,reward_start=setting.reward_start, reward_stop=setting.reward_end):
-    stop_locations = np.array(processed_position_data['first_series_location_cm'])
-    stop_trials = np.array(processed_position_data['first_series_trial_number'])
+    #FIXME Remove this anonying call to dropna()
+    stop_locations = processed_position_data['first_series_location_cm'].dropna().values
+    stop_trials = processed_position_data['first_series_trial_number'].dropna().values
     rewarded_stop_locations = stop_locations[(stop_locations >= reward_start) & (stop_locations < reward_stop)]
     rewarded_trials = stop_trials[(stop_locations >= reward_start) & (stop_locations < reward_stop)]
 
@@ -193,8 +196,7 @@ def get_bin_size(spatial_data):
 
 
 def calculate_average_stops(raw_position_data,processed_position_data):
-    stop_locations = processed_position_data.stop_location_cm.values
-    stop_locations = stop_locations[~np.isnan(stop_locations)] #need to deal with
+    stop_locations = processed_position_data.stop_location_cm.dropna().values
     bin_size_cm,number_of_bins, bins = get_bin_size(raw_position_data)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     stops_in_bins = np.zeros((len(range(int(number_of_bins)))))
