@@ -39,7 +39,7 @@ def make_summary_figures(tag):
         percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
-        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
+        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='red', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
 
         plt.cla()
@@ -47,7 +47,7 @@ def make_summary_figures(tag):
         percentiles_vs_shuffled_plot = plt.figure()
         percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
+        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='red', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr.png')
 
 
