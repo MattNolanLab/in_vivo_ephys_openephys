@@ -1,27 +1,27 @@
 #%%
+import json
+import logging
+import os
+import pickle
+from collections import namedtuple
+
+import numpy as np
+import pandas as pd
+import spikeinterface as si
+import spikeinterface.comparison as sc
+import spikeinterface.extractors as se
+import spikeinterface.sorters as sorters
+import spikeinterface.toolkit as st
+import spikeinterface.widgets as sw
+from tqdm import tqdm
+
+import file_utility
 import Logger
 import setting
-from collections import namedtuple
-import file_utility
-import os
-import pandas as pd
-
-import spikeinterface as si
-import spikeinterface.extractors as se
-import spikeinterface.toolkit as st
-import spikeinterface.sorters as sorters
-import spikeinterface.comparison as sc
-import spikeinterface.widgets as sw
-import json
-import pickle
-import spikeinterfaceHelper
-from tqdm import tqdm
-import numpy as np
-import setting
 import SnakeIOHelper
-from PreClustering.pre_process_ephys_data import filterRecording
-import logging
+import spikeinterfaceHelper
 from PostSorting.make_plots import plot_waveforms
+from PreClustering.pre_process_ephys_data import filterRecording
 
 #for logging
 # logging.basicConfig(level=logging.DEBUG)
