@@ -209,5 +209,5 @@ def plot_cumulative_histogram(corr_values, ax, color='black', number_of_bins=40)
     # evaluate the cumulative
     cumulative = np.cumsum(values / len(corr_values))
     # plot the cumulative function
-    plt.plot(base[:-1], cumulative, c=color, linewidth=5)
+    plt.plot(base[:-1], cumulative, c=color, linewidth=5, alpha=0.8)
     return ax
