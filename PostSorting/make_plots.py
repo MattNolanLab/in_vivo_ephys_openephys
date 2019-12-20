@@ -178,23 +178,25 @@ def plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, snippet
     plt.ylabel('Voltage (µV)', fontsize=14)
 
 
-def plot_waveforms(sorted_df, figure_path):
+def plot_waveforms(sorted_df, tetrodeNum, figure_path):
+    # tetrodeNum:list - a list indicating which channel correspond to which tetrode
     tqdm.write('I will plot the waveform shapes for each cluster.')
     for cluster in tqdm(range(len(sorted_df))):
         #extract waveforms from dataframe
         waveforms = sorted_df.waveforms[cluster]
         waveforms = np.stack([w for w in waveforms if w is not None])
-        max_channel = sorted_df.max_channel.values[cluster]
+        max_channel = sorted_df.max_channel.values[cluster] # max_channel is w.r.t the original channel number before bad channel removal
+        tetrode = max_channel//setting.num_tetrodes
+        tetrodeIndices = np.where(tetrodeNum==tetrode)[0]
         cluster_id = sorted_df.cluster_id[cluster]
-        tetrode = max_channel//setting.num_tetrodes #get the tetrode number
         
         #plot spike waveform from the same tetrode
         fig = plt.figure()
-        for i in range(4):
+        for i,tetrodeIdx in enumerate(tetrodeIndices):
             ax = fig.add_subplot(2,2,i+1)
-            tetrodeWaveforms = waveforms[:,tetrode+i,:]
+            tetrodeWaveforms = waveforms[:,tetrodeIdx,:]
             ax.plot(tetrodeWaveforms.T,color='lightslategray')
-            template = waveforms[:,tetrode+i,:].mean(0)
+            template = waveforms[:,tetrodeIdx,:].mean(0)
             ax.plot(template, color='red')
 
             #calculate the proper ylim

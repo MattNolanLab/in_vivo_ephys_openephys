@@ -47,7 +47,7 @@ filterRecording(recording,setting.sampling_rate) #for faster operation later
 
 #%% Remove some bad channels
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
-
+tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
 #%% perform sorting
 with open(sinput.sort_param) as f:
     param = json.load(f)
@@ -68,6 +68,7 @@ for id in sorting_ms4.get_unit_ids():
     sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 
+
 #%% save data
 with open(soutput.sorter_curated,'wb') as f:
     pickle.dump(sorting_ms4,f)
@@ -76,21 +77,20 @@ sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4,session_id)
 sorter_df.to_pickle(soutput.sorter_df)
 
 #%% Do some simple curation for now
-
-#FIXME some curated spike has too low SNR from the graph
+# less to remove
 sorting_ms4_curated = st.curation.threshold_snr(sorting=sorting_ms4, recording = recording,
-  threshold = 4, threshold_sign='less', max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
+  threshold = 2, threshold_sign='less',
+    max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
 print(sorting_ms4_curated.get_unit_ids())
 
-# sorting_ms4_curated=st.curation.threshold_firing_rate(sorting_ms4_curated,
-#     threshold=0.5, threshold_sign='less')
-# print(sorting_ms4_curated.get_unit_ids())
+sorting_ms4_curated=st.curation.threshold_firing_rate(sorting_ms4_curated,
+    threshold=0.5, threshold_sign='less')
+print(sorting_ms4_curated.get_unit_ids())
 
-# sorting_ms4_curated=st.curation.threshold_isi_violations(sorting_ms4_curated, threshold = 0.9)
-# print(sorting_ms4_curated.get_unit_ids())
+sorting_ms4_curated=st.curation.threshold_isi_violations(sorting_ms4_curated, 
+    threshold = 0.9)
+print(sorting_ms4_curated.get_unit_ids())
 
-# sorting_ms4_curated = st.curation.threshold_firing_rate(sorting=sorting_ms4_curated,threshold=0.5,threshold_sign='less')
-# print(sorting_ms4_curated.get_unit_ids())
 
 #%%
 #save curated data
@@ -101,7 +101,4 @@ with open(soutput.sorter_curated,'wb') as f:
     pickle.dump(sorting_ms4_curated, f)
 
 #%% Plot spike waveforms
-plot_waveforms(curated_sorter_df, soutput.waveform_figure)
-
-
-# %%
+plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure)
