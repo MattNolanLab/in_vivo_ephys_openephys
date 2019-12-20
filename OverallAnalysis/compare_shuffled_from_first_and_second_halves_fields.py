@@ -10,6 +10,7 @@ import OverallAnalysis.open_field_firing_maps_processed_data
 import OverallAnalysis.shuffle_field_analysis
 import OverallAnalysis.shuffle_field_analysis_all_animals
 import pandas as pd
+import plot_utility
 import OverallAnalysis.shuffle_cell_analysis
 import OverallAnalysis.shuffle_field_analysis
 import PostSorting.compare_first_and_second_half
@@ -29,6 +30,18 @@ local_path_rat = local_path + 'all_rats_df.pkl'
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+
+
+def make_summary_figures(tag):
+    if os.path.exists(local_path + tag + '_aggregated_data.pkl'):
+        stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
+        print('cat')
+        percentiles_vs_shuffled_plot = plt.figure()
+        percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
+        ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
+        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
+        plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
 
 
 def add_cell_types_to_data_frame(spatial_firing):
@@ -484,6 +497,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
 
 def main():
+    make_summary_figures('mouse')
+    make_summary_figures('rat')
     prm.set_pixel_ratio(440)
     prm.set_sampling_rate(30000)
     process_data(server_path_mouse, tag='mouse', sampling_rate_video=30)
