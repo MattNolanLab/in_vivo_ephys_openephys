@@ -11,18 +11,11 @@ import gc
 import PostSorting.vr_stop_analysis as vr_stop_analysis
 import setting
 import scipy.signal as signal
-from SnakeIOHelper import getSnake
+import SnakeIOHelper
 
-#%% define input and output
-if 'snakemake' not in locals(): 
-    #Run the the file from the root project directory
-    smk = getSnake('vr_workflow.smk',[setting.debug_folder+'/processed/process_position.txt'],
-        'process_position' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
+#%% Define input and output
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/processed_position.pkl'],
+    'process_position')
 
 #%% Load and downsample the position data
 print('Loading location and trial onset files')
@@ -75,7 +68,3 @@ PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, soutput.
 
 #%% save data
 processed_position_data.to_hdf(soutput.processed_position_data,'processed_position_data', mode='w')
-
-
-
-#%%
