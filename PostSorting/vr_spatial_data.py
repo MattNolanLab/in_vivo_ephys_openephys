@@ -91,12 +91,12 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data,number_of_
             bin_count.append(int(loc))
             trial_type_in_bin.append(int(trial_type))
             binned_time_ms_per_trial.append(np.float16(time_in_bin.sum()))
-            binned_apsolute_elapsed_time.append(np.float16(apsolute_elapsed_time_in_bin))
+            binned_apsolute_elapsed_time.append(np.array(apsolute_elapsed_time_in_bin))
 
     d = {'binned_time_ms_per_trial':binned_time_ms_per_trial,
         'trial_type_in_bin': trial_type_in_bin,
         'trial_number_in_bin': trial_number_in_bin,
-        'binned_apsolute_elapsed_time': binned_apsolute_elapsed_time
+        'binned_apsolute_elapsed_time': np.concatenate(binned_apsolute_elapsed_time)
     }
     processed_position_data = addCol2dataframe(processed_position_data, d)
     
