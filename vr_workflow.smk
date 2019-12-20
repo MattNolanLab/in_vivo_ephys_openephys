@@ -47,7 +47,7 @@ rule process_position:
         processed_position_data = '{recording}/processed/processed_position.hdf',
         stop_raster = '{recording}/processed/figures/behaviour/stop_raster.png',
         stop_histogram = '{recording}/processed/figures/behaviour/stop_histogram.png',
-        speed_histogram = '{recording}/processed/figures/behaviour/figures/speed_histogram.png'
+        speed_histogram = '{recording}/processed/figures/behaviour/speed_histogram.png'
     script:
         '02_process_position.py'
 
