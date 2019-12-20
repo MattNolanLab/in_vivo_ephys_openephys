@@ -43,8 +43,8 @@ rule process_position:
         trial_figure = '{recording}/processed/figures/trials.png',
         first_trial_ch = '{recording}/processed/figures/trials_type1.png',
         second_trial_ch = '{recording}/processed/figures/trials_type2.png',
-        raw_position_data = '{recording}/processed/raw_position.hdf',
-        processed_position_data = '{recording}/processed/processed_position.hdf',
+        raw_position_data = '{recording}/processed/raw_position.pkl',
+        processed_position_data = '{recording}/processed/processed_position.pkl',
         stop_raster = '{recording}/processed/figures/behaviour/stop_raster.png',
         stop_histogram = '{recording}/processed/figures/behaviour/stop_histogram.png',
         speed_histogram = '{recording}/processed/figures/behaviour/speed_histogram.png'
@@ -57,17 +57,17 @@ rule process_firings:
         recording_to_sort = '{recording}',
         sorted_data_path = '{recording}/processed/'+setting.sorterName+'/sorter_curated_df.pkl'
     output:
-        spike_data ='{recording}/processed/spatial_firing.hdf'
+        spike_data ='{recording}/processed/spatial_firing.pkl'
     script:
         'scripts/03_process_firings.py'
 
 rule process_expt:
     input:
-        spatial_firing = '{recording}/processed/spatial_firing.hdf',
-        raw_position = '{recording}/processed/raw_position.hdf',
-        processed_position_data = '{recording}/processed/processed_position.hdf'
+        spatial_firing = '{recording}/processed/spatial_firing.pkl',
+        raw_position = '{recording}/processed/raw_position.pkl',
+        processed_position_data = '{recording}/processed/processed_position.pkl'
     output:
-        spatial_firing_vr = '{recording}/processed/spatial_firing_vr.hdf',
+        spatial_firing_vr = '{recording}/processed/spatial_firing_vr.pkl',
         cluster_spike_plot = directory('{recording}/processed/figures/spike_number/'),
         spike_data = directory('{recording}/processed/figures/spike_data/'),
     script:
@@ -76,9 +76,9 @@ rule process_expt:
 
 rule plot_figures:
     input:
-        raw_position = '{recording}/processed/raw_position.hdf',
-        processed_position_data =  '{recording}/processed/processed_position.hdf',
-        spatial_firing_vr = '{recording}/processed/spatial_firing_vr.hdf'
+        raw_position = '{recording}/processed/raw_position.pkl',
+        processed_position_data =  '{recording}/processed/processed_position.pkl',
+        spatial_firing_vr = '{recording}/processed/spatial_firing_vr.pkl'
     
     output:
         spike_histogram = directory('{recording}/processed/figures/spike_histogram/'),

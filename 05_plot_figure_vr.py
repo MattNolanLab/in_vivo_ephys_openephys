@@ -5,22 +5,25 @@ import setting
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
-from SnakeIOHelper import getSnake
+import SnakeIOHelper 
 
 #%% define input and output
-if 'snakemake' not in locals(): 
-    smk = getSnake('vr_workflow.smk',['testData/M1_D31_2018-11-01_12-28-25_short/processed/plot_figure_done.txt'],
-        'plot_figures' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
+# if 'snakemake' not in locals(): 
+#     smk = getSnake('vr_workflow.smk',['testData/M1_D31_2018-11-01_12-28-25_short/processed/plot_figure_done.txt'],
+#         'plot_figures' )
+#     sinput = smk.input
+#     soutput = smk.output
+# else:
+#     sinput = snakemake.input
+#     soutput = snakemake.output
 
+
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/completed.txt'],
+    'plot_figures')
 #%% Load data
-spike_data = pd.read_hdf(sinput.spatial_firing_vr)
-raw_position_data =pd.read_hdf(sinput.raw_position)
-processed_position_data = pd.read_hdf(sinput.processed_position_data)
+spike_data = pd.read_pickle(sinput.spatial_firing_vr)
+raw_position_data =pd.read_pickle(sinput.raw_position)
+processed_position_data = pd.read_pickle(sinput.processed_position_data)
 
 #%%
 # PostSorting.make_plots.plot_waveforms(spike_data, prm)

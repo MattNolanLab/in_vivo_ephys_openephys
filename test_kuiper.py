@@ -19,9 +19,7 @@ def seed(n=0):
         return wrapped
     return wrap
 
-
-# FIXME
-#@make_decorator doesn't work!
+#FIXME @make_decorator doesn't work!
 def double_check(f):
     """Run a probabilistic test again if it fails.
 

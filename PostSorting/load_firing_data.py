@@ -23,8 +23,8 @@ def get_firing_info(firing_times_path):
             return units_list, firing_info, spatial_firing
         else:
             print('There are no sorting results available for this recording.')
+
     return units_list, firing_info, False
-        print('I could not find the MountainSort output [firing.mda] file.')
 
 
 # if the recording has dead channels, detected channels need to be shifted to get read channel ids

@@ -44,8 +44,7 @@ raw_position_data = calculate_instant_velocity(raw_position_data, setting.locati
 raw_position_data = get_avg_speed(raw_position_data, int(setting.location_ds_rate*0.2))
 
 #%% save data
-raw_position_data.to_hdf(soutput.raw_position_data, 'raw_position_data', mode='w')
-# raw_position_data=pd.read_hdf(output.raw_position_data)
+raw_position_data.to_pickle(soutput.raw_position_data)
 
 #%% bin the position data over trials
 processed_position_data = pd.DataFrame() # make dataframe for processed position data
@@ -67,4 +66,4 @@ PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_posit
 PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, soutput.speed_histogram)
 
 #%% save data
-processed_position_data.to_hdf(soutput.processed_position_data,'processed_position_data', mode='w')
+processed_position_data.to_pickle(soutput.processed_position_data)
