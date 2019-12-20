@@ -31,11 +31,7 @@ def remove_extra_stops(min_distance, stops):
 
 
 def get_stop_locations(raw_position_data, stop_threshold):
-    # stops = np.array([])
-    # speed = np.array(raw_position_data['speed_per200ms'].tolist())
-    # locations = np.array(raw_position_data['x_position_cm'].tolist())
-    # trials = np.array(raw_position_data['trial_number'].tolist())
-    # types = np.array(raw_position_data['trial_type'].tolist())
+
     speed = raw_position_data['speed_per200ms'].values
     locations = raw_position_data['x_position_cm'].values
     trials = raw_position_data['trial_number'].values
@@ -47,18 +43,14 @@ def get_stop_locations(raw_position_data, stop_threshold):
     stop_trials = trials[idx]
     stop_types =  types[idx]
     
-    stops = remove_extra_stops(5, stop_locs)
+    # stops = remove_extra_stops(5, stop_locs)
     #stops = np.hstack((stop_locs, stop_trials, stop_types))
     return stop_locs, stop_trials, stop_types
-    
-    
-def calculate_stops(raw_position_data,processed_position_data, threshold):
-    stop_locs, stop_trials, stop_types = get_stop_locations(raw_position_data,threshold)
-    return stop_locs, stop_trials, stop_types
-    
+
+
 def calculate_stop_data(raw_position_data, processed_position_data, stop_threshold):
     print('Calculating stop data')
-    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
+    stop_locations, stop_trials, stop_trial_types = get_stop_locations(raw_position_data, stop_threshold)
     processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
     processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
     processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
@@ -66,7 +58,7 @@ def calculate_stop_data(raw_position_data, processed_position_data, stop_thresho
     
 def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory):
     stop_threshold = check_stop_threshold(recording_directory)
-    stop_locations, stop_trials, stop_trial_types = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
+    stop_locations, stop_trials, stop_trial_types = get_stop_locations(raw_position_data, stop_threshold)
     processed_position_data['stop_location_cm'] = pd.Series(stop_locations)
     processed_position_data['stop_trial_number'] = pd.Series(stop_trials)
     processed_position_data['stop_trial_type'] = pd.Series(stop_trial_types)
