@@ -1,6 +1,7 @@
 import math_utility
 import numpy as np
 import pandas as pd
+import PostSorting.open_field_spatial_firing
 
 
 def calculate_heading_direction(position_x, position_y, pad_first_value=True):
@@ -37,11 +38,18 @@ def add_heading_direction_to_position_data_frame(position):
     return position
 
 
+# add heading direction to spatial firing df
 def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
 
-    # add corresponding MD for each cluster
+    headings = []
+    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(spatial_firing, position)
+    for index, cluster in spatial_firing.iterrows():
+        bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
+        heading = list(position.heading_direction[bonsai_indices_cluster_round])
+        headings.append(heading)
+    spatial_firing['heading_direction'] = headings
     return spatial_firing, position
 
 
@@ -57,7 +65,6 @@ def main():
     spatial_firing = pd.read_pickle(spatial_firing_path)
     position = add_heading_direction_to_position_data_frame(position)
     spatial_firing, position = add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
-
 
 
 if __name__ == '__main__':
