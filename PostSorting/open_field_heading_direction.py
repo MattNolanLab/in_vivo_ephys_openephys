@@ -2,6 +2,7 @@ import math_utility
 import numpy as np
 import pandas as pd
 import PostSorting.open_field_spatial_firing
+import data_frame_utility
 
 
 def calculate_heading_direction(position_x, position_y, pad_first_value=True):
@@ -53,6 +54,56 @@ def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
     return spatial_firing, position
 
 
+def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
+    avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
+    sampling_rate_rate = avg_sampling_rate_open_ephys / avg_sampling_rate_bonsai
+    bonsai_indices_all = []
+    for index, field in spike_data.iterrows():
+        bonsai_indices_all.append(np.array(field.spike_times) / sampling_rate_rate)
+    spike_data['bonsai_indices'] = bonsai_indices_all
+    return spike_data
+
+
+def calculate_corresponding_indices_trajectory(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
+    avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
+    sampling_rate_rate = avg_sampling_rate_open_ephys / avg_sampling_rate_bonsai
+    bonsai_indices_all = []
+    for index, field in spike_data.iterrows():
+        bonsai_indices_all.append(np.array(field.times_session))
+    spike_data['bonsai_indices_trajectory'] = bonsai_indices_all
+    return spike_data
+
+def add_heading_during_spikes_to_field_df(fields, position):
+    headings = []
+    fields = calculate_corresponding_indices(fields, position)
+    for index, cluster in fields.iterrows():
+        bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
+        heading = list(position.heading_direction[bonsai_indices_cluster_round])
+        headings.append(heading)
+    fields['heading_direction_in_field_spikes'] = headings
+    return fields
+
+
+def add_heading_from_trajectory_to_field_df(fields, position):
+    headings = []
+    fields = calculate_corresponding_indices_trajectory(fields, position)
+    for index, cluster in fields.iterrows():
+        bonsai_indices_cluster_round = cluster.bonsai_indices_trajectory.round(0)
+        heading = list(position.heading_direction[bonsai_indices_cluster_round])
+        headings.append(heading)
+    fields['heading_direction_in_field_trajectory'] = headings
+    return fields
+
+
+# add heading direction to field df (where each row is data from a firing field - see data_frame_utility
+def add_heading_direction_to_fields_frame(fields, position):
+    if 'heading_direction' not in position:
+        position = add_heading_direction_to_position_data_frame(position)
+    fields = add_heading_during_spikes_to_field_df(fields, position)
+    fields = add_heading_from_trajectory_to_field_df(fields, position)
+    return fields, position
+
+
 def main():
     x = [0, 1, 2, 2, 1]
     y = [0, 1, 1, 0, 1]
@@ -64,7 +115,10 @@ def main():
     spatial_firing_path = path + 'spatial_firing.pkl'
     spatial_firing = pd.read_pickle(spatial_firing_path)
     position = add_heading_direction_to_position_data_frame(position)
-    spatial_firing, position = add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
+    # spatial_firing, position = add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
+
+    field_df = data_frame_utility.get_field_data_frame(spatial_firing, position)
+    field_df, position = add_heading_direction_to_fields_frame(field_df, position)
 
 
 if __name__ == '__main__':
