@@ -73,6 +73,7 @@ def calculate_corresponding_indices_trajectory(spike_data, spatial_data, avg_sam
     spike_data['bonsai_indices_trajectory'] = bonsai_indices_all
     return spike_data
 
+
 def add_heading_during_spikes_to_field_df(fields, position):
     headings = []
     fields = calculate_corresponding_indices(fields, position)
