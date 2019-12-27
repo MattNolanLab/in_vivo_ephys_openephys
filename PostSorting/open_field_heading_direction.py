@@ -54,6 +54,19 @@ def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
     return spatial_firing, position
 
 
+def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster, position):
+    if 'heading_direction' not in position:
+        position = add_heading_direction_to_position_data_frame(position)
+
+    headings = []
+    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(cluster, position)
+    bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
+    heading = list(position.heading_direction[bonsai_indices_cluster_round])
+    headings.append(heading)
+    spatial_firing['heading_direction'] = headings
+    return spatial_firing, position
+
+
 def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys / avg_sampling_rate_bonsai
