@@ -112,7 +112,7 @@ def tag_false_positives(spatial_firing):
     spatial_firing['false_positive'] = spatial_firing['false_positive_id'].isin(list_of_false_positives)
     return spatial_firing
 
-# todo check if needs to be modified for heading
+
 def add_mean_and_std_to_df(spatial_firing, sampling_rate_video, number_of_bins=20):
     shuffled_means = []
     shuffled_stdevs = []
@@ -189,10 +189,10 @@ def count_number_of_significantly_different_bars_per_field(spatial_firing, signi
     for index, cell in spatial_firing.iterrows():
         # count significant p values
         if type == 'bh':
-            number_of_significant_p_values_cell = (cell.p_values_corrected_bars_bh < false_positive_ratio).sum()
+            number_of_significant_p_values_cell = (cell.p_values_corrected_bars_bh_heading < false_positive_ratio).sum()
             number_of_significant_p_values.append(number_of_significant_p_values_cell)
         if type == 'holm':
-            number_of_significant_p_values_cell = (cell.p_values_corrected_bars_holm < false_positive_ratio).sum()
+            number_of_significant_p_values_cell = (cell.p_values_corrected_bars_holm_heading < false_positive_ratio).sum()
             number_of_significant_p_values.append(number_of_significant_p_values_cell)
     field_name = 'number_of_different_bins_' + type + '_heading'
     spatial_firing[field_name] = number_of_significant_p_values
@@ -271,7 +271,7 @@ def calculate_percentile_of_observed_data(spatial_firing, sampling_rate_video, n
 def convert_percentile_to_p_value(spatial_firing):
     p_values = []
     for index, cell in spatial_firing.iterrows():
-        percentile_values = cell.percentile_of_observed_data
+        percentile_values = cell.percentile_of_observed_data_heading
         percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
         p_values.append(percentile_values)
     spatial_firing['shuffle_p_values_heading'] = p_values
@@ -282,7 +282,7 @@ def convert_percentile_to_p_value(spatial_firing):
 def calculate_corrected_p_values(spatial_firing, type='bh'):
     corrected_p_values = []
     for index, cell in spatial_firing.iterrows():
-        p_values = cell.shuffle_p_values
+        p_values = cell.shuffle_p_values_heading
         if type == 'bh':
             reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(p_values, alpha=0.05, method='fdr_bh')
             corrected_p_values.append(pvals_corrected)
@@ -585,14 +585,14 @@ def make_combined_plot_of_distributions(shuffled_data, tag='grid', shuffle_type 
 
 def plot_number_of_significant_p_values(spatial_firing, type='bh', shuffle_type='occupancy'):
     if type == 'bh':
-        number_of_significant_p_values = spatial_firing.number_of_different_bins_bh
+        number_of_significant_p_values = spatial_firing.number_of_different_bins_bh_heading
     else:
-        number_of_significant_p_values = spatial_firing.number_of_different_bins_holm
+        number_of_significant_p_values = spatial_firing.number_of_different_bins_holm_heading
 
     fig, ax = plt.subplots()
     plt.hist(number_of_significant_p_values, normed='True', color='navy', alpha=0.5)
     flat_shuffled = []
-    for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
+    for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p_heading:
         flat_shuffled.extend(cell)
     plt.hist(flat_shuffled, normed='True', color='gray', alpha=0.5)
     ax.spines['top'].set_visible(False)
@@ -605,7 +605,7 @@ def plot_number_of_significant_p_values(spatial_firing, type='bh', shuffle_type=
     ax.set_ylabel('Proportion', size=30)
     ax.set_ylim(0, 0.2)
     ax.set_xlim(0, 20.5)
-    plt.savefig(local_path + 'distribution_of_rejects_significant_p_ ' + type + shuffle_type + '.png', bbox_inches="tight")
+    plt.savefig(local_path + 'distribution_of_rejects_significant_heading_p_ ' + type + shuffle_type + '.png', bbox_inches="tight")
     plt.close()
 
     fig, ax = plt.subplots()
@@ -642,27 +642,27 @@ def compare_shuffled_to_real_data_mw_test(spatial_firing, analysis_type='bh'):
     num_bins = 20
     if analysis_type == 'bh':
         flat_shuffled = []
-        for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p:
+        for cell in spatial_firing.number_of_different_bins_shuffled_corrected_p_heading:
             flat_shuffled.extend(cell)
-        p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh, flat_shuffled)
+        p_bh = compare_distributions(spatial_firing.number_of_different_bins_bh_heading, flat_shuffled)
         print('Number of cells: ' + str(len(spatial_firing)))
         print('p value for comparing shuffled distribution to B-H corrected p values: ' + str(p_bh))
-        number_of_significant_bins = spatial_firing.number_of_different_bins_bh.sum()
-        total_number_of_bins = len(spatial_firing.number_of_different_bins_bh) * num_bins
+        number_of_significant_bins = spatial_firing.number_of_different_bins_bh_heading.sum()
+        total_number_of_bins = len(spatial_firing.number_of_different_bins_bh_heading) * num_bins
         print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are significant')
-        print(str(np.mean(spatial_firing.number_of_different_bins_bh)) + ' number of bins per cell +/- ' + str(np.std(spatial_firing.number_of_different_bins_bh)) + ' SD')
+        print(str(np.mean(spatial_firing.number_of_different_bins_bh_heading)) + ' number of bins per cell +/- ' + str(np.std(spatial_firing.number_of_different_bins_bh)) + ' SD')
         print('shuffled: ')
         print(str(np.mean(flat_shuffled)) + ' number of bins per cell +/- ' + str(np.std(flat_shuffled)) + ' SD')
         return p_bh
 
     if analysis_type == 'percentile':
         flat_shuffled = []
-        for cell in spatial_firing.number_of_different_bins_shuffled:
+        for cell in spatial_firing.number_of_different_bins_shuffled_heading:
             flat_shuffled.extend(cell)
-        p_percentile = compare_distributions(spatial_firing.number_of_different_bins, flat_shuffled)
+        p_percentile = compare_distributions(spatial_firing.number_of_different_bins_heading, flat_shuffled)
         print('p value for comparing shuffled distribution to percentile thresholded p values: ' + str(p_percentile))
-        number_of_significant_bins = spatial_firing.number_of_different_bins.sum()
-        total_number_of_bins = len(spatial_firing.number_of_different_bins) * num_bins
+        number_of_significant_bins = spatial_firing.number_of_different_bins_heading.sum()
+        total_number_of_bins = len(spatial_firing.number_of_different_bins_heading) * num_bins
         print(str(number_of_significant_bins) + ' out of ' + str(total_number_of_bins) + ' are different')
         return p_percentile
 
@@ -693,6 +693,52 @@ def add_heading_direction(spatial_firing):
     return spatial_firing
 
 
+def get_number_of_directional_cells(cells, tag='grid'):
+    print('HEAD DIRECTION')
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, cell in cells.iterrows():
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled, cell.number_of_different_bins)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
+        percentiles_correction.append(percentile)
+
+    print(tag)
+    print('Number of fields: ' + str(len(cells)))
+    print('Number of directional cells [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    cells['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional cells [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    cells['directional_correction'] = np.array(percentiles_correction) > 95
+    cells.to_pickle(local_path + tag + 'cells.pkl')
+
+
+def get_number_of_directional_cells_heading(cells, tag='grid'):
+    print('HEADING')
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, cell in cells.iterrows():
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_heading, cell.number_of_different_bins_heading)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p_heading, cell.number_of_different_bins_bh_heading)
+        percentiles_correction.append(percentile)
+
+    print(tag)
+    print('Number of cells: ' + str(len(cells)))
+    print('Number of directional cells [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    cells['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional cells [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    cells['directional_correction'] = np.array(percentiles_correction) > 95
+    cells.to_pickle(local_path + tag + 'cells_heading.pkl')
+
+
 def process_data(spatial_firing, sampling_rate_video, local_path, animal='mouse', shuffle_type='occupancy'):
     if animal == 'mouse':
         spatial_firing = tag_false_positives(spatial_firing)
@@ -718,6 +764,8 @@ def process_data(spatial_firing, sampling_rate_video, local_path, animal='mouse'
     shuffled_spatial_firing_not_classified = spatial_firing[not_classified & good_cell]
 
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
+    get_number_of_directional_cells_heading(shuffled_spatial_firing_grid, tag='grid' + animal)
+    get_number_of_directional_cells(shuffled_spatial_firing_grid, tag='grid' + animal)
     if len(shuffled_spatial_firing_not_classified) > 0:
         plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
