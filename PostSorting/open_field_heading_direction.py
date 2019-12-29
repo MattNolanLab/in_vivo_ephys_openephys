@@ -40,12 +40,12 @@ def add_heading_direction_to_position_data_frame(position):
 
 
 # add heading direction to spatial firing df
-def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position):
+def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position, ephys_sampling_rate):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
 
     headings = []
-    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(spatial_firing, position)
+    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(spatial_firing, position, avg_sampling_rate_open_ephys=ephys_sampling_rate)
     for index, cluster in spatial_firing.iterrows():
         bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
         heading = list(position.heading_direction[bonsai_indices_cluster_round])
@@ -54,12 +54,12 @@ def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position)
     return spatial_firing, position
 
 
-def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster, position):
+def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster, position, ephys_sampling_rate):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
 
     headings = []
-    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(cluster, position)
+    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(cluster, position, avg_sampling_rate_open_ephys=ephys_sampling_rate)
     bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
     heading = list(position.heading_direction[bonsai_indices_cluster_round])
     headings.append(heading)
@@ -87,9 +87,9 @@ def calculate_corresponding_indices_trajectory(spike_data, spatial_data, avg_sam
     return spike_data
 
 
-def add_heading_during_spikes_to_field_df(fields, position):
+def add_heading_during_spikes_to_field_df(fields, position, ephys_sampling):
     headings = []
-    fields = calculate_corresponding_indices(fields, position)
+    fields = calculate_corresponding_indices(fields, position, avg_sampling_rate_open_ephys=ephys_sampling)
     for index, cluster in fields.iterrows():
         bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
         heading = list(position.heading_direction[bonsai_indices_cluster_round])
@@ -110,10 +110,10 @@ def add_heading_from_trajectory_to_field_df(fields, position):
 
 
 # add heading direction to field df (where each row is data from a firing field - see data_frame_utility
-def add_heading_direction_to_fields_frame(fields, position):
+def add_heading_direction_to_fields_frame(fields, position, ephys_sampling):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
-    fields = add_heading_during_spikes_to_field_df(fields, position)
+    fields = add_heading_during_spikes_to_field_df(fields, position, ephys_sampling)
     fields = add_heading_from_trajectory_to_field_df(fields, position)
     return fields, position
 
