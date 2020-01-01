@@ -108,9 +108,8 @@ def add_heading_from_trajectory_to_field_df(field, position, ephys_sampling):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     avg_sampling_rate_bonsai = round(int(1 / position['synced_time'].diff().median()), -1)
-    sampling_rate_rate = ephys_sampling / avg_sampling_rate_bonsai
 
-    field['bonsai_indices'] = np.array(field.trajectory_times) / sampling_rate_rate
+    field['bonsai_indices'] = np.array(field.times_session) * avg_sampling_rate_bonsai
     position['original_indices'] = (position.synced_time * avg_sampling_rate_bonsai).round(0).astype(int)
     bonsai_indices_cluster_round = field.bonsai_indices.round(0)
     headings = []

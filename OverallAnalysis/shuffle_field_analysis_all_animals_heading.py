@@ -2,6 +2,7 @@ import numpy as np
 import OverallAnalysis.folder_path_settings
 import pandas as pd
 import plot_utility
+import PostSorting.open_field_heading_direction
 import matplotlib.pylab as plt
 import scipy.stats
 import os
@@ -327,7 +328,24 @@ def get_number_of_directional_fields(fields, tag='grid'):
     get_percentage_of_grid_cells_with_directional_nodes(fields)
 
 
-def analyze_data(animal, server_path, shuffle_type='occupancy'):
+def add_heading_to_field_df(fields, ephys_sampling):
+    headings_spikes = []
+    headings_trajectory = []
+    for index, field in fields.iterrows():
+        position = pd.DataFrame()
+        position['position_x'] = field.position_x_session
+        position['position_y'] = field.position_y_session
+        position['synced_time'] = field.times_session
+        field_with_heading = PostSorting.open_field_heading_direction.add_heading_during_spikes_to_field_df(field, position, ephys_sampling)
+        field_with_heading = PostSorting.open_field_heading_direction.add_heading_from_trajectory_to_field_df(field, position, ephys_sampling)
+        headings_spikes.append(field_with_heading.heading_direction_in_field_spikes)
+        headings_trajectory.append(field_with_heading.heading_direction_in_field_trajectory)
+    fields['heading_direction_in_field_trajectory'] = headings_trajectory
+    fields['heading_direction_in_field_spikes'] = headings_spikes
+    return fields
+
+
+def analyze_data(animal, server_path, shuffle_type='occupancy', ephys_sampling=30000):
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
         spike_sorter = '/MountainSort'
@@ -363,17 +381,12 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     accepted_field = shuffled_field_data.accepted_field == True
 
     shuffled_field_data_grid = shuffled_field_data[grid_cells & accepted_field]
+    shuffled_field_data_grid = add_heading_to_field_df(shuffled_field_data_grid, ephys_sampling)
     # todo add heading to this data frame
     # reshuffle using heading
-    shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
-    shuffled_field_data_conj = shuffled_field_data[conj_cells & accepted_field]
 
     get_number_of_directional_fields(shuffled_field_data_grid, tag='grid' + animal)
-    get_number_of_directional_fields(shuffled_field_data_conj, tag='conjunctive' + animal)
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
-    plot_distributions_for_fields(shuffled_field_data_conj, 'conjunctive', animal=animal, shuffle_type=shuffle_type)
-    if len(shuffled_field_data_not_classified) > 0:
-        plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
     print('*****')
     print(animal + ' data:')
@@ -383,25 +396,11 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     print('Number of grid cells: ' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh', shuffle_type=shuffle_type)
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile', shuffle_type=shuffle_type)
-    print('__________________________________')
-    print('Not classified cells: ')
-    print('Number of not classified fields: ' + str(len(shuffled_field_data_not_classified)))
-    print('Number of not classified cells: ' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh', shuffle_type=shuffle_type)
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile', shuffle_type=shuffle_type)
-    print('__________________________________')
-    print('__________________________________')
-    print('Conjunctive cells: ')
-    print('Number of conjunctive fields: ' + str(len(shuffled_field_data_conj)))
-    print('Number of conjunctive cells: ' + str(len(np.unique(list(shuffled_field_data_conj.unique_cell_id)))))
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_conj, analysis_type='bh', shuffle_type=shuffle_type)
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_conj, analysis_type='percentile', shuffle_type=shuffle_type)
-    print('__________________________________')
 
 
 def main():
     analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
-    analyze_data('rat', server_path_rat, shuffle_type='distributive')
+    analyze_data('rat', server_path_rat, shuffle_type='distributive', ephys_sampling=1)
     # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
     # analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
     # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
