@@ -70,24 +70,17 @@ def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster, posi
 def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys / avg_sampling_rate_bonsai
-    bonsai_indices_all = []
-    for index, field in spike_data.iterrows():
-        bonsai_indices_all.append(np.array(field.spike_times) / sampling_rate_rate)
+    bonsai_indices_all = (np.array(spike_data.spike_times) / sampling_rate_rate)
     spike_data['bonsai_indices'] = bonsai_indices_all
     return spike_data
 
 
 def calculate_corresponding_indices_trajectory(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
-    avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
-    sampling_rate_rate = avg_sampling_rate_open_ephys / avg_sampling_rate_bonsai
-    bonsai_indices_all = []
-    for index, field in spike_data.iterrows():
-        bonsai_indices_all.append(np.array(field.times_session))
-    spike_data['bonsai_indices_trajectory'] = bonsai_indices_all
+    spike_data['bonsai_indices_trajectory'] = np.array(spike_data.times_session)
     return spike_data
 
 
-def add_heading_during_spikes_to_field_df(field, position, ephys_sampling):
+def add_heading_during_spikes_to_field_df2(field, position, ephys_sampling):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     avg_sampling_rate_bonsai = round(int(1 / position['synced_time'].diff().median()), -1)
@@ -104,7 +97,17 @@ def add_heading_during_spikes_to_field_df(field, position, ephys_sampling):
     return field
 
 
-def add_heading_from_trajectory_to_field_df(field, position, ephys_sampling):
+def add_heading_during_spikes_to_field_df(field, position, ephys_sampling):
+    if 'heading_direction' not in position:
+        position = add_heading_direction_to_position_data_frame(position)
+    fields = calculate_corresponding_indices(field, position, avg_sampling_rate_open_ephys=ephys_sampling)
+    bonsai_indices_cluster_round = fields.bonsai_indices.round(0)
+    heading = list(position.heading_direction[bonsai_indices_cluster_round])
+    fields['heading_direction_in_field_spikes'] = heading
+    return fields
+
+
+def add_heading_from_trajectory_to_field_df2(field, position, ephys_sampling):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     avg_sampling_rate_bonsai = round(int(1 / position['synced_time'].diff().median()), -1)
@@ -118,6 +121,18 @@ def add_heading_from_trajectory_to_field_df(field, position, ephys_sampling):
         headings.append(heading)
     field['heading_direction_in_field_trajectory'] = headings
     return field
+
+
+def add_heading_from_trajectory_to_field_df(fields, position, ephys_sampling):
+    if 'heading_direction' not in position:
+        position = add_heading_direction_to_position_data_frame(position)
+    headings = []
+    fields = calculate_corresponding_indices_trajectory(fields, position)
+    bonsai_indices_cluster_round = fields.bonsai_indices_trajectory.round(0)
+    heading = list(position.heading_direction[bonsai_indices_cluster_round])
+    headings.append(heading)
+    fields['heading_direction_in_field_trajectory'] = headings
+    return fields
 
 
 # add heading direction to field df (where each row is data from a firing field - see data_frame_utility
