@@ -41,7 +41,7 @@ def shuffle_field_data(field_data, number_of_bins, number_of_times_to_shuffle=10
         shuffled_hd_field = []
         for shuffle in range(number_of_times_to_shuffle):
             indices = shuffle_indices[shuffle]
-            shuffled_hd = np.array(field['heading_direction_in_field_trajectory'])[indices]
+            shuffled_hd = np.array(field['heading_direction_in_field_trajectory'])[0][indices]
             shuffled_hd_field.extend(shuffled_hd)
             hist, bin_edges = np.histogram((shuffled_hd + 180) * np.pi / 180, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
@@ -391,8 +391,8 @@ def get_number_of_directional_fields(fields, tag='grid'):
 
 
 def add_heading_to_field_df(fields, ephys_sampling, path_to_cell_data):
-    # if 'heading_direction_in_field_trajectory' in fields:
-        # return fields
+    if 'heading_direction_in_field_trajectory' in fields:
+        return fields
     spatial_firing = pd.read_pickle(path_to_cell_data)
     headings_spikes = []
     headings_trajectory = []
