@@ -18,11 +18,9 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
     based on the vector from consecutive samples
     """
 
-
     delta_x = np.diff(position_x)
     delta_y = np.diff(position_y)
-    heading_direction = np.arctan(delta_y / delta_x)
-    rho, heading_direction = math_utility.cart2pol(delta_x, delta_y)
+    _, heading_direction = math_utility.cart2pol(delta_x, delta_y)
 
     heading_direction_deg = np.degrees(heading_direction)
     if pad_first_value:
