@@ -97,8 +97,14 @@ def calculate_corresponding_indices(spike_data: pd.DataFrame, spatial_data: pd.D
     return spike_data
 
 
-def calculate_corresponding_indices_trajectory(spike_data: pd.DataFrame) -> pd.DataFrame:
-    spike_data['bonsai_indices_trajectory'] = np.array(spike_data.times_session)
+def calculate_corresponding_indices_trajectory(spike_data: pd.DataFrame, video_sampling : int) -> pd.DataFrame:
+    """
+    :param spike_data: Data frame  - has df.times_session which is the time stamps from the movement data in seconds
+    :param video_sampling: sampling rate of camera tracking the animal
+    :return: spike data with corresponding video tracking indices added
+    """
+
+    spike_data['bonsai_indices_trajectory'] = np.array(spike_data.times_session) * video_sampling
     return spike_data
 
 
@@ -118,7 +124,7 @@ def add_heading_during_spikes_to_field_df(field: pd.DataFrame, position: pd.Data
     return fields
 
 
-def add_heading_from_trajectory_to_field_df(fields: pd.DataFrame, position: pd.DataFrame) -> pd.DataFrame:
+def add_heading_from_trajectory_to_field_df(fields: pd.DataFrame, position: pd.DataFrame, video_sampling: int) -> pd.DataFrame:
     """
     :param fields: Data frame where each row is data from a firing field of a cell.
     :param position: Motion tracking data from the animal
@@ -127,7 +133,7 @@ def add_heading_from_trajectory_to_field_df(fields: pd.DataFrame, position: pd.D
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     headings = []
-    fields = calculate_corresponding_indices_trajectory(fields)
+    fields = calculate_corresponding_indices_trajectory(fields, video_sampling)
     bonsai_indices_cluster_round = fields.bonsai_indices_trajectory.round(0)
     heading = list(position.heading_direction[bonsai_indices_cluster_round])
     headings.append(heading)
