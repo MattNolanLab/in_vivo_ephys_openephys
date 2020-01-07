@@ -24,9 +24,9 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
 
     heading_direction_deg = np.degrees(heading_direction)
     if pad_first_value:
-        heading_direction_deg = np.insert(heading_direction_deg, 0, heading_direction_deg[0]) + 180
+        heading_direction_deg = np.insert(heading_direction_deg, 0, heading_direction_deg[0])
 
-    return heading_direction_deg
+    return heading_direction_deg + 180
 
 
 def add_heading_direction_to_position_data_frame(position: pd.DataFrame) -> pd.DataFrame:
@@ -162,6 +162,7 @@ def main():
     """
     This is just here for testing.
     """
+
     path = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/'
     position_path = path + 'position.pkl'
     position = pd.read_pickle(position_path)
