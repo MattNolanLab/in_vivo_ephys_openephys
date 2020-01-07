@@ -4,6 +4,8 @@ import pandas as pd
 import PostSorting.open_field_spatial_firing
 import data_frame_utility
 
+from typing import Tuple
+
 
 def calculate_heading_direction(position_x, position_y, pad_first_value=True):
     """
@@ -29,7 +31,11 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
     return heading_direction_deg
 
 
-def add_heading_direction_to_position_data_frame(position):
+def add_heading_direction_to_position_data_frame(position: pd.DataFrame) -> pd.DataFrame:
+    """
+    input : position data frame, this is the tacking data from the animal, must have position_x and position_y columns
+    output : position data frame with 'heading_direction' added as a new column in degrees
+    """
     x = position.position_x
     y = position.position_y
     heading_direction = calculate_heading_direction(x, y, pad_first_value=True)
@@ -38,7 +44,7 @@ def add_heading_direction_to_position_data_frame(position):
 
 
 # add heading direction to spatial firing df
-def add_heading_direction_to_spatial_firing_data_frame(spatial_firing, position, ephys_sampling_rate):
+def add_heading_direction_to_spatial_firing_data_frame(spatial_firing: pd.DataFrame, position: pd.DataFrame, ephys_sampling_rate: int):
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
 
@@ -105,23 +111,12 @@ def add_heading_during_spikes_to_field_df(field, position, ephys_sampling):
     return fields
 
 
-def add_heading_from_trajectory_to_field_df2(field, position, ephys_sampling):
-    if 'heading_direction' not in position:
-        position = add_heading_direction_to_position_data_frame(position)
-    avg_sampling_rate_bonsai = round(int(1 / position['synced_time'].diff().median()), -1)
-
-    field['bonsai_indices'] = np.array(field.times_session) * avg_sampling_rate_bonsai
-    position['original_indices'] = (position.synced_time * avg_sampling_rate_bonsai).round(0).astype(int)
-    bonsai_indices_cluster_round = field.bonsai_indices.round(0)
-    headings = []
-    for sample in bonsai_indices_cluster_round:
-        heading = position.iloc[(position['original_indices'] - sample).abs().argsort()[0]].heading_direction
-        headings.append(heading)
-    field['heading_direction_in_field_trajectory'] = headings
-    return field
-
-
-def add_heading_from_trajectory_to_field_df(fields, position, ephys_sampling):
+def add_heading_from_trajectory_to_field_df(fields: pd.DataFrame, position: pd.DataFrame) -> pd.DataFrame:
+    """
+    :param fields: Data frame where each row is data from a firing field of a cell.
+    :param position: Motion tracking data from the animal
+    :return: fields data frame with heading direction from the trajectory added as a new column
+    """
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     headings = []
@@ -134,7 +129,15 @@ def add_heading_from_trajectory_to_field_df(fields, position, ephys_sampling):
 
 
 # add heading direction to field df (where each row is data from a firing field - see data_frame_utility
-def add_heading_direction_to_fields_frame(fields, position, ephys_sampling):
+def add_heading_direction_to_fields_frame(fields: pd.DataFrame, position: pd.DataFrame, ephys_sampling: int):
+    """
+    :param fields: Data frame where each row is data from a firing field of a cell.
+    :param position: Data frame containing the tracking data from the animal from the entire session with time stamps.
+    :param ephys_sampling: Sampling rate of electrophysiology data (in Hz, =1 if given in seconds)
+    :return: fields and position data frames with heading direction added as new columns. The field data frame will
+    have a new column with head directions from the trajectory in the field and head directions when the cell fired
+    in the field
+    """
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     fields = add_heading_during_spikes_to_field_df(fields, position, ephys_sampling)
@@ -143,6 +146,9 @@ def add_heading_direction_to_fields_frame(fields, position, ephys_sampling):
 
 
 def main():
+    """
+    This is just here for testing.
+    """
     x = [0, 1, 2, 2, 1]
     y = [0, 1, 1, 0, 1]
     heading_direction_deg = calculate_heading_direction(x, y)
