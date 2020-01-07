@@ -61,7 +61,7 @@ def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins
         field_histograms = field['shuffled_data']
         field_spikes_hd = field['heading_direction_in_field_spikes']  # real hd when the cell fired
         field_session_hd = field['heading_direction_in_field_trajectory']  # hd from the whole session in field
-        time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
+        time_spent_in_bins = np.histogram(field_session_hd, range=(-180, 180), bins=number_of_bins)[0]
         time_spent_in_bins_all.append(time_spent_in_bins)
         field_histograms_hz = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         field_histograms_hz_all.append(field_histograms_hz)
