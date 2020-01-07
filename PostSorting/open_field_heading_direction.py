@@ -6,8 +6,7 @@ import data_frame_utility
 
 
 def calculate_heading_direction(position_x, position_y, pad_first_value=True):
-
-    '''
+    """
     Calculate heading direction of animal based on the central position of the tracking markers.
     Method from:
     https://doi.org/10.1016/j.brainres.2014.10.053
@@ -17,7 +16,8 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
             same as the input
     output : heading direction of animal
     based on the vector from consecutive samples
-    '''
+    """
+
 
     delta_x = np.diff(position_x)
     delta_y = np.diff(position_y)
