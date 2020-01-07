@@ -79,7 +79,7 @@ def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_
     return spike_data
 
 
-def calculate_corresponding_indices_trajectory(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
+def calculate_corresponding_indices_trajectory(spike_data: pd.DataFrame) -> pd.DataFrame:
     spike_data['bonsai_indices_trajectory'] = np.array(spike_data.times_session)
     return spike_data
 
@@ -109,7 +109,7 @@ def add_heading_from_trajectory_to_field_df(fields: pd.DataFrame, position: pd.D
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     headings = []
-    fields = calculate_corresponding_indices_trajectory(fields, position)
+    fields = calculate_corresponding_indices_trajectory(fields)
     bonsai_indices_cluster_round = fields.bonsai_indices_trajectory.round(0)
     heading = list(position.heading_direction[bonsai_indices_cluster_round])
     headings.append(heading)
