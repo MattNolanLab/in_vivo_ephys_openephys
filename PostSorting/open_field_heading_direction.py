@@ -24,7 +24,7 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
 
     heading_direction_deg = np.degrees(heading_direction)
     if pad_first_value:
-        heading_direction_deg = np.insert(heading_direction_deg, 0, heading_direction_deg[0])
+        heading_direction_deg = np.insert(heading_direction_deg, 0, heading_direction_deg[0]) + 180
 
     return heading_direction_deg
 
