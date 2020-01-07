@@ -84,24 +84,13 @@ def calculate_corresponding_indices_trajectory(spike_data, spatial_data, avg_sam
     return spike_data
 
 
-def add_heading_during_spikes_to_field_df2(field, position, ephys_sampling):
-    if 'heading_direction' not in position:
-        position = add_heading_direction_to_position_data_frame(position)
-    avg_sampling_rate_bonsai = round(int(1 / position['synced_time'].diff().median()), -1)
-    sampling_rate_rate = ephys_sampling / avg_sampling_rate_bonsai
-    field['bonsai_indices'] = np.array(field.spike_times) / sampling_rate_rate
-    position['original_indices'] = (position.synced_time * avg_sampling_rate_bonsai).round(0).astype(int)
-    bonsai_indices_cluster_round = field.bonsai_indices.round(0)
-    headings = []
-    for spike in bonsai_indices_cluster_round:
-        heading = position.iloc[(position['original_indices'] - spike).abs().argsort()[0]].heading_direction
-        headings.append(heading)
-
-    field['heading_direction_in_field_spikes'] = headings
-    return field
-
-
-def add_heading_during_spikes_to_field_df(field, position, ephys_sampling):
+def add_heading_during_spikes_to_field_df(field: pd.DataFrame, position: pd.DataFrame, ephys_sampling: int) -> pd.DataFrame:
+    """
+    :param field: Data frame where each row is data from a firing field of a cell.
+    :param position: Motion tracking data from the animal
+    :param ephys_sampling: Sampling rate of electrophysiology data (in Hz, =1 if given in seconds)
+    :return: fields data frame with heading direction during firing events added as a new column
+    """
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
     fields = calculate_corresponding_indices(field, position, avg_sampling_rate_open_ephys=ephys_sampling)
