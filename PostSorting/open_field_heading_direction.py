@@ -4,8 +4,6 @@ import pandas as pd
 import PostSorting.open_field_spatial_firing
 import data_frame_utility
 
-from typing import Tuple
-
 
 def calculate_heading_direction(position_x, position_y, pad_first_value=True):
     """
@@ -33,6 +31,7 @@ def calculate_heading_direction(position_x, position_y, pad_first_value=True):
 
 def add_heading_direction_to_position_data_frame(position: pd.DataFrame) -> pd.DataFrame:
     """
+    Add heading direction to position data frame as a new column.
     input : position data frame, this is the tacking data from the animal, must have position_x and position_y columns
     output : position data frame with 'heading_direction' added as a new column in degrees
     """
@@ -43,8 +42,14 @@ def add_heading_direction_to_position_data_frame(position: pd.DataFrame) -> pd.D
     return position
 
 
-# add heading direction to spatial firing df
 def add_heading_direction_to_spatial_firing_data_frame(spatial_firing: pd.DataFrame, position: pd.DataFrame, ephys_sampling_rate: int):
+    """
+    Calculate heading direction corresponding to firing events for data frame where each row corresponds to a cell
+    :param spatial_firing: Data frame where each row corresponds to a neuron.
+    :param position: Data frame with motion tracking information
+    :param ephys_sampling_rate: Sampling rate of electrophysiology data (Hz)
+    :return: spatial firing and position data frames with heading direction added as new columns
+    """
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
 
@@ -58,7 +63,13 @@ def add_heading_direction_to_spatial_firing_data_frame(spatial_firing: pd.DataFr
     return spatial_firing, position
 
 
-def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster, position, ephys_sampling_rate):
+def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster: pd.Series, position: pd.DataFrame, ephys_sampling_rate: int):
+    """
+    :param cluster: Series, data from one neuron (one row of spatial firing)
+    :param position: Data frame with motion tracking data.
+    :param ephys_sampling_rate: Sampling rate of electrophysiology data in Hz
+    :return: spatial firing and position data frames with heading direction added as a new column
+    """
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
 
@@ -145,10 +156,6 @@ def main():
     """
     This is just here for testing.
     """
-    x = [0, 1, 2, 2, 1]
-    y = [0, 1, 1, 0, 1]
-    heading_direction_deg = calculate_heading_direction(x, y)
-
     path = 'C:/Users/s1466507/Documents/Ephys/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/'
     position_path = path + 'position.pkl'
     position = pd.read_pickle(position_path)
