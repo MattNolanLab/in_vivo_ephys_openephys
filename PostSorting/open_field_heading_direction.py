@@ -71,7 +71,14 @@ def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster, posi
     return spatial_firing, position
 
 
-def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
+def calculate_corresponding_indices(spike_data: pd.DataFrame, spatial_data: pd.DataFrame, avg_sampling_rate_open_ephys: int) -> pd.DataFrame:
+    """
+    Find indices from movement data that correspond to firing events in spike_data
+    :param spike_data: Data frame where each row corresponds to a cell
+    :param spatial_data: Position tracking data
+    :param avg_sampling_rate_open_ephys: Sampling rate of electrophysiology data (Hz)
+    :return: spike data with the corresponding indices added as a new column
+    """
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys / avg_sampling_rate_bonsai
     bonsai_indices_all = (np.array(spike_data.spike_times) / sampling_rate_rate)
@@ -93,7 +100,7 @@ def add_heading_during_spikes_to_field_df(field: pd.DataFrame, position: pd.Data
     """
     if 'heading_direction' not in position:
         position = add_heading_direction_to_position_data_frame(position)
-    fields = calculate_corresponding_indices(field, position, avg_sampling_rate_open_ephys=ephys_sampling)
+    fields = calculate_corresponding_indices(field, position, ephys_sampling)
     bonsai_indices_cluster_round = fields.bonsai_indices.round(0)
     heading = list(position.heading_direction[bonsai_indices_cluster_round])
     fields['heading_direction_in_field_spikes'] = heading
