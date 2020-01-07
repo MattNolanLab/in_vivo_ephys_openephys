@@ -1,6 +1,6 @@
 import numpy as np
 import OverallAnalysis.folder_path_settings
-import OverallAnalysis.shuffle_field_analysis
+import OverallAnalysis.shuffle_field_analysis_heading
 import pandas as pd
 import plot_utility
 import PostSorting.open_field_heading_direction
@@ -405,7 +405,7 @@ def add_heading_to_field_df(fields, ephys_sampling, path_to_cell_data, save_path
         position['position_y'] = spatial_firing.trajectory_y[cluster & session].iloc[0]
         position['synced_time'] = spatial_firing.trajectory_times[cluster & session].iloc[0]
         field_with_heading = PostSorting.open_field_heading_direction.add_heading_during_spikes_to_field_df(field, position, ephys_sampling)
-        field_with_heading = PostSorting.open_field_heading_direction.add_heading_from_trajectory_to_field_df(field_with_heading, position, ephys_sampling)
+        field_with_heading = PostSorting.open_field_heading_direction.add_heading_from_trajectory_to_field_df(field_with_heading, position)
         headings_spikes.append(field_with_heading.heading_direction_in_field_spikes)
         headings_trajectory.append(field_with_heading.heading_direction_in_field_trajectory)
     fields['heading_direction_in_field_trajectory'] = headings_trajectory
@@ -450,7 +450,7 @@ def analyze_data(animal, server_path, shuffle_type='occupancy', ephys_sampling=3
     shuffled_field_data_grid = add_heading_to_field_df(shuffled_field_data_grid, ephys_sampling, analysis_path + 'all_' + animal + '_df.pkl', local_path_to_field_data)
     fields = add_rate_map_values_to_field_df_session(shuffled_field_data_grid, analysis_path + 'all_' + animal + '_df.pkl', pixel_ratio=pixel_ratio)
     fields = shuffle_field_data(fields, 20, number_of_times_to_shuffle=1000)
-    shuffled_field_data_grid = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(fields, local_path, video_sampling, number_of_bins=20, shuffle_type='')
+    shuffled_field_data_grid = OverallAnalysis.shuffle_field_analysis_heading.analyze_shuffled_data(fields, local_path, video_sampling, number_of_bins=20, shuffle_type='')
 
     get_number_of_directional_fields(shuffled_field_data_grid, tag='grid' + animal)
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
