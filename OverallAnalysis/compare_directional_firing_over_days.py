@@ -1,4 +1,5 @@
 import data_frame_utility
+import os
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.shuffle_field_analysis
 import pandas as pd
@@ -23,14 +24,25 @@ def get_shuffled_field_data(spatial_firing, position_data, shuffle_type='distrib
 
 
 def process_data():
-    # load spatial firing
-    day1_firing = pd.read_pickle(analysis_path + 'DataFrames_1/spatial_firing.pkl')
-    day2_firing = pd.read_pickle(analysis_path + 'DataFrames_2/spatial_firing.pkl')
-    day1_position = pd.read_pickle(analysis_path + 'DataFrames_1/position.pkl')
-    day2_position = pd.read_pickle(analysis_path + 'DataFrames_2/position.pkl')
-    # shuffle field analysis
-    shuffled_fields_1 = get_shuffled_field_data(day1_firing, day1_position)
-    shuffled_fields_2 = get_shuffled_field_data(day2_firing, day2_position)
+    # load shuffled field data
+    if os.path.exists(analysis_path + 'DataFrames_1/fields.pkl'):
+        fields1 = pd.read_pickle(analysis_path + 'DataFrames_1/fields.pkl')
+    else:
+        day1_firing = pd.read_pickle(analysis_path + 'DataFrames_1/spatial_firing.pkl')
+        day1_position = pd.read_pickle(analysis_path + 'DataFrames_1/position.pkl')
+        shuffled_fields_1 = get_shuffled_field_data(day1_firing, day1_position)
+        shuffled_fields_1.to_pickle(analysis_path + 'DataFrames_1/fields.pkl')
+
+    if os.path.exists(analysis_path + 'DataFrames_2/fields.pkl'):
+        fields2 = pd.read_pickle(analysis_path + 'DataFrames_1/fields.pkl')
+    else:
+        day2_firing = pd.read_pickle(analysis_path + 'DataFrames_2/spatial_firing.pkl')
+        day2_position = pd.read_pickle(analysis_path + 'DataFrames_2/position.pkl')
+        # shuffle field analysis
+        shuffled_fields_2 = get_shuffled_field_data(day2_firing, day2_position)
+        shuffled_fields_2.to_pickle(analysis_path + 'DataFrames_2/fields.pkl')
+        print('I shuffled data from both days.')
+
 
     # plot them both
     # identity of directional bins?
