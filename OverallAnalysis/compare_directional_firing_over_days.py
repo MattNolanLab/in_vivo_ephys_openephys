@@ -26,7 +26,7 @@ def get_shuffled_field_data(spatial_firing, position_data, shuffle_type='distrib
 def process_data():
     # load shuffled field data
     if os.path.exists(analysis_path + 'DataFrames_1/fields.pkl'):
-        fields1 = pd.read_pickle(analysis_path + 'DataFrames_1/fields.pkl')
+        shuffled_fields_1 = pd.read_pickle(analysis_path + 'DataFrames_1/fields.pkl')
     else:
         day1_firing = pd.read_pickle(analysis_path + 'DataFrames_1/spatial_firing.pkl')
         day1_position = pd.read_pickle(analysis_path + 'DataFrames_1/position.pkl')
@@ -34,19 +34,30 @@ def process_data():
         shuffled_fields_1.to_pickle(analysis_path + 'DataFrames_1/fields.pkl')
 
     if os.path.exists(analysis_path + 'DataFrames_2/fields.pkl'):
-        fields2 = pd.read_pickle(analysis_path + 'DataFrames_1/fields.pkl')
+        shuffled_fields_2 = pd.read_pickle(analysis_path + 'DataFrames_2/fields.pkl')
     else:
         day2_firing = pd.read_pickle(analysis_path + 'DataFrames_2/spatial_firing.pkl')
         day2_position = pd.read_pickle(analysis_path + 'DataFrames_2/position.pkl')
         # shuffle field analysis
         shuffled_fields_2 = get_shuffled_field_data(day2_firing, day2_position)
         shuffled_fields_2.to_pickle(analysis_path + 'DataFrames_2/fields.pkl')
-        print('I shuffled data from both days.')
+    print('I shuffled data from both days.')
 
+    day_1_field_1 = shuffled_fields_1[(shuffled_fields_1.cluster_id == 27) & (shuffled_fields_1.field_id == 0)]
+    day_1_field_2 = shuffled_fields_1[(shuffled_fields_1.cluster_id == 27) & (shuffled_fields_1.field_id == 1)]
 
-    # plot them both
-    # identity of directional bins?
+    day_2_field_1 = shuffled_fields_2[(shuffled_fields_2.cluster_id == 20) & (shuffled_fields_2.field_id == 0)]
+    day_2_field_2 = shuffled_fields_2[(shuffled_fields_2.cluster_id == 20) & (shuffled_fields_2.field_id == 1)]
 
+    print('day 1 field 2')
+    print(day_1_field_2.number_of_different_bins_bh)
+    print('day 2 field 2')
+    print(day_2_field_2.number_of_different_bins_bh)
+
+    print('day 1 field 1')
+    print(day_1_field_1.number_of_different_bins_bh)
+    print('day 2 field 1')
+    print(day_2_field_1.number_of_different_bins_bh)
 
 
 def main():
