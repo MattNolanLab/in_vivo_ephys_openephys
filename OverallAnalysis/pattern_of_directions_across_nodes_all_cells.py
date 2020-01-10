@@ -19,6 +19,8 @@ import plot_utility
 import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
 
+import  OverallAnalysis.shuffle_field_analysis
+
 prm = PostSorting.parameters.Parameters()
 prm.set_sorter_name('MountainSort')
 
@@ -263,6 +265,21 @@ def get_pearson_coefs_all(field_data):
     if len(field_data) > 0:
         pearson_coefs_all = []
         field_histograms = field_data.normalized_hd_hist
+        for index1, field1 in enumerate(field_histograms):
+            for index2, field2 in enumerate(field_histograms):
+                if index1 < index2:
+                    field1_clean_z, field2_clean_z = remove_nans(field1, field2)
+                    # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                    if len(field1_clean_z) > 1:
+                        pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
+                        pearson_coefs_all.extend([pearson_coef])
+        return pearson_coefs_all
+
+
+def get_pearson_coefs_all_shuffled(field_data):
+    if len(field_data) > 0:
+        pearson_coefs_all = []
+        field_histograms = field_data.normalized_hd_hist_shuffled
         for index1, field1 in enumerate(field_histograms):
             for index2, field2 in enumerate(field_histograms):
                 if index1 < index2:
@@ -877,6 +894,16 @@ def get_server_path_and_load_accepted_fields(animal, tag):
     return field_data, accepted_fields
 
 
+def add_shuffled_hd_histograms(fields):
+    spatial_firing = pd.DataFrame()
+    spatial_firing['firing_maps'] = fields.rate_map
+    spatial_firing['cluster_id'] = fields.cluster_id
+    field_df = OverallAnalysis.shuffle_field_analysis.add_rate_map_values_to_field_df_session(spatial_firing, fields)
+    field_df = OverallAnalysis.shuffle_field_analysis.shuffle_field_data(field_df, local_path, number_of_bins=20, number_of_times_to_shuffle=1,
+                                                                         shuffle_type='distributive')
+    return field_df
+
+
 def process_circular_data(animal, tag=''):
     print('*************************' + animal + tag + '***************************')
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
@@ -891,9 +918,12 @@ def process_circular_data(animal, tag=''):
     field_data = tag_border_and_middle_fields(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
-
+    all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
     distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df, type='grid cells ' + animal)
+    shuffled_corr_coefs = get_pearson_coefs_all_shuffled(field_data)
     plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
+    plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
+
     plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
 
     grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
@@ -962,8 +992,9 @@ def compare_correlations_from_different_experiments():
 
 
 def main():
+    prm.set_pixel_ratio(440)
     process_circular_data('mouse')
-    process_circular_data('rat')
+    # process_circular_data('rat') # cannot really do this, because they were recorded in multiple arenas
     # process_circular_data('simulated', 'ventral_narrow')
     # process_circular_data('simulated', 'control_narrow')
     # compare_correlations_from_different_experiments()
