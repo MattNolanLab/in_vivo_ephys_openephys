@@ -366,6 +366,7 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
     plt.scatter(distances, in_between_coefs)
+    print(tag)
     ax.set_xlabel('Distance between fields', fontsize=25)
     ax.set_ylabel('Pearson correlation between fields', fontsize=25)
 
@@ -925,6 +926,15 @@ def add_shuffled_hd_histograms(fields):
     return field_df
 
 
+def calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs):
+    corr, p = scipy.stats.pearsonr(distances, shuffled_corr_coefs)
+    print('number of fields: ' + str(len(shuffled_corr_coefs)))
+    print('Correlation between distance between fields and correlation of field shape:')
+    print(corr)
+    print('p: ' + str(p))
+
+
+
 def process_circular_data(animal, tag=''):
     print('*************************' + animal + tag + '***************************')
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
@@ -940,10 +950,12 @@ def process_circular_data(animal, tag=''):
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
     all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
-    shuffled_corr_coefs = get_pearson_coefs_all_shuffled(field_data)
+    shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
     distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df, type='grid cells ' + animal)
+
     plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
     plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
+    calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
 
     plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
 
