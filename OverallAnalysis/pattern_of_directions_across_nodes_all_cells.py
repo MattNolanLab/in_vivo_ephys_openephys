@@ -7,6 +7,7 @@ import glob
 from scipy.stats import circstd
 import scipy.stats
 import seaborn
+import shutil
 import math_utility
 import matplotlib.pylab as plt
 import numpy as np
@@ -18,7 +19,6 @@ import PostSorting.open_field_make_plots
 import plot_utility
 import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
-
 import  OverallAnalysis.shuffle_field_analysis
 
 prm = PostSorting.parameters.Parameters()
@@ -362,10 +362,13 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
     return distances_list, coefs_list, highest_correlation_angles_list
 
 
-def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
+def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colours=[0]):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
-    plt.scatter(distances, in_between_coefs)
+    if len(colours) > 1:
+        plt.scatter(distances, in_between_coefs, c=colours)
+    else:
+        plt.scatter(distances, in_between_coefs)
     print(tag)
     ax.set_xlabel('Distance between fields', fontsize=25)
     ax.set_ylabel('Pearson correlation between fields', fontsize=25)
@@ -898,11 +901,44 @@ def get_server_path_and_load_accepted_fields(animal, tag):
 def add_session_hd_hist(fields, number_of_bins=20):
     normalized_hds_shuffled = []
     for index, field in fields.iterrows():
-        time_spent_in_bins = np.histogram(field.hd_in_field_session, bins=number_of_bins)[0]
+        time_spent_in_bins = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
+        # time_spent_in_bins = np.histogram(field.hd_in_field_session, bins=number_of_bins)[0]
         norm_hist_shuffled = field.shuffled_data / time_spent_in_bins
         normalized_hds_shuffled.append(norm_hist_shuffled)
     fields['normalized_hd_hist_shuffled'] = normalized_hds_shuffled
     return fields
+
+
+def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=1000, shuffle_type='occupancy'):
+    if shuffle_type == 'occupancy':
+        if os.path.exists(path + 'shuffle_analysis') is True:
+            shutil.rmtree(path + 'shuffle_analysis')
+        os.makedirs(path + 'shuffle_analysis')
+    else:
+        if os.path.exists(path + 'shuffle_analysis_distributive') is True:
+            shutil.rmtree(path + 'shuffle_analysis_distributive')
+        os.makedirs(path + 'shuffle_analysis_distributive')
+
+    field_histograms_all = []
+    shuffled_hd_all = []
+    for index, field in field_data.iterrows():
+        print('I will shuffle data in the fields.')
+        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+        shuffle_indices = OverallAnalysis.shuffle_field_analysis.get_random_indices_for_shuffle(field, number_of_times_to_shuffle, shuffle_type=shuffle_type)
+        shuffled_hd_field = []
+        for shuffle in range(number_of_times_to_shuffle):
+            shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            shuffled_hd_field.extend(shuffled_hd)
+            # todo replace this with smooth one
+            hist = PostSorting.open_field_head_direction.get_hd_histogram(shuffled_hd, window_size=23)
+            # hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
+            field_histograms[shuffle, :] = hist
+        field_histograms_all.append(field_histograms)
+        shuffled_hd_all.append(shuffled_hd_field)
+    print(path)
+    field_data['shuffled_data'] = field_histograms_all
+    field_data['shuffled_hd_distribution'] = shuffled_hd_all
+    return field_data
 
 
 def add_shuffled_hd_histograms(fields):
@@ -920,7 +956,7 @@ def add_shuffled_hd_histograms(fields):
     spatial_firing['session_id'] = session_ids
 
     field_df = OverallAnalysis.shuffle_field_analysis.add_rate_map_values_to_field_df_session(spatial_firing, fields)
-    field_df = OverallAnalysis.shuffle_field_analysis.shuffle_field_data(field_df, local_path, number_of_bins=20, number_of_times_to_shuffle=1,
+    field_df = shuffle_field_data(field_df, local_path, number_of_bins=360, number_of_times_to_shuffle=1,
                                                                          shuffle_type='distributive')
     field_df = add_session_hd_hist(field_df)
     return field_df
@@ -933,6 +969,15 @@ def calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled
     print(corr)
     print('p: ' + str(p))
 
+
+def get_animal_identity(fields):
+    animal_ids = []
+    print('cat')
+    for index, field in fields.iterrows():
+        session_id = field.session_id
+        id = session_id.split('_')[0].split('M')[-1]
+        animal_ids.append(int(id))
+    return animal_ids
 
 
 def process_circular_data(animal, tag=''):
@@ -949,6 +994,7 @@ def process_circular_data(animal, tag=''):
     field_data = tag_border_and_middle_fields(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    animal_identity = get_animal_identity(all_accepted_grid_cells_df)
     all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
     shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
     distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df, type='grid cells ' + animal)
