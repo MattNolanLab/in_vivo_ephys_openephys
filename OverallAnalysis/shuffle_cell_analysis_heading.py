@@ -765,7 +765,7 @@ def process_data(spatial_firing, sampling_rate_video, local_path, ephys_sampling
 
     plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
     get_number_of_directional_cells_heading(shuffled_spatial_firing_grid, tag='grid' + animal)
-    get_number_of_directional_cells(shuffled_spatial_firing_grid, tag='grid' + animal)
+    # get_number_of_directional_cells(shuffled_spatial_firing_grid, tag='grid' + animal)
     if len(shuffled_spatial_firing_not_classified) > 0:
         plot_distributions_for_shuffled_vs_real_cells(shuffled_spatial_firing_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
