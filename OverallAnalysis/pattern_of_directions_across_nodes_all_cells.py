@@ -969,14 +969,14 @@ def calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled
     print('p: ' + str(p))
 
 
-def get_animal_identity(fields):
+def add_animal_identity_to_df(fields):
     animal_ids = []
-    print('cat')
     for index, field in fields.iterrows():
         session_id = field.session_id
         id = session_id.split('_')[0].split('M')[-1]
         animal_ids.append(int(id))
-    return animal_ids
+    fields['animal_id'] = animal_ids
+    return fields
 
 
 def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
@@ -1028,29 +1028,6 @@ def compare_pure_and_conjunctive_grid_cells(field_data, animal, tag):
     # plot_half_fields(field_data, 'mouse')
 
 
-def process_circular_data(animal, tag=''):
-    print('*************************' + animal + tag + '***************************')
-    field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
-    if animal == 'mouse':
-        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-    elif animal == 'rat':
-        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
-    else:
-        field_data['accepted_field'] = True
-
-    field_data = add_cell_types_to_data_frame(field_data)
-    field_data = tag_border_and_middle_fields(field_data)
-
-    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
-    all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
-
-    animal_identity = get_animal_identity(all_accepted_grid_cells_df)
-
-    analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
-    compare_centre_and_border_fields(field_data, animal, tag)
-    compare_pure_and_conjunctive_grid_cells(field_data, animal, tag)
-
-
 def compare_correlations_from_different_experiments():
     pearson_grid_simulated_narrow = pd.read_csv(local_path + 'grid_cell_pearson_avg_for_cellsimulatedventral_narrow.csv', header=None)
     pearson_grid_simulated_control = pd.read_csv(local_path + 'grid_cell_pearson_avg_for_cellsimulatedcontrol_narrow.csv', header=None)
@@ -1089,6 +1066,36 @@ def compare_correlations_from_different_experiments():
     stat, p = scipy.stats.ks_2samp(between_field_ventral_narrow, within_field_ventral_narrow)
     print('Kolmogorov-Smirnov result within_field vs in between, ventral ' + str(stat) + ' ' + str(p))
 
+
+def process_circular_data(animal, tag=''):
+    print('*************************' + animal + tag + '***************************')
+    field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
+    if animal == 'mouse':
+        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    elif animal == 'rat':
+        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+    else:
+        field_data['accepted_field'] = True
+
+    field_data = add_cell_types_to_data_frame(field_data)
+    field_data = tag_border_and_middle_fields(field_data)
+
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
+
+    all_accepted_grid_cells_df = add_animal_identity_to_df(all_accepted_grid_cells_df)
+    list_of_unique_animal_ids = np.unique(all_accepted_grid_cells_df.animal_id)
+    for animal_id in list_of_unique_animal_ids:
+        animal_indices = all_accepted_grid_cells_df.animal_id == animal_id
+        all_accepted_grid_cells_df_animal = all_accepted_grid_cells_df[animal_indices].copy()
+        animal = animal + str(animal_id)
+        analyze_pattern_of_directions(all_accepted_grid_cells_df_animal, animal, tag + str(animal_id))
+        compare_centre_and_border_fields(all_accepted_grid_cells_df_animal, animal, tag + str(animal_id))
+        compare_pure_and_conjunctive_grid_cells(all_accepted_grid_cells_df_animal, animal, tag + str(animal_id))
+
+    analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
+    compare_centre_and_border_fields(field_data, animal, tag)
+    compare_pure_and_conjunctive_grid_cells(field_data, animal, tag)
 
 
 def main():
