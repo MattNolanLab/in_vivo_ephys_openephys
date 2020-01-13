@@ -698,10 +698,10 @@ def get_number_of_directional_cells(cells, tag='grid'):
     percentiles_no_correction = []
     percentiles_correction = []
     for index, cell in cells.iterrows():
-        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_heading, cell.number_of_different_bins_heading)
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled, cell.number_of_different_bins)
         percentiles_no_correction.append(percentile)
 
-        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p_heading, cell.number_of_different_bins_bh_heading)
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
         percentiles_correction.append(percentile)
 
     print(tag)
