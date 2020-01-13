@@ -929,7 +929,6 @@ def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuf
         for shuffle in range(number_of_times_to_shuffle):
             shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
             shuffled_hd_field.extend(shuffled_hd)
-            # todo replace this with smooth one
             hist = PostSorting.open_field_head_direction.get_hd_histogram(shuffled_hd, window_size=23)
             # hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
             field_histograms[shuffle, :] = hist
@@ -980,6 +979,55 @@ def get_animal_identity(fields):
     return animal_ids
 
 
+def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
+    shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
+    distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df,
+                                                                                    type='grid cells ' + animal)
+
+    plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
+    plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
+
+    calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
+
+    plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
+
+    # compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
+    compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
+
+
+def compare_centre_and_border_fields(field_data, animal, tag):
+    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
+    grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
+
+    border_fields_only_df = field_data[
+        (field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
+    grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
+
+    conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (
+                field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+    plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, animal, tag='_centre')
+    plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal',
+                                                   tag='_centre_vs_border')
+
+
+def compare_pure_and_conjunctive_grid_cells(field_data, animal, tag):
+    conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+
+    conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
+
+    compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal + tag)
+    grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
+    plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
+
+    compare_within_field_with_other_fields_stat(
+        field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_' + animal + tag)
+
+    # plot_correlation_matrix(field_data, animal)
+    # plot_correlation_matrix_individual_cells(field_data, animal)
+    # plot_half_fields(field_data, 'mouse')
+
+
 def process_circular_data(animal, tag=''):
     print('*************************' + animal + tag + '***************************')
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
@@ -994,40 +1042,13 @@ def process_circular_data(animal, tag=''):
     field_data = tag_border_and_middle_fields(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
-    animal_identity = get_animal_identity(all_accepted_grid_cells_df)
     all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
-    shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
-    distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df, type='grid cells ' + animal)
 
-    plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
-    plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
-    calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
+    animal_identity = get_animal_identity(all_accepted_grid_cells_df)
 
-    plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
-
-    grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
-
-    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
-    grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
-
-    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
-    grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
-
-    conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
-    # compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
-    compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
-
-    conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
-    conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
-    compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal + tag)
-    plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
-    plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, animal, tag='_centre')
-
-    compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_' + animal + tag)
-    plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal', tag='_centre_vs_border')
-    # plot_correlation_matrix(field_data, animal)
-    # plot_correlation_matrix_individual_cells(field_data, animal)
-    # plot_half_fields(field_data, 'mouse')
+    analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
+    compare_centre_and_border_fields(field_data, animal, tag)
+    compare_pure_and_conjunctive_grid_cells(field_data, animal, tag)
 
 
 def compare_correlations_from_different_experiments():
