@@ -1082,9 +1082,13 @@ def process_circular_data(animal, tag=''):
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
     all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
+    analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
+    compare_centre_and_border_fields(field_data, animal, tag)
+    compare_pure_and_conjunctive_grid_cells(field_data, animal, tag)
 
     all_accepted_grid_cells_df = add_animal_identity_to_df(all_accepted_grid_cells_df)
     list_of_unique_animal_ids = np.unique(all_accepted_grid_cells_df.animal_id)
+    print('---- Animal by animal analysis ----')
     for animal_id in list_of_unique_animal_ids:
         animal_indices = all_accepted_grid_cells_df.animal_id == animal_id
         all_accepted_grid_cells_df_animal = all_accepted_grid_cells_df[animal_indices].copy()
@@ -1092,10 +1096,6 @@ def process_circular_data(animal, tag=''):
         analyze_pattern_of_directions(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
         compare_centre_and_border_fields(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
         compare_pure_and_conjunctive_grid_cells(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
-
-    analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
-    compare_centre_and_border_fields(field_data, animal, tag)
-    compare_pure_and_conjunctive_grid_cells(field_data, animal, tag)
 
 
 def main():
