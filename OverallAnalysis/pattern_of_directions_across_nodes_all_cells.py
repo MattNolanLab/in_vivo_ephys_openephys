@@ -1088,10 +1088,10 @@ def process_circular_data(animal, tag=''):
     for animal_id in list_of_unique_animal_ids:
         animal_indices = all_accepted_grid_cells_df.animal_id == animal_id
         all_accepted_grid_cells_df_animal = all_accepted_grid_cells_df[animal_indices].copy()
-        animal = animal + str(animal_id)
-        analyze_pattern_of_directions(all_accepted_grid_cells_df_animal, animal, tag + str(animal_id))
-        compare_centre_and_border_fields(all_accepted_grid_cells_df_animal, animal, tag + str(animal_id))
-        compare_pure_and_conjunctive_grid_cells(all_accepted_grid_cells_df_animal, animal, tag + str(animal_id))
+        animal_name = animal + '_' + str(animal_id)
+        analyze_pattern_of_directions(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
+        compare_centre_and_border_fields(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
+        compare_pure_and_conjunctive_grid_cells(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
 
     analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
     compare_centre_and_border_fields(field_data, animal, tag)
