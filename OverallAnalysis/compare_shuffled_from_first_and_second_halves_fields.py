@@ -410,6 +410,76 @@ def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indic
     return pearson, percentage_of_bins_excluded
 
 
+def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data, sampling_rate_video):
+    print(iterator)
+    print(grid_data.iloc[iterator].session_id)
+    first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1],
+                                                                            sampling_rate_video=sampling_rate_video)
+    first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(
+        all_cells, first_half.session_id, first_half.cluster_id)
+    spatial_correlation_between_halves, percentage_of_excluded_bins, rate_map_1, rate_map_2 = check_how_much_rate_maps_correlate(
+        first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell)
+
+    spatial_correlation_field, percentage_of_excluded_bins_in_field = check_how_much_rate_maps_correlate_fields_only(
+        rate_map_1, rate_map_2, grid_data.iloc[iterator].indices_rate_map)
+
+    first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
+    first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
+    first_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(first_half, local_path + '/first/',
+                                                                              sampling_rate_video, number_of_bins=20,
+                                                                              shuffle_type='distributive')
+
+    second_half = add_rate_map_values_to_field(second_half_whole_cell, second_half)
+    second_half = distributive_shuffle(second_half, number_of_bins=20, number_of_times_to_shuffle=1000)
+    second_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(second_half, local_path + '/second/',
+                                                                               sampling_rate_video,
+                                                                               number_of_bins=20,
+                                                                               shuffle_type='distributive')
+
+    print('shuffled')
+    # compare
+    time_spent_in_bins_first = first_half.time_spent_in_bins  # based on trajectory
+    # normalize shuffled data
+    shuffled_histograms_hz_first = first_half.shuffled_data * sampling_rate_video / time_spent_in_bins_first
+    time_spent_in_bins_second = second_half.time_spent_in_bins  # based on trajectory
+    # normalize shuffled data
+    shuffled_histograms_hz_second = second_half.shuffled_data * sampling_rate_video / time_spent_in_bins_second
+    first_shuffled_df = pd.DataFrame(shuffled_histograms_hz_first[0])
+    second_shuffled_df = pd.DataFrame(shuffled_histograms_hz_second[0])
+    corr = first_shuffled_df.corrwith(second_shuffled_df, axis=1, drop=True)
+    shuffled_corr_median = corr.median()
+    corr_mean = corr.mean()
+    corr_std = corr.std()
+    # check what percentile real value is relative to distribution of shuffled correlations
+    first_half_hd_hist_hz, second_half_hd_hist_hz = array_utility.remove_nans_and_inf_from_both_arrays(
+        first_half.hd_histogram_real_data_hz[0], second_half.hd_histogram_real_data_hz[0])
+    corr_observed = scipy.stats.pearsonr(first_half_hd_hist_hz, second_half_hd_hist_hz)[0]
+    percentage_of_unsampled_hd = (len(first_half.hd_histogram_real_data_hz[0]) - len(first_half_hd_hist_hz)) / len(
+        first_half.hd_histogram_real_data_hz[0]) * 100
+    plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
+
+    percentile = scipy.stats.percentileofscore(corr, corr_observed)
+
+    aggregated_data = aggregated_data.append({
+        "session_id": grid_data.iloc[iterator].session_id,
+        "cluster_id": grid_data.iloc[iterator].cluster_id,
+        "field_id": grid_data.iloc[iterator].field_id,
+        "corr_coefs_mean": corr_mean,
+        "shuffled_corr_median": shuffled_corr_median,
+        "corr_stds": corr_std,
+        "percentiles": percentile,
+        "hd_scores_all": grid_data.iloc[iterator].hd_score,
+        "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes_in_field,
+        "spatial_scores": spatial_correlation_between_halves,
+        "percentages_of_excluded_bins": percentage_of_excluded_bins,
+        "spatial_scores_field": spatial_correlation_field,
+        "percentages_of_excluded_bins_field": percentage_of_excluded_bins_in_field,
+        "unsampled_hds": percentage_of_unsampled_hd
+
+    }, ignore_index=True)
+    return aggregated_data
+
+
 def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames', sampling_rate_video=30, tag='mouse'):
     if tag == 'mouse':
         accepted_fields = pd.read_excel(local_path + 'list_of_accepted_fields.xlsx')
@@ -435,66 +505,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     aggregated_data = pd.DataFrame(columns=col_names)
     for iterator in range(len(grid_data)):
         try:
-            print(iterator)
-            print(grid_data.iloc[iterator].session_id)
-            first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1], sampling_rate_video=sampling_rate_video)
-            first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(all_cells, first_half.session_id, first_half.cluster_id)
-            spatial_correlation_between_halves, percentage_of_excluded_bins, rate_map_1, rate_map_2 = check_how_much_rate_maps_correlate(first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell )
-            # todo find field indices here and white function
-            spatial_correlation_field, percentage_of_excluded_bins_in_field = check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, grid_data.iloc[iterator].indices_rate_map)
-
-            first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
-            first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
-            first_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(first_half, local_path + '/first/', sampling_rate_video, number_of_bins=20, shuffle_type='distributive')
-
-            second_half = add_rate_map_values_to_field(second_half_whole_cell, second_half)
-            second_half = distributive_shuffle(second_half, number_of_bins=20, number_of_times_to_shuffle=1000)
-            second_half = OverallAnalysis.shuffle_field_analysis.analyze_shuffled_data(second_half, local_path + '/second/',
-                                                                                      sampling_rate_video,
-                                                                                      number_of_bins=20,
-                                                                                      shuffle_type='distributive')
-
-            print('shuffled')
-            # compare
-            # todo get time_spent_in_bins added to df somehow
-            time_spent_in_bins_first = first_half.time_spent_in_bins  # based on trajectory
-            # normalize shuffled data
-            shuffled_histograms_hz_first = first_half.shuffled_data * sampling_rate_video / time_spent_in_bins_first
-            time_spent_in_bins_second = second_half.time_spent_in_bins   # based on trajectory
-            # normalize shuffled data
-            shuffled_histograms_hz_second = second_half.shuffled_data * sampling_rate_video / time_spent_in_bins_second
-            first_shuffled_df = pd.DataFrame(shuffled_histograms_hz_first[0])
-            second_shuffled_df = pd.DataFrame(shuffled_histograms_hz_second[0])
-            corr = first_shuffled_df.corrwith(second_shuffled_df, axis=1, drop=True)
-            shuffled_corr_median = corr.median()
-            corr_mean = corr.mean()
-            corr_std = corr.std()
-            # check what percentile real value is relative to distribution of shuffled correlations
-            first_half_hd_hist_hz, second_half_hd_hist_hz = array_utility.remove_nans_and_inf_from_both_arrays(first_half.hd_histogram_real_data_hz[0], second_half.hd_histogram_real_data_hz[0])
-            corr_observed = scipy.stats.pearsonr(first_half_hd_hist_hz, second_half_hd_hist_hz)[0]
-            percentage_of_unsampled_hd = (len(first_half.hd_histogram_real_data_hz[0]) - len(first_half_hd_hist_hz)) / len(first_half.hd_histogram_real_data_hz[0]) * 100
-            plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
-
-            percentile = scipy.stats.percentileofscore(corr, corr_observed)
-
-            aggregated_data = aggregated_data.append({
-                "session_id": grid_data.iloc[iterator].session_id,
-                "cluster_id":  grid_data.iloc[iterator].cluster_id,
-                "field_id": grid_data.iloc[iterator].field_id,
-                "corr_coefs_mean": corr_mean,
-                "shuffled_corr_median": shuffled_corr_median,
-                "corr_stds": corr_std,
-                "percentiles": percentile,
-                "hd_scores_all": grid_data.iloc[iterator].hd_score,
-                "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes_in_field,
-                "spatial_scores": spatial_correlation_between_halves,
-                "percentages_of_excluded_bins": percentage_of_excluded_bins,
-                "spatial_scores_field": spatial_correlation_field,
-                "percentages_of_excluded_bins_field": percentage_of_excluded_bins_in_field,
-                "unsampled_hds": percentage_of_unsampled_hd
-
-            }, ignore_index=True)
-
+            aggregated_data = compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data,
+                                                       sampling_rate_video)
         except:
             print('I failed to analyze this one.')
 
