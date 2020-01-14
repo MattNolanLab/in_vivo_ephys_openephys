@@ -15,12 +15,17 @@ analysis_path = local_path + '/methods_directional_field/'
 
 
 def plot_shuffled_number_of_bins_vs_observed(cell):
-
-    percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
-    shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p
+    percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
+    shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p.iloc[0]
     plt.figure()
-    # todo finish this plot
-    plt.hist(shuffled_distribution)
+    plt.hist(shuffled_distribution, color='gray')
+    plt.axvline(x=percentile, color='blue')
+    plt.xscale('log')
+    plt.ylabel('Number of shuffles', fontsize=24)
+    plt.xlabel('Number of significant bins (log)', fontsize=24)
+    plt.savefig(analysis_path + 'number_of_significant_bars_shuffled_vs_real_example.png')
+    plt.close()
+
 
 def get_number_of_directional_cells(cells, tag='grid'):
     print('HEAD DIRECTION')
@@ -42,7 +47,6 @@ def get_number_of_directional_cells(cells, tag='grid'):
     print('Number of directional cells [with BH correction]: ')
     print(np.sum(np.array(percentiles_correction) > 95))
     cells['directional_correction'] = np.array(percentiles_correction) > 95
-
 
 
 def make_example_plot():
@@ -70,6 +74,7 @@ def make_example_plot():
     example_session = spatial_firing.session_id == session_id
     example_cell = spatial_firing[example_session]
     get_number_of_directional_cells(example_cell, tag='grid')
+    plot_shuffled_number_of_bins_vs_observed(example_cell)
     # make plots of example shuffles
     # make overall distribution plot
     pass
