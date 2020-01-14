@@ -21,8 +21,9 @@ def plot_shuffled_number_of_bins_vs_observed(cell):
     plt.hist(shuffled_distribution, color='gray')
     plt.axvline(x=percentile, color='blue')
     plt.xscale('log')
-    plt.ylabel('Number of shuffles', fontsize=24)
-    plt.xlabel('Number of significant bins (log)', fontsize=24)
+    plt.ylabel('Number of shuffles', fontsize=20)
+    plt.xlabel('Number of significant bins (log)', fontsize=20)
+    plt.tight_layout()
     plt.savefig(analysis_path + 'number_of_significant_bars_shuffled_vs_real_example.png')
     plt.close()
 
@@ -37,6 +38,7 @@ def get_number_of_directional_cells(cells, tag='grid'):
 
         percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
         percentiles_correction.append(percentile)
+        print('percentile = ' + str(percentile))
 
     print(tag)
     print('Number of fields: ' + str(len(cells)))
