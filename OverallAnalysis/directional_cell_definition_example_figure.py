@@ -1,6 +1,7 @@
 import numpy as np
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.shuffle_field_analysis_heading
+import OverallAnalysis.shuffle_cell_analysis
 import pandas as pd
 import plot_utility
 import PostSorting.open_field_heading_direction
@@ -12,6 +13,29 @@ import glob
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path()
 analysis_path = local_path + '/methods_directional_field/'
+
+
+def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, shuffle_type='distributive'):
+    counter = 0
+    for index, cell in spatial_firing.iterrows():
+        for shuffle_example in range(3):
+            mean = cell['shuffled_means']
+            percentile_95 = cell['error_bar_95']
+            percentile_5 = cell['error_bar_5']
+            shuffled_histograms_hz = cell['shuffled_histograms_hz']
+            x_pos = np.arange(shuffled_histograms_hz.shape[1])
+            fig, ax = plt.subplots()
+            ax = OverallAnalysis.shuffle_cell_analysis.format_bar_chart(ax)
+            ax.errorbar(x_pos, mean, yerr=[percentile_5, percentile_95], alpha=0.7, color='black', ecolor='grey', capsize=10, fmt='o', markersize=10)
+            x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+            plt.xticks(x_pos, x_labels)
+            plt.scatter(x_pos, cell.shuffled_histograms_hz[shuffle_example], marker='o', color='grey', s=40)
+            plt.title('Number of spikes ' + str(cell.number_of_spikes))
+            plt.savefig(analysis_path + 'shuffle_analysis_' + animal + '_' + shuffle_type + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile' + str(shuffle_example))
+            plt.close()
+            counter += 1
+
+
 
 
 def plot_shuffled_number_of_bins_vs_observed(cell):
@@ -77,9 +101,7 @@ def make_example_plot():
     example_cell = spatial_firing[example_session]
     get_number_of_directional_cells(example_cell, tag='grid')
     plot_shuffled_number_of_bins_vs_observed(example_cell)
-    # make plots of example shuffles
-    # make overall distribution plot
-    pass
+    plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, '', 'mouse', shuffle_type='distributive')
 
 
 def main():
