@@ -30,7 +30,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
             x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
             plt.xticks(x_pos, x_labels)
             plt.scatter(x_pos, cell.shuffled_histograms_hz[shuffle_example], marker='o', color='grey', s=40)
-            plt.title('Number of spikes ' + str(cell.number_of_spikes))
+            # plt.title('Number of spikes ' + str(cell.number_of_spikes))
             plt.savefig(analysis_path + 'shuffle_analysis_' + animal + '_' + shuffle_type + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile' + str(shuffle_example))
             plt.close()
             counter += 1
@@ -101,7 +101,7 @@ def make_example_plot():
     example_cell = spatial_firing[example_session]
     get_number_of_directional_cells(example_cell, tag='grid')
     plot_shuffled_number_of_bins_vs_observed(example_cell)
-    plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, '', 'mouse', shuffle_type='distributive')
+    plot_bar_chart_for_cells_percentile_error_bar(example_cell, '', 'mouse', shuffle_type='distributive')
 
 
 def main():
