@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 
 
 def load_curation_metrics(spike_data_frame, prm):
@@ -40,6 +41,10 @@ def load_curation_metrics(spike_data_frame, prm):
 
 
 def curate_data(spike_data_frame, prm):
+    if 'isolation' in spike_data_frame:
+        noisy_cluster = pd.DataFrame()
+        noisy_cluster['this is empty'] = 'Noisy clusters were not reloaded. Sort again if you need them.'
+        return spike_data_frame, noisy_cluster
     spike_data_frame = load_curation_metrics(spike_data_frame, prm)
     isolation_threshold = 0.9
     noise_overlap_threshold = 0.05
