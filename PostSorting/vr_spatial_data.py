@@ -3,9 +3,10 @@ import pandas as pd
 import PostSorting.parameters
 import gc
 import PostSorting.vr_stop_analysis
+import PostSorting.vr_time_analysis
 import PostSorting.vr_make_plots
 from scipy import stats
-
+import PostSorting.vr_speed_analysis
 
 
 def calculate_total_trial_numbers(raw_position_data,processed_position_data):
@@ -64,10 +65,10 @@ outputs:
     position_data : with additional column added for processed data
 """
 
-def bin_data_trial_by_trial(raw_position_data,processed_position_data):
+def bin_data_trial_by_trial(raw_position_data,processed_position_data, prm):
     print('calculate binned data per trial...')
     binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
-    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     trials = np.array(raw_position_data['trial_number'])
     trial_types = np.array(raw_position_data['trial_type'])
@@ -93,10 +94,10 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def bin_data_over_trials(raw_position_data,processed_position_data):
+def bin_data_over_trials(raw_position_data,processed_position_data, prm):
     print('Calculating binned data over trials...')
     binned_data = pd.DataFrame(columns=['dwell_time_ms', 'dwell_time_ms_moving', 'dwell_time_ms_stationary', 'speed_in_bin'])
-    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     locations = np.array(raw_position_data['x_position_cm'])
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
@@ -115,10 +116,10 @@ def bin_data_over_trials(raw_position_data,processed_position_data):
 
 
 
-def bin_speed_over_trials(raw_position_data,processed_position_data):
+def bin_speed_over_trials(raw_position_data,processed_position_data, prm):
     print('Calculating binned data over trials...')
     binned_data = pd.DataFrame(columns=['speed_in_bin'])
-    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     locations = np.array(raw_position_data['x_position_cm'])
     speed_ms = np.array(raw_position_data['speed_per200ms'])
 
@@ -138,11 +139,13 @@ def drop_columns_from_dataframe(raw_position_data):
 
 def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
-    #processed_position_data = bin_data_over_trials_by_speed(raw_position_data,processed_position_data)
-    processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data)
-    processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
+    #processed_position_data = bin_data_over_trials_by_speed(raw_position_data,processed_position_data, prm)
+    processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data, prm)
+    processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data, prm)
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
-    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data,processed_position_data, prm, recording_to_process)
+    processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data,prm, recording_to_process)
+    processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,prm, recording_to_process)
+    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data, processed_position_data, prm, recording_to_process)
     gc.collect()
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
     processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]

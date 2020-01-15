@@ -11,6 +11,7 @@ import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
 import PostSorting.vr_FiringMaps_InTime
+import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
 
@@ -34,13 +35,14 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, prm):
     raw_position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
-    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm,recording_to_process)
+    raw_position_data, processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
     return raw_position_data, processed_position_data
 
 
 def process_firing_properties(recording_to_process, session_type, prm):
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+    spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
     return spike_data, bad_clusters
 
@@ -55,7 +57,8 @@ def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationar
     if spatial_firing is not None:
         spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
     if raw_position_data is not None:
-        raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+        print(" I am not saving the raw positional pickle at the moment")
+        #raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
     if processed_position_data is not None:
         processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
     if bad_clusters is not None:
@@ -90,15 +93,18 @@ def process_running_parameter_tag(running_parameter_tags):
         elif tag.startswith('cue_conditioned_goal'):
             cue_conditioned_goal = bool(tag.split('=')[1])
         else:
-            print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
+            print('Unexpected / incorrect tag in the third line of parameters file')
             unexpected_tag = True
     return stop_threshold, track_length, cue_conditioned_goal
 
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False,
+                           sorter_name='MountainSort', stitchpoint=None, paired_order=None):
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
+    prm.set_paired_order(paired_order)
+    prm.set_stitch_point(stitchpoint)
     prm.set_stop_threshold(stop_threshold)
     prm.set_track_length(track_length)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
@@ -134,7 +140,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
 
-    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data)
+    spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 
     save_data_frames(prm,
