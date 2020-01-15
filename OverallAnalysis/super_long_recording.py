@@ -3,6 +3,7 @@ import numpy as np
 import os
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.shuffle_field_analysis
+import OverallAnalysis.compare_shuffled_from_first_and_second_halves_fields
 import pandas as pd
 import PostSorting.parameters
 
@@ -14,6 +15,7 @@ analysis_path = local_path + '/super_long_recording/'
 
 prm = PostSorting.parameters.Parameters()
 prm.set_pixel_ratio(440)
+prm.set_sampling_rate(30000)
 
 
 def get_shuffled_field_data(spatial_firing, position_data, shuffle_type='distributive', sampling_rate_video=50):
@@ -49,7 +51,17 @@ def get_number_of_directional_fields(fields, tag='grid'):
     print(percentiles_correction)
 
 
+def add_trajectory_data_to_field_df(position, fields):
+    fields['trajectory_x'] = [position.position_x]* len(fields)
+    fields['trajectory_y'] = [position.position_y] * len(fields)
+    fields['trajectory_hd'] = [position.hd] * len(fields)
+    fields['trajectory_synced_time'] = [position.synced_time] * len(fields)
+    return fields
+
+
 def process_data():
+    firing = pd.read_pickle(analysis_path + 'DataFrames/spatial_firing.pkl')
+    position = pd.read_pickle(analysis_path + 'DataFrames/position.pkl')
     # load shuffled field data
     if os.path.exists(analysis_path + 'DataFrames/fields.pkl'):
         shuffled_fields = pd.read_pickle(analysis_path + 'DataFrames/fields.pkl')
@@ -59,9 +71,19 @@ def process_data():
         shuffled_fields = get_shuffled_field_data(firing, position)
         shuffled_fields.to_pickle(analysis_path + 'DataFrames/fields.pkl')
 
+    shuffled_fields = add_trajectory_data_to_field_df(position, shuffled_fields)
+
     number_of_significant_bins = shuffled_fields.number_of_different_bins_bh
     print(number_of_significant_bins)
     get_number_of_directional_fields(shuffled_fields, tag='grid')
+    col_names = ['session_id', 'cluster_id', 'field_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'hd_scores_all',
+                 'number_of_spikes_all', 'spatial_scores', 'percentages_of_excluded_bins', 'spatial_scores_field',
+                 'percentages_of_excluded_bins_field', 'unsampled_hds']
+    aggregated_data_field_correlations = pd.DataFrame(columns=col_names)
+
+    sampling_rate_video = 30
+    for iterator in range(len(shuffled_fields)):
+        aggregated_data_field_correlations = OverallAnalysis.compare_shuffled_from_first_and_second_halves_fields.compare_observed_and_shuffled_correlations(iterator, shuffled_fields, firing, aggregated_data_field_correlations, sampling_rate_video)
 
 
 def main():
