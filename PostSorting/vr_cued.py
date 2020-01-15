@@ -19,8 +19,6 @@ def order_by_goal_location(processed_position_data):
     ordered_trial_numbers = np.arange(1, len(tmp[0]) + 1)
     sortedtmp = np.flip(sortedtmp, axis=1)
 
-    #del processed_position_data['goal_location_trial_numbers']
-
     processed_position_data['goal_location_old_trial_numbers'] = pd.Series(sortedtmp[1])
     processed_position_data['goal_location_new_trial_numbers'] = pd.Series(ordered_trial_numbers)
 
@@ -48,52 +46,82 @@ def order_by_goal_location(processed_position_data):
 
     return processed_position_data, np.array(trial_number_conversions)
 
-def order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end):
-    # in the process of replacing this function with order_by_goal
-    '''
-    :param beaconed: 2d np array, one stop/spike per row [stop/spike location, trial number, trial type]
-    :param non_beaconed: ''
-    :param probe: ''
-    :param trial_bb_start: list of black box centres relative to goal location per trial
-    :param trial_bb_end: ''
-    :return: complete set of reordered inputs
-    '''
-    tmp = np.array([np.arange(1, len(trial_bb_start)+1),trial_bb_start, trial_bb_end])
-    sortedtmp = tmp[:, tmp[1].argsort()] # sorts by blackbox centres
-
-    trial_bb_start = list(sortedtmp[1])
-    trial_bb_end = list(sortedtmp[2])
-
-    sorted_trial_numbers = sortedtmp[0]
-    new_trial_numbers = np.arange(1,len(trial_bb_start)+1)
-
-    counter = 0
-    for row in beaconed:
-        if not math.isnan(row[1]):
-            old_trial_number = int(row[1])
-            new_trial_number = int(new_trial_numbers[sorted_trial_numbers == old_trial_number])
-            row[1] = new_trial_number
-            beaconed[counter] = row
-        counter += 1
-
-    counter = 0
-    for row in non_beaconed:
-        if not math.isnan(row[1]):
-            old_trial_number = int(row[1])
-            new_trial_number = int(new_trial_numbers[sorted_trial_numbers == old_trial_number])
-            row[1] = new_trial_number
-            non_beaconed[counter] = row
-        counter += 1
-
-    return beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end
-
 
 def add_goal_location(recording_to_process, raw_position_data, prm):
-    raw_goal_data = extract_goal_locations(recording_to_process, prm)
-    raw_position_data['in_goal_binary'] = np.asarray(raw_goal_data, dtype=np.float16)  # fill in dataframe
-    raw_position_data = goal_binary2cm(raw_position_data, prm)
-    raw_position_data = offset_location_by_goal(raw_position_data)
+
+    if prm.cue_conditioned_goal:
+        raw_goal_data = extract_goal_locations(recording_to_process, prm)
+        raw_position_data['in_goal_binary'] = np.asarray(raw_goal_data, dtype=np.float16)  # fill in dataframe
+        raw_position_data = goal_binary2cm(raw_position_data, prm)
+        raw_position_data = offset_location_by_goal(raw_position_data)
+
+        raw_position_data = PostSorting.vr_cued.offset_location_by_goal(raw_position_data)
+
     return raw_position_data
+
+def add_goal_locations_to_processed(raw_position_data, processed_position_data, prm):
+    if prm.cue_conditioned_goal:
+        #gets goal location from raw and places it in processed_position for all, beaconed and non_beaconed
+
+        goal_location = []
+        goal_location_trial_numbers = []
+        goal_location_trial_types = []
+
+        goal_location_beaconed = []
+        goal_location_beaconed_trial_number = []
+        goal_location_beaconed_trial_types = []
+
+        goal_location_non_beaconed = []
+        goal_location_non_beaconed_trial_number = []
+        goal_location_non_beaconed_trial_types = []
+
+        goal_location_probe = []
+        goal_location_probe_trial_number = []
+        goal_location_probe_trial_types = []
+
+        for trial_number in range(1, max(raw_position_data["trial_number"] + 1)):
+            trial_type = np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number])[0]
+            if 'goal_location_cm' in raw_position_data.columns:
+                trial_goal_position_cm = np.array(raw_position_data['goal_location_cm'][np.array(raw_position_data['trial_number']) == trial_number])[0]
+            else:
+                trial_goal_position_cm = 100.0 # this is the default mean position of the reward zone
+
+            goal_location.append(trial_goal_position_cm)
+            goal_location_trial_numbers.append(trial_number)
+            goal_location_trial_types.append(trial_type)
+
+            if trial_type == 0:
+                goal_location_beaconed.append(trial_goal_position_cm)
+                goal_location_beaconed_trial_number.append(trial_number)
+                goal_location_beaconed_trial_types.append(trial_type)
+            elif trial_type == 1:
+                goal_location_non_beaconed.append(trial_goal_position_cm)
+                goal_location_non_beaconed_trial_number.append(trial_number)
+                goal_location_non_beaconed_trial_types.append(trial_type)
+            elif trial_type == 2:
+                goal_location_probe.append(trial_goal_position_cm)
+                goal_location_probe_trial_number.append(trial_number)
+                goal_location_probe_trial_types.append(trial_type)
+
+
+        processed_position_data['goal_location'] = pd.Series(goal_location)
+        processed_position_data['goal_location_trial_numbers'] = pd.Series(goal_location_trial_numbers)
+        processed_position_data['goal_location_trial_types'] = pd.Series(goal_location_trial_types)
+
+        # trial type specifics speed bins
+        processed_position_data['goal_location_beaconed'] = pd.Series(goal_location_beaconed)
+        processed_position_data['goal_location_beaconed_trial_number'] = pd.Series(goal_location_beaconed_trial_number)
+        processed_position_data['goal_location_beaconed_trial_types'] = pd.Series(goal_location_beaconed_trial_types)
+
+        processed_position_data['goal_location_non_beaconed'] = pd.Series(goal_location_non_beaconed)
+        processed_position_data['goal_location_non_beaconed_trial_number'] = pd.Series(goal_location_non_beaconed_trial_number)
+        processed_position_data['goal_location_non_beaconed_trial_types'] = pd.Series(goal_location_non_beaconed_trial_types)
+
+        processed_position_data['goal_location_probe'] = pd.Series(goal_location_probe)
+        processed_position_data['goal_location_probe_trial_number'] = pd.Series(goal_location_probe_trial_number)
+        processed_position_data['goal_location_probe_trial_types'] = pd.Series(goal_location_probe_trial_types)
+
+    return processed_position_data
 
 def offset_location_by_goal(raw_position_data):
     raw_position_data["x_position_cm_offset"] = raw_position_data["x_position_cm"] - raw_position_data["goal_location_cm"]
