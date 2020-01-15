@@ -112,11 +112,9 @@ def get_stops_from_binned_speed(processed_position_data, prm):
     stop_threshold = prm.get_stop_threshold()
     cue_conditioned = prm.get_cue_conditioned_goal()
 
-    n_beaconed_trials = int(processed_position_data.beaconed_total_trial_number[0])
-    n_nonbeaconed_trials = int(processed_position_data.nonbeaconed_total_trial_number[0])
-    n_probe_trials = int(processed_position_data.probe_total_trial_number[0])
-
-    n_total = n_beaconed_trials + n_nonbeaconed_trials + n_probe_trials
+    n_total = int(processed_position_data.beaconed_total_trial_number[0]) + \
+              int(processed_position_data.nonbeaconed_total_trial_number[0]) + \
+              int(processed_position_data.probe_total_trial_number[0])
 
     speed_trials_binned = list(processed_position_data.speed_trials_binned[:n_total])
     speed_trial_numbers = list(processed_position_data.speed_trial_numbers[:n_total])
@@ -131,7 +129,7 @@ def get_stops_from_binned_speed(processed_position_data, prm):
     cue_rewarded_trial_type = []
 
     last_was_stop = False
-    for i in range(len(speed_trials_binned)):
+    for i in range(len(speed_trials_binned)): # number of trials
         rewarded=False
         bin_counter = 0.5
         for speed_in_bin in speed_trials_binned[i]:
