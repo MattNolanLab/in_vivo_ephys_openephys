@@ -51,12 +51,12 @@ def get_number_of_directional_fields(fields, tag='grid'):
     print(percentiles_correction)
 
 
-def add_trajectory_data_to_field_df(position, fields):
-    fields['trajectory_x'] = [position.position_x]* len(fields)
-    fields['trajectory_y'] = [position.position_y] * len(fields)
-    fields['trajectory_hd'] = [position.hd] * len(fields)
-    fields['trajectory_synced_time'] = [position.synced_time] * len(fields)
-    return fields
+def add_trajectory_data_to_spatial_firing_df(position, spatial_firing):
+    spatial_firing['trajectory_x'] = [position.position_x] * len(spatial_firing)
+    spatial_firing['trajectory_y'] = [position.position_y] * len(spatial_firing)
+    spatial_firing['trajectory_hd'] = [position.hd] * len(spatial_firing)
+    spatial_firing['trajectory_times'] = [position.synced_time] * len(spatial_firing)
+    return spatial_firing
 
 
 def process_data():
@@ -71,7 +71,7 @@ def process_data():
         shuffled_fields = get_shuffled_field_data(firing, position)
         shuffled_fields.to_pickle(analysis_path + 'DataFrames/fields.pkl')
 
-    shuffled_fields = add_trajectory_data_to_field_df(position, shuffled_fields)
+    firing = add_trajectory_data_to_spatial_firing_df(position, firing)
 
     number_of_significant_bins = shuffled_fields.number_of_different_bins_bh
     print(number_of_significant_bins)
