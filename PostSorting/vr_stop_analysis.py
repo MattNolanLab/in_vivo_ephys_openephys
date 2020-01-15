@@ -29,8 +29,6 @@ def get_beginning_of_track_positions(raw_position_data):
     #track_beginnings = keep_first_from_close_series(track_beginnings, 30000)
     #return track_beginnings
 
-    #return track_beginnings
-
     # track beginnings is returned as the start of a new trial surely?
     # so why aren't we using new_trial_indices from raw?
     new_trial_indices = raw_position_data["new_trial_indices"][~np.isnan(raw_position_data["new_trial_indices"])]
