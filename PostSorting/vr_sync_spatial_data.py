@@ -367,10 +367,7 @@ def syncronise_position_data(recording_folder, prm):
     raw_position_data = calculate_instant_velocity(raw_position_data, prm)
     raw_position_data = get_avg_speed_200ms(raw_position_data, prm)
     #raw_position_data = drop_columns_from_dataframe(raw_position_data)
-
-    if prm.cue_conditioned_goal:
-        raw_position_data = PostSorting.vr_cued.add_goal_location(recording_folder, raw_position_data, prm)
-        raw_position_data = PostSorting.vr_cued.offset_location_by_goal(raw_position_data)
+    raw_position_data = PostSorting.vr_cued.add_goal_location(recording_folder, raw_position_data, prm)
 
     gc.collect()
     return raw_position_data
