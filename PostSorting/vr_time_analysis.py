@@ -18,6 +18,9 @@ def calculate_binned_time(raw_position_data,processed_position_data, prm):
     time_trials_non_beaconed = []
     time_trials_non_beaconed_trial_number = []
 
+    time_trials_probe = []
+    time_trials_probe_trial_number = []
+
     for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
         trial_type = np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number])[0]
 
@@ -44,6 +47,9 @@ def calculate_binned_time(raw_position_data,processed_position_data, prm):
         elif trial_type == 1:
             time_trials_non_beaconed.append(bin_times)
             time_trials_non_beaconed_trial_number.append(trial_number)
+        elif trial_type == 2:
+            time_trials_probe.append(bin_times)
+            time_trials_probe_trial_number.append(trial_number)
 
 
     processed_position_data['time_trials_binned'] = pd.Series(time_trials_binned)
@@ -56,6 +62,9 @@ def calculate_binned_time(raw_position_data,processed_position_data, prm):
 
     processed_position_data['time_trials_non_beaconed'] = pd.Series(time_trials_non_beaconed)
     processed_position_data['time_trials_non_beaconed_trial_number'] = pd.Series(time_trials_non_beaconed_trial_number)
+
+    processed_position_data['time_trials_probe'] = pd.Series(time_trials_probe)
+    processed_position_data['time_trials_probe_trial_number'] = pd.Series(time_trials_probe_trial_number)
 
     return processed_position_data
 
