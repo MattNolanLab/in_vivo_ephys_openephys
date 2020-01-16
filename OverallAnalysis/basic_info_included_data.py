@@ -89,20 +89,16 @@ def print_basic_info(df, animal):
     print('Number_of_included sessions:')
     print(len(included_cells.session_id.unique()))
 
-    print('mean number of sessions:')
-    print(included_cells.groupby(['animal']).count().mean()[0])
-    print(included_cells.groupby(['animal']).count().std()[0])
-
-
-
-
-    # filter df for accepted grid cells
-    # add animal ids
-    # get list of included animals
-    # get df of included animals
-    # get total number of included cells
-    # get number of grid cells
-    # get number of sessions
+    print('Number of recording days per animal:')
+    print(included_cells.groupby('animal').session_id.nunique())
+    print('mean')
+    print(included_cells.groupby('animal').session_id.nunique().mean())
+    print('std')
+    print(included_cells.groupby('animal').session_id.nunique().std())
+    print('min')
+    print(included_cells.groupby('animal').session_id.nunique().min())
+    print('max')
+    print(included_cells.groupby('animal').session_id.nunique().max())
 
 
 def main():
