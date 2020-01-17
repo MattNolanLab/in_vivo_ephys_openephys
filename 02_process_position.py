@@ -11,18 +11,11 @@ import gc
 import PostSorting.vr_stop_analysis as vr_stop_analysis
 import setting
 import scipy.signal as signal
-from SnakeIOHelper import getSnake
+import SnakeIOHelper
 
-#%% define input and output
-if 'snakemake' not in locals(): 
-    #Run the the file from the root project directory
-    smk = getSnake('vr_workflow.smk',[setting.debug_folder+'/processed/process_position.txt'],
-        'process_position' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
+#%% Define input and output
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/processed_position.pkl'],
+    'process_position')
 
 #%% Load and downsample the position data
 print('Loading location and trial onset files')
@@ -51,8 +44,7 @@ raw_position_data = calculate_instant_velocity(raw_position_data, setting.locati
 raw_position_data = get_avg_speed(raw_position_data, int(setting.location_ds_rate*0.2))
 
 #%% save data
-raw_position_data.to_hdf(soutput.raw_position_data, 'raw_position_data', mode='w')
-# raw_position_data=pd.read_hdf(output.raw_position_data)
+raw_position_data.to_pickle(soutput.raw_position_data)
 
 #%% bin the position data over trials
 processed_position_data = pd.DataFrame() # make dataframe for processed position data
@@ -74,8 +66,4 @@ PostSorting.vr_make_plots.plot_stop_histogram(raw_position_data, processed_posit
 PostSorting.vr_make_plots.plot_speed_histogram(processed_position_data, soutput.speed_histogram)
 
 #%% save data
-processed_position_data.to_hdf(soutput.processed_position_data,'processed_position_data', mode='w')
-
-
-
-#%%
+processed_position_data.to_pickle(soutput.processed_position_data)

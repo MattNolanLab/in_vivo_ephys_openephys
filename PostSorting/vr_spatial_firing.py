@@ -39,36 +39,35 @@ def add_columns_to_dataframe(spike_data):
 def add_speed(spike_data, spatial_data_speed,ds_factor=1):
     for cluster_index in range(len(spike_data)):
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.speed_per200ms[cluster_index] = list(spatial_data_speed[cluster_firing_indices//ds_factor])
+        spike_data.speed_per200ms.iloc[cluster_index] = list(spatial_data_speed[cluster_firing_indices//ds_factor])
     return spike_data
 
 
 def add_position_x(spike_data, spatial_data_x,ds_factor=1):
     for cluster_index in range(len(spike_data)):
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices//ds_factor])
+        spike_data.x_position_cm.iloc[cluster_index] = list(spatial_data_x[cluster_firing_indices//ds_factor])
     return spike_data
 
 def add_position_x_offset(spike_data, spatial_data_x, spatial_data_goal_x):
     # Only called for cue conditioned goal positions, this function offsets the spike data relative to the goal location per trial
     for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.x_position_cm[cluster_index] = list(spatial_data_x[cluster_firing_indices] - spatial_data_goal_x[cluster_firing_indices])
+        spike_data.x_position_cm.iloc[cluster_index] = list(spatial_data_x[cluster_firing_indices] - spatial_data_goal_x[cluster_firing_indices])
     return spike_data
 
 
 def add_trial_number(spike_data, spatial_data_trial_number,ds_factor=1):
     for cluster_index in range(len(spike_data)):
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_number[cluster_index] = list(spatial_data_trial_number[cluster_firing_indices//ds_factor].values.astype(np.uint16))
+        spike_data.trial_number.iloc[cluster_index] = list(spatial_data_trial_number[cluster_firing_indices//ds_factor].values.astype(np.uint16))
     return spike_data
 
 
 def add_trial_type(spike_data, spatial_data_trial_type,ds_factor=1):
     for cluster_index in range(len(spike_data)):
         cluster_firing_indices = spike_data.firing_times[cluster_index]
-        spike_data.trial_type[cluster_index] = list(spatial_data_trial_type[cluster_firing_indices//ds_factor].values.astype(np.uint8))
+        spike_data.trial_type.iloc[cluster_index] = list(spatial_data_trial_type[cluster_firing_indices//ds_factor].values.astype(np.uint8))
     return spike_data
 
 
@@ -84,20 +83,20 @@ def find_firing_location_indices(spike_data, spatial_data, downsample_ratio):
 
 
 def split_and_add_trial_number(cluster_index, spike_data_movement, spike_data_stationary, spike_data_trial_number,above_threshold_indices,below_threshold_indices):
-    spike_data_movement.trial_number[cluster_index] = spike_data_trial_number[above_threshold_indices]
-    spike_data_stationary.trial_number[cluster_index] = spike_data_trial_number[below_threshold_indices]
+    spike_data_movement.trial_number.iloc[cluster_index] = spike_data_trial_number[above_threshold_indices]
+    spike_data_stationary.trial_number.iloc[cluster_index] = spike_data_trial_number[below_threshold_indices]
     return spike_data_movement, spike_data_stationary
 
 
 def split_and_add_x_location_cm(cluster_index, spike_data_movement, spike_data_stationary, spike_data_x_location_cm,above_threshold_indices,below_threshold_indices):
-    spike_data_movement.x_position_cm[cluster_index] = spike_data_x_location_cm[above_threshold_indices]
-    spike_data_stationary.x_position_cm[cluster_index] = spike_data_x_location_cm[below_threshold_indices]
+    spike_data_movement.x_position_cm.iloc[cluster_index] = spike_data_x_location_cm[above_threshold_indices]
+    spike_data_stationary.x_position_cm.iloc[cluster_index] = spike_data_x_location_cm[below_threshold_indices]
     return spike_data_movement, spike_data_stationary
 
 
 def split_and_add_trial_type(cluster_index, spike_data_movement, spike_data_stationary, spike_data_trial_type,above_threshold_indices,below_threshold_indices):
-    spike_data_movement.trial_type[cluster_index] = spike_data_trial_type[above_threshold_indices]
-    spike_data_stationary.trial_type[cluster_index] = spike_data_trial_type[below_threshold_indices]
+    spike_data_movement.trial_type.iloc[cluster_index] = spike_data_trial_type[above_threshold_indices]
+    spike_data_stationary.trial_type.iloc[cluster_index] = spike_data_trial_type[below_threshold_indices]
     return spike_data_movement, spike_data_stationary
 
 

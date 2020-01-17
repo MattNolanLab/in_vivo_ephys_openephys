@@ -54,8 +54,6 @@ def get_snippets(firing_data, prm, random_snippets=True):
     if os.path.exists(filtered_data_path):
         filtered_data = mdaio.readmda(filtered_data_path)
         for cluster in range(len(firing_data)):
-            #TODO: cluster ID problems
-            # cluster = firing_data.cluster_id.values[cluster] - 1
             firing_times = firing_data.firing_times[cluster]
 
             if random_snippets is True:

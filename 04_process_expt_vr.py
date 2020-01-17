@@ -8,45 +8,26 @@ from collections import namedtuple
 from types import SimpleNamespace
 import SnakeIOHelper
 
-#%% define input and output
-if 'snakemake' not in locals():
-    #Define some variable to run the script standalone
-    input = SimpleNamespace()
-    output = SimpleNamespace()
+# #%% define sinput and output
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_vr.pkl'],
+    'process_expt')
 
-    input.recording_to_sort = 'testData/M1_D31_2018-11-01_12-28-25_short'
-    input.spatial_firing = input.recording_to_sort + '/processed/spatial_firing.hdf'
-    input.raw_position = input.recording_to_sort + '/processed/raw_position.hdf'
-    input.processed_position_data = input.recording_to_sort + '/processed/processed_position.hdf'
-
-    output.spatial_firing_vr = input.recording_to_sort + '/processed/spatial_firing_vr.hdf'
-    output.cluster_spike_plot = input.recording_to_sort + '/processed/figures/spike_number/'
-    output.spike_data = input.recording_to_sort +'/processed/figures/spike_data/'
-    
-
-    SnakeIOHelper.makeFolders(output)
-else:
-    #in snakemake environment, the input and output will be provided by the workflow
-    input = snakemake.input
-    output = snakemake.output
 
 #%% Load data
-spike_data = pd.read_hdf(input.spatial_firing)
-raw_position_data =pd.read_hdf(input.raw_position)
-processed_position_data = pd.read_hdf(input.processed_position_data)
+spike_data = pd.read_pickle(sinput.spatial_firing)
+raw_position_data =pd.read_pickle(sinput.raw_position)
+processed_position_data = pd.read_pickle(sinput.processed_position_data)
 
 #%% process firing times
 
-# spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm)
 spike_data_vr = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, setting.sampling_rate/setting.location_ds_rate)
 spike_data_vr = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, 
-    processed_position_data, output.cluster_spike_plot )
+    processed_position_data, soutput.cluster_spike_plot )
 
 #%%
 spike_data_vr = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
 
 #%% save data
-spike_data.to_hdf(output.spatial_firing_vr ,'spatial_firing_vr')
-
+spike_data.to_pickle(soutput.spatial_firing_vr)
 
 #%%

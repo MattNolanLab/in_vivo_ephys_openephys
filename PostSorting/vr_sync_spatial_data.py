@@ -231,9 +231,8 @@ An alternative solution may be to nto analyze this data.
 
 '''
 
-def fix_teleport(velocity, prm):
+def fix_teleport(velocity, track_length = setting.track_length):
     max_velocity = max(velocity)
-    track_length = prm.get_track_length()
     # If the mouse goes from the end of the track to the beginning, the velocity would be a negative value
     # if velocity< (-1)*track_length + max_velocity, then track_length is added to the value
     too_small_indices = np.where(velocity < (-track_length + max_velocity))

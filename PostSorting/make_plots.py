@@ -11,17 +11,16 @@ from typing import Tuple
 from tqdm import tqdm
 import matplotlib as mpl
 
-#resetting the style to default first
-mpl.rcParams.update(mpl.rcParamsDefault)
+from typing import Tuple
 
-#setting default style
-plt.style.use('seaborn-muted')
 
-def plot_spike_histogram(spatial_firing, figure_path):
-    sampling_rate = setting.sampling_rate
+def plot_spike_histogram(spatial_firing, figure_path, sampling_rate = setting.sampling_rate):
     for cluster in tqdm(range(len(spatial_firing))):
         firings_cluster = spatial_firing.firing_times[cluster]
         cluster_id = spatial_firing.cluster_id[cluster]
+        
+        number_of_bins = int((spatial_firing.firing_times[cluster][-1] - spatial_firing.firing_times[cluster][0]) / (5 * sampling_rate))
+        firings_cluster = spatial_firing.firing_times[cluster] / sampling_rate / 60
         spike_hist = plt.figure()
         spike_hist.set_size_inches(5, 5, forward=True)
         ax = spike_hist.add_subplot(1, 1, 1)
@@ -30,10 +29,13 @@ def plot_spike_histogram(spatial_firing, figure_path):
             hist, bins = np.histogram(firings_cluster, bins=number_of_bins)
             width = bins[1] - bins[0]
             center = (bins[:-1] + bins[1:]) / 2
-            plt.bar(center, hist, align='center', width=width)
-        plt.title('total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08)
-        plt.xlabel('time (sampling points)')
-        plt.ylabel('number of spikes')
+            plt.bar(center, hist, align='center', width=width, color='black')
+        plt.title('Spike histogram \n total spikes = ' + str(spatial_firing.number_of_spikes[cluster]) + ', \n mean fr = ' + str(round(spatial_firing.mean_firing_rate[cluster], 0)) + ' Hz', y=1.08, fontsize=24)
+        plt.xlabel('Time (min)', fontsize=25)
+        plt.ylabel('Number of spikes', fontsize=25)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+
         plt.savefig(figure_path+spatial_firing.session_id[cluster]+'_'+str(cluster_id)+'_spike_hist.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
@@ -61,7 +63,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  figure_folder_path)
             session_hist = np.array(session_hist, dtype=float)
             rate = np.divide(hist, session_hist, out=np.zeros_like(hist), where=session_hist != 0)
             rate = rate[tuple([np.where(session_hist[~np.isnan(session_hist)] > sum(session_hist)*0.005)])]
-            plt.bar(center[0], rate[0]*sampling_rate, align='center', width=width)
+            plt.bar(center[0], rate[0]*sampling_rate, align='center', width=width, color='black')
         plt.xlabel('speed [cm/s]')
         plt.ylabel('firing rate [Hz]')
         plt.xlim(0, 30)
@@ -100,25 +102,54 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     return corr, time
 
 
-def plot_autocorrelograms(spike_data, figure_path_folder):
+def get_10ms_autocorr(firing_times_cluster,sampling_rate = setting.sampling_rate):
+    corr1, time1 = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / sampling_rate, 1, 20)
+    return corr1, time1
+
+
+def get_250ms_autocorr(firing_times_cluster, sampling_rate = setting.sampling_rate):
+    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / sampling_rate, 1, 500)
+    return corr, time
+
+
+def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, figure_folder_path, clusterIdx):
+    grid = plt.GridSpec(2, 1, hspace=0.5)
+    cluster_id = spike_data.cluster_id[clusterIdx]
+    autocorr_plot = plt.subplot(grid[0, 0])
+    plt.suptitle("Autocorrelograms", fontsize=24)
+    plt.xlabel('Time lag (ms)', fontsize=14)
+    plt.ylabel('Probability', fontsize=14)
+    plt.xlim(-10, 10)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xticks([-10, 0, 10], [-10, 0, 10])
+    plt.bar(time_10, corr_10, align='center', width=1, color='black')
+
+    autocorr_plot2 = plt.subplot(grid[1, 0])
+    plt.xlim(-250, 250)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('Time lag (ms)', fontsize=14)
+    plt.ylabel('Probability', fontsize=14)
+    plt.xticks([-250, 0, 250], [-250, 0, 250])
+    plt.bar(time_250, corr_250, align='center', width=1, color='black')
+    plt.savefig(figure_folder_path + '/' + spike_data.session_id[clusterIdx] + '_' + str(cluster_id) + '_autocorrelograms.png',
+                dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
-    for cluster in tqdm(range(len(spike_data))):
-        # cluster = spike_data.cluster_id.values[cluster] - 1
+
+
+def plot_autocorrelograms(spike_data: pd.DataFrame, folder_path: str) -> None:
+    plt.close()
+    print('I will plot autocorrelograms for each cluster (10 ms and 250 ms windows).')
+    # save_path = prm.get_output_path() + '/Figures/firing_properties'
+    # if os.path.exists(save_path) is False:
+    #     os.makedirs(save_path)
+    for cluster in range(len(spike_data)):
+        cluster_id = spike_data.cluster_id.values[cluster] 
         firing_times_cluster = spike_data.firing_times[cluster]
-        cluster_id = spike_data.cluster_id[cluster]
-        #lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
-        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/setting.sampling_rate, 1, 20)
-        plt.xlim(-10, 10)
-        plt.bar(time, corr, align='center', width=1)
-        plt.savefig(figure_path_folder + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelogram_10ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.close()
-        plt.figure()
-        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/setting.sampling_rate, 1, 500)
-        plt.xlim(-250, 250)
-        plt.bar(time, corr, align='center', width=1)
-        plt.savefig(figure_path_folder + spike_data.session_id[cluster] + '_' + str(cluster_id) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(figure_path_folder + spike_data.session_id[cluster] + '_' + str(cluster_id) + '_autocorrelogram_250ms.pdf', bbox_inches='tight', pad_inches=0)
-        plt.close()
+        corr_10, time_10 = get_10ms_autocorr(firing_times_cluster)
+        corr_250, time_250 = get_250ms_autocorr(firing_times_cluster)
+        make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, folder_path, cluster)
 
 
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, snippet_column_name):
@@ -130,37 +161,62 @@ def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, clust
     plt.xticks([0, 10, 30], [-10, 0, 20])
 
 
-def plot_waveforms(sorted_df, figure_path):
-    print('I will plot the waveform shapes for each cluster.')
+def plot_spikes_for_channel_centered(grid, spike_data, cluster, channel, snippet_column_name):
+    max_channel = spike_data.primary_channel[cluster]
+    sd = np.std(spike_data.random_snippets[cluster][max_channel - 1, :, :] * -1)
+    highest_value = np.median(spike_data.random_snippets[cluster][max_channel - 1, :, :] * -1) + (sd * 4)
+    lowest_value = np.median(spike_data.random_snippets[cluster][max_channel - 1, :, :] * -1) - (sd * 4)
+    snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
+    plt.ylim(lowest_value - 10, highest_value + 30)
+    plot_utility.style_plot(snippet_plot)
+    snippet_plot.plot(spike_data[snippet_column_name][cluster][channel, :, :] * -1, color='lightslategray')
+    snippet_plot.plot(np.mean(spike_data[snippet_column_name][cluster][channel, :, :], 1) * -1, color='red')
+    plt.xticks([0, 30], [0, 1])
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('Time (ms)', fontsize=14)
+    plt.ylabel('Voltage (µV)', fontsize=14)
+
+
+def plot_waveforms(sorted_df, tetrodeNum, figure_path):
+    # tetrodeNum:list - a list indicating which channel correspond to which tetrode
+    tqdm.write('I will plot the waveform shapes for each cluster.')
     for cluster in tqdm(range(len(sorted_df))):
         #extract waveforms from dataframe
         waveforms = sorted_df.waveforms[cluster]
         waveforms = np.stack([w for w in waveforms if w is not None])
-        max_channel = sorted_df.max_channel.values[cluster]
-        cluster_id = sorted_df.unit_id[cluster]
-        tetrode = max_channel//setting.num_tetrodes #get the tetrode number
+        max_channel = sorted_df.max_channel.values[cluster] # max_channel is w.r.t the original channel number before bad channel removal
+        tetrode = max_channel//setting.num_tetrodes
+        tetrodeIndices = np.where(tetrodeNum==tetrode)[0]
+        cluster_id = sorted_df.cluster_id[cluster]
         
         #plot spike waveform from the same tetrode
         fig = plt.figure()
-        for i in range(4):
+        for i,tetrodeIdx in enumerate(tetrodeIndices):
             ax = fig.add_subplot(2,2,i+1)
-            ax.plot(waveforms[:,tetrode+i,:].T,color='lightslategray')
-            template = waveforms[:,tetrode+i,:].mean(0)
+            tetrodeWaveforms = waveforms[:,tetrodeIdx,:]
+            ax.plot(tetrodeWaveforms.T,color='lightslategray')
+            template = waveforms[:,tetrodeIdx,:].mean(0)
             ax.plot(template, color='red')
+
+            #calculate the proper ylim
+            sd = np.std(tetrodeWaveforms)
+            high_val = template.max()+ (sd*4)
+            low_val = template.min() - (sd*4)
+            ax.set_ylim([low_val,high_val])
             
         plt.savefig(figure_path + '/' + sorted_df.session_id[cluster] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.savefig(figure_path + '/' + sorted_df.session_id[cluster] + '_' + str(cluster_id) + '_waveforms.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
-def plot_waveforms_opto(spike_data, prm):
+def plot_waveforms_opto(spike_data, figure_folder):
     if 'random_snippets_opto' in spike_data:
         print('I will plot the waveform shapes for each cluster for opto_tagging data.')
-        save_path = prm.get_output_path() + '/Figures/opto_tagging'
-        if os.path.exists(save_path) is False:
-            os.makedirs(save_path)
+        # save_path = prm.get_output_path() + '/Figures/opto_tagging'
+        # if os.path.exists(save_path) is False:
+        #     os.makedirs(save_path)
         for cluster in range(len(spike_data)):
-            cluster = spike_data.cluster_id.values[cluster] - 1
+            cluster_id = spike_data.cluster_id[cluster]
             max_channel = spike_data.primary_channel[cluster]
             highest_value = np.max(spike_data.random_snippets_opto[cluster][max_channel-1, :, :] * -1)
             lowest_value = np.min(spike_data.random_snippets_opto[cluster][max_channel-1, :, :] * -1)
@@ -169,20 +225,19 @@ def plot_waveforms_opto(spike_data, prm):
             for channel in range(4):
                 plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, 'random_snippets_opto')
 
-            plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
-            # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.pdf', bbox_inches='tight', pad_inches=0)
+            plt.savefig(figure_folder + '/' + spike_data.session_id[cluster] + '_' + str(cluster_id) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
             plt.close()
 
 
-'''
-Calculate median, 25th and 75th percentile of firing rate (y) at given speed (x) values. Speed is binned into 6 cm/s 
-overlapping bins with a 2 cm/s step size.
-
-Based on: Gois & Tort, 2018, Cell Reports 25, 1872–1884
-'''
 
 
 def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]':
+    '''
+    Calculate median, 25th and 75th percentile of firing rate (y) at given speed (x) values. Speed is binned into 6 cm/s 
+    overlapping bins with a 2 cm/s step size.
+
+    Based on: Gois & Tort, 2018, Cell Reports 25, 1872–1884
+    '''
     bin_size = 6
     step_size = 2
     number_of_bins = int((max(x) - min(x)) / 2)
@@ -207,20 +262,20 @@ def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[
     return np.array(median_x), np.array(median_y), np.array(percentile_25), np.array(percentile_75)
 
 
-'''
-Make scatter plot of speed vs firing rate and mark the median and the 25th and 75th percentiles.
 
-position : data frame that contains the speed of the animal as a column ('speed')
-spatial_firing : data frame that contains the firing times ('firing_times') and speed scores ('speed_score')
-sigma : standard deviation for Gaussian filter (sigma = 250 / video_sampling)
-sampling_rate_conversion : sampling rate of ephys data relative to seconds. If the firing times are in seconds then this
-should be 1.
-save_path : path to folder where the plot gets saved
+def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, figure_folder_path: str) -> None:    
+    '''
+    Make scatter plot of speed vs firing rate and mark the median and the 25th and 75th percentiles.
 
-'''
+    position : data frame that contains the speed of the animal as a column ('speed')
+    spatial_firing : data frame that contains the firing times ('firing_times') and speed scores ('speed_score')
+    sigma : standard deviation for Gaussian filter (sigma = 250 / video_sampling)
+    sampling_rate_conversion : sampling rate of ephys data relative to seconds. If the firing times are in seconds then this
+    should be 1.
+    save_path : path to folder where the plot gets saved
 
+    '''
 
-def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, figure_folder_path: str) -> None:
     sampling_rate_video = int(1 / position['synced_time'].diff().mean())
     sigma = gauss_sd / sampling_rate_video
 

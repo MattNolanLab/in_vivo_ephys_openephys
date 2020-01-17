@@ -23,8 +23,8 @@ def get_firing_info(firing_times_path):
             return units_list, firing_info, spatial_firing
         else:
             print('There are no sorting results available for this recording.')
+
     return units_list, firing_info, False
-        print('I could not find the MountainSort output [firing.mda] file.')
 
 
 # if the recording has dead channels, detected channels need to be shifted to get read channel ids
@@ -63,11 +63,11 @@ def process_firing_times2(session_id, sorted_data_path, session_type):
             tetrode  = ch//setting.num_tetrodes
             num_spikes = sorted_result.number_of_spikes[i]
             mean_rate = sorted_result.mean_firing_rate[i]
-            unit_id = sorted_result.unit_id[i]
+            cluster_id = sorted_result.cluster_id[i]
 
             dataframeList.append({
                     "session_id": session_id,
-                    "cluster_id":  unit_id,
+                    "cluster_id":  cluster_id,
                     "tetrode": tetrode,
                     "primary_channel": ch,
                     "firing_times": cluster_firings,

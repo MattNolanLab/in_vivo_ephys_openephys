@@ -88,7 +88,6 @@ def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.Data
     print('I will do the Rayleigh test to check if head-direction tuning is uniform.')
     rayleigh_ps = []
     for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
         hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
         p = get_rayleigh_score_for_cluster(hd_hist)
         rayleigh_ps.append(p)
@@ -187,8 +186,8 @@ def process_hd_data(spatial_firing, spatial_data, sampling_rate = setting.sampli
 
 
 # get HD data for a specific bin of the rate map
-def get_indices_for_bin(bin_in_field, spatial_data, prm):
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+def get_indices_for_bin(bin_in_field, spatial_data):
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     bin_x = bin_in_field[0]
     bin_x_left_pixels = bin_x * bin_size_pixels
     bin_x_right_pixels = (bin_x+1) * bin_size_pixels
@@ -206,11 +205,11 @@ def get_indices_for_bin(bin_in_field, spatial_data, prm):
 
 
 # get head-direction data from bins of field
-def get_hd_in_field_spikes(rate_map_indices, spatial_data, prm):
+def get_hd_in_field_spikes(rate_map_indices, spatial_data):
     hd_in_field = []
     event_times_in_field = []
     for bin_in_field in rate_map_indices:
-        inside_bin = get_indices_for_bin(bin_in_field, spatial_data, prm)
+        inside_bin = get_indices_for_bin(bin_in_field, spatial_data)
         hd = inside_bin.hd.values
         hd_in_field.extend(hd)
         event_times = inside_bin.firing_times.values
@@ -219,11 +218,11 @@ def get_hd_in_field_spikes(rate_map_indices, spatial_data, prm):
 
 
 # get head-direction data from bins of field
-def get_hd_in_field(rate_map_indices, spatial_data, prm):
+def get_hd_in_field(rate_map_indices, spatial_data):
     hd_in_field = []
     event_times_in_field = []
     for bin_in_field in rate_map_indices:
-        inside_bin = get_indices_for_bin(bin_in_field, spatial_data, prm)
+        inside_bin = get_indices_for_bin(bin_in_field, spatial_data)
         hd = inside_bin.hd.values
         hd_in_field.extend(hd)
         event_times = inside_bin.synced_time.values
@@ -232,7 +231,7 @@ def get_hd_in_field(rate_map_indices, spatial_data, prm):
 
 
 # return array of HD in subfield when cell fired for cluster
-def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster, prm):
+def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster):
     cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
     spatial_firing_cluster = pd.DataFrame(cluster_id)
     if type(spatial_firing.position_x_pixels[cluster]) is np.ndarray:
@@ -249,19 +248,19 @@ def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, clu
         spatial_firing_cluster['hd'] = spatial_firing.hd[cluster].values
 
     spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
-    hd_in_field, spike_times = get_hd_in_field_spikes(rate_map_indices, spatial_firing_cluster, prm)
+    hd_in_field, spike_times = get_hd_in_field_spikes(rate_map_indices, spatial_firing_cluster)
     hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field, spike_times
 
 
 # return array of HD angles in subfield when from the whole session
-def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices, prm):
+def get_hd_in_firing_rate_bins_for_session(spatial_data, rate_map_indices):
     spatial_data_field = pd.DataFrame()
     spatial_data_field['x'] = spatial_data.position_x_pixels
     spatial_data_field['y'] = spatial_data.position_y_pixels
     spatial_data_field['hd'] = spatial_data.hd
     spatial_data_field['synced_time'] = spatial_data.synced_time
-    hd_in_field, times = get_hd_in_field(rate_map_indices, spatial_data_field, prm)
+    hd_in_field, times = get_hd_in_field(rate_map_indices, spatial_data_field)
     hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field, times
 

@@ -193,7 +193,7 @@ def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cl
 def quick_spike_plot(spike_data, figure_path, trials, locations, cluster_index):
     plt.plot(locations, trials, 'o', markersize=0.5)
     cluster_id = spike_data.cluster_id[cluster_index]
-    plt.savefig(figure_path + spike_data.session_id[cluster_index] + str(cluster_id +1) + '.png')
+    plt.savefig(figure_path + spike_data.session_id[cluster_index] + '_'+str(cluster_id) + '.png')
     plt.close()
     return
 
@@ -208,6 +208,7 @@ def make_firing_field_maps_all(spike_data, raw_position_data, processed_position
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)
         firing_rate_map = normalise_spike_number_by_time_all(firing_rate_map, processed_position_data.binned_time_ms_per_trial)
         firing_rate_map = smooth_spike_rate(firing_rate_map)
+        
         plot_rate_data(figure_path, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         plot_rate_norm_data(figure_path, firing_rate_map, spike_data, np.max(array_of_trials), cluster_index)
         #firing_rate_map = gaussian_convolve_spike_rate(firing_rate_map)

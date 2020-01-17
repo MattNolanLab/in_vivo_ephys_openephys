@@ -10,25 +10,17 @@ import PostSorting
 import setting
 import pandas as pd
 from collections import namedtuple
-from SnakeIOHelper import getSnake
+import SnakeIOHelper
 import pickle
 #%% define input and output
-if 'snakemake' not in locals(): 
-    #Run the the file from the root project directory
-    smk = getSnake('op_workflow.smk',[setting.debug_folder+'/processed/spatial_firing_of.hdf'],
-        'process_expt' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
 
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_of.pkl'],
+    'process_expt')
 #%% Load data
-spike_data = pd.read_hdf(sinput.spatial_firing)
-synced_spatial_data = pd.read_hdf(sinput.position)
+spike_data = pd.read_pickle(sinput.spatial_firing)
+synced_spatial_data = pd.read_pickle(sinput.position)
 
 #%% Proccess spike data together with location data
-#TODO curate data
 spike_data_spatial = open_field_spatial_firing.add_firing_locations(spike_data, synced_spatial_data)
 spike_data_spatial = speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250,
         setting.sampling_rate)
@@ -41,11 +33,10 @@ position_heat_map, spatial_firing = open_field_firing_maps.make_firing_field_map
 
 #%%
 spatial_firing = open_field_grid_cells.process_grid_data(spatial_firing)
-spatial_firing = open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data)
+spatial_firing = open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, soutput.hd_csv)
   
-
 #%% Save
-spatial_firing.to_hdf(soutput.spatial_firing_of, 'spatial_firing_of', mode='w')
+spatial_firing.to_pickle(soutput.spatial_firing_of)
 pickle.dump(hd_histogram,open(soutput.hd_histogram,'wb'))
 pickle.dump(position_heat_map, open(soutput.position_heat_map,'wb'))
   
