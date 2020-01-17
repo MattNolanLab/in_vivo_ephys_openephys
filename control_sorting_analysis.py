@@ -297,8 +297,9 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         if not os.environ.get('DEBUG'): # Keep the recording files during debug run
             shutil.rmtree(recording_to_sort)
 
-            if os.path.exists(paired_recording_to_sort) is True:
-                shutil.rmtree(paired_recording_to_sort)
+            if paired_recording is not None:
+                if os.path.exists(paired_recording_to_sort) is True:
+                    shutil.rmtree(paired_recording_to_sort)
 
             if os.path.exists(mountainsort_tmp_folder) is True:
                 shutil.rmtree(mountainsort_tmp_folder)
