@@ -37,7 +37,7 @@ The each script of the workflow can be run independently or as a workflow as a w
         snakemake --snakefile op_workflow.smk
         ```
         
-        It will automatically run the pipeline in all recordings in that folder. It will also automatically skip the ones that are already processed.
+        It will automatically run the pipeline in all recordings in that folder. It will also automatically skip the ones that are already processed. The `processed/completed.txt` is just an empty file to signify to snakemake that it has completed all the workflow successfully.
 
 ### Common pitfalls
 - **Snakemake doesn't rerun when you change the code** 
