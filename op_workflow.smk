@@ -81,7 +81,7 @@ rule plot_figures:
         spatial_firing = '{recording}/processed/spatial_firing_of.pkl',
         position = '{recording}/processed/synced_spatial_data.pkl',
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
-        hd_histogram = '{recording}/processed/hd_histogram.pkl',
+        hd_histogram = '{recording}/processed/hd_histogram.pkl'
     output:
         spike_histogram = directory(figure_prefix+'/spike_histogram/'),
         autocorrelogram = directory(figure_prefix+'/autocorrelogram/'),
