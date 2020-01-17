@@ -58,7 +58,7 @@ The each script of the workflow can be run independently or as a workflow as a w
     ```
 - How to view plots on Eleanor
 
-    If you are running the pipeline on a remote server, one of the easiest way to see the plots is simply to run a HTTP server on it. To do that, map to a local port when you connect to the remote server e.g.
+    If you are running the pipeline on a remote server, one of the easy way to see the plots is simply to run a HTTP server on it. To do that, map to a local port when you connect to the remote server e.g.
     ```
     ssh 8000:localhost:8000 ubuntu@<your ip>
     ```
@@ -67,6 +67,12 @@ The each script of the workflow can be run independently or as a workflow as a w
     python -m http.server
     ```
     By default the folders on the remote server should be reachable by `http://localhost:8000` in your browser
+
+    If you are on Linux, the better way is to map the remote folder to a local folder using [sshfs](https://askubuntu.com/questions/412477/mount-remote-directory-using-ssh)
+
+- Executing cell blocks
+
+    Each script contains sections marked by `%@@`. They indicate execution cells that can be run indepedently by supported editor like VS Code or [Pycharm via scientific mode](https://www.jetbrains.com/help/idea/matplotlib-tutorial.html#). These cell block allow you to debug and develop a specific function without rerunning the whole script. Try to utitlize it to keep yourself sane when developing new analysis.
 
 ### Known issues
 - Always need to have all the files (e.g. dead_channels.txt), even if they are empty

@@ -16,7 +16,7 @@ import pickle
 
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_of.pkl'],
     'process_expt')
-    
+
 #%% Load data
 spike_data = pd.read_pickle(sinput.spatial_firing)
 synced_spatial_data = pd.read_pickle(sinput.position)
@@ -26,13 +26,13 @@ spike_data_spatial = open_field_spatial_firing.add_firing_locations(spike_data, 
 spike_data_spatial = speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250,
         setting.sampling_rate)
 
-#%%
+#%% Calculate head direction tuning
 hd_histogram, spatial_firing = open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
 
-#%%
+#%% Make firing field heat map
 position_heat_map, spatial_firing = open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial)
 
-#%%
+#%% Process grid data and analyze firing field
 spatial_firing = open_field_grid_cells.process_grid_data(spatial_firing)
 spatial_firing = open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, soutput.hd_csv)
   

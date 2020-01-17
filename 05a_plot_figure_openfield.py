@@ -15,6 +15,7 @@ import logging
 'plot_figures')
 
 logger = logging.Logger(__file__)
+
 #%% Load data
 spatial_firing = pd.read_pickle(sinput.spatial_firing)
 position_data = pd.read_pickle(sinput.position)
@@ -76,5 +77,3 @@ open_field_make_plots.make_combined_figure(soutput.combined, spatial_firing)
 #create the dummy file for output
 with open(soutput.result,'w') as f:
     pass
-
-#%%
