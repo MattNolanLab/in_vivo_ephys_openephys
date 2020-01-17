@@ -71,7 +71,7 @@ rule process_expt:
         spatial_firing_of = '{recording}/processed/spatial_firing_of.pkl',
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
         hd_histogram = '{recording}/processed/hd_histogram.pkl',
-        # hd_csv = directory('{recording}/processed/firing_fields/')
+        hd_csv = directory('{recording}/processed/firing_fields/')
     script:
         '04a_process_expt_openfield.py'
 
