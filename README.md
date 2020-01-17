@@ -54,7 +54,15 @@ The each script of the workflow can be run independently or as a workflow as a w
     ```
 - How to view plots on Eleanor
 
-    If you are running the pipeline on a remote server, one of the easiest way to see the plots is simply to run a HTTP server on it
+    If you are running the pipeline on a remote server, one of the easiest way to see the plots is simply to run a HTTP server on it. To do that, map to a local port when you connect to the remote server e.g.
+    ```
+    ssh 8000:localhost:8000 ubuntu@<your ip>
+    ```
+    Then at the folder of your choice, execute
+    ```
+    python -m http.server
+    ```
+    By default the folders on the remote server should be reachable by `http://localhost:8000` in your browser
 
 ### Known issues
 - Always need to have all the files (e.g. dead_channels.txt), even if they are empty
@@ -62,4 +70,4 @@ The each script of the workflow can be run independently or as a workflow as a w
 - Currently it doesn't read any experiment-specific parameters from the parameter file. It will be implemented later.
 
 ### Other problems
-- Please file a issue for any problem that you have found!
+- Please file a issue for any problem that you have found. Thank you!
