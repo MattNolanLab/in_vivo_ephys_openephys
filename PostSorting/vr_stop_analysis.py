@@ -165,7 +165,7 @@ def get_stops_from_binned_speed(processed_position_data, prm):
         df1 = pd.DataFrame({"cue_rewarded_positions": pd.Series(cue_rewarded_positions),
                             "cue_rewarded_trial_number": pd.Series(cue_rewarded_trial_number),
                             "cue_rewarded_trial_type": pd.Series(cue_rewarded_trial_type)})
-    processed_position_data = pd.concat([processed_position_data, df1], axis=1)
+        processed_position_data = pd.concat([processed_position_data, df1], axis=1)
 
     return processed_position_data
 
