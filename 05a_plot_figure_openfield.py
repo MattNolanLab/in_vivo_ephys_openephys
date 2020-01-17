@@ -4,32 +4,24 @@ import setting
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
-from SnakeIOHelper import getSnake
+import SnakeIOHelper 
 import pickle
 import PostSorting.open_field_make_plots as open_field_make_plots
 import logging
 
 #%% define input and output
-if 'snakemake' not in locals(): 
-    #Run the the file from the root project directory
-    smk = getSnake('op_workflow.smk',[setting.debug_folder+'/processed/figures/completed.txt'],
-        'plot_figures' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
+
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/completed.txt'],
+'plot_figures')
 
 logger = logging.Logger(__file__)
 #%% Load data
-spatial_firing = pd.read_hdf(sinput.spatial_firing)
-position_data = pd.read_hdf(sinput.position)
+spatial_firing = pd.read_pickle(sinput.spatial_firing)
+position_data = pd.read_pickle(sinput.position)
 hd_histogram = pickle.load(open(sinput.hd_histogram,'rb'))
 position_heat_map = pickle.load(open(sinput.position_heat_map,'rb'))
 
 #%% plot figures
-# PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
-# PostSorting.make_plots.plot_waveforms_opto(spatial_firing, prm)
 logger.info('I will plot spikes vs time for the whole session excluding opto tagging.')
 PostSorting.make_plots.plot_spike_histogram(spatial_firing, soutput.spike_histogram)
 
