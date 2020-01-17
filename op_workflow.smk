@@ -49,7 +49,7 @@ rule process_position:
     output:    
         opto_pulse = '{recording}/processed/opto_pulse.pkl',
         hd_power_spectrum = '{recording}/processed/hd_power_spectrum.png',
-        synced_spatial_data = '{recording}/processed/synced_spatial_data.hdf',
+        synced_spatial_data = '{recording}/processed/synced_spatial_data.pkl',
         sync_pulse = '{recording}/processed/sync_pulse.png'
     script:
         '02a_process_position.py'
@@ -59,18 +59,19 @@ rule process_firings:
         recording_to_sort = '{recording}',
         sorted_data_path = '{recording}/processed/'+setting.sorterName+'/sorter_curated_df.pkl'
     output:
-        spatial_firing = '{recording}/processed/spatial_firing.hdf'
+        spatial_firing = '{recording}/processed/spatial_firing.pkl'
     script:
         '03a_process_firings.py'
 
 rule process_expt:
     input:
-        spatial_firing = '{recording}/processed/spatial_firing.hdf',
-        position = '{recording}/processed/synced_spatial_data.hdf'
+        spatial_firing = '{recording}/processed/spatial_firing.pkl',
+        position = '{recording}/processed/synced_spatial_data.pkl'
     output:
-        spatial_firing_of = '{recording}/processed/spatial_firing_of.hdf',
+        spatial_firing_of = '{recording}/processed/spatial_firing_of.pkl',
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
-        hd_histogram = '{recording}/processed/hd_histogram.pkl'
+        hd_histogram = '{recording}/processed/hd_histogram.pkl',
+        hd_csv = directory('{recording}/processed/firing_fields/')
     script:
         '04a_process_exprt_openfield.py'
 
