@@ -16,6 +16,7 @@ import pickle
 
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_of.pkl'],
     'process_expt')
+    
 #%% Load data
 spike_data = pd.read_pickle(sinput.spatial_firing)
 synced_spatial_data = pd.read_pickle(sinput.position)

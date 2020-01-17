@@ -17,20 +17,20 @@ def optionalFile(path):
     else:
         return [None]
 
-recordings = getRecording2sort('testData')
+recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
 sorterPrefix = '{recording}/processed/'+setting.sorterName
 figure_prefix = '{recording}/processed/figures'
 
 rule all:
     input:
-        result=expand('{recording}/processed/results.txt',recording=recordings)
+        result=expand('{recording}/processed/completed.txt',recording=recordings)
 
 rule sort_spikes:
     input:
         probe_file = 'sorting_files/tetrode_16.prb',
         sort_param = 'sorting_files/params.json',
         tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
-        recording_to_sort = directory('{recording}'),
+        recording_to_sort = '{recording}',
         dead_channel = '{recording}/dead_channels.txt'
     
     output:
@@ -71,15 +71,15 @@ rule process_expt:
         spatial_firing_of = '{recording}/processed/spatial_firing_of.pkl',
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
         hd_histogram = '{recording}/processed/hd_histogram.pkl',
-        hd_csv = directory('{recording}/processed/firing_fields/')
+        # hd_csv = directory('{recording}/processed/firing_fields/')
     script:
-        '04a_process_exprt_openfield.py'
+        '04a_process_expt_openfield.py'
 
 
 rule plot_figures:
     input:
-        spatial_firing = '{recording}/processed/spatial_firing_of.hdf',
-        position = '{recording}/processed/synced_spatial_data.hdf',
+        spatial_firing = '{recording}/processed/spatial_firing_of.pkl',
+        position = '{recording}/processed/synced_spatial_data.pkl',
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
         hd_histogram = '{recording}/processed/hd_histogram.pkl',
     output:
@@ -98,7 +98,7 @@ rule plot_figures:
         firing_field_plots =  directory(figure_prefix+'/firing_field_plots/'),
         firing_fields_coloured_spikes = directory(figure_prefix+'/firing_fields_coloured_spikes/'),
         combined = directory(figure_prefix+'/combined/'),
-        result = figure_prefix+'/completed.txt'
+        result = '{recording}/processed/completed.txt'
 
     script:
         '05a_plot_figure_openfield.py'

@@ -10,7 +10,7 @@ def getRecording2sort(base_folder):
 
     return folder
 
-recordings = getRecording2sort('testData')
+recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
 sorterPrefix = '{recording}/processed/'+setting.sorterName
 
 rule all:
