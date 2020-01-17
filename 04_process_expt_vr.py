@@ -30,5 +30,4 @@ spike_data_vr = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spi
 #%% save data
 spike_data.to_pickle(soutput.spatial_firing_vr)
 
-
 #%%

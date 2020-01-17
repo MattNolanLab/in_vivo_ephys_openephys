@@ -9,20 +9,12 @@ import setting
 import gc
 import control_sorting_analysis
 import hd_sampling_analysis
-from SnakeIOHelper import getSnake
+import SnakeIOHelper
 import PostSorting.open_field_light_data as open_field_light_data
 
-#%% define input and output
-if 'snakemake' not in locals(): 
-    #Run the the file from the root project directory
-    smk = getSnake('op_workflow.smk',[setting.debug_folder+'/processed/opto_pulse.pkl'],
-        'process_position' )
-    sinput = smk.input
-    soutput = smk.output
-else:
-    sinput = snakemake.input
-    soutput = snakemake.output
-
+#%% define input and outpu
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/opto_pulse.pkl'],
+    'process_position')
 
 #%% Read tags from folder
 tags = control_sorting_analysis.get_tags_parameter_file(sinput.recording_to_sort)
@@ -51,4 +43,4 @@ open_field_sync_data.plot_sync_pulse(synced_spatial_data, ephys_sync_data, soutp
 
 #%% Save
 
-synced_spatial_data.to_hdf(soutput.synced_spatial_data, 'synced_spatial_data',mode='w')
+synced_spatial_data.to_pickle(soutput.synced_spatial_data)
