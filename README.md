@@ -31,7 +31,7 @@ The each script of the workflow can be run independently or as a workflow as a w
 
 
         or if you have put your files in `/home/ubuntu/to_sort/recordings`,
-        simple run 
+        simply run 
         
         ```
         snakemake --snakefile op_workflow.smk
@@ -42,7 +42,7 @@ The each script of the workflow can be run independently or as a workflow as a w
 ### Common pitfalls
 - **Snakemake doesn't rerun when you change the code** 
 
-    When running the workflow as a whole, snakemake will determine automatically which part of the code needs to be rerun. Basically it checks the time of the output and input files, if the inputs are newers than the outputs, then it will run that script, otherwise it will skip it and continue with the next script. You can use the `--forceall` parameter when running snakemake to force it to rerun the annalysis. 
+    When running the workflow as a whole, snakemake will determine automatically which part of the code needs to be rerun. Basically it checks the time of the output and input files, if the inputs are newer than the outputs, then it will run that script, otherwise it will skip it and continue with the next script. You can use the `--forceall` parameter when running snakemake to force it to rerun the analysis. 
 
     You won't have this problem when running each script independently.
 
