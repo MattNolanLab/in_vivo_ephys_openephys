@@ -3,9 +3,8 @@ import numpy as np
 import pandas as pd
 import subprocess
 import PostSorting.open_field_head_direction
-
 import matplotlib.pylab as plt
-
+import setting
 
 # return indices of neighbors of bin considering borders
 def find_neighbors(bin_to_test, max_x, max_y):
@@ -185,7 +184,8 @@ def analyze_fields_in_cluster(spatial_firing, cluster, firing_fields=None, max_f
 
 
 # find firing fields and add them to spatial firing data frame
-def analyze_firing_fields(spatial_firing, spatial_data, get_first_half_only=False, get_second_half_only=False):
+# FIXME: work with two halves analysis
+def analyze_firing_fields(spatial_firing, spatial_data,hd_csv_path, get_first_half_only=False, get_second_half_only=False):
     #TODO integrate the R analysis
     print('I will identify individual firing fields if possible.')
     firing_fields = []
@@ -195,7 +195,7 @@ def analyze_firing_fields(spatial_firing, spatial_data, get_first_half_only=Fals
         spatial_firing_whole_session = pd.read_pickle(prm.get_local_recording_folder_path() + '/DataFrames/spatial_firing.pkl')
         spatial_firing['firing_fields'] = spatial_firing_whole_session.firing_fields
         spatial_firing['field_max_firing_rate'] = spatial_firing_whole_session.max_firing_rate
-        spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data)
+        spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data,hd_csv_path)
         return spatial_firing
 
     for cluster in range(len(spatial_firing)):
@@ -203,18 +203,18 @@ def analyze_firing_fields(spatial_firing, spatial_data, get_first_half_only=Fals
 
     spatial_firing['firing_fields'] = firing_fields
     spatial_firing['field_max_firing_rate'] = max_firing_rates
-    spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data)
+    spatial_firing = analyze_hd_in_firing_fields(spatial_firing, spatial_data, hd_csv_path)
     return spatial_firing
 
 
 # save hd that corresponds to fields
-def save_hd_in_fields(hd_session, hd_cluster, cluster, field_id, prm):
-    fields_path = prm.get_filepath() + '/Firing_fields/'
-    save_path = fields_path + str(int(cluster + 1)) + '/'
+def save_hd_in_fields(hd_session, hd_cluster, cluster, field_id, hd_save_path):
+    # fields_path = prm.get_filepath() + '/Firing_fields/'
+    save_path = hd_save_path + str(int(cluster + 1)) + '/'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_session.csv', hd_session, delimiter=',')
-    np.savetxt(save_path + 'field_' + str(int(field_id + 1)) + '_cluster.csv', hd_cluster, delimiter=',')
+    np.savetxt(hd_save_path + 'field_' + str(int(field_id + 1)) + '_session.csv', hd_session, delimiter=',')
+    np.savetxt(hd_save_path + 'field_' + str(int(field_id + 1)) + '_cluster.csv', hd_cluster, delimiter=',')
 
 
 def write_shell_script_to_call_r_analysis(fields_path, cluster):
@@ -238,12 +238,13 @@ def analyze_fields_r(fields_path, cluster):
     subprocess.call(path + '/run_r.sh', shell=True)
 
 
-def analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field_id):
-    hd_in_field_session, times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
-    hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster, prm)
-    save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, cluster, field_id, prm)
+def analyze_hd_in_field(spatial_data, field, 
+    spatial_firing, cluster, field_id, hd_csv_path, sample_rate = setting.sampling_rate):
+    hd_in_field_session, times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field)
+    hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster)
+    save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, cluster, field_id,hd_csv_path)
     hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
-    hd_hist_session /= prm.get_sampling_rate()
+    hd_hist_session /= sample_rate
     hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
     max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
     hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
@@ -251,7 +252,7 @@ def analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field
     return hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction, hd_in_field_cluster, hd_in_field_session, spike_times_in_field, times_in_field
 
 
-def analyze_hd_in_firing_fields(spatial_firing, spatial_data):
+def analyze_hd_in_firing_fields(spatial_firing, spatial_data, hd_csv_path):
     print('I will analyze head-direction in the detected firing fields.')
     hd_session_all = []
     hd_cluster_all = []
@@ -277,7 +278,7 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data):
         times_in_field_sessions = []
         if number_of_firing_fields > 0:
             for field_id, field in enumerate(firing_fields_cluster):
-                hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction, hd_in_field_cluster, hd_in_field_session, spike_times_in_field, times_in_field = analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster, field_id)
+                hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction, hd_in_field_cluster, hd_in_field_session, spike_times_in_field, times_in_field = analyze_hd_in_field(spatial_data, field, spatial_firing, cluster, field_id, hd_csv_path)
                 hd_session.append(list(hd_hist_session))
                 hd_cluster.append(list(hd_hist_cluster))
                 max_firing_rate.append(max_firing_rate_cluster/1000)
