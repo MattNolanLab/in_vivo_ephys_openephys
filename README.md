@@ -10,7 +10,7 @@ Each script will read in some data file and always save some output in the end. 
 
 ### How to use
 The each script of the workflow can be run independently or as a workflow as a whole. Running each scirpt independently is great for debugging and development, while running the whole workflow is for batch processing.
-- To open each script independently
+- To run each script independently
     - Define the record to sort in the `debug_folder` in `setting.py` e.g. 
     
         ```
@@ -38,7 +38,9 @@ The each script of the workflow can be run independently or as a workflow as a w
 ### Common pitfalls
 - **Snakemake doesn't rerun when you change the code** 
 
-    When running the workflow as a whole, snakemake will determine automatically which part of the code needs to be rerun. Basically it checks the time of the output and input files, if the inputs are newers than the outputs, then it will run that script, otherwise it will skip it and continue with the next script.
+    When running the workflow as a whole, snakemake will determine automatically which part of the code needs to be rerun. Basically it checks the time of the output and input files, if the inputs are newers than the outputs, then it will run that script, otherwise it will skip it and continue with the next script. You can use the `--forceall` parameter when running snakemake to force it to rerun the annalysis. 
+
+    You won't have this problem when running each script independently.
 
 
 ### Tips and tricks
@@ -52,12 +54,12 @@ The each script of the workflow can be run independently or as a workflow as a w
     ```
 - How to view plots on Eleanor
 
-    If you are running the pipeline on a remote server, one the easiest way to 
+    If you are running the pipeline on a remote server, one of the easiest way to see the plots is simply to run a HTTP server on it
 
 ### Known issues
 - Always need to have all the files (e.g. dead_channels.txt), even if they are empty
 - There should be a folder '/home/ubuntu/to_sort/recordings'
-
+- Currently it doesn't read any experiment-specific parameters from the parameter file. It will be implemented later.
 
 ### Other problems
 - Please file a issue for any problem that you have found!
