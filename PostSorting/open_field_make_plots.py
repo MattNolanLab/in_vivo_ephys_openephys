@@ -230,10 +230,10 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, 
                     hd_hist_cluster_normalized = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
                     save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster_normalized, cluster, cluster_id, spatial_firing, colors, field_id, '_firing_field_')
-                    save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster, cluster, cluster_id, spatial_firing, colors, field_id, '_firing_field_raw')
+                    save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster, cluster, cluster_id, spatial_firing, colors, field_id, '_firing_field_raw_')
 
-                plt.savefig(figure_folder_path + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
-                # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.pdf', bbox_inches="tight")
+                plt.savefig(figure_folder_path + spatial_firing.session_id[cluster] + '_firing_fields_rate_map_' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
+                # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
 
@@ -303,13 +303,12 @@ def make_combined_figure(figure_folder_path, spatial_firing, sorter_name = setti
         rate_map_path = figures_path + '/rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster_id) + '.png'
         head_direction_polar_path = figures_path + '/head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster_id) + '.png'
         head_direction_map_path = figures_path + '/head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster_id) + '.png'
-        firing_fields_rate_map_path = figures_path + '/rate_maps/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map_' + str(cluster_id) + '.png'
         spike_histogram_path = figures_path + '/spike_histogram/' + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_spike_hist.png'
         speed_histogram_path = figures_path + '/firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_speed_histogram.png'
+        firing_fields_rate_map_path = figures_path + '/firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map_' + str(cluster_id) + '.png'
         firing_field_path = figures_path + '/firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster_id) + '_firing_field_'
         autocorrelogram_path = figures_path + '/autocorrelogram/' + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_autocorrelograms.png'
         waveforms_path = figures_path + f'/../{sorter_name}/waveform/' + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_waveforms.png'
-        print(waveforms_path)
 
         rate_map_autocorrelogram_path = figures_path + '/rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster_id) + '.png'
         speed_vs_firing_rate_path = figures_path + '/firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster_id) + '_speed_vs_firing_rate.png'
