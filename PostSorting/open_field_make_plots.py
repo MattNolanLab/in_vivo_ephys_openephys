@@ -164,7 +164,7 @@ def plot_single_polar_hd_hist(hist_1, cluster, save_path, color1='lime', title='
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     ax = plt.subplot(1, 1, 1, polar=True)
     ax = plot_utility.style_polar_plot(ax)
-    ax.plot(theta[:-1], hist_1, color=color1, linewidth=2)
+    ax.plot(theta[:-1], hist_1, color=color1, linewidth=4)
     plt.title(title)
     # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
     plt.tight_layout()
