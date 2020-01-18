@@ -58,6 +58,18 @@ def tag_false_positives(spatial_firing):
     return spatial_firing
 
 
+def get_time_spent_and_num_spikes(df_grid):
+    print('Avg length of recording:')
+    print((df_grid.number_of_spikes / df_grid.mean_firing_rate / 60).mean())
+    print('sd')
+    print((df_grid.number_of_spikes / df_grid.mean_firing_rate / 60).std())
+
+    print('Avg number of spikes:')
+    print(df_grid.number_of_spikes.mean())
+    print('sd')
+    print(df_grid.number_of_spikes.std())
+
+
 def print_basic_info(df, animal):
     if animal == 'mouse':
         df = tag_false_positives(df)
@@ -75,6 +87,10 @@ def print_basic_info(df, animal):
     print(len(df_grid))
     print('Number of conjunctive cells:')
     print(len(df_conj))
+
+    get_time_spent_and_num_spikes(df_grid)
+
+
     animals_with_grid_cells = df_grid.animal.unique()
     animals_with_conj_cells = df_conj.animal.unique()
 
@@ -107,7 +123,10 @@ def main():
     rat_df_path = analysis_path + 'all_rats_df.pkl'
     rat_df = pd.read_pickle(rat_df_path)
 
+    print('mouse')
     print_basic_info(mouse_df, 'mouse')
+    print('rat')
+    print_basic_info(rat_df, 'rat')
 
 
 if __name__ == '__main__':
