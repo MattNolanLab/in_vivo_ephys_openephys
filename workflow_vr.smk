@@ -15,7 +15,7 @@ sorterPrefix = '{recording}/processed/'+setting.sorterName
 
 rule all:
     input:
-        result=expand('{recording}/processed/results.txt',recording=recordings)
+        result=expand('{recording}/processed/snakemake.done',recording=recordings)
 
 rule sort_spikes:
     input:
@@ -23,7 +23,7 @@ rule sort_spikes:
         sort_param = 'sorting_files/params.json',
         tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
         recording_to_sort = '{recording}',
-        dead_channel = '{recording}/dead_channels.txt'
+        # dead_channel = '{recording}/dead_channels.txt'
     
     output:
         sorter = sorterPrefix +'/sorter.pkl',
@@ -86,6 +86,6 @@ rule plot_figures:
         spike_trajectories = directory('{recording}/processed/figures/spike_trajectories/'),
         spike_rate =  directory('{recording}/processed/figures/spike_rate/'),
         convolved_rate = directory('{recording}/processed/figures/ConvolvedRates_InTime/'),
-        result = '{recording}/processed/completed.txt'
+        result = touch('{recording}/processed/snakemake.done')
     script:
         '05_plot_figure_vr.py'

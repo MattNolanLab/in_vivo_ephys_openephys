@@ -23,7 +23,7 @@ figure_prefix = '{recording}/processed/figures'
 
 rule all:
     input:
-        result=expand('{recording}/processed/completed.txt',recording=recordings)
+        result=expand('{recording}/processed/snakemake.done',recording=recordings)
 
 rule sort_spikes:
     input:
@@ -31,7 +31,7 @@ rule sort_spikes:
         sort_param = 'sorting_files/params.json',
         tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
         recording_to_sort = '{recording}',
-        dead_channel = '{recording}/dead_channels.txt'
+        # dead_channel = '{recording}/dead_channels.txt'
     
     output:
         sorter = sorterPrefix +'/sorter.pkl',
@@ -98,7 +98,7 @@ rule plot_figures:
         firing_field_plots =  directory(figure_prefix+'/firing_field_plots/'),
         firing_fields_coloured_spikes = directory(figure_prefix+'/firing_fields_coloured_spikes/'),
         combined = directory(figure_prefix+'/combined/'),
-        result = '{recording}/processed/completed.txt'
+        result = touch('{recording}/processed/snakemake.done')
 
     script:
         '05a_plot_figure_openfield.py'
