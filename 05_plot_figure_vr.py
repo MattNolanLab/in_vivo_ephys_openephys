@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import SnakeIOHelper 
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/completed.txt'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/snakemake.done'],
     'plot_figures')
 #%% Load data
 spike_data = pd.read_pickle(sinput.spatial_firing_vr)
