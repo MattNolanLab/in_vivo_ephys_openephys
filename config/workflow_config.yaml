@@ -1,0 +1,3 @@
+snakefiles:
+  vr: workflow_vr.smk
+  openfield: workflow_of.smk
