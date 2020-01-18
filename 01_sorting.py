@@ -4,6 +4,7 @@ import logging
 import os
 import pickle
 from collections import namedtuple
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -35,7 +36,12 @@ logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 signal = file_utility.load_OpenEphysRecording(sinput.recording_to_sort)
 geom = pd.read_csv(sinput.tetrode_geom,header=None).values
-bad_channel = file_utility.getDeadChannel(sinput.dead_channel)
+
+dead_channel_path =  Path(sinput.recording_to_sort+'/dead_channels.txt')
+if dead_channel_path.exists():
+    bad_channel = file_utility.getDeadChannel(dead_channel_path)
+else:
+    bad_channel = []
 
 
 #%% Create and filter the recording
