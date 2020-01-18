@@ -11,13 +11,14 @@ import control_sorting_analysis
 import hd_sampling_analysis
 import SnakeIOHelper
 import PostSorting.open_field_light_data as open_field_light_data
+from file_utility import get_tags_parameter_file
 
 #%% define input and outpu
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/opto_pulse.pkl'],
     'process_position')
 
 #%% Read tags from folder
-tags = control_sorting_analysis.get_tags_parameter_file(sinput.recording_to_sort)
+tags = get_tags_parameter_file(sinput.recording_to_sort)
 unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = ppsd.process_running_parameter_tag(
     tags)
     

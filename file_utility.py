@@ -166,3 +166,64 @@ def convertContinuous2Binary(continuousFolder, binaryFolder):
         setting.data_file_suffix, dtype=np.int16)
     OpenEphys.writeBinaryData(binaryFolder,data)
     OpenEphys.writeStructFile(binaryFolder+'/structure.oebin',headers)
+
+
+
+def get_location_on_server(recording_directory):
+    parameters_path = recording_directory + '/parameters.txt'
+    param_file_reader = open(parameters_path, 'r')
+    parameters = param_file_reader.readlines()
+    parameters = list([x.strip() for x in parameters])
+    location_on_server = parameters[1]
+    return location_on_server
+
+def parse_parameter_file(parameter_file_path):
+    # parse the parameter file
+    parameters_path = parameter_file_path
+    lines = open(parameters_path,'r').read().split('\n')
+    d = {}
+    d['expt_type'] = lines[0]
+    d['path'] = lines[1]
+    
+    if len(lines) > 2:
+        d['tag'] = lines[2].split()
+    else:
+        d['tag'] = []
+    
+    return d
+
+
+def get_tags_parameter_file(recording_directory):
+    tags = False
+    parameters_path = recording_directory + '/parameters.txt'
+    param_file_reader = open(parameters_path, 'r')
+    parameters = param_file_reader.readlines()
+    parameters = list([x.strip() for x in parameters])
+    if len(parameters) > 2:
+        tags = parameters[2]
+    return tags
+
+
+def write_param_file_for_matlab(file_to_sort, path_to_server, is_openfield, is_vr, matlab_params_file_path, server_path_first_half):
+    if is_openfield:
+        openfield = 1
+    else:
+        openfield = 0
+    opto = 1
+    params_for_matlab_file = open(matlab_params_file_path + "PostClusteringParams.txt", "w")
+    params_for_matlab_file.write(file_to_sort + ',\n')
+    params_for_matlab_file.write(server_path_first_half + path_to_server + ',\n')
+    params_for_matlab_file.write(str(openfield) + ',\n')
+    params_for_matlab_file.write(str(opto))
+    params_for_matlab_file.close()
+
+
+def write_shell_script_to_call_matlab(file_to_sort):
+    script_path = file_to_sort + '/run_matlab.sh'
+    batch_writer = open(script_path, 'w', newline='\n')
+    batch_writer.write('#!/bin/bash\n')
+    batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
+    batch_writer.write('echo "This is a shell script that will call matlab."\n')
+    batch_writer.write('export MATLABPATH=/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/\n')
+
+    batch_writer.write('matlab -r PostClusteringAuto')
