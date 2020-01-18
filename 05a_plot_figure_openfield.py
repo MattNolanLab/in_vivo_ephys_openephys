@@ -11,7 +11,7 @@ import logging
 
 #%% define input and output
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/completed.txt'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/snakemake.done'],
 'plot_figures')
 
 logger = logging.Logger(__file__)
@@ -72,8 +72,3 @@ open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, soutput.firin
 #%% Combine all figures
 logger.info('I will make the combined images now.')
 open_field_make_plots.make_combined_figure(soutput.combined, spatial_firing)
-
-#%%
-#create the dummy file for output
-with open(soutput.result,'w') as f:
-    pass
