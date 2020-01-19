@@ -8,6 +8,7 @@ import OverallAnalysis.compare_shuffled_from_first_and_second_halves_fields
 import OverallAnalysis.false_positives
 import pandas as pd
 import PostSorting.parameters
+import plot_utility
 
 import scipy
 
@@ -66,12 +67,18 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         percentile_95 = cell['error_bar_95']
         percentile_5 = cell['error_bar_5']
         shuffled_histograms_hz = cell['shuffled_histograms_hz']
-        x_pos = np.arange(shuffled_histograms_hz.shape[1])
+        hd_polar_fig = plt.figure()
+
+        # x_pos = np.arange(shuffled_histograms_hz.shape[1])
+        x_pos = np.linspace(0, 2*np.pi, shuffled_histograms_hz.shape[1])
         fig, ax = plt.subplots()
-        ax = OverallAnalysis.shuffle_cell_analysis.format_bar_chart(ax)
-        ax.errorbar(x_pos, mean, yerr=[percentile_5, percentile_95], alpha=0.7, color='black', ecolor='grey', capsize=10, fmt='o', markersize=10)
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax = plot_utility.style_polar_plot(ax)
+        # ax = OverallAnalysis.shuffle_cell_analysis.format_bar_chart(ax)
+        # ax.errorbar(x_pos, mean, yerr=[percentile_5, percentile_95], alpha=0.7, color='black', ecolor='grey', capsize=10, fmt='o', markersize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
+        ax.plot(x_pos, cell.hd_histogram_real_data_hz, color='navy', linewidth=10)
         plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
         plt.title('Number of spikes ' + str(cell.number_of_spikes))
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar')
