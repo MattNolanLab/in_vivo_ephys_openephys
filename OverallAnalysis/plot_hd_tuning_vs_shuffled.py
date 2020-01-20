@@ -71,14 +71,14 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         x_pos = np.linspace(0, 2*np.pi, shuffled_histograms_hz.shape[1] + 1)
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
-        plt.tight_layout()
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
         ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
         observed_data = np.append(cell.hd_histogram_real_data_hz, cell.hd_histogram_real_data_hz[0])
         ax.plot(x_pos, observed_data, color='navy', linewidth=5)
-        plt.title(str(max_rate) + ' Hz', fontsize=24)
+        plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
+        plt.subplots_adjust(top=0.85)
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar')
         plt.close()
         counter += 1
