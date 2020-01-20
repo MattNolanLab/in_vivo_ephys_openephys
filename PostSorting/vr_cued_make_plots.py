@@ -123,7 +123,7 @@ def fill_blackbox(blackbox_centres, ax, plot_only_if_not_shifted=False):
     if not offset:
         mean_pos = np.mean(blackbox_centres)
         x = [mean_pos - 15, mean_pos + 15, mean_pos + 15, mean_pos - 15]
-        y = [0.5, 0.5, og_blackbox_centres_len, og_blackbox_centres_len]
+        y = [0, 0, og_blackbox_centres_len, og_blackbox_centres_len]
         ax.fill(x, y, alpha=0.25, color="k")
     else:
         for trial_number in range(1, len(blackbox_centres)+1):
