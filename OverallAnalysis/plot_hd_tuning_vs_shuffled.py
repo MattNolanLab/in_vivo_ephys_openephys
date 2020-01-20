@@ -11,6 +11,7 @@ import PostSorting.parameters
 import plot_utility
 
 import scipy
+import scipy.stats
 
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path()
@@ -79,9 +80,31 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         ax.plot(x_pos, observed_data, color='navy', linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
         plt.subplots_adjust(top=0.85)
-        plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar')
+        plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.directional_correction) + '.png')
         plt.close()
         counter += 1
+
+
+def get_number_of_directional_cells(cells, tag='grid'):
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, cell in cells.iterrows():
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled, cell.number_of_different_bins)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
+        percentiles_correction.append(percentile)
+
+    print(tag)
+    print('Number of fields: ' + str(len(cells)))
+    print('Number of directional cells [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    cells['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional cells [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    cells['directional_correction'] = np.array(percentiles_correction) > 95
+    cells.to_pickle(local_path + tag + 'cells.pkl')
 
 
 def plot_hd_vs_shuffled():
