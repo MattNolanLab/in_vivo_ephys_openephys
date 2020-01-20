@@ -80,7 +80,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         ax.plot(x_pos, observed_data, color='navy', linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
         plt.subplots_adjust(top=0.85)
-        plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.directional_correction) + '.png')
+        plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentile_value) + '.png')
         plt.close()
         counter += 1
 
@@ -95,6 +95,7 @@ def get_number_of_directional_cells(cells, tag='grid'):
         percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
         percentiles_correction.append(percentile)
 
+    cells['percentile_value'] = percentiles_correction
     print(tag)
     print('Number of fields: ' + str(len(cells)))
     print('Number of directional cells [without correction]: ')
