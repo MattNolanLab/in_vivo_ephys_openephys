@@ -89,8 +89,8 @@ def plot_shuffled_number_of_bins_vs_observed(cell):
     percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
     shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p.iloc[0]
     plt.figure()
-    plt.hist(shuffled_distribution, color='gray')
-    plt.axvline(x=percentile, color='blue')
+    plt.hist(shuffled_distribution, bins=range(20), color='gray')
+    plt.axvline(x=percentile * 20 / 100, color='blue')
     # plt.xscale('log')
     plt.ylabel('Number of shuffles', fontsize=20)
     plt.xlabel('Number of significant bins', fontsize=20)
