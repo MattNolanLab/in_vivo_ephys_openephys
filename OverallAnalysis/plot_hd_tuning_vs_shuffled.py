@@ -117,6 +117,7 @@ def plot_hd_vs_shuffled():
     grid_cells = df['cell type'] == 'grid'
     df_grid = df[grid_cells]
     print('mouse')
+    get_number_of_directional_cells(df_grid, tag='grid')
     plot_bar_chart_for_cells_percentile_error_bar(df_grid, analysis_path, 'mouse', shuffle_type='distributive')
 
 
