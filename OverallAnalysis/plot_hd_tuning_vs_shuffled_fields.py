@@ -11,6 +11,7 @@ import PostSorting.parameters
 import plot_utility
 
 import scipy
+import scipy.stats
 
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path()
@@ -87,9 +88,34 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         ax.plot(x_pos, observed_data, color='navy', linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
         plt.subplots_adjust(top=0.85)
-        plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar')
+        plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentiles_correction) + '.png')
         plt.close()
         counter += 1
+
+
+def get_number_of_directional_fields(fields, tag='grid'):
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, field in fields.iterrows():
+        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled, field.number_of_different_bins)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
+        percentiles_correction.append(percentile)
+
+    fields['percentiles_correction'] = percentiles_correction
+
+    print(tag)
+    print('Number of fields: ' + str(len(fields)))
+    print('Number of directional fields [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    fields['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional fields [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    fields['directional_correction'] = np.array(percentiles_correction) > 95
+    fields.to_pickle(analysis_path + tag + 'fields.pkl')
+    return fields
 
 
 def plot_hd_vs_shuffled():
@@ -104,12 +130,15 @@ def plot_hd_vs_shuffled():
     df = add_cell_types_to_data_frame(df_good_cells)
     grid_cells = df['cell type'] == 'grid'
     df_grid = df[grid_cells]
+
+    df_grid = get_number_of_directional_fields(df_grid, tag='grid')
     print('mouse')
     df_grid = OverallAnalysis.shuffle_field_analysis.add_rate_map_values_to_field_df_session(all_cells, df_grid)
     df_grid = OverallAnalysis.shuffle_field_analysis.shuffle_field_data(df_grid, analysis_path, 20, number_of_times_to_shuffle=1000, shuffle_type='distributive')
     df_grid = OverallAnalysis.shuffle_field_analysis.add_mean_and_std_to_field_df(df_grid, 30, 20)
     df_grid = OverallAnalysis.shuffle_field_analysis.add_percentile_values_to_df(df_grid, 30, number_of_bins=20)
     plot_bar_chart_for_cells_percentile_error_bar(df_grid, analysis_path, 'mouse', shuffle_type='distributive')
+
 
 
 def main():
