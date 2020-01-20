@@ -15,6 +15,55 @@ local_path = OverallAnalysis.folder_path_settings.get_local_path()
 analysis_path = local_path + '/methods_directional_field/'
 
 
+def get_number_of_directional_cells(cells, tag='grid'):
+    percentiles_no_correction = []
+    percentiles_correction = []
+    for index, cell in cells.iterrows():
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled, cell.number_of_different_bins)
+        percentiles_no_correction.append(percentile)
+
+        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
+        percentiles_correction.append(percentile)
+
+    cells['percentile_value'] = percentiles_correction
+    print(tag)
+    print('Number of fields: ' + str(len(cells)))
+    print('Number of directional cells [without correction]: ')
+    print(np.sum(np.array(percentiles_no_correction) > 95))
+    cells['directional_no_correction'] = np.array(percentiles_no_correction) > 95
+
+    print('Number of directional cells [with BH correction]: ')
+    print(np.sum(np.array(percentiles_correction) > 95))
+    cells['directional_correction'] = np.array(percentiles_correction) > 95
+    cells.to_pickle(local_path + tag + 'cells.pkl')
+    return cells
+
+
+# plot shuffled vs shuffled
+def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, path, animal, shuffle_type='occupancy'):
+    counter = 0
+    for index, cell in spatial_firing.iterrows():
+        mean = np.append(cell['shuffled_means'], cell['shuffled_means'][0])
+        percentile_95 = np.append(cell['error_bar_95'], cell['error_bar_95'][0])
+        percentile_5 = np.append(cell['error_bar_5'], cell['error_bar_5'][0])
+        shuffled_histograms_hz = cell['shuffled_histograms_hz']
+        max_rate = np.round(cell.hd_histogram_real_data_hz.max(), 2)
+        x_pos = np.linspace(0, 2*np.pi, shuffled_histograms_hz.shape[1] + 1)
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax = plot_utility.style_polar_plot(ax)
+        x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+        plt.xticks(x_pos, x_labels)
+        ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
+        ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
+        observed_data = np.append(cell.shuffled_histograms_hz[0], cell.shuffled_histograms_hz[0][0])
+        ax.plot(x_pos, observed_data, color='black', linewidth=5, alpha=0.9)
+        plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
+        plt.subplots_adjust(top=0.85)
+        plt.savefig(analysis_path + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentile_value) + '_polar.png')
+        plt.close()
+        counter += 1
+
+
 def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, shuffle_type='distributive'):
     counter = 0
     for index, cell in spatial_firing.iterrows():
@@ -36,43 +85,18 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
             counter += 1
 
 
-
-
 def plot_shuffled_number_of_bins_vs_observed(cell):
     percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
     shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p.iloc[0]
     plt.figure()
     plt.hist(shuffled_distribution, color='gray')
     plt.axvline(x=percentile, color='blue')
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.ylabel('Number of shuffles', fontsize=20)
-    plt.xlabel('Number of significant bins (log)', fontsize=20)
+    plt.xlabel('Number of significant bins', fontsize=20)
     plt.tight_layout()
     plt.savefig(analysis_path + 'number_of_significant_bars_shuffled_vs_real_example.png')
     plt.close()
-
-
-def get_number_of_directional_cells(cells, tag='grid'):
-    print('HEAD DIRECTION')
-    percentiles_no_correction = []
-    percentiles_correction = []
-    for index, cell in cells.iterrows():
-        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled, cell.number_of_different_bins)
-        percentiles_no_correction.append(percentile)
-
-        percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p, cell.number_of_different_bins_bh)
-        percentiles_correction.append(percentile)
-        print('percentile = ' + str(percentile))
-
-    print(tag)
-    print('Number of fields: ' + str(len(cells)))
-    print('Number of directional cells [without correction]: ')
-    print(np.sum(np.array(percentiles_no_correction) > 95))
-    cells['directional_no_correction'] = np.array(percentiles_no_correction) > 95
-
-    print('Number of directional cells [with BH correction]: ')
-    print(np.sum(np.array(percentiles_correction) > 95))
-    cells['directional_correction'] = np.array(percentiles_correction) > 95
 
 
 def make_example_plot():
@@ -99,9 +123,10 @@ def make_example_plot():
     '''
     example_session = spatial_firing.session_id == session_id
     example_cell = spatial_firing[example_session]
-    get_number_of_directional_cells(example_cell, tag='grid')
+    example_cell = get_number_of_directional_cells(example_cell, tag='grid')
     plot_shuffled_number_of_bins_vs_observed(example_cell)
     plot_bar_chart_for_cells_percentile_error_bar(example_cell, '', 'mouse', shuffle_type='distributive')
+    plot_bar_chart_for_cells_percentile_error_bar_polar(example_cell, '', 'mouse', shuffle_type='distributive')
 
 
 def main():
