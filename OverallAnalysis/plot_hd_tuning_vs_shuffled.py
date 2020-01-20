@@ -63,24 +63,22 @@ def tag_false_positives(spatial_firing):
 def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, shuffle_type='occupancy'):
     counter = 0
     for index, cell in spatial_firing.iterrows():
-        mean = cell['shuffled_means']
-        percentile_95 = cell['error_bar_95']
-        percentile_5 = cell['error_bar_5']
+        mean = np.append(cell['shuffled_means'], cell['shuffled_means'][0])
+        percentile_95 = np.append(cell['error_bar_95'], cell['error_bar_95'][0])
+        percentile_5 = np.append(cell['error_bar_5'], cell['error_bar_5'][0])
         shuffled_histograms_hz = cell['shuffled_histograms_hz']
-        hd_polar_fig = plt.figure()
-
-        # x_pos = np.arange(shuffled_histograms_hz.shape[1])
-        x_pos = np.linspace(0, 2*np.pi, shuffled_histograms_hz.shape[1])
-        fig, ax = plt.subplots()
+        max_rate = np.round(cell.hd_histogram_real_data_hz.max(), 2)
+        x_pos = np.linspace(0, 2*np.pi, shuffled_histograms_hz.shape[1] + 1)
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
-        # ax = OverallAnalysis.shuffle_cell_analysis.format_bar_chart(ax)
-        # ax.errorbar(x_pos, mean, yerr=[percentile_5, percentile_95], alpha=0.7, color='black', ecolor='grey', capsize=10, fmt='o', markersize=10)
+        plt.tight_layout()
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
-        ax.plot(x_pos, cell.hd_histogram_real_data_hz, color='navy', linewidth=10)
-        plt.scatter(x_pos, cell.hd_histogram_real_data_hz, marker='o', color='navy', s=40)
-        plt.title('Number of spikes ' + str(cell.number_of_spikes))
+        ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
+        ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
+        observed_data = np.append(cell.hd_histogram_real_data_hz, cell.hd_histogram_real_data_hz[0])
+        ax.plot(x_pos, observed_data, color='navy', linewidth=5)
+        plt.title(str(max_rate) + ' Hz', fontsize=24)
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar')
         plt.close()
         counter += 1
