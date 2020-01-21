@@ -87,14 +87,14 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
 
 
 def plot_shuffled_number_of_bins_vs_observed(cell):
-    percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
+    # percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
     shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p.iloc[0]
     plt.cla()
     fig = plt.figure()
     plt.yticks([0, 1000])
     ax = fig.add_subplot(1, 1, 1)
     ax.hist(shuffled_distribution, bins=range(20), color='gray')
-    ax.axvline(x=percentile * 20 / 100, color='blue')
+    ax.axvline(x=cell.number_of_different_bins_bh.iloc[0], color='blue', width=5)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     # plt.xscale('log')
