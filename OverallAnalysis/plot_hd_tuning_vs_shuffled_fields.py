@@ -8,6 +8,7 @@ import OverallAnalysis.compare_shuffled_from_first_and_second_halves_fields
 import OverallAnalysis.false_positives
 import pandas as pd
 import PostSorting.parameters
+import PostSorting.open_field_make_plots
 import plot_utility
 
 import scipy
@@ -65,9 +66,13 @@ def tag_accepted_fields_mouse(field_data, accepted_fields):
     return field_data
 
 
-def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, shuffle_type='occupancy', sampling_rate_video=30):
+def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, shuffle_type='occupancy', sampling_rate_video=30, colors=None):
     counter = 0
     for index, cell in spatial_firing.iterrows():
+        if colors is None:
+            observed_data_color = 'navy'
+        else:
+            observed_data_color = colors[index]
         mean = np.append(cell['shuffled_means'], cell['shuffled_means'][0])
         percentile_95 = np.append(cell['error_bar_95'], cell['error_bar_95'][0])
         percentile_5 = np.append(cell['error_bar_5'], cell['error_bar_5'][0])
@@ -85,7 +90,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
         ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
         observed_data = np.append(real_data_hz, real_data_hz[0])
-        ax.plot(x_pos, observed_data, color='navy', linewidth=5)
+        ax.plot(x_pos, observed_data, color=observed_data_color, linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
         plt.subplots_adjust(top=0.85)
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentiles_correction) + '.png')
@@ -138,6 +143,13 @@ def plot_hd_vs_shuffled():
     df_grid = OverallAnalysis.shuffle_field_analysis.add_mean_and_std_to_field_df(df_grid, 30, 20)
     df_grid = OverallAnalysis.shuffle_field_analysis.add_percentile_values_to_df(df_grid, 30, number_of_bins=20)
     plot_bar_chart_for_cells_percentile_error_bar(df_grid, analysis_path, 'mouse', shuffle_type='distributive')
+
+    session_id = 'M12_2018-04-10_14-22-14_of'
+    example_session = df_grid.session_id == session_id
+    example_cell = df_grid[example_session]
+    colors = PostSorting.open_field_make_plots.generate_colors(len(example_cell))
+    plot_bar_chart_for_cells_percentile_error_bar(example_cell, analysis_path, 'example_mouse', shuffle_type='distributive', colors=colors)
+
 
 
 
