@@ -156,6 +156,23 @@ def plot_polar_hd_hist(hist_1, hist_2, cluster, save_path, color1='lime', color2
     plt.close()
 
 
+# plot polar hd histograms without needing the whole df as an input
+def plot_single_polar_hd_hist(hist_1, cluster, save_path, color1='lime', title=''):
+    hd_polar_fig = plt.figure()
+    hd_polar_fig.set_size_inches(5, 5, forward=True)
+    ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    theta = np.linspace(0, 2*np.pi, 361)  # x axis
+    ax = plt.subplot(1, 1, 1, polar=True)
+    ax = plot_utility.style_polar_plot(ax)
+    ax.plot(theta[:-1], hist_1, color=color1, linewidth=10)
+    plt.title(title)
+    # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
+    plt.tight_layout()
+    plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+    # plt.savefig(save_path + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
+    plt.close()
+
+
 def plot_rate_map_autocorrelogram(spatial_firing, prm):
     print('I will make the rate map autocorrelogram grid plots now.')
     save_path = prm.get_output_path() + '/Figures/rate_map_autocorrelogram'

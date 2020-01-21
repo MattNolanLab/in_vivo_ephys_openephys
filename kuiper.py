@@ -116,8 +116,9 @@ def kuiper(data, cdf=lambda x: x, args=()):
     cdfv = cdf(data,*args)
     N = len(data)
     D = amax(cdfv-arange(N)/float(N)) + amax((arange(N)+1)/float(N)-cdfv)
+    p = kuiper_FPP(D,N)
 
-    return D, kuiper_FPP(D,N)
+    return D, p
 
 
 def kuiper_two(data1, data2):

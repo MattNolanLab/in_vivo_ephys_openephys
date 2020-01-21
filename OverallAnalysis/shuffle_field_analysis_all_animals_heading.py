@@ -1,19 +1,82 @@
 import numpy as np
 import OverallAnalysis.folder_path_settings
+import OverallAnalysis.shuffle_field_analysis_heading
 import pandas as pd
 import plot_utility
+import PostSorting.open_field_heading_direction
+import PostSorting.open_field_firing_maps
 import matplotlib.pylab as plt
 import scipy.stats
 import os
 import glob
 
-analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/'
+local_path = OverallAnalysis.folder_path_settings.get_local_path()
+analysis_path = local_path + '/shuffled_analysis_heading/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
 local_path_to_shuffled_field_data_rats = analysis_path + 'shuffled_field_data_all_rats.pkl'
 # local_path_to_shuffled_field_data_simulated = analysis_path + 'shuffled_field_data_all_simulated.pkl'
+
+
+def get_random_indices_for_shuffle(field, number_of_times_to_shuffle):
+    number_of_spikes_in_field = field['number_of_spikes_in_field']
+    time_spent_in_field = field['time_spent_in_field']
+
+    rates = field.rate_map_values_session  # normalize to make sure it adds up to 1
+    rates /= sum(rates)
+    shuffle_indices = np.random.choice(range(0, time_spent_in_field), size=(number_of_times_to_shuffle, number_of_spikes_in_field), p=rates)
+    return shuffle_indices
+
+
+# add shuffled data to data frame as a new column for each field
+def shuffle_field_data(field_data, number_of_bins, number_of_times_to_shuffle=1000):
+    field_histograms_all = []
+    shuffled_hd_all = []
+    for index, field in field_data.iterrows():
+        print('I will shuffle data in the fields.')
+        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+        shuffle_indices = get_random_indices_for_shuffle(field, number_of_times_to_shuffle)
+        shuffled_hd_field = []
+        for shuffle in range(number_of_times_to_shuffle):
+            indices = shuffle_indices[shuffle]
+            shuffled_hd = np.array(field['heading_direction_in_field_trajectory'])[0][indices]
+            shuffled_hd_field.extend(shuffled_hd)
+            hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 360))  # from 0 to 2pi
+            field_histograms[shuffle, :] = hist
+        field_histograms_all.append(field_histograms)
+        shuffled_hd_all.append(shuffled_hd_field)
+    field_data['shuffled_data'] = field_histograms_all
+    field_data['shuffled_hd_distribution'] = shuffled_hd_all
+    return field_data
+
+
+# find firing rate on rate map for each sampling point and add to field df
+def add_rate_map_values_to_field_df_session(fields, path_to_cell_data, pixel_ratio=440):
+    spatial_firing = pd.read_pickle(path_to_cell_data)
+    field_rates = []
+    for index, field in fields.iterrows():
+        spike_data_field = pd.DataFrame()
+        spike_data_field['x'] = field.position_x_session
+        spike_data_field['y'] = field.position_y_session
+        # spike_data_field['hd'] = field.hd_in_field_session
+        spike_data_field['synced_time'] = field.times_session
+
+        bin_size_cm = 2.5
+        bin_size_pixels = bin_size_cm / 100 * pixel_ratio
+        spike_data_field['rate_map_x'] = (field.position_x_session // bin_size_pixels).astype(int)
+        spike_data_field['rate_map_y'] = (field.position_y_session // bin_size_pixels).astype(int)
+        rates = []
+        session = spatial_firing.session_id == field.session_id
+        cluster = spatial_firing.cluster_id == field.cluster_id
+        rate_map = spatial_firing.firing_maps[cluster & session].iloc[0]
+        for sample in range(len(spike_data_field)):
+            rate = rate_map[spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample]]
+            rates.append(rate)
+        field_rates.append(np.round(rates, 2))
+    fields['rate_map_values_session'] = field_rates
+    return fields
 
 
 # loads shuffle analysis results for field data
@@ -327,7 +390,31 @@ def get_number_of_directional_fields(fields, tag='grid'):
     get_percentage_of_grid_cells_with_directional_nodes(fields)
 
 
-def analyze_data(animal, server_path, shuffle_type='occupancy'):
+def add_heading_to_field_df(fields, ephys_sampling, video_sampling, path_to_cell_data, save_path):
+    #if 'heading_direction_in_field_trajectory' in fields:
+    #    return fields
+    spatial_firing = pd.read_pickle(path_to_cell_data)
+    headings_spikes = []
+    headings_trajectory = []
+    for index, field in fields.iterrows():
+        session = spatial_firing.session_id == field.session_id
+        cluster = spatial_firing.cluster_id == field.cluster_id
+
+        position = pd.DataFrame()
+        position['position_x'] = spatial_firing.trajectory_x[cluster & session].iloc[0]
+        position['position_y'] = spatial_firing.trajectory_y[cluster & session].iloc[0]
+        position['synced_time'] = spatial_firing.trajectory_times[cluster & session].iloc[0]
+        field_with_heading = PostSorting.open_field_heading_direction.add_heading_during_spikes_to_field_df(field, position, ephys_sampling)
+        field_with_heading = PostSorting.open_field_heading_direction.add_heading_from_trajectory_to_field_df(field_with_heading, position, video_sampling)
+        headings_spikes.append(field_with_heading.heading_direction_in_field_spikes)
+        headings_trajectory.append(field_with_heading.heading_direction_in_field_trajectory)
+    fields['heading_direction_in_field_trajectory'] = headings_trajectory
+    fields['heading_direction_in_field_spikes'] = headings_spikes
+    fields.to_pickle(save_path)
+    return fields
+
+
+def analyze_data(animal, server_path, shuffle_type='occupancy', ephys_sampling=30000, video_sampling=30, pixel_ratio=440):
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
         spike_sorter = '/MountainSort'
@@ -345,6 +432,7 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
         df_path = ''
 
     shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter, df_path=df_path, shuffle_type=shuffle_type)
+
     if animal == 'mouse':
         shuffled_field_data = tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
     elif animal == 'rat':
@@ -355,22 +443,17 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
         shuffled_field_data['unique_cell_id'] = unique_cell_id
     grid = shuffled_field_data.grid_score >= 0.4
     hd = shuffled_field_data.hd_score >= 0.5
-    not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
     grid_cells = np.logical_and(grid, np.logical_not(hd))
-    conj_cells = np.logical_and(grid, hd)
 
     accepted_field = shuffled_field_data.accepted_field == True
-
     shuffled_field_data_grid = shuffled_field_data[grid_cells & accepted_field]
-    shuffled_field_data_not_classified = shuffled_field_data[not_classified & accepted_field]
-    shuffled_field_data_conj = shuffled_field_data[conj_cells & accepted_field]
+    shuffled_field_data_grid = add_heading_to_field_df(shuffled_field_data_grid, ephys_sampling, video_sampling, analysis_path + 'all_' + animal + '_df.pkl', local_path_to_field_data)
+    fields = add_rate_map_values_to_field_df_session(shuffled_field_data_grid, analysis_path + 'all_' + animal + '_df.pkl', pixel_ratio=pixel_ratio)
+    fields = shuffle_field_data(fields, 20, number_of_times_to_shuffle=1000)
+    shuffled_field_data_grid = OverallAnalysis.shuffle_field_analysis_heading.analyze_shuffled_data(fields, local_path, video_sampling, number_of_bins=20, shuffle_type='')
 
     get_number_of_directional_fields(shuffled_field_data_grid, tag='grid' + animal)
-    get_number_of_directional_fields(shuffled_field_data_conj, tag='conjunctive' + animal)
     plot_distributions_for_fields(shuffled_field_data_grid, 'grid', animal=animal, shuffle_type=shuffle_type)
-    plot_distributions_for_fields(shuffled_field_data_conj, 'conjunctive', animal=animal, shuffle_type=shuffle_type)
-    if len(shuffled_field_data_not_classified) > 0:
-        plot_distributions_for_fields(shuffled_field_data_not_classified, 'not_classified', animal=animal, shuffle_type=shuffle_type)
 
     print('*****')
     print(animal + ' data:')
@@ -380,25 +463,11 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
     print('Number of grid cells: ' + str(len(np.unique(list(shuffled_field_data_grid.unique_cell_id)))))
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='bh', shuffle_type=shuffle_type)
     compare_shuffled_to_real_data_mw_test(shuffled_field_data_grid, analysis_type='percentile', shuffle_type=shuffle_type)
-    print('__________________________________')
-    print('Not classified cells: ')
-    print('Number of not classified fields: ' + str(len(shuffled_field_data_not_classified)))
-    print('Number of not classified cells: ' + str(len(np.unique(list(shuffled_field_data_not_classified.unique_cell_id)))))
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='bh', shuffle_type=shuffle_type)
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_not_classified, analysis_type='percentile', shuffle_type=shuffle_type)
-    print('__________________________________')
-    print('__________________________________')
-    print('Conjunctive cells: ')
-    print('Number of conjunctive fields: ' + str(len(shuffled_field_data_conj)))
-    print('Number of conjunctive cells: ' + str(len(np.unique(list(shuffled_field_data_conj.unique_cell_id)))))
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_conj, analysis_type='bh', shuffle_type=shuffle_type)
-    compare_shuffled_to_real_data_mw_test(shuffled_field_data_conj, analysis_type='percentile', shuffle_type=shuffle_type)
-    print('__________________________________')
 
 
 def main():
     analyze_data('mouse', server_path_mouse, shuffle_type='distributive')
-    analyze_data('rat', server_path_rat, shuffle_type='distributive')
+    analyze_data('rat', server_path_rat, shuffle_type='distributive', ephys_sampling=1, video_sampling=50, pixel_ratio=100)
     # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'ventral_narrow/'
     # analyze_data('simulated', server_path_simulated, shuffle_type='distributive_narrow')
     # server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated() + 'control_narrow/'
