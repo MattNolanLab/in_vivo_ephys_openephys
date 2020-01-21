@@ -87,6 +87,23 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     return firing_data_spatial
 
 
+def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bins_y, bin_size_cm, min_dwell_distance_cm, min_dwell):
+    position_heat_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    for x in range(number_of_bins_x):
+        for y in range(number_of_bins_y):
+            px = x * bin_size_cm + (bin_size_cm / 2)
+            py = y * bin_size_cm + (bin_size_cm / 2)
+
+            occupancy_distances = np.sqrt(np.power((px - spatial_data.position_x_pixels.values), 2) + np.power((py - spatial_data.position_y_pixels.values), 2))
+            bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_cm)[0])
+
+            if bin_occupancy >= min_dwell:
+                position_heat_map[x, y] = bin_occupancy
+            else:
+                position_heat_map[x, y] = None
+    return position_heat_map
+
+
 def get_position_heatmap(spatial_data, prm):
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
     bin_size_cm = get_bin_size(prm)

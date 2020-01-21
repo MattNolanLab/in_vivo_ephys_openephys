@@ -1,9 +1,14 @@
+'''When the authors look at all grid fields across all recordings, is there a systematic relationship between
+location and directional tuning? i.e. Are cells located close to the north border more tuned to north?'''
+
 import sys
 print(sys.path)
 import glob
 from scipy.stats import circstd
 import scipy.stats
 import seaborn
+import shutil
+import math_utility
 import matplotlib.pylab as plt
 import numpy as np
 import os
@@ -14,12 +19,13 @@ import PostSorting.open_field_make_plots
 import plot_utility
 import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
+import  OverallAnalysis.shuffle_field_analysis
 
 prm = PostSorting.parameters.Parameters()
 prm.set_sorter_name('MountainSort')
 
 
-local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/field_histogram_shapes/'
+local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/pattern_of_directions_all_cells/'
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
 server_path_simulated = OverallAnalysis.folder_path_settings.get_server_path_simulated()
@@ -255,15 +261,132 @@ def compare_hd_histograms(field_data, type='cell'):
         return pearson_coefs_avg
 
 
-def save_hd_histograms_csv(field_data, file_name):
-    field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
-    list_of_cells = np.unique(list(field_data.unique_cell_id))
+def get_pearson_coefs_all(field_data):
+    if len(field_data) > 0:
+        pearson_coefs_all = []
+        field_histograms = field_data.normalized_hd_hist
+        for index1, field1 in enumerate(field_histograms):
+            for index2, field2 in enumerate(field_histograms):
+                if index1 < index2:
+                    field1_clean_z, field2_clean_z = remove_nans(field1, field2)
+                    # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                    if len(field1_clean_z) > 1:
+                        pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
+                        pearson_coefs_all.extend([pearson_coef])
+        return pearson_coefs_all
 
-    for cell in range(len(list_of_cells)):
-        cell_id = list_of_cells[cell]
-        field_histograms = field_data.loc[field_data['unique_cell_id'] == cell_id].normalized_hd_hist
-        for index, field in enumerate(field_histograms):
-            np.savetxt(local_path + '/data_for_r/' + file_name + '_' + cell_id + '_' +  str(index) + '.csv', field, delimiter=',')
+
+def get_pearson_coefs_all_shuffled(field_data):
+    if len(field_data) > 0:
+        pearson_coefs_all = []
+        field_histograms = field_data.normalized_hd_hist_shuffled
+        for index1, field1 in enumerate(field_histograms):
+            for index2, field2 in enumerate(field_histograms):
+                if index1 < index2:
+                    field1_clean_z, field2_clean_z = remove_nans(field1, field2)
+                    # field1_clean_z, field2_clean_z = remove_zeros(field1_clean, field2_clean)
+                    if len(field1_clean_z) > 1:
+                        pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
+                        pearson_coefs_all.extend([pearson_coef])
+        return pearson_coefs_all
+
+
+def get_distances_all(field_data):
+    if len(field_data) > 0:
+        distances_all = []
+        indices_rate_map = field_data.indices_rate_map
+        for index1, field1 in enumerate(indices_rate_map):
+            for index2, field2 in enumerate(indices_rate_map):
+                if index1 < index2:
+                    # calculate distance between fields
+                    x1 = int(np.median(np.unique(field1[:, 0])))
+                    y1 = int(np.median(np.unique(field1[:, 1])))
+
+                    x2 = int(np.median(np.unique(field2[:, 0])))
+                    y2 = int(np.median(np.unique(field2[:, 1])))
+
+                    distance = np.sqrt(np.square(np.abs(x2 - x1)) + np.square(np.abs(y2 - y1)))
+                    distances_all.extend([distance])
+        return distances_all
+
+
+# calculate rotation angle (rotating one of the fields) where the correlation is highest between the fields
+def calculate_highest_correlating_angle(field_hist1, field_hist2):
+    max = -1  # to find the maximum this is initialized at the lowest possible value
+    angle_of_max = None
+    for rotation in range(len(field_hist1)):
+        field1_clean, field2_clean = remove_nans(field_hist1, field_hist2)
+        if len(field1_clean) > 1:
+            pearson_coef = scipy.stats.pearsonr(field1_clean, field2_clean)[0]
+            if pearson_coef > max:
+                max = pearson_coef
+                angle_of_max = rotation * 360 / len(field_hist1)
+        field_hist1 = np.roll(field_hist1, 1)
+    return angle_of_max
+
+
+def get_highest_correlation_angles(field_data):
+    if len(field_data) > 0:
+        highest_correlation_angles = []
+        field_histograms = field_data.normalized_hd_hist
+
+        for index1, field1 in enumerate(field_histograms):
+            for index2, field2 in enumerate(field_histograms):
+                if index1 < index2:
+                    angle = calculate_highest_correlating_angle(field1, field2)
+                    highest_correlation_angles.extend([angle])
+
+        return highest_correlation_angles
+
+
+def get_distance_vs_correlations(field_data, type='grid cells'):
+    pearson_coefs_all = get_pearson_coefs_all(field_data)
+    distances = get_distances_all(field_data)
+    highest_correlation_angles = get_highest_correlation_angles(field_data)
+    coefs_list = np.asanyarray(pearson_coefs_all)
+    distances_list = np.asanyarray(distances)
+    highest_correlation_angles_list = np.asanyarray(highest_correlation_angles)
+    # corr_clean, dist_clean = remove_nans(coefs_list, distances_list)
+    corr, p = scipy.stats.pearsonr(distances_list, coefs_list)
+    print('number of fields: ' + str(len(coefs_list)))
+    print('Correlation between distance between fields and correlation of field shape:')
+    print(corr)
+    print('p: ' + str(p))
+
+    # corr_lin, p_lin = scipy.stats.pearsonr(distances_list, highest_correlation_angles_list)
+    # corr, p = math_utility.circ_corrcc(np.radians(highest_correlation_angles_list), distances_list)
+    print('number of fields: ' + str(len(distances_list)))
+    print('Correlation between distance between fields and highest correlating rotation angle:')
+    print(corr)
+    print('p: ' + str(p))
+    return distances_list, coefs_list, highest_correlation_angles_list
+
+
+def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colours=[0]):
+    plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
+    if len(colours) > 1:
+        plt.scatter(distances, in_between_coefs, c=colours)
+    else:
+        plt.scatter(distances, in_between_coefs)
+    print(tag)
+    ax.set_xlabel('Distance between fields', fontsize=25)
+    ax.set_ylabel('Pearson correlation between fields', fontsize=25)
+
+    plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
+    plt.close()
+
+
+# plot distance between fields vs highest correlating rotation (one of the fields is rotated to find the highest corr)
+def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag):
+    plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
+    plt.scatter(distances, highest_corr_angles)
+    ax.set_xlabel('Distance between fields', fontsize=25)
+    ax.set_ylabel('Highest correlating rotation', fontsize=25)
+
+    plt.savefig(local_path + 'distance_between_fields_vs_highest_correlating_angle' + tag + '.png')
+    plt.close()
 
 
 def save_correlation_plot(corr, animal, cell_type, tag=''):
@@ -560,27 +683,6 @@ def get_correlation_values_in_between_fields(field_data):
     return correlation_values_in_between, correlation_p
 
 
-def get_range_of_correlations_for_directional(field_data):
-    animal = 'mouse'
-    field_shuffle = pd.read_pickle(OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_analysis/grid' + animal + 'fields.pkl')
-
-    directional = field_shuffle[field_shuffle.directional_correction == True]
-
-    merged = pd.merge(field_data, directional, left_on='unique_id', right_on='unique_id')
-
-    significant = merged.correlation_within_p < 0.05
-    positive_corr = merged.correlation_values_within > 0
-    directional = merged.directional_correction == True
-    directional_corr = merged[significant & positive_corr & directional].correlation_values_within
-    dir_corr = np.array(directional_corr)
-
-
-    print(min(directional_corr))
-    print(max(directional_corr))
-    dir_corr = np.array(directional_corr)
-    print(np.std(dir_corr[~np.isnan(dir_corr)]))
-
-
 def get_correlation_values_within_fields(field_data):
     first_halves = field_data.hd_hist_first_half
     second_halves = field_data.hd_hist_second_half
@@ -601,10 +703,7 @@ def get_correlation_values_within_fields(field_data):
             correlation_p.append(np.nan)
 
     correlation_values_within = np.array(correlation_values)
-    field_data['correlation_values_within'] = correlation_values_within
-    field_data['correlation_within_p'] = correlation_p
     correlation_p = np.array(correlation_p)
-    # get_range_of_correlations_for_directional(field_data)
     return correlation_values_within, correlation_p
 
 
@@ -626,6 +725,7 @@ def compare_within_field_with_other_fields(field_data, animal):
     if len(field_data) > 1:
         in_between_fields, correlation_p = get_correlation_values_in_between_fields(field_data)
         within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
+
         fig, ax = plt.subplots()
         plt.axvline(x=0, linewidth=3, color='red')
         ax = format_bar_chart(ax, 'r', 'Proportion')
@@ -648,8 +748,6 @@ def compare_within_field_with_other_fields(field_data, animal):
         print('Wilcoxon p value for correlations in between fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
         t, p = scipy.stats.wilcoxon(within_field_corr)
         print('Wilcoxon p value for correlations within fields (all fields)' + str(p) + ' T is ' + str(t) + animal)
-        t, p = scipy.stats.ttest_1samp(within_field_corr[~np.isnan(within_field_corr)], 0)
-        print('one sample t-test p value is ' + str(p) + ' T is ' + str(t))
         print('median of in-between fields: ' + str(np.median(in_between_fields[~np.isnan(in_between_fields)])) + ' sd: ' + str(np.std(in_between_fields[~np.isnan(in_between_fields)])))
         print('median of within fields: ' + str(np.median(within_field_corr[~np.isnan(within_field_corr)])) + ' sd: ' + str(np.std(within_field_corr[~np.isnan(within_field_corr)])))
 
@@ -663,11 +761,11 @@ def save_corr_coef_in_csv(good_grid_coef, good_grid_cells_p, file_name):
 
 def compare_within_field_with_other_fields_stat(field_data, animal):
     correlation_values_in_between, correlation_p = get_correlation_values_in_between_fields(field_data)
-    save_corr_coef_in_csv(correlation_values_in_between, correlation_p, 'in_between_fields_all_' + animal)
+    # save_corr_coef_in_csv(correlation_values_in_between, correlation_p, 'in_between_fields_all_' + animal)
     print('% of significant p values for in between field correlations:')
     print(sum(np.array(correlation_p) < 0.01) / len(correlation_p) * 100)
     within_field_corr, correlation_p_within = get_correlation_values_within_fields(field_data)
-    save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
+    # save_corr_coef_in_csv(within_field_corr, correlation_p_within, 'within_fields_all_' + animal)
     print('% of significant p values for within field correlations:')
     print('number of fields included: ' + str(len(correlation_p_within)))
     print(sum(correlation_p_within < 0.01) / len(correlation_p_within) * 100)
@@ -800,45 +898,131 @@ def get_server_path_and_load_accepted_fields(animal, tag):
     return field_data, accepted_fields
 
 
-def process_circular_data(animal, tag='', number_of_spikes_cutoff=400):
-    print('*************************' + animal + tag + '***************************')
-    field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
-    if animal == 'mouse':
-        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
-    elif animal == 'rat':
-        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+def add_session_hd_hist(fields, number_of_bins=20):
+    normalized_hds_shuffled = []
+    for index, field in fields.iterrows():
+        time_spent_in_bins = PostSorting.open_field_head_direction.get_hd_histogram(field.hd_in_field_session)
+        # time_spent_in_bins = np.histogram(field.hd_in_field_session, bins=number_of_bins)[0]
+        norm_hist_shuffled = field.shuffled_data / time_spent_in_bins
+        normalized_hds_shuffled.append(norm_hist_shuffled)
+    fields['normalized_hd_hist_shuffled'] = normalized_hds_shuffled
+    return fields
+
+
+def shuffle_field_data(field_data, path, number_of_bins, number_of_times_to_shuffle=1000, shuffle_type='occupancy'):
+    if shuffle_type == 'occupancy':
+        if os.path.exists(path + 'shuffle_analysis') is True:
+            shutil.rmtree(path + 'shuffle_analysis')
+        os.makedirs(path + 'shuffle_analysis')
     else:
-        field_data['accepted_field'] = True
+        if os.path.exists(path + 'shuffle_analysis_distributive') is True:
+            shutil.rmtree(path + 'shuffle_analysis_distributive')
+        os.makedirs(path + 'shuffle_analysis_distributive')
 
-    field_data = add_cell_types_to_data_frame(field_data)
-    field_data = tag_border_and_middle_fields(field_data)
-    enough_spikes = field_data.number_of_spikes_in_field > number_of_spikes_cutoff
+    field_histograms_all = []
+    shuffled_hd_all = []
+    for index, field in field_data.iterrows():
+        print('I will shuffle data in the fields.')
+        field_histograms = np.zeros((number_of_times_to_shuffle, number_of_bins))
+        shuffle_indices = OverallAnalysis.shuffle_field_analysis.get_random_indices_for_shuffle(field, number_of_times_to_shuffle, shuffle_type=shuffle_type)
+        shuffled_hd_field = []
+        for shuffle in range(number_of_times_to_shuffle):
+            shuffled_hd = field['hd_in_field_session'][shuffle_indices[shuffle]]
+            shuffled_hd_field.extend(shuffled_hd)
+            hist = PostSorting.open_field_head_direction.get_hd_histogram(shuffled_hd, window_size=23)
+            # hist, bin_edges = np.histogram(shuffled_hd, bins=number_of_bins, range=(0, 6.28))  # from 0 to 2pi
+            field_histograms[shuffle, :] = hist
+        field_histograms_all.append(field_histograms)
+        shuffled_hd_all.append(shuffled_hd_field)
+    print(path)
+    field_data['shuffled_data'] = field_histograms_all
+    field_data['shuffled_hd_distribution'] = shuffled_hd_all
+    return field_data
 
-    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & enough_spikes]
-    save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
-    grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
-    save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
-    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False) & enough_spikes]
-    grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
-    save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
-    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True) & enough_spikes]
-    grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
-    save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
-    conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
-    save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
+def add_shuffled_hd_histograms(fields):
+    spatial_firing = pd.DataFrame()
+    rate_maps = []
+    cluster_ids = []
+    session_ids = []
+    for index, field in fields.iterrows():
+        rate_map = list(field.rate_map.iloc[0])
+        rate_maps.append(np.array(rate_map))
+        cluster_ids.append(field.cluster_id)
+        session_ids.append(field.session_id)
+    spatial_firing['cluster_id'] = cluster_ids
+    spatial_firing['firing_maps'] = rate_maps
+    spatial_firing['session_id'] = session_ids
+
+    field_df = OverallAnalysis.shuffle_field_analysis.add_rate_map_values_to_field_df_session(spatial_firing, fields)
+    field_df = shuffle_field_data(field_df, local_path, number_of_bins=360, number_of_times_to_shuffle=1,
+                                                                         shuffle_type='distributive')
+    field_df = add_session_hd_hist(field_df)
+    return field_df
+
+
+def calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs):
+    corr, p = scipy.stats.pearsonr(distances, shuffled_corr_coefs)
+    print('number of fields: ' + str(len(shuffled_corr_coefs)))
+    print('Correlation between distance between fields and correlation of field shape:')
+    print(corr)
+    print('p: ' + str(p))
+
+
+def add_animal_identity_to_df(fields):
+    animal_ids = []
+    for index, field in fields.iterrows():
+        session_id = field.session_id
+        id = session_id.split('_')[0].split('M')[-1]
+        animal_ids.append(int(id))
+    fields['animal_id'] = animal_ids
+    return fields
+
+
+def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
+    shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
+    distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df,
+                                                                                    type='grid cells ' + animal)
+
+    plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
+    plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
+
+    calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
+
+    plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
+
     # compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
     compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
 
-    conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
-    save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
-    conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
-    compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal + tag)
-    plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
-    plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, animal, tag='_centre')
 
-    compare_within_field_with_other_fields_stat(all_accepted_grid_cells_df, 'grid_' + animal + tag)
-    plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal', tag='_centre_vs_border')
+def compare_centre_and_border_fields(field_data, animal, tag):
+    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
+    grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
+
+    border_fields_only_df = field_data[
+        (field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
+    grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
+
+    conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (
+                field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
+    plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, animal, tag='_centre')
+    plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal',
+                                                   tag='_centre_vs_border')
+
+
+def compare_pure_and_conjunctive_grid_cells(field_data, animal, tag):
+    conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+
+    conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
+
+    compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal + tag)
+    grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
+    plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
+
+    compare_within_field_with_other_fields_stat(
+        field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_' + animal + tag)
+
     # plot_correlation_matrix(field_data, animal)
     # plot_correlation_matrix_individual_cells(field_data, animal)
     # plot_half_fields(field_data, 'mouse')
@@ -883,22 +1067,48 @@ def compare_correlations_from_different_experiments():
     print('Kolmogorov-Smirnov result within_field vs in between, ventral ' + str(stat) + ' ' + str(p))
 
 
-def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
-    if not os.path.isdir(local_path + 'session_length_and_spikes'):
-        os.mkdir(local_path + 'session_length_and_spikes')
+def process_circular_data(animal, tag=''):
+    print('*************************' + animal + tag + '***************************')
+    field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
+    if animal == 'mouse':
+        field_data = tag_accepted_fields_mouse(field_data, accepted_fields)
+    elif animal == 'rat':
+        field_data = tag_accepted_fields_rat(field_data, accepted_fields)
+    else:
+        field_data['accepted_field'] = True
 
-    df_to_save = field_data[['session_id', 'cluster_id', 'field_id', 'time_spent_in_field', 'number_of_spikes_in_field']]
-    df_to_save.to_csv(local_path + 'session_length_and_spikes/' + tag + '.csv')
+    field_data = add_cell_types_to_data_frame(field_data)
+    field_data = tag_border_and_middle_fields(field_data)
+
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
+    analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
+    compare_centre_and_border_fields(field_data, animal, tag)
+    compare_pure_and_conjunctive_grid_cells(field_data, animal, tag)
+
+    all_accepted_grid_cells_df = add_animal_identity_to_df(all_accepted_grid_cells_df)
+    list_of_unique_animal_ids = np.unique(all_accepted_grid_cells_df.animal_id)
+    print('---- Animal by animal analysis ----')
+    for animal_id in list_of_unique_animal_ids:
+        animal_indices = all_accepted_grid_cells_df.animal_id == animal_id
+        all_accepted_grid_cells_df_animal = all_accepted_grid_cells_df[animal_indices].copy()
+        animal_name = animal + '_' + str(animal_id)
+        analyze_pattern_of_directions(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
+        compare_centre_and_border_fields(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
+        compare_pure_and_conjunctive_grid_cells(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
 
 
 def main():
+    prm.set_pixel_ratio(440)
     process_circular_data('mouse')
-    process_circular_data('rat')
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
-    compare_correlations_from_different_experiments()
+    # process_circular_data('rat') # cannot really do this, because they were recorded in multiple arenas
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
+    # compare_correlations_from_different_experiments()
 
 
 if __name__ == '__main__':
     main()
+
+
 
