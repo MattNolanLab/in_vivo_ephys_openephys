@@ -11,7 +11,11 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
         for dead_ch in range(len(dead_channels[0])):
             to_insert = np.zeros(len(filtered_data[0]))
             filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
-    random_indices = np.ceil(np.random.uniform(16, len(firing_times)-16, number_of_snippets)).astype(int)
+
+    if len(firing_times)<50:
+        random_indices = np.arange(0, len(firing_times))
+    else:
+        random_indices = np.ceil(np.random.uniform(16, len(firing_times)-16, number_of_snippets)).astype(int)
     snippets = np.zeros((4, 30, number_of_snippets))
 
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
@@ -29,7 +33,10 @@ def extract_all_snippets(filtered_data, firing_times, tetrode, prm):
             to_insert = np.zeros(len(filtered_data[0]))
             filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
 
-    all_indices = np.arange(16, len(firing_times)-16)
+    if len(firing_times)<50:
+        all_indices = np.arange(0, len(firing_times))
+    else:
+        all_indices = np.arange(16, len(firing_times)-16)
     snippets = np.zeros((4, 30, len(all_indices)))
 
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
