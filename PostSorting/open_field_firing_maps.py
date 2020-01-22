@@ -105,6 +105,7 @@ def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bi
 
 
 def get_position_heatmap(spatial_data, prm):
+
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
     bin_size_cm = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)

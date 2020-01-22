@@ -153,14 +153,21 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
                                                                                                   spike_data_spatial,
                                                                                                   prm)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
-    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data,
-                                                                            prm)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
+
     if opto_analysis:
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
+    spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
+                                                                                               synced_spatial_data,
+                                                                                               spatial_firing)
+
+    make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
+    PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
+
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
     save_data_for_plots(position_heat_map, hd_histogram, prm)
-    make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
+
     return synced_spatial_data, spatial_firing
 
 
@@ -202,13 +209,9 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
 
-            spike_data = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
-                                                                                                   synced_spatial_data,
-                                                                                                   spatial_firing)
-
             save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 
-
+#
 #  this is here for testing
 def main():
     print('-------------------------------------------------------------')

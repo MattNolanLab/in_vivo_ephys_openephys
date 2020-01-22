@@ -3,7 +3,6 @@ import numpy as np
 from scipy.stats.stats import pearsonr
 import PostSorting.open_field_firing_maps
 
-
 def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, excluded_bins, path):
     print('Plot rate maps.')
     plt.cla()
@@ -95,6 +94,24 @@ def calculate_spatial_correlation_between_rate_maps(first, second, position_firs
     # possibly need to remove nans here and maybe count how many there are and return that number as well
     pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
     return pearson_r, percentage_of_excluded_bins, rate_map_first, rate_map_second
+
+def half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second, prm):
+    pearson_rs = []
+    percent_excluded_bins = []
+    ps = []
+    for cluster in spike_data_first.cluster_id.astype(int):
+        cluster_firsthalf = spike_data_first[spike_data_first.cluster_id==cluster]
+        cluster_secondhalf = spike_data_second[spike_data_second.cluster_id==cluster]
+
+        rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2 = make_same_sized_rate_maps(synced_spatial_data_first, synced_spatial_data_second, cluster_firsthalf, cluster_secondhalf, prm)
+        pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
+
+        pearson_rs.append(pearson_r)
+        percent_excluded_bins.append(percent_excluded_bins)
+
+    spike_data['rate_map_correlation_first_vs_second_half'] = pearson_rs
+    spike_data['percent_excluded_bins_rate_map_correlation_first_vs_second_half_p'] = percent_excluded_bins
+    return spike_data
 
 
 def main():

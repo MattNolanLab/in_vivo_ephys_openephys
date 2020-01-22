@@ -3,6 +3,7 @@ import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_firing_maps
 import PostSorting.post_process_sorted_data
+import PostSorting.compare_rate_maps
 from scipy.stats.stats import pearsonr
 import pandas as pd
 
@@ -229,5 +230,7 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     spike_data = correlate_hd_in_fields_in_two_halves(spike_data_first, spike_data_second, spike_data_in)
     spike_data = correlate_hd_for_session(spike_data_first, spike_data_second, spike_data)
     prm.set_output_path(prm.get_filepath() + '/' + prm.get_sorter_name())
-    PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
+
+    spike_data = PostSorting.compare_rate_maps.half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second, prm)
     return spike_data
+####
