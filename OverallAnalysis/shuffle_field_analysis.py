@@ -315,7 +315,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         if (cell.p_values_corrected_bars_bh < 0.05).sum() > 0:
             ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3)
         plt.subplots_adjust(top=0.85)
-        plt.savefig(path  + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + 'polar.png')
+        plt.savefig(path  + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + str(cell['field_id']) + 'polar.png')
         plt.close()
         counter += 1
 
