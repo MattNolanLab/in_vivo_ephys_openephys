@@ -2,6 +2,7 @@ import glob
 import numpy as np
 import os
 import pandas as pd
+import plot_utility
 from scipy import stats
 import shutil
 import sys
@@ -276,6 +277,49 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_vid
         plt.close()
 
 
+def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, path, colors=None):
+    counter = 0
+    for index, cell in spatial_firing.iterrows():
+        if colors is None:
+            observed_data_color = 'navy'
+            colors = [[0, 1, 0], [1, 0.6, 0.3], [0, 1, 1], [1, 0, 1], [0.7, 0.3, 1], [0.6, 0.5, 0.4],
+                      [0.6, 0, 0]]  # green, orange, cyan, pink, purple, grey, dark red
+            observed_data_color = colors[cell.field_id]
+
+        else:
+            observed_data_color = colors[index]
+
+        mean = np.append(cell['shuffled_means'], cell['shuffled_means'][0])
+        percentile_95 = np.append(cell['error_bar_95'], cell['error_bar_95'][0])
+        percentile_5 = np.append(cell['error_bar_5'], cell['error_bar_5'][0])
+        field_spikes_hd = cell['hd_in_field_spikes']
+        time_spent_in_bins = cell['time_spent_in_bins']
+        # shuffled_histograms_hz = cell['field_histograms_hz']
+        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
+        max_rate = np.round(real_data_hz.max(), 2)
+        x_pos = np.linspace(0, 2*np.pi, real_data_hz.shape[0] + 1.5)
+
+        significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
+        significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
+        y_value_markers = [max_rate + 0.5] * len(significant_bins_to_mark)
+        plt.cla()
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax = plot_utility.style_polar_plot(ax)
+        x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+        plt.xticks(x_pos, x_labels)
+        ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
+        ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
+        observed_data = np.append(real_data_hz, real_data_hz[0])
+        ax.plot(x_pos, observed_data, color=observed_data_color, linewidth=5)
+        plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
+        if (cell.p_values_corrected_bars_bh < 0.05).sum() > 0:
+            ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3)
+        plt.subplots_adjust(top=0.85)
+        plt.savefig(path  + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + 'polar.png')
+        plt.close()
+        counter += 1
+
+
 # the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
 def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20, shuffle_type=''):
     field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins)
@@ -293,6 +337,7 @@ def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_
     field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=20)
     plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
+    plot_bar_chart_for_cells_percentile_error_bar_polar(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
     return field_data
 
 
