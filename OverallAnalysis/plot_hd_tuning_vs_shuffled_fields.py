@@ -73,6 +73,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
             observed_data_color = 'navy'
         else:
             observed_data_color = colors[index]
+
         mean = np.append(cell['shuffled_means'], cell['shuffled_means'][0])
         percentile_95 = np.append(cell['error_bar_95'], cell['error_bar_95'][0])
         percentile_5 = np.append(cell['error_bar_5'], cell['error_bar_5'][0])
@@ -81,7 +82,11 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         # shuffled_histograms_hz = cell['field_histograms_hz']
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         max_rate = np.round(real_data_hz.max(), 2)
-        x_pos = np.linspace(0, 2*np.pi, real_data_hz.shape[0] + 1)
+        x_pos = np.linspace(0, 2*np.pi, real_data_hz.shape[0] + 1.5)
+
+        significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
+        significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
+        y_value_markers = [max_rate + 0.5] * len(significant_bins_to_mark)
 
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
@@ -92,6 +97,8 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         observed_data = np.append(real_data_hz, real_data_hz[0])
         ax.plot(x_pos, observed_data, color=observed_data_color, linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
+        if (cell.p_values_corrected_bars_bh < 0.05).sum() > 0:
+            ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3)
         plt.subplots_adjust(top=0.85)
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentiles_correction) + '.png')
         plt.close()
@@ -142,6 +149,13 @@ def plot_hd_vs_shuffled():
     df_grid = OverallAnalysis.shuffle_field_analysis.shuffle_field_data(df_grid, analysis_path, 20, number_of_times_to_shuffle=1000, shuffle_type='distributive')
     df_grid = OverallAnalysis.shuffle_field_analysis.add_mean_and_std_to_field_df(df_grid, 30, 20)
     df_grid = OverallAnalysis.shuffle_field_analysis.add_percentile_values_to_df(df_grid, 30, number_of_bins=20)
+    df_grid = OverallAnalysis.shuffle_field_analysis.test_if_real_hd_differs_from_shuffled(df_grid)  # is the observed data within 95th percentile of the shuffled?
+    df_grid = OverallAnalysis.shuffle_field_analysis.test_if_shuffle_differs_from_other_shuffles(df_grid)
+
+    df_grid = OverallAnalysis.shuffle_field_analysis.calculate_percentile_of_observed_data(df_grid, 30, 20)  # this is relative to shuffled data
+    # field_data = calculate_percentile_of_shuffled_data(field_data, number_of_bars=20)
+    df_grid = OverallAnalysis.shuffle_field_analysis.convert_percentile_to_p_value(df_grid)  # this is needed to make it 2 tailed so diffs are picked up both ways
+    df_grid = OverallAnalysis.shuffle_field_analysis.calculate_corrected_p_values(df_grid, type='bh')
     plot_bar_chart_for_cells_percentile_error_bar(df_grid, analysis_path, 'mouse', shuffle_type='distributive')
 
     session_id = 'M12_2018-04-10_14-22-14_of'
