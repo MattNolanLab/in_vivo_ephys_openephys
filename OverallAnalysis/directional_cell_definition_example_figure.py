@@ -94,7 +94,7 @@ def plot_shuffled_number_of_bins_vs_observed(cell):
     plt.yticks([0, 1000])
     ax = fig.add_subplot(1, 1, 1)
     ax.hist(shuffled_distribution, bins=range(20), color='gray')
-    ax.axvline(x=cell.number_of_different_bins_bh.iloc[0], color='blue', linewidth=10)
+    ax.axvline(x=cell.number_of_different_bins_bh.iloc[0], color='navy', linewidth=10)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     # plt.xscale('log')
