@@ -303,6 +303,27 @@ def get_percentage_of_grid_cells_with_directional_nodes(fields):
     print(np.std(percentage_of_directional_corr))
 
 
+def plot_shuffled_number_of_bins_vs_observed(cells):
+    for index, cell in cells.iterrows():
+        shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p
+        plt.cla()
+        fig = plt.figure()
+        plt.yticks([0, 1000])
+        ax = fig.add_subplot(1, 1, 1)
+        ax.hist(shuffled_distribution, bins=range(20), color='gray')
+        ax.axvline(x=cell.number_of_different_bins_bh, color='blue', linewidth=10)
+        ax.xaxis.set_tick_params(labelsize=20)
+        ax.yaxis.set_tick_params(labelsize=20)
+        max_x_value = max(cell.number_of_different_bins_bh, shuffled_distribution.max())
+        plt.xlim(0, max_x_value + 1)
+        # plt.xscale('log')
+        plt.ylabel('Number of shuffles', fontsize=24)
+        plt.xlabel('Number of significant bins', fontsize=24)
+        plt.tight_layout()
+        plt.savefig(analysis_path + 'percentile/' + cell.session_id + str(cell.cluster_id) + str(cell.field_id) + 'number_of_significant_bars_shuffled_vs_real_' + str(cell.directional_percentile)  + '.png')
+        plt.close()
+
+
 def get_number_of_directional_fields(fields, tag='grid'):
     percentiles_no_correction = []
     percentiles_correction = []
@@ -322,9 +343,11 @@ def get_number_of_directional_fields(fields, tag='grid'):
     print('Number of directional fields [with BH correction]: ')
     print(np.sum(np.array(percentiles_correction) > 95))
     fields['directional_correction'] = np.array(percentiles_correction) > 95
+    fields['directional_percentile'] = np.array(percentiles_correction)
     fields.to_pickle(analysis_path + tag + 'fields.pkl')
 
     get_percentage_of_grid_cells_with_directional_nodes(fields)
+    plot_shuffled_number_of_bins_vs_observed(fields)
 
 
 def analyze_data(animal, server_path, shuffle_type='occupancy'):
