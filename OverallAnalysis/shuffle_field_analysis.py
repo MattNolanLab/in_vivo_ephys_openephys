@@ -296,7 +296,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         time_spent_in_bins = cell['time_spent_in_bins']
         # shuffled_histograms_hz = cell['field_histograms_hz']
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
-        max_rate = np.round(real_data_hz.max(), 2)
+        max_rate = np.round(real_data_hz[~np.isnan(real_data_hz)].max(), 2)
         x_pos = np.linspace(0, 2*np.pi, real_data_hz.shape[0] + 1.5)
 
         significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
@@ -318,6 +318,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         plt.savefig(path  + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + str(cell['field_id']) + 'polar.png')
         plt.close()
         counter += 1
+        plt.cla()
 
 
 # the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
