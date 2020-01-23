@@ -98,7 +98,7 @@ def plot_shuffled_number_of_bins_vs_observed(cell):
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     # plt.xscale('log')
-    max_x_value = max(cell.number_of_different_bins_bhiloc[0], shuffled_distribution.max())
+    max_x_value = max(cell.number_of_different_bins_bh.iloc[0], shuffled_distribution.max())
     plt.xlim(0, max_x_value + 1)
     plt.ylabel('Number of shuffles', fontsize=24)
     plt.xlabel('Number of significant bins', fontsize=24)
