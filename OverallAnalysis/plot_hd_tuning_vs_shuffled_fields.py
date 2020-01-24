@@ -98,7 +98,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         ax.plot(x_pos, observed_data, color=observed_data_color, linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
         if (cell.p_values_corrected_bars_bh < 0.05).sum() > 0:
-            ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3)
+            ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3, s=100)
         plt.subplots_adjust(top=0.85)
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentiles_correction) + '.png')
         plt.close()
