@@ -177,7 +177,7 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     ax.yaxis.set_tick_params(labelsize=20)
     plt.xlim(-1, 1)
     plt.xticks([-1, 0, 1])
-    plt.xticks([0, 150000, 300000])
+    plt.yticks([0, 150000, 300000])
     ax.set_yticklabels([0, '', 300000])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
