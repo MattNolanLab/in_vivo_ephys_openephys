@@ -70,6 +70,11 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         shuffled_histograms_hz = cell['shuffled_histograms_hz']
         max_rate = np.round(cell.hd_histogram_real_data_hz.max(), 2)
         x_pos = np.linspace(0, 2*np.pi, shuffled_histograms_hz.shape[1] + 1)
+
+        significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
+        significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
+        y_value_markers = [max_rate + 0.5] * len(significant_bins_to_mark)
+
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
@@ -79,6 +84,8 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         observed_data = np.append(cell.hd_histogram_real_data_hz, cell.hd_histogram_real_data_hz[0])
         ax.plot(x_pos, observed_data, color='navy', linewidth=5)
         plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
+        if (cell.p_values_corrected_bars_bh < 0.05).sum() > 0:
+            ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3)
         plt.subplots_adjust(top=0.85)
         plt.savefig(analysis_path + animal + '_' + shuffle_type + '/' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar_' + str(cell.percentile_value) + '.png')
         plt.close()
