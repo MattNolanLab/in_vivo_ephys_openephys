@@ -2,6 +2,7 @@ import array_utility
 import glob
 import matplotlib.pylab as plt
 import numpy as np
+import math
 import os
 import OverallAnalysis.compare_shuffled_from_first_and_second_halves
 import OverallAnalysis.folder_path_settings
@@ -239,8 +240,9 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     ax.yaxis.set_tick_params(labelsize=20)
     plt.xlim(-1, 1)
     plt.xticks([-1, 0, 1])
-    plt.yticks([0, y.max() / 2, y.max()])
-    ax.set_yticklabels([0, '', y.max()])
+    y_max = int(math.ceil(y.max() / 10.0)) * 10
+    plt.yticks([0, y_max / 2, y_max])
+    ax.set_yticklabels([0, '', y_max])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.xlabel('r', fontsize=24)
