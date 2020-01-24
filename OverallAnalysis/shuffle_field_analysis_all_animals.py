@@ -307,7 +307,7 @@ def plot_shuffled_number_of_bins_vs_observed(cells):
     for index, cell in cells.iterrows():
         shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p
         plt.cla()
-        fig = plt.figure()
+        fig = plt.figure(figsize=(6, 3))
         plt.yticks([0, 1000])
         ax = fig.add_subplot(1, 1, 1)
         ax.hist(shuffled_distribution, bins=range(20), color='gray')
@@ -317,7 +317,7 @@ def plot_shuffled_number_of_bins_vs_observed(cells):
         max_x_value = max(cell.number_of_different_bins_bh, shuffled_distribution.max())
         plt.xlim(0, max_x_value + 1)
         # plt.xscale('log')
-        plt.ylabel('Number of shuffles', fontsize=24)
+        plt.ylabel('N', fontsize=24)
         plt.xlabel('Number of significant bins', fontsize=24)
         plt.tight_layout()
         plt.savefig(analysis_path + 'percentile/' + cell.session_id + str(cell.cluster_id) + str(cell.field_id) + 'number_of_significant_bars_shuffled_vs_real_' + str(cell.directional_percentile)  + '.png')
