@@ -211,3 +211,15 @@ def plot_cumulative_histogram(corr_values, ax, color='black', number_of_bins=40)
     # plot the cumulative function
     plt.plot(base[:-1], cumulative, c=color, linewidth=5, alpha=0.6)
     return ax
+
+
+def plot_cumulative_histogram_from_zero(corr_values, ax, color='black', number_of_bins=40):
+    plt.xlim(0, 1)
+    plt.yticks([0, 1])
+    ax = format_bar_chart(ax, 'Percentile score', 'Cumulative probability')
+    values, base = np.histogram(corr_values, bins=number_of_bins, range=(-1, 1))
+    # evaluate the cumulative
+    cumulative = np.cumsum(values / len(corr_values))
+    # plot the cumulative function
+    plt.plot(base[:-1], cumulative, c=color, linewidth=5, alpha=0.6)
+    return ax
