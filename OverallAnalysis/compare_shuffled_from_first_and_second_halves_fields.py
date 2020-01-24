@@ -38,10 +38,11 @@ def make_summary_figures(tag):
         percentiles_vs_shuffled_plot = plt.figure()
         percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
-        ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
+        # ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
+        ax = plot_utility.plot_cumulative_histogram_from_zero(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
 
+        '''
         plt.cla()
         stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
         percentiles_vs_shuffled_plot = plt.figure()
@@ -49,6 +50,7 @@ def make_summary_figures(tag):
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr.png')
+        '''
 
 
 def add_cell_types_to_data_frame(spatial_firing):
@@ -231,14 +233,14 @@ def split_in_two(cell, sampling_rate_video):
 def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    plt.hist(shuffled, color='gray', alpha=0.8)
+    y, _, _= plt.hist(shuffled, color='gray', alpha=0.8)
     ax.axvline(observed, color='navy', linewidth=10)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     plt.xlim(-1, 1)
     plt.xticks([-1, 0, 1])
-    plt.yticks([0, 125, 250])
-    ax.set_yticklabels([0, '', 250])
+    plt.yticks([0, y.max() / 2, y.max()])
+    ax.set_yticklabels([0, '', y.max()])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.xlabel('r', fontsize=24)
