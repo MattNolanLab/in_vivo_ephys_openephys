@@ -90,7 +90,7 @@ def plot_shuffled_number_of_bins_vs_observed(cell):
     # percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
     shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p.iloc[0]
     plt.cla()
-    fig = plt.figure()
+    fig = plt.figure(figsize=(6, 3))
     plt.yticks([0, 500, 1000])
     ax = fig.add_subplot(1, 1, 1)
     ax.set_yticklabels([0, '', 1000])
