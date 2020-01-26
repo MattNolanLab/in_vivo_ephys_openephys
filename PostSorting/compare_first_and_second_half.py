@@ -231,6 +231,6 @@ def analyse_first_and_second_halves(prm, synced_spatial_data, spike_data_in):
     spike_data = correlate_hd_for_session(spike_data_first, spike_data_second, spike_data)
     prm.set_output_path(prm.get_filepath() + '/' + prm.get_sorter_name())
 
-    #spike_data = PostSorting.compare_rate_maps.half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second, prm)
+    spike_data = PostSorting.compare_rate_maps.half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second, prm)
     return spike_data
 ####

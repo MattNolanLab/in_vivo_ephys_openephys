@@ -163,7 +163,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
                                                                                                spatial_firing)
 
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
-    PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spike_data)
+    PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
     save_data_for_plots(position_heat_map, hd_histogram, prm)
