@@ -8,6 +8,7 @@ import numpy as np
 import math
 import time
 
+
 def get_dwell(spatial_data, prm):
     min_dwell_distance_cm = 5  # from point to determine min dwell time
     min_dwell_distance_pixels = min_dwell_distance_cm / 100 * prm.get_pixel_ratio()
@@ -46,58 +47,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
-
-    '''
-    x = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_x)-(bin_size_pixels/2), number_of_bins_x-1)
-    y = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_y)-(bin_size_pixels/2), number_of_bins_y-1)
-
-    xv, yv = np.meshgrid(x, y)
-
-    xv_spikes = np.repeat(xv[:, :, np.newaxis], len(spike_positions_x), axis=2)
-    yv_spikes = np.repeat(yv[:, :, np.newaxis], len(spike_positions_y), axis=2)
-    xv_spikes = xv_spikes - spike_positions_x
-    yv_spikes = yv_spikes - spike_positions_y
-    xv_spikes = np.power(xv_spikes, 2)
-    yv_spikes = np.power(yv_spikes, 2)
-
-    xy_spikes = xv_spikes+yv_spikes
-    xy_spikes = np.sqrt(xy_spikes)
-    #xy_spikes = xy_spikes[~np.isnan(xy_spikes)]
-    xy_spikes = xy_spikes/smooth
-    xy_spikes = gaussian_kernel(xy_spikes)
-    xy_spikes = np.sum(xy_spikes, axis=2)
-
-    xv_locs = np.repeat(xv[:, :, np.newaxis], len(positions_x), axis=2)
-    yv_locs = np.repeat(yv[:, :, np.newaxis], len(positions_y), axis=2)
-    xv_locs = xv_locs - positions_x
-    yv_locs = yv_locs - positions_y
-    xv_locs = np.power(xv_locs, 2)
-    yv_locs = np.power(yv_locs, 2)
-
-    xy_locs = xv_locs+yv_locs
-    xy_locs = np.sqrt(xy_locs)
-    #xy_locs = xy_spikes[~np.isnan(xy_locs)]
-    xy_locs = xy_locs/smooth
-    xy_locs = gaussian_kernel(xy_locs)
-    xy_locs = np.sum(xy_locs, axis=2)
-    xy_locs = xy_locs*(dt_position_ms/1000)
-
-    firing_rate_map = np.divide(xy_spikes, xy_locs)
-
-    # bin occupancy
-    xedges = np.linspace(0, bin_size_pixels*number_of_bins_x, number_of_bins_x)
-    yedges = np.linspace(0, bin_size_pixels*number_of_bins_y, number_of_bins_y)
-
-    occupancy_hist, xedges, yedges = np.histogram2d(positions_x, positions_y, (xedges, yedges))
-
-    occupancy_hist[occupancy_hist<min_dwell] = 0
-    occupancy_hist[occupancy_hist!=0] = 1
-
-    firing_rate_map = firing_rate_map*occupancy_hist # occupancy hist is a mask
-
-    '''
     firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
-
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
             px = x * bin_size_pixels + (bin_size_pixels / 2)
@@ -114,7 +64,6 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
             else:
                 firing_rate_map[x, y] = 0
     #firing_rate_map = np.rot90(firing_rate_map)
-
     return firing_rate_map
 
 
@@ -156,7 +105,6 @@ def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bi
 
 
 def get_position_heatmap(spatial_data, prm):
-
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
     bin_size_cm = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
