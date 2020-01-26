@@ -91,8 +91,35 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     xy_locs = xy_locs*(dt_position_ms/1000)
 
     firing_rate_map = np.divide(xy_spikes, xy_locs)
-
     firing_rate_map = firing_rate_map*occupancies # occupancies is a mask
+
+    return firing_rate_map
+
+def calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+    print('Started another cluster')
+    print(cluster)
+    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
+    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
+    spike_positions_x = cluster_firings.position_x.values
+    spike_positions_y = cluster_firings.position_y.values
+
+    firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    for x in range(number_of_bins_x):
+        for y in range(number_of_bins_y):
+            px = x * bin_size_pixels + (bin_size_pixels / 2)
+            py = y * bin_size_pixels + (bin_size_pixels / 2)
+            spike_distances = np.sqrt(np.power(px - spike_positions_x, 2) + np.power(py - spike_positions_y, 2))
+            spike_distances = spike_distances[~np.isnan(spike_distances)]
+            occupancy_distances = np.sqrt(np.power((px - positions_x), 2) + np.power((py - positions_y), 2))
+            occupancy_distances = occupancy_distances[~np.isnan(occupancy_distances)]
+            bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
+
+            if bin_occupancy >= min_dwell:
+                firing_rate_map[x, y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
+
+            else:
+                firing_rate_map[x, y] = 0
+    #firing_rate_map = np.rot90(firing_rate_map)
 
     return firing_rate_map
 
