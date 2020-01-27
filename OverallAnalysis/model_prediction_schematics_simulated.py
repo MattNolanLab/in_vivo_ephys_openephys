@@ -31,7 +31,7 @@ def plot_distributions():
     print('uniform')
     get_smooth_hist_and_plot(uniform, 'uniform')
     print('unimodal')
-    unimodal = np.random.vonmises(0.5, 0.9, 1000000) + np.pi
+    unimodal = np.random.vonmises(0.5, 4, 1000000) + np.pi
     get_smooth_hist_and_plot(unimodal, 'unimodal')
 
 

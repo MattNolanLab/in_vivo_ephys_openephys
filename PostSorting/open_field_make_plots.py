@@ -164,6 +164,10 @@ def plot_single_polar_hd_hist(hist_1, cluster, save_path, color1='lime', title='
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     ax = plt.subplot(1, 1, 1, polar=True)
     ax = plot_utility.style_polar_plot(ax)
+    plt.xticks([])
+    plt.yticks([])
+    plt.ylim(0, hist_1.max() * 1.4)
+    plt.xticks([math.radians(0), math.radians(90), math.radians(180), math.radians(270)])
     ax.plot(theta[:-1], hist_1, color=color1, linewidth=10)
     plt.title(title)
     # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
