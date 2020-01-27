@@ -97,7 +97,7 @@ def calculate_spatial_correlation_between_rate_maps(first, second, position_firs
 
 def half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second, prm):
     pearson_rs = []
-    percent_excluded_bins = []
+    percent_excluded_bins_all = []
 
     for cluster in spike_data_first.cluster_id.astype(int):
         cluster_firsthalf = spike_data_first[spike_data_first.cluster_id==cluster]
@@ -107,10 +107,10 @@ def half_session_stability(spike_data, spike_data_first, spike_data_second, sync
         pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
 
         pearson_rs.append(pearson_r)
-        percent_excluded_bins.append(percent_excluded_bins)
+        percent_excluded_bins_all.append(percentage_of_excluded_bins)
 
     spike_data['rate_map_correlation_first_vs_second_half'] = pearson_rs
-    spike_data['percent_excluded_bins_rate_map_correlation_first_vs_second_half_p'] = percent_excluded_bins
+    spike_data['percent_excluded_bins_rate_map_correlation_first_vs_second_half_p'] = percent_excluded_bins_all
     return spike_data
 
 
