@@ -311,7 +311,7 @@ def plot_shuffled_number_of_bins_vs_observed(cells):
         plt.yticks([0, 1000])
         ax = fig.add_subplot(1, 1, 1)
         ax.hist(shuffled_distribution, bins=range(20), color='gray')
-        ax.axvline(x=cell.number_of_different_bins_bh, color='navy', linewidth=10)
+        ax.axvline(x=cell.number_of_different_bins_bh, color='navy', linewidth=3)
         ax.xaxis.set_tick_params(labelsize=20)
         ax.yaxis.set_tick_params(labelsize=20)
         max_x_value = max(cell.number_of_different_bins_bh, shuffled_distribution.max())
