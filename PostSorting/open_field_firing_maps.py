@@ -51,8 +51,8 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     spike_positions_y = spike_positions_y[~np.isnan(spike_positions_y)]
     spike_positions_x = spike_positions_x[~np.isnan(spike_positions_x)]
 
-    x = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_x)-(bin_size_pixels/2), number_of_bins_x-1)
-    y = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_y)-(bin_size_pixels/2), number_of_bins_y-1)
+    x = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_x)-(bin_size_pixels/2), number_of_bins_x)
+    y = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_y)-(bin_size_pixels/2), number_of_bins_y)
 
     xv, yv = np.meshgrid(x, y)
 
@@ -93,7 +93,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     firing_rate_map = np.divide(xy_spikes, xy_locs)
     firing_rate_map = firing_rate_map*occupancies # occupancies is a mask
 
-    return firing_rate_map
+    return np.transpose(firing_rate_map)
 
 def calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
