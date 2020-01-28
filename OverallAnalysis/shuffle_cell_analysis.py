@@ -333,6 +333,40 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
         counter += 1
 
 
+def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, animal, path, colors=None):
+    counter = 0
+    for index, cell in spatial_firing.iterrows():
+        observed_data_color = 'navy'
+
+        mean = cell['shuffled_means']
+        percentile_95 = cell['error_bar_95']
+        percentile_5 = cell['error_bar_5']
+        shuffled_histograms_hz = cell['shuffled_histograms_hz']
+        real_data_hz = cell.hd_histogram_real_data_hz
+        max_rate = np.round(real_data_hz[~np.isnan(real_data_hz)].max(), 2)
+        x_pos = np.arange(shuffled_histograms_hz.shape[1])
+        significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
+        significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
+        y_value_markers = [max_rate + 0.5] * len(significant_bins_to_mark)
+        plt.cla()
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax = plot_utility.style_polar_plot(ax)
+        x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
+        plt.xticks(x_pos, x_labels)
+        ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
+        ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
+        observed_data = np.append(real_data_hz, real_data_hz[0])
+        x_pos = np.append(x_pos, x_pos[0])
+        ax.plot(x_pos, observed_data, color=observed_data_color, linewidth=5)
+        plt.title('\n' + str(max_rate) + ' Hz', fontsize=20, y=1.08)
+        if (cell.p_values_corrected_bars_bh < 0.05).sum() > 0:
+            ax.scatter(significant_bins_to_mark, y_value_markers, c='red',  marker='*', zorder=3)
+        plt.subplots_adjust(top=0.85)
+        plt.savefig(local_path + 'shuffle_analysis_' + animal + '_' + str(counter) + str(cell['session_id']) + str(cell['cluster_id']) + '_percentile_polar')
+        plt.close()
+        counter += 1
+
+
 def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle, shuffle_type='occupancy'):
     number_of_spikes_in_field = cell['number_of_spikes']
     length_of_recording = len(cell.trajectory_hd)
@@ -477,6 +511,7 @@ def analyze_shuffled_data(spatial_firing, save_path, sampling_rate_video, animal
     spatial_firing = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(spatial_firing, sampling_rate_video, number_of_bars=20)
     # plot_bar_chart_for_cells(spatial_firing, save_path, animal, shuffle_type=shuffle_type)
     plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, save_path, animal, shuffle_type=shuffle_type)
+    plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, animal, save_path, colors=None)
     # spatial_firing.to_pickle(save_path)
     return spatial_firing
 
