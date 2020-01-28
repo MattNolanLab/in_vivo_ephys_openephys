@@ -344,7 +344,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         shuffled_histograms_hz = cell['shuffled_histograms_hz']
         real_data_hz = cell.hd_histogram_real_data_hz
         max_rate = np.round(real_data_hz[~np.isnan(real_data_hz)].max(), 2)
-        x_pos = np.arange(shuffled_histograms_hz.shape[1])
+        x_pos = np.linspace(0, 2 * np.pi, real_data_hz.shape[0] + 1.5)
         significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
         significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
         y_value_markers = [max_rate + 0.5] * len(significant_bins_to_mark)
