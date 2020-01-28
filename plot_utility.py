@@ -216,6 +216,7 @@ def plot_cumulative_histogram(corr_values, ax, color='black', number_of_bins=40)
 def plot_cumulative_histogram_from_zero(corr_values, ax, color='black', number_of_bins=40):
     plt.xlim(0, 1)
     plt.yticks([0, 1])
+    plt.xticks([0, 1], [1, 100])
     ax = format_bar_chart(ax, 'Percentile score', 'Cumulative probability')
     values, base = np.histogram(corr_values, bins=number_of_bins, range=(-1, 1))
     # evaluate the cumulative
