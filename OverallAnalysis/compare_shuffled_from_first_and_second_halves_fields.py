@@ -235,7 +235,7 @@ def plot_observed_vs_shuffled_correlations(observed, shuffled, cell):
     hd_polar_fig = plt.figure()
     ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     y, _, _= plt.hist(shuffled, color='gray', alpha=0.8)
-    ax.axvline(observed, color='navy', linewidth=10)
+    ax.axvline(observed, color='navy', linewidth=3)
     ax.xaxis.set_tick_params(labelsize=20)
     ax.yaxis.set_tick_params(labelsize=20)
     plt.xlim(-1, 1)
