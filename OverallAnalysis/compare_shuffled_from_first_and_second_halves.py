@@ -256,9 +256,10 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     corr_coefs_mean = []
     corr_stds = []
     percentiles = []
+    shuffled_percentiles = [] # this will be used as a baseline for expected percentiles
     number_of_spikes = []
     hd_scores = []
-    col_names = ['session_id', 'cluster_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'hd_scores_all',
+    col_names = ['session_id', 'cluster_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'shuffled_percentiles', 'hd_scores_all',
                  'number_of_spikes_all']
     aggregated_data = pd.DataFrame(columns=col_names)
     for iterator in range(len(grid_data)):
@@ -307,7 +308,9 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
             plot_observed_vs_shuffled_correlations(corr_observed, corr, spatial_firing_first)
 
             percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
+            shuffled_percentile = scipy.stats.percentileofscore(corr.flatten(), corr[0][0])
             percentiles.append(percentile)
+            shuffled_percentiles.append(shuffled_percentile)
             number_of_spikes.append(grid_data.iloc[iterator].number_of_spikes)
             hd_scores.append(grid_data.iloc[iterator].hd_score)
 
@@ -321,6 +324,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
                 "shuffled_corr_median": shuffled_corr_median,
                 "corr_stds": corr_std,
                 "percentiles": percentile,
+                "shuffled_percentiles": shuffled_percentile,
                 "hd_scores_all": grid_data.iloc[iterator].hd_score,
                 "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes
             }, ignore_index=True)
