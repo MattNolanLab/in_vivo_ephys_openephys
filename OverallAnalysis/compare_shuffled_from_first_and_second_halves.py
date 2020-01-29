@@ -38,6 +38,11 @@ def make_summary_figures(tag):
         ax = plot_utility.plot_cumulative_histogram_from_zero(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
 
+        d, p = scipy.stats.ks_2samp(stats.percentiles, stats.shuffled_percentiles)
+        print('KS test between observed and shuffled percentiles for correlation (D, p):')
+        print(d)
+        print(p)
+
         '''
         plt.cla()
         stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
