@@ -40,8 +40,14 @@ def make_summary_figures(tag):
         percentiles_vs_shuffled_plot.set_size_inches(5, 5, forward=True)
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         # ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
+        ax = plot_utility.plot_cumulative_histogram_from_zero(stats.shuffled_percentiles / 100, ax, color='grey', number_of_bins=100)
         ax = plot_utility.plot_cumulative_histogram_from_zero(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
+
+        d, p = scipy.stats.ks_2samp(stats.percentiles, stats.shuffled_percentiles)
+        print('KS test between observed and shuffled percentiles for correlation (D, p):')
+        print(d)
+        print(p)
 
         '''
         plt.cla()
@@ -469,6 +475,7 @@ def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, a
     plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
 
     percentile = scipy.stats.percentileofscore(corr, corr_observed)
+    shuffled_percentile = scipy.stats.percentileofscore(corr, corr[0])
 
     aggregated_data = aggregated_data.append({
         "session_id": grid_data.iloc[iterator].session_id,
@@ -478,6 +485,7 @@ def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, a
         "shuffled_corr_median": shuffled_corr_median,
         "corr_stds": corr_std,
         "percentiles": percentile,
+        "shuffled_percentiles": shuffled_percentile,
         "hd_scores_all": grid_data.iloc[iterator].hd_score,
         "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes_in_field,
         "spatial_scores": spatial_correlation_between_halves,
@@ -509,7 +517,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
     accepted = all_data['accepted_field'] == True
     grid_data = all_data[grid_cells & accepted]
 
-    col_names = ['session_id', 'cluster_id', 'field_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'hd_scores_all',
+    col_names = ['session_id', 'cluster_id', 'field_id', 'corr_coefs_mean', 'shuffled_corr_median', 'corr_stds', 'percentiles', 'shuffled_percentiles', 'hd_scores_all',
                  'number_of_spikes_all', 'spatial_scores', 'percentages_of_excluded_bins', 'spatial_scores_field',
                  'percentages_of_excluded_bins_field', 'unsampled_hds']
     aggregated_data = pd.DataFrame(columns=col_names)
