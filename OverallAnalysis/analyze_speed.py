@@ -8,6 +8,7 @@ import PostSorting.speed
 import OverallAnalysis.folder_path_settings
 import os
 import OverallAnalysis.false_positives
+import OverallAnalysis.shuffle_cell_analysis
 
 
 local_path_mouse = OverallAnalysis.folder_path_settings.get_local_path() + '/speed/all_mice_df.pkl'
@@ -56,31 +57,6 @@ def add_speed_score_to_spatial_firing(output_path, server_path, animal, video_sa
     return spatial_firing_data
 
 
-def add_combined_id_to_df(df_all_mice):
-    animal_ids = [session_id.split('_')[0] for session_id in df_all_mice.session_id.values]
-    dates = [session_id.split('_')[1] for session_id in df_all_mice.session_id.values]
-    tetrode = df_all_mice.tetrode.values
-    cluster = df_all_mice.cluster_id.values
-
-    combined_ids = []
-    for cell in range(len(df_all_mice)):
-        id = animal_ids[cell] + '-' + dates[cell] + '-Tetrode-' + str(tetrode[cell]) + '-Cluster-' + str(cluster[cell])
-        combined_ids.append(id)
-    df_all_mice['false_positive_id'] = combined_ids
-    return df_all_mice
-
-
-def tag_false_positives(all_cells, animal):
-    if animal == 'mouse':
-        false_positives_path = path_to_data + 'false_positives_all.txt'
-        list_of_false_positives = OverallAnalysis.false_positives.get_list_of_false_positives(false_positives_path)
-        all_cells = add_combined_id_to_df(all_cells)
-        all_cells['false_positive'] = all_cells['false_positive_id'].isin(list_of_false_positives)
-    else:
-        all_cells['false_positive'] = np.full(len(all_cells), False)
-    return all_cells
-
-
 def add_cell_types_to_data_frame(cells):
     cell_type = []
     for index, field in cells.iterrows():
@@ -108,9 +84,8 @@ def plot_speed_dependence(spatial_firing, animal, tag, color='navy'):
     plt.close()
 
 
-def process_data():
-    spatial_firing = add_speed_score_to_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', 30, 30000, spike_sorter='/MountainSort', df_path='/DataFrames')
-    spatial_firing = tag_false_positives(spatial_firing, 'mouse')
+def analyze_all_mouse_grid_cells(spatial_firing):
+    spatial_firing = OverallAnalysis.shuffle_cell_analysis.tag_false_positives(spatial_firing)
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
     grid_cells = spatial_firing['cell type'] == 'grid'
     good_cell = spatial_firing.false_positive == False
@@ -121,10 +96,14 @@ def process_data():
     median_speed_score_grid = np.median(spatial_firing[grid_cells & good_cell].speed_score)
     print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
     print('median speed score for grid cells: ' + str(median_speed_score_grid))
+    print('range of speed scores for grid cells: ' + str(spatial_firing[grid_cells & good_cell].speed_score.min()) + '-' + str(spatial_firing[grid_cells & good_cell].speed_score.max()))
     print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'mouse', 'grid')
     plot_speed_dependence(spatial_firing[good_cell], 'mouse', 'all', color='gray')
 
+
+def analyze_all_rat_grid_cells(spatial_firing):
+    print('----------------------------------------------------------------------------------------------------')
     spatial_firing = add_speed_score_to_spatial_firing(local_path_rat, server_path_rat, 'rat', 50, 1, spike_sorter='', df_path='/DataFrames')
     spatial_firing['false_positive'] = False
     spatial_firing = add_cell_types_to_data_frame(spatial_firing)
@@ -133,6 +112,7 @@ def process_data():
     median_speed_score = np.median(spatial_firing[good_cell].speed_score)
     print('number of cells ' + str(len(spatial_firing[good_cell].speed_score)))
     print('[rat] median speed score for all cells: ' + str(median_speed_score))
+    print('range of speed scores for grid cells: ' + str(spatial_firing[grid_cells & good_cell].speed_score.min()) + '-' + str(spatial_firing[grid_cells & good_cell].speed_score.max()))
     print(np.std(spatial_firing[good_cell].speed_score))
     median_speed_score_grid = np.median(spatial_firing[grid_cells & good_cell].speed_score)
     print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
@@ -140,6 +120,27 @@ def process_data():
     print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'rat', 'grid')
     plot_speed_dependence(spatial_firing[good_cell], 'rat', 'all', color='gray')
+
+
+def process_data():
+    accepted_fields = pd.read_excel(path_to_data + 'list_of_accepted_fields.xlsx')
+    mouse_speed_scores = pd.read_pickle(path_to_data + 'mouse_speed_scores.pkl')
+    spatial_firing = add_speed_score_to_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', 30, 30000, spike_sorter='/MountainSort', df_path='/DataFrames')
+    spatial_firing = mouse_speed_scores[mouse_speed_scores['session_id'].isin(spatial_firing.session_id)]
+    print('all mouse grid cells')
+    analyze_all_mouse_grid_cells(spatial_firing)
+    has_fields = spatial_firing[spatial_firing.session_id.isin(accepted_fields['Session ID'])]
+    print('included in field analysis')
+    analyze_all_mouse_grid_cells(has_fields)
+
+    accepted_fields = pd.read_excel(path_to_data + 'included_fields_detector2_sargolini.xlsx')
+    spatial_firing = add_speed_score_to_spatial_firing(local_path_rat, server_path_rat, 'rat', 50, 1, spike_sorter='', df_path='/DataFrames')
+    print('all rat grid cells')
+    analyze_all_rat_grid_cells(spatial_firing)
+    has_fields = spatial_firing[spatial_firing.session_id.isin(accepted_fields['Session ID'])]
+    print('included in field analysis')
+    analyze_all_rat_grid_cells(has_fields)
+
 
 
 def main():
