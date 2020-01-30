@@ -96,6 +96,10 @@ def analyze_all_mouse_grid_cells(spatial_firing):
     median_speed_score_grid = np.median(spatial_firing[grid_cells & good_cell].speed_score)
     print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
     print('median speed score for grid cells: ' + str(median_speed_score_grid))
+    print('proportion of significant speed scores:')
+    print((spatial_firing[grid_cells & good_cell].speed_score_p_values < 0.05).sum() / len(
+        spatial_firing[good_cell & grid_cells].speed_score))
+
     print('range of speed scores for grid cells: ' + str(spatial_firing[grid_cells & good_cell].speed_score.min()) + '-' + str(spatial_firing[grid_cells & good_cell].speed_score.max()))
     print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'mouse', 'grid')
@@ -118,6 +122,8 @@ def analyze_all_rat_grid_cells(spatial_firing):
     print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
     print('median speed score for grid cells: ' + str(median_speed_score_grid))
     print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
+    print('proportion of significant speed scores:')
+    print((spatial_firing[grid_cells & good_cell].speed_score_p_values < 0.05).sum() / len(spatial_firing[good_cell & grid_cells].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'rat', 'grid')
     plot_speed_dependence(spatial_firing[good_cell], 'rat', 'all', color='gray')
 
