@@ -15,6 +15,8 @@ import PostSorting.parameters
 import scipy.stats
 from scipy import signal
 
+from statsmodels.sandbox.stats.multicomp import multipletests
+
 prm = PostSorting.parameters.Parameters()
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/compare_first_and_second_shuffled/'
@@ -49,18 +51,17 @@ def make_summary_figures(tag):
         ax = percentiles_vs_shuffled_plot.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         # ax = plot_utility.plot_cumulative_histogram(stats.shuffled_corr_median / 100, ax, color='gray', number_of_bins=100)
         # ax = plot_utility.plot_cumulative_histogram_from_zero(stats.shuffled_percentiles / 100, ax, color='grey', number_of_bins=100)
-        diagonal_line = np.linspace(0, 1, len(stats.percentiles))
-        ax = plot_utility.plot_cumulative_histogram_from_zero(diagonal_line, ax, color='grey',
-                                                              number_of_bins=100)
+        # diagonal_line = np.linspace(0, 1, len(stats.percentiles))
+        # ax = plot_utility.plot_cumulative_histogram_from_zero(diagonal_line, ax, color='grey', number_of_bins=100)
         ax = plot_utility.plot_cumulative_histogram_from_zero(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
 
+        '''
         d, p = scipy.stats.ks_2samp(stats.percentiles, diagonal_line * 100)
         print('KS test between observed and shuffled percentiles for correlation (D, p):')
         print(d)
         print(p)
 
-        '''
         plt.cla()
         stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
         percentiles_vs_shuffled_plot = plt.figure()
@@ -69,6 +70,14 @@ def make_summary_figures(tag):
         ax = plot_utility.plot_cumulative_histogram(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr.png')
         '''
+
+        percentile_values = stats.percentiles
+        percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
+        reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(percentile_values, alpha=0.05, method='fdr_bh')
+        print(pvals_corrected)
+        print('Number of significantly correlation cells after BH correction:')
+        print((pvals_corrected < 0.05).sum())
+
 
 
 def add_cell_types_to_data_frame(spatial_firing):
