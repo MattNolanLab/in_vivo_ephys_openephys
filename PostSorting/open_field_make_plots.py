@@ -168,7 +168,7 @@ def plot_single_polar_hd_hist(hist_1, cluster, save_path, color1='lime', title='
     plt.yticks([])
     plt.ylim(0, hist_1.max() * 1.4)
     plt.xticks([math.radians(0), math.radians(90), math.radians(180), math.radians(270)])
-    ax.plot(theta[:-1], hist_1, color=color1, linewidth=10)
+    ax.plot(theta[:-1], hist_1, color=color1, linewidth=6)
     plt.title(title)
     # ax.plot(theta[:-1], hist_2 * (max(hist_1) / max(hist_2)), color='navy', linewidth=2)
     plt.tight_layout()
