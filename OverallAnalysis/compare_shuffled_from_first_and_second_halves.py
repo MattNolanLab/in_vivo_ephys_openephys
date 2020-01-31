@@ -74,10 +74,8 @@ def make_summary_figures(tag):
         percentile_values = stats.percentiles
         percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
         reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(percentile_values, alpha=0.05, method='fdr_bh')
-        print(pvals_corrected)
         print('Number of significantly correlation cells after BH correction:')
         print((pvals_corrected < 0.05).sum())
-
 
 
 def add_cell_types_to_data_frame(spatial_firing):
