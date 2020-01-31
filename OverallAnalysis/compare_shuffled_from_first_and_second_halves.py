@@ -361,7 +361,7 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
 
 def main():
-    load_simulated_data()
+    # load_simulated_data()
     # process_data(path_to_simulated, tag='simulated')
     make_summary_figures('mice')
     make_summary_figures('rats')
