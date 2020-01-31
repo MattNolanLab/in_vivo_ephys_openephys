@@ -29,3 +29,4 @@ RUN add-apt-repository -y ppa:magland/mountainlab && \
 
 RUN conda activate env && \
     conda install -y astropy
+    conda install -c anaconda statsmodels
