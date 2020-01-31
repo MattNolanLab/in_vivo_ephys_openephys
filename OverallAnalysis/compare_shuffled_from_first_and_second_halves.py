@@ -24,6 +24,21 @@ local_path_rat = local_path + 'all_rats_df.pkl'
 
 server_path_mouse = OverallAnalysis.folder_path_settings.get_server_path_mouse()
 server_path_rat = OverallAnalysis.folder_path_settings.get_server_path_rat()
+path_to_simulated = local_path + 'simulated.pkl'
+
+
+def load_simulated_data():
+    path = OverallAnalysis.folder_path_settings.get_local_path() + 'simulated_25min/25/'
+    field_data_combined = pd.DataFrame()
+    for recording_folder in glob.glob(path + '*'):
+        os.path.isdir(recording_folder)
+        data_frame_path = recording_folder + '/spatial_firing.pkl'
+        if os.path.exists(data_frame_path):
+            print('I found a field data frame.')
+            spatial_firing = pd.read_pickle(data_frame_path)
+            field_data_combined = field_data_combined.append(spatial_firing)
+    field_data_combined.to_pickle(local_path + 'simulated.pkl')
+    return field_data_combined
 
 
 def make_summary_figures(tag):
@@ -346,6 +361,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
 
 def main():
+    load_simulated_data()
+    # process_data(path_to_simulated, tag='simulated')
     make_summary_figures('mice')
     make_summary_figures('rats')
     prm.set_pixel_ratio(440)
