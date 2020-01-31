@@ -20,6 +20,8 @@ import PostSorting.open_field_firing_maps
 import PostSorting.open_field_head_direction
 import PostSorting.parameters
 import scipy.stats
+
+from statsmodels.sandbox.stats.multicomp import multipletests
 from scipy import signal
 
 prm = PostSorting.parameters.Parameters()
@@ -47,12 +49,18 @@ def make_summary_figures(tag):
         ax = plot_utility.plot_cumulative_histogram_from_zero(stats.percentiles / 100, ax, color='navy', number_of_bins=100)
         plt.savefig(local_path + tag + 'percentiles_corr_vs_median_of_shuffled.png')
 
+
+        percentile_values = stats.percentiles
+        percentile_values[percentile_values > 50] = 100 - percentile_values[percentile_values > 50]
+        reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(percentile_values, alpha=0.05, method='fdr_bh')
+        print('Number of significantly correlation cells after BH correction:')
+        print((pvals_corrected < 0.05).sum())
+
+        '''
         d, p = scipy.stats.ks_2samp(stats.percentiles, diagonal_line * 100)
         print('KS test between observed and shuffled percentiles for correlation (D, p):')
         print(d)
         print(p)
-
-        '''
         plt.cla()
         stats = pd.read_pickle(local_path + tag + '_aggregated_data.pkl')
         percentiles_vs_shuffled_plot = plt.figure()
