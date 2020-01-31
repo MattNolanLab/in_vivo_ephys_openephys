@@ -31,16 +31,24 @@ path_to_simulated = local_path + 'simulated.pkl'
 
 def load_simulated_data():
     path = OverallAnalysis.folder_path_settings.get_local_path() + 'simulated_25min/25/'
-    field_data_combined = pd.DataFrame()
+    spatial_firing_combined = pd.DataFrame()
+    position_combined = pd.DataFrame()
     for recording_folder in glob.glob(path + '*'):
         os.path.isdir(recording_folder)
         data_frame_path = recording_folder + '/spatial_firing.pkl'
+        data_frame_path_position = recording_folder + '/position.pkl'
         if os.path.exists(data_frame_path):
             print('I found a field data frame.')
             spatial_firing = pd.read_pickle(data_frame_path)
-            field_data_combined = field_data_combined.append(spatial_firing)
-    field_data_combined.to_pickle(local_path + 'simulated.pkl')
-    return field_data_combined
+            position = pd.read_pickle(data_frame_path_position)
+            spatial_firing['trajectory_x'] = [position.position_x]
+            spatial_firing['trajectory_y'] = [position.position_y]
+            spatial_firing['trajectory_times'] = [position.synced_time]
+            spatial_firing['trajectory_hd'] = [position.hd]
+            spatial_firing_combined = spatial_firing_combined.append(spatial_firing)
+            position_combined = position_combined.append(position)
+    spatial_firing_combined.to_pickle(local_path + 'all_simulated_df.pkl')
+    return spatial_firing_combined
 
 
 def make_summary_figures(tag):
@@ -294,73 +302,73 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
                  'number_of_spikes_all']
     aggregated_data = pd.DataFrame(columns=col_names)
     for iterator in range(len(grid_data)):
-        try:
-            print(iterator)
-            print(grid_data.iloc[iterator].session_id)
-            first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1])
-            # add rate map to dfs
-            # shuffle
-            position_heat_map_first, first_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_first, first_half, prm)
-            spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='distributive')
-            spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
-            spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_first, local_path, sampling_rate_video, tag + str(iterator) + 'first',
-                                                   number_of_bins=20, shuffle_type='distributive')
 
-            # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
+        print(iterator)
+        print(grid_data.iloc[iterator].session_id)
+        first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1])
+        # add rate map to dfs
+        # shuffle
+        position_heat_map_first, first_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_first, first_half, prm)
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.shuffle_data(first_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_first_half', shuffle_type='distributive')
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_first, sampling_rate_video, number_of_bins=20)
+        spatial_firing_first = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_first, local_path, sampling_rate_video, tag + str(iterator) + 'first',
+                                               number_of_bins=20, shuffle_type='distributive')
 
-            position_heat_map_second, second_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_second, second_half, prm)
-            spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='distributive')
-            spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
-            spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_second, local_path, sampling_rate_video, tag + str(iterator) + 'second',
-                                                   number_of_bins=20, shuffle_type='distributive')
-            # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
+        # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_first, 'grid', animal=tag + str(iterator) + 'first', shuffle_type='distributive')
 
-            print('shuffled')
-            # compare
-            time_spent_in_bins_first = spatial_firing_first.time_spent_in_bins  # based on trajectory
-            # normalize shuffled data
-            shuffled_histograms_hz_first = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_first
-            time_spent_in_bins_second = spatial_firing_second.time_spent_in_bins  # based on trajectory
-            # normalize shuffled data
-            shuffled_histograms_hz_second = spatial_firing_second.shuffled_data * sampling_rate_video / time_spent_in_bins_second
+        position_heat_map_second, second_half = OverallAnalysis.open_field_firing_maps_processed_data.make_firing_field_maps(position_second, second_half, prm)
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.shuffle_data(second_half, 20, number_of_times_to_shuffle=1000, animal=tag + '_second_half', shuffle_type='distributive')
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.add_mean_and_std_to_df(spatial_firing_second, sampling_rate_video, number_of_bins=20)
+        spatial_firing_second = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(spatial_firing_second, local_path, sampling_rate_video, tag + str(iterator) + 'second',
+                                               number_of_bins=20, shuffle_type='distributive')
+        # OverallAnalysis.shuffle_cell_analysis.plot_distributions_for_shuffled_vs_real_cells(spatial_firing_second, 'grid', animal=tag + str(iterator) + 'second', shuffle_type='distributive')
 
-            # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
-            corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
-            corr_mean = corr.mean()
-            corr_std = corr.std()
-            shuffled_corr_median = np.median(corr)
-            # check what percentile real value is relative to distribution of shuffled correlations
-            spatial_firing_first = add_hd_histogram_of_observed_data_to_df(spatial_firing_first, sampling_rate_video,
-                                                                           number_of_bins=20, binning='not_smooth')
-            spatial_firing_second = add_hd_histogram_of_observed_data_to_df(spatial_firing_second, sampling_rate_video,
-                                                                            number_of_bins=20, binning='not_smooth')
-            corr_observed = scipy.stats.pearsonr(spatial_firing_first.hd_histogram_real_data_hz[0], spatial_firing_second.hd_histogram_real_data_hz[0])[0]
+        print('shuffled')
+        # compare
+        time_spent_in_bins_first = spatial_firing_first.time_spent_in_bins  # based on trajectory
+        # normalize shuffled data
+        shuffled_histograms_hz_first = spatial_firing_first.shuffled_data * sampling_rate_video / time_spent_in_bins_first
+        time_spent_in_bins_second = spatial_firing_second.time_spent_in_bins  # based on trajectory
+        # normalize shuffled data
+        shuffled_histograms_hz_second = spatial_firing_second.shuffled_data * sampling_rate_video / time_spent_in_bins_second
 
-            plot_observed_vs_shuffled_correlations(corr_observed, corr, spatial_firing_first)
+        # look at correlations between rows of the two arrays above to get a distr of correlations for the shuffled data
+        corr = np.corrcoef(shuffled_histograms_hz_first[0], shuffled_histograms_hz_second[0])[1000:, :1000]
+        corr_mean = corr.mean()
+        corr_std = corr.std()
+        shuffled_corr_median = np.median(corr)
+        # check what percentile real value is relative to distribution of shuffled correlations
+        spatial_firing_first = add_hd_histogram_of_observed_data_to_df(spatial_firing_first, sampling_rate_video,
+                                                                       number_of_bins=20, binning='not_smooth')
+        spatial_firing_second = add_hd_histogram_of_observed_data_to_df(spatial_firing_second, sampling_rate_video,
+                                                                        number_of_bins=20, binning='not_smooth')
+        corr_observed = scipy.stats.pearsonr(spatial_firing_first.hd_histogram_real_data_hz[0], spatial_firing_second.hd_histogram_real_data_hz[0])[0]
 
-            percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
-            shuffled_percentile = scipy.stats.percentileofscore(corr.flatten(), corr[0][0])
-            percentiles.append(percentile)
-            shuffled_percentiles.append(shuffled_percentile)
-            number_of_spikes.append(grid_data.iloc[iterator].number_of_spikes)
-            hd_scores.append(grid_data.iloc[iterator].hd_score)
+        plot_observed_vs_shuffled_correlations(corr_observed, corr, spatial_firing_first)
 
-            corr_coefs_mean.append(corr_mean)
-            corr_stds.append(corr_std)
+        percentile = scipy.stats.percentileofscore(corr.flatten(), corr_observed)
+        shuffled_percentile = scipy.stats.percentileofscore(corr.flatten(), corr[0][0])
+        percentiles.append(percentile)
+        shuffled_percentiles.append(shuffled_percentile)
+        number_of_spikes.append(grid_data.iloc[iterator].number_of_spikes)
+        hd_scores.append(grid_data.iloc[iterator].hd_score)
 
-            aggregated_data = aggregated_data.append({
-                "session_id": grid_data.iloc[iterator].session_id,
-                "cluster_id":  grid_data.iloc[iterator].cluster_id,
-                "corr_coefs_mean": corr_mean,
-                "shuffled_corr_median": shuffled_corr_median,
-                "corr_stds": corr_std,
-                "percentiles": percentile,
-                "shuffled_percentiles": shuffled_percentile,
-                "hd_scores_all": grid_data.iloc[iterator].hd_score,
-                "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes
-            }, ignore_index=True)
-        except:
-            print('i failed...')
+        corr_coefs_mean.append(corr_mean)
+        corr_stds.append(corr_std)
+
+        aggregated_data = aggregated_data.append({
+            "session_id": grid_data.iloc[iterator].session_id,
+            "cluster_id":  grid_data.iloc[iterator].cluster_id,
+            "corr_coefs_mean": corr_mean,
+            "shuffled_corr_median": shuffled_corr_median,
+            "corr_stds": corr_std,
+            "percentiles": percentile,
+            "shuffled_percentiles": shuffled_percentile,
+            "hd_scores_all": grid_data.iloc[iterator].hd_score,
+            "number_of_spikes_all": grid_data.iloc[iterator].number_of_spikes
+        }, ignore_index=True)
+
+        # print('i failed...')
 
     print_summary_stat_results(corr_coefs_mean, percentiles, tag)
     plot_summary_stats(tag, grid_data, percentiles, hd_scores, number_of_spikes)
@@ -369,6 +377,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
 
 def main():
     # load_simulated_data()
+    # prm.set_pixel_ratio(100)
+    # prm.set_sampling_rate(1000)
     # process_data(path_to_simulated, tag='simulated')
     make_summary_figures('mice')
     make_summary_figures('rats')
