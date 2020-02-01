@@ -363,8 +363,10 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
     plt.scatter(distances, in_between_coefs)
-    ax.set_xlabel('Distance between fields', fontsize=25)
-    ax.set_ylabel('Pearson correlation between fields', fontsize=25)
+    ax.set_xlabel('Distance between fields', fontsize=30)
+    # Pearson correlation between fields
+    ax.set_ylabel('R', fontsize=30)
+    ax.tick_params(axis='both', which='major', labelsize=20)
 
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
     plt.close()
@@ -376,7 +378,8 @@ def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag
     f, ax = plt.subplots(figsize=(11, 9))
     plt.scatter(distances, highest_corr_angles)
     ax.set_xlabel('Distance between fields', fontsize=25)
-    ax.set_ylabel('Highest correlating rotation', fontsize=25)
+    ax.set_ylabel('R (rotation)', fontsize=25)
+    ax.tick_params(axis='both', which='major', labelsize=20)
 
     plt.savefig(local_path + 'distance_between_fields_vs_highest_correlating_angle' + tag + '.png')
     plt.close()
