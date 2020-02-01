@@ -377,8 +377,8 @@ def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
     plt.scatter(distances * 2.5, highest_corr_angles)
-    ax.set_xlabel('Distance between fields(cm)', fontsize=25)
-    ax.set_ylabel('Highest correlating rotation (deg)', fontsize=25)
+    ax.set_xlabel('Distance between fields(cm)', fontsize=30)
+    ax.set_ylabel('Highest correlating rotation (deg)', fontsize=30)
     ax.tick_params(axis='both', which='major', labelsize=20)
 
     plt.savefig(local_path + 'distance_between_fields_vs_highest_correlating_angle' + tag + '.png')
