@@ -362,7 +362,7 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
 def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
-    plt.scatter(distances * 5.5, in_between_coefs)
+    plt.scatter(distances * 2.5, in_between_coefs)
     ax.set_xlabel('Distance between fields (cm)', fontsize=30)
     # Pearson correlation between fields
     ax.set_ylabel('R', fontsize=30)
@@ -376,7 +376,7 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
 def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
-    plt.scatter(distances * 5.5, highest_corr_angles)
+    plt.scatter(distances * 2.5, highest_corr_angles)
     ax.set_xlabel('Distance between fields(cm)', fontsize=25)
     ax.set_ylabel('Highest correlating rotation (deg)', fontsize=25)
     ax.tick_params(axis='both', which='major', labelsize=20)
