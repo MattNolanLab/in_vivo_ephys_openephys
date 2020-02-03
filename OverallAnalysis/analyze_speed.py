@@ -100,6 +100,9 @@ def analyze_all_mouse_grid_cells(spatial_firing):
     print((spatial_firing[grid_cells & good_cell].speed_score_p_values < 0.05).sum() / len(
         spatial_firing[good_cell & grid_cells].speed_score))
 
+    print('Number of cells with grid score < 0.1:')
+    print(str((spatial_firing[good_cell & grid_cells].speed_score < 0.1).sum()))
+
     print('range of speed scores for grid cells: ' + str(spatial_firing[grid_cells & good_cell].speed_score.min()) + '-' + str(spatial_firing[grid_cells & good_cell].speed_score.max()))
     print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'mouse', 'grid')
@@ -122,6 +125,10 @@ def analyze_all_rat_grid_cells(spatial_firing):
     print('number of grid cells ' + str(len(spatial_firing[good_cell & grid_cells].speed_score)))
     print('median speed score for grid cells: ' + str(median_speed_score_grid))
     print(np.std(spatial_firing[grid_cells & good_cell].speed_score))
+
+    print('Number of cells with grid score < 0.1:')
+    print(str((spatial_firing[good_cell & grid_cells].speed_score < 0.1).sum()))
+
     print('proportion of significant speed scores:')
     print((spatial_firing[grid_cells & good_cell].speed_score_p_values < 0.05).sum() / len(spatial_firing[good_cell & grid_cells].speed_score))
     plot_speed_dependence(spatial_firing[grid_cells & good_cell], 'rat', 'grid')
@@ -130,9 +137,9 @@ def analyze_all_rat_grid_cells(spatial_firing):
 
 def process_data():
     accepted_fields = pd.read_excel(path_to_data + 'list_of_accepted_fields.xlsx')
-    mouse_speed_scores = pd.read_pickle(path_to_data + 'mouse_speed_scores.pkl')
+    # mouse_speed_scores = pd.read_pickle(path_to_data + 'mouse_speed_scores.pkl')
     spatial_firing = add_speed_score_to_spatial_firing(local_path_mouse, server_path_mouse, 'mouse', 30, 30000, spike_sorter='/MountainSort', df_path='/DataFrames')
-    spatial_firing = mouse_speed_scores[mouse_speed_scores['session_id'].isin(spatial_firing.session_id)]
+    # spatial_firing = mouse_speed_scores[mouse_speed_scores['session_id'].isin(spatial_firing.session_id)]
     print('all mouse grid cells')
     analyze_all_mouse_grid_cells(spatial_firing)
     has_fields = spatial_firing[spatial_firing.session_id.isin(accepted_fields['Session ID'])]
@@ -146,7 +153,6 @@ def process_data():
     has_fields = spatial_firing[spatial_firing.session_id.isin(accepted_fields['Session ID'])]
     print('included in field analysis')
     analyze_all_rat_grid_cells(has_fields)
-
 
 
 def main():
