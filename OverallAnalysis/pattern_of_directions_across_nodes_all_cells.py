@@ -366,12 +366,13 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colou
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
     if len(colours) > 1:
-        plt.scatter(distances, in_between_coefs, c=colours)
+        plt.scatter(distances * 2.5, in_between_coefs, c=colours)
     else:
-        plt.scatter(distances, in_between_coefs)
+        plt.scatter(distances * 2.5, in_between_coefs)
     print(tag)
-    ax.set_xlabel('Distance between fields', fontsize=25)
-    ax.set_ylabel('Pearson correlation between fields', fontsize=25)
+    ax.set_xlabel('Distance between fields (cm)', fontsize=30)
+    ax.set_ylabel('R', fontsize=30)
+    ax.tick_params(axis='both', which='major', labelsize=20)
 
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
     plt.close()
