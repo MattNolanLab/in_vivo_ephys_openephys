@@ -37,35 +37,35 @@ def plot_correlation_coef_hist(correlation_coefs, save_path, y_axis_label='Numbe
     plt.close()
 
 
-fields = pd.read_excel(path)
-print(fields.head())
-significant = (fields.p_value < 0.001)
-correlation_coefs = fields[significant]['correlation coef'].values
-save_path = path + 'correlation_coef_hist.png'
-plot_correlation_coef_hist(correlation_coefs, save_path)
+    fields = pd.read_excel(path)
+    print(fields.head())
+    significant = (fields.p_value < 0.001)
+    correlation_coefs = fields[significant]['correlation coef'].values
+    save_path = path + 'correlation_coef_hist.png'
+    plot_correlation_coef_hist(correlation_coefs, save_path)
 
 
-grid_cells = fields['cell type'] == 'grid'
-hd_cells = fields['cell type'] == 'hd'
-conjunctive_cells = fields['cell type'] == 'conjunctive'
-not_classified = fields['cell type'] == 'na'
-fields[grid_cells & significant]['correlation coef'].std()
+    grid_cells = fields['cell type'] == 'grid'
+    hd_cells = fields['cell type'] == 'hd'
+    conjunctive_cells = fields['cell type'] == 'conjunctive'
+    not_classified = fields['cell type'] == 'na'
+    fields[grid_cells & significant]['correlation coef'].std()
 
-grid_coeffs = fields[grid_cells & significant]['correlation coef'].values
-save_path = path + 'correlation_coef_hist_grid.png'
-plot_correlation_coef_hist(grid_coeffs, save_path)
+    grid_coeffs = fields[grid_cells & significant]['correlation coef'].values
+    save_path = path + 'correlation_coef_hist_grid.png'
+    plot_correlation_coef_hist(grid_coeffs, save_path)
 
-grid_coeffs = fields[hd_cells & significant]['correlation coef'].values
-save_path = path + 'correlation_coef_hist_hd.png'
-plot_correlation_coef_hist(grid_coeffs, save_path)
+    grid_coeffs = fields[hd_cells & significant]['correlation coef'].values
+    save_path = path + 'correlation_coef_hist_hd.png'
+    plot_correlation_coef_hist(grid_coeffs, save_path)
 
-grid_coeffs = fields[not_classified & significant]['correlation coef'].values
-save_path = path + 'correlation_coef_hist_nc.png'
-plot_correlation_coef_hist(grid_coeffs, save_path)
+    grid_coeffs = fields[not_classified & significant]['correlation coef'].values
+    save_path = path + 'correlation_coef_hist_nc.png'
+    plot_correlation_coef_hist(grid_coeffs, save_path)
 
-grid_coeffs = fields[conjunctive_cells & significant]['correlation coef'].values
-save_path = path + 'correlation_coef_hist_conj.png'
-plot_correlation_coef_hist(grid_coeffs, save_path)
+    grid_coeffs = fields[conjunctive_cells & significant]['correlation coef'].values
+    save_path = path + 'correlation_coef_hist_conj.png'
+    plot_correlation_coef_hist(grid_coeffs, save_path)
 
 
 def main():
