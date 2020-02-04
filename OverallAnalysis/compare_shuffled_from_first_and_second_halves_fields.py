@@ -437,6 +437,26 @@ def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indic
     return pearson, percentage_of_bins_excluded
 
 
+def plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator):
+    from scipy import signal
+    corr = scipy.signal.correlate2d(rate_map_1, rate_map_2)
+    plt.imshow(corr, cmap='jet')
+    plt.savefig(
+        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'cross_corr.png')
+
+    plt.cla()
+
+    plt.imshow(rate_map_2 - rate_map_1, cmap='jet')
+    plt.savefig(
+        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'subtract.png')
+    plt.cla()
+
+    plt.imshow(rate_map_1 - rate_map_2, cmap='jet')
+    plt.savefig(
+        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'subtract2.png')
+    plt.cla()
+
+
 def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data, sampling_rate_video):
     print(iterator)
     print(grid_data.iloc[iterator].session_id)
@@ -449,6 +469,8 @@ def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, a
 
     spatial_correlation_field, percentage_of_excluded_bins_in_field = check_how_much_rate_maps_correlate_fields_only(
         rate_map_1, rate_map_2, grid_data.iloc[iterator].indices_rate_map)
+    # calculate cross-corr here and print and plot
+    plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator)
 
     first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
     first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
@@ -483,6 +505,7 @@ def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, a
     corr_observed = scipy.stats.pearsonr(first_half_hd_hist_hz, second_half_hd_hist_hz)[0]
     percentage_of_unsampled_hd = (len(first_half.hd_histogram_real_data_hz[0]) - len(first_half_hd_hist_hz)) / len(
         first_half.hd_histogram_real_data_hz[0]) * 100
+
     plot_observed_vs_shuffled_correlations(corr_observed, corr, first_half)
 
     percentile = scipy.stats.percentileofscore(corr, corr_observed)
