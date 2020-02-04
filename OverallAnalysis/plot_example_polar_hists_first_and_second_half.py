@@ -38,7 +38,7 @@ def plot_hd_for_example_cells(name, cluster):
     hd_hist_position = hd_hist_position * max(hd_hist_cluster)/max(hd_hist_position)
 
     PostSorting.open_field_make_plots.plot_polar_hd_hist(hd_hist_cluster, hd_hist_cluster, cluster, path + '/' + str(cluster), color1='red', color2='red')
-    PostSorting.open_field_make_plots.plot_polar_hd_hist(spatial_firing.iloc[0].hd_hist_first_half, spatial_firing.iloc[0].hd_hist_second_half, 1, save_output_path + 'first_vs_second_half_M14_2018-05-16_11-29-05_of')
+    PostSorting.open_field_make_plots.plot_polar_hd_hist(spatial_firing.iloc[0].hd_hist_first_half, spatial_firing.iloc[0].hd_hist_second_half, 1, save_output_path + 'first_vs_second_half' + name)
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
 
     good_cluster = df_all_mice.false_positive == False
 
-    plot_hd_for_example_cells('M14_2018-05-16_11-29-05_of', 12)
+    plot_hd_for_example_cells('M13_2018-05-14_09-37-33_of', 6)
 
 
 if __name__ == '__main__':
