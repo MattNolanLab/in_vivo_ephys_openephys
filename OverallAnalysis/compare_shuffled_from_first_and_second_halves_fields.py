@@ -437,67 +437,6 @@ def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indic
     return pearson, percentage_of_bins_excluded
 
 
-def plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator):
-    from scipy import signal
-
-    corr = scipy.signal.correlate2d(rate_map_2, rate_map_2)
-    firing_rate_map_fig = plt.figure()
-    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
-    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax = plot_utility.style_open_field_plot(ax)
-    rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
-    firing_rate_map_fig.colorbar(rate_map_img)
-    plt.savefig(
-        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'auto_corr2.png')
-
-    plt.cla()
-
-
-    corr = scipy.signal.correlate2d(rate_map_1, rate_map_1)
-    firing_rate_map_fig = plt.figure()
-    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
-    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax = plot_utility.style_open_field_plot(ax)
-    rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
-    firing_rate_map_fig.colorbar(rate_map_img)
-    plt.savefig(
-        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'auto_corr1.png')
-
-    plt.cla()
-
-    corr = scipy.signal.correlate2d(rate_map_1, rate_map_2)
-    firing_rate_map_fig = plt.figure()
-    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
-    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax = plot_utility.style_open_field_plot(ax)
-    rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
-    firing_rate_map_fig.colorbar(rate_map_img)
-    plt.savefig(
-        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'cross_corr.png')
-
-    plt.cla()
-    firing_rate_map_fig = plt.figure()
-    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
-    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax = plot_utility.style_open_field_plot(ax)
-    rate_map_img = ax.imshow(rate_map_2 - rate_map_1, cmap='jet', interpolation='nearest')
-    firing_rate_map_fig.colorbar(rate_map_img)
-    plt.savefig(
-        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'subtract.png')
-    plt.cla()
-
-    plt.cla()
-    firing_rate_map_fig = plt.figure()
-    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
-    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    ax = plot_utility.style_open_field_plot(ax)
-    rate_map_img = ax.imshow(rate_map_1 - rate_map_2, cmap='jet', interpolation='nearest')
-    firing_rate_map_fig.colorbar(rate_map_img)
-    plt.savefig(
-        local_path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'subtract2.png')
-    plt.cla()
-
-
 def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data, sampling_rate_video):
     print(iterator)
     print(grid_data.iloc[iterator].session_id)
@@ -511,7 +450,7 @@ def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, a
     spatial_correlation_field, percentage_of_excluded_bins_in_field = check_how_much_rate_maps_correlate_fields_only(
         rate_map_1, rate_map_2, grid_data.iloc[iterator].indices_rate_map)
     # calculate cross-corr here and print and plot
-    plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator)
+    PostSorting.compare_rate_maps.plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator)
 
     first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
     first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
