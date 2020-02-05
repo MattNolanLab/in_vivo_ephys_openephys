@@ -450,7 +450,7 @@ def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, a
     spatial_correlation_field, percentage_of_excluded_bins_in_field = check_how_much_rate_maps_correlate_fields_only(
         rate_map_1, rate_map_2, grid_data.iloc[iterator].indices_rate_map)
     # calculate cross-corr here and print and plot
-    PostSorting.compare_rate_maps.plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator)
+    PostSorting.compare_rate_maps.plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator, local_path)
 
     first_half = add_rate_map_values_to_field(first_half_whole_cell, first_half)
     first_half = distributive_shuffle(first_half, number_of_bins=20, number_of_times_to_shuffle=1000)
@@ -536,11 +536,8 @@ def process_data(server_path, spike_sorter='/MountainSort', df_path='/DataFrames
                  'percentages_of_excluded_bins_field', 'unsampled_hds']
     aggregated_data = pd.DataFrame(columns=col_names)
     for iterator in range(len(grid_data)):
-        try:
-            aggregated_data = compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data,
+        aggregated_data = compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data,
                                                        sampling_rate_video)
-        except:
-            print('I failed to analyze this one.')
 
     print_summary_stats(tag, aggregated_data.corr_coefs_mean, aggregated_data.percentiles)
     make_summary_plots(aggregated_data.percentiles, aggregated_data.hd_scores_all, aggregated_data.number_of_spikes_all, aggregated_data.spatial_scores, aggregated_data.percentages_of_excluded_bins, aggregated_data.spatial_scores_field, aggregated_data.percentages_of_excluded_bins_field, aggregated_data.unsampled_hds, tag)
