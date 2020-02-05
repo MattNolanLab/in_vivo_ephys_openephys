@@ -13,9 +13,9 @@ def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, ex
     fig, axs = plt.subplots(2)
     fig.suptitle('Spatial corr: ' + str(round(corr_score, 2)) + '\n % of excluded bins: ' + str(round(excluded_bins, 2)) + ' %')
     map_1 = axs[0].imshow(rate_map_1, cmap='jet', interpolation='nearest')
-    fig.colorbar(map_1.rate_map_img)
+    fig.colorbar(map_1)
     map_2 = axs[1].imshow(rate_map_2, cmap='jet', interpolation='nearest')
-    fig.colorbar(map_2.rate_map_img)
+    fig.colorbar(map_2)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     plt.savefig(path)
