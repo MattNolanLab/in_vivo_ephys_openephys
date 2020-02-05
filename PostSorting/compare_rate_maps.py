@@ -1,7 +1,9 @@
 import matplotlib.pylab as plt
 import numpy as np
 from scipy.stats.stats import pearsonr
+import scipy.signal
 import PostSorting.open_field_firing_maps
+import plot_utility
 
 
 def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, excluded_bins, path):
@@ -95,6 +97,65 @@ def calculate_spatial_correlation_between_rate_maps(first, second, position_firs
     # possibly need to remove nans here and maybe count how many there are and return that number as well
     pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
     return pearson_r, percentage_of_excluded_bins, rate_map_first, rate_map_second
+
+#todo tidy these
+def plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator, path):
+    corr = scipy.signal.correlate2d(rate_map_2, rate_map_2)
+    firing_rate_map_fig = plt.figure()
+    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
+    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    ax = plot_utility.style_open_field_plot(ax)
+    rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
+    firing_rate_map_fig.colorbar(rate_map_img)
+    plt.savefig(
+        path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'auto_corr2.png')
+
+    plt.cla()
+
+
+    corr = scipy.signal.correlate2d(rate_map_1, rate_map_1)
+    firing_rate_map_fig = plt.figure()
+    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
+    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    ax = plot_utility.style_open_field_plot(ax)
+    rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
+    firing_rate_map_fig.colorbar(rate_map_img)
+    plt.savefig(
+        path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'auto_corr1.png')
+
+    plt.cla()
+
+    corr = scipy.signal.correlate2d(rate_map_1, rate_map_2)
+    firing_rate_map_fig = plt.figure()
+    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
+    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    ax = plot_utility.style_open_field_plot(ax)
+    rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
+    firing_rate_map_fig.colorbar(rate_map_img)
+    plt.savefig(
+        path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'cross_corr.png')
+
+    plt.cla()
+    firing_rate_map_fig = plt.figure()
+    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
+    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    ax = plot_utility.style_open_field_plot(ax)
+    rate_map_img = ax.imshow(rate_map_2 - rate_map_1, cmap='jet', interpolation='nearest')
+    firing_rate_map_fig.colorbar(rate_map_img)
+    plt.savefig(
+        path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'subtract.png')
+    plt.cla()
+
+    plt.cla()
+    firing_rate_map_fig = plt.figure()
+    firing_rate_map_fig.set_size_inches(5, 5, forward=True)
+    ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+    ax = plot_utility.style_open_field_plot(ax)
+    rate_map_img = ax.imshow(rate_map_1 - rate_map_2, cmap='jet', interpolation='nearest')
+    firing_rate_map_fig.colorbar(rate_map_img)
+    plt.savefig(
+        path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'subtract2.png')
+    plt.cla()
 
 
 def main():
