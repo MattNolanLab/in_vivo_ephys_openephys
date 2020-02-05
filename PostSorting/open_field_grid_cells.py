@@ -68,6 +68,29 @@ def get_rate_map_autocorrelogram(firing_rate_map):
     return correlation_vector
 
 
+# they need to be the same size
+def get_rate_map_crosscorrelogram(firing_rate_map1, firing_rate_map2):
+    length_y = firing_rate_map1.shape[0] - 1
+    length_x = firing_rate_map1.shape[1] - 1
+    correlation_vector = np.empty((length_x * 2 + 1, length_y * 2 + 1)) * 0
+    for shift_x in range(-length_x, length_x):
+        for shift_y in range(-length_y, length_y):
+            # shift map by x and y and remove extra bits
+            shifted_map = get_shifted_map(firing_rate_map1, shift_x, -shift_y)
+            firing_rate_map_to_correlate, shifted_map = remove_zeros(firing_rate_map2, shifted_map)
+
+            correlation_y = shift_y + length_y
+            correlation_x = shift_x + length_x
+
+            if len(shifted_map) > 20:
+                # np.corrcoef(x,y)[0][1] gives the same result for 1d vectors as matlab's corr(x,y) (Pearson)
+                # https://stackoverflow.com/questions/16698811/what-is-the-difference-between-matlab-octave-corr-and-python-numpy-correlate
+                correlation_vector[correlation_x, correlation_y] = np.corrcoef(firing_rate_map_to_correlate, shifted_map)[0][1]
+            else:
+                correlation_vector[correlation_x, correlation_y] = np.nan
+    return correlation_vector
+
+
 # make autocorr map binary based on threshold
 def threshold_autocorrelation_map(autocorrelation_map):
     autocorrelation_map[autocorrelation_map > 0.2] = 1
