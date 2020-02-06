@@ -82,7 +82,7 @@ def add_speed_score_to_df(fields, animal):
 
 
 def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_threshold=0.1):
-    print('Speed threshold is :' + str(speed_threshold))
+    print('Speed threshold is: ' + str(speed_threshold))
     speed_mod = grid_fields[grid_fields.speed_score > speed_threshold]
     not_speed_mod = grid_fields[grid_fields.speed_score <= speed_threshold]
     dir_bins_speed = speed_mod.number_of_different_bins_bh
