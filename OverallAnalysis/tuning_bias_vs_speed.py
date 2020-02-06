@@ -45,7 +45,7 @@ def plot_results(grid_fields, animal):
     speed_score = grid_fields.speed_score
     plt.figure()
     plt.scatter(speed_score, number_of_significantly_directional_bins)
-    plt.axvline(x=0.1, colour='red')
+    plt.axvline(x=0.1, color='red')
     plt.ylabel('Number of significant bins', fontsize=16)
     plt.xlabel('Speed score', fontsize=16)
     plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score' + animal + '.png')
