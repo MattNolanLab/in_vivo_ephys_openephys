@@ -112,6 +112,8 @@ def plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator, path):
     ax = plot_utility.style_open_field_plot(ax)
     rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
     # firing_rate_map_fig.colorbar(rate_map_img)
+    ax.axvline(x=(corr.shape[1]) / 2, color='black', linewidth=4)
+    ax.axhline(y=(corr.shape[0]) / 2, color='black', linewidth=4)
     plt.savefig(
         path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'auto_corr2.png')
 
@@ -125,6 +127,8 @@ def plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator, path):
     ax = plot_utility.style_open_field_plot(ax)
     rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
     # firing_rate_map_fig.colorbar(rate_map_img)
+    ax.axvline(x=(corr.shape[1]) / 2, color='black', linewidth=4)
+    ax.axhline(y=(corr.shape[0]) / 2, color='black', linewidth=4)
     plt.savefig(
         path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'auto_corr1.png')
 
@@ -137,6 +141,8 @@ def plot_rate_map_comparison(grid_data, rate_map_1, rate_map_2, iterator, path):
     ax = plot_utility.style_open_field_plot(ax)
     rate_map_img = ax.imshow(corr, cmap='jet', interpolation='nearest')
     # firing_rate_map_fig.colorbar(rate_map_img)
+    ax.axvline(x=(corr.shape[1]) / 2, color='black', linewidth=4)
+    ax.axhline(y=(corr.shape[0]) / 2, color='black', linewidth=4)
     plt.savefig(
         path + grid_data.iloc[iterator].session_id + str(grid_data.iloc[iterator].session_id) + 'cross_corr.png')
 
