@@ -14,6 +14,7 @@ from rpy2.robjects.packages import importr
 import scipy.stats
 # utils = importr('utils')
 # utils.install_packages('circular')
+from scipy.stats import linregress
 
 
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/tuning_bias_vs_trajectory_bias/'
@@ -59,6 +60,15 @@ def add_percentiles(fields):
     return fields
 
 
+def check_if_they_correlate(fields):
+    print('compare tuning and trajectory bias:')
+    trajectory_bias = fields.watson_stat
+    tuning = fields.number_of_different_bins_bh
+    slope, intercept, r_value, p_value, std_err = linregress(trajectory_bias, tuning)
+    print("slope: %f    intercept: %f  p_value %f" % (slope, intercept, p_value))
+
+
+
 def process_data(animal):
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
@@ -81,6 +91,7 @@ def process_data(animal):
     grid_fields = add_percentiles(grid_fields)
 
     plot_results(grid_fields, animal)
+    check_if_they_correlate(grid_fields)
 
 
 def main():
