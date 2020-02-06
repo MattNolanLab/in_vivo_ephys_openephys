@@ -509,6 +509,35 @@ def tag_border_and_middle_fields(field_data):
     return field_data
 
 
+# if it touches the border it's a border field
+def add_distance_from_walls(field_data):
+    distance_from_wall_1 = []
+    distance_from_wall_2 = []
+    distance_from_wall_3 = []
+    distance_from_wall_4 = []
+
+    for index, field in field_data.iterrows():
+        rate_map = field.rate_map.iloc[0]
+        field_indices = field.indices_rate_map
+        y_max = len(rate_map)
+        x_max = len(rate_map[0])
+
+        d1 = field_indices[:, 0] * 2.5  # convert to cm
+        d2 = field_indices[:, 1] * 2.5
+        d3 = (x_max - field_indices[:, 1]) * 2.5
+        d4 = (y_max - field_indices[:, 0]) * 2.5
+        distance_from_wall_1.append(d1.mean())
+        distance_from_wall_2.append(d2.mean())
+        distance_from_wall_3.append(d3.mean())
+        distance_from_wall_4.append(d4.mean())
+
+    field_data['distance_from_wall_1'] = distance_from_wall_1
+    field_data['distance_from_wall_2'] = distance_from_wall_2
+    field_data['distance_from_wall_3'] = distance_from_wall_3
+    field_data['distance_from_wall_4'] = distance_from_wall_4
+    return field_data
+
+
 # this is just here to test the analysis by plotting the data
 def plot_half_spikes(spatial_firing, position, field, half_time, firing_times_cluster, sampling_rate_ephys):
     plt.cla()
@@ -1080,6 +1109,7 @@ def process_circular_data(animal, tag=''):
 
     field_data = add_cell_types_to_data_frame(field_data)
     field_data = tag_border_and_middle_fields(field_data)
+    field_data = add_distance_from_walls(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
     all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
