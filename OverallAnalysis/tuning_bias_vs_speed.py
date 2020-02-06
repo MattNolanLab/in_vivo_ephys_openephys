@@ -81,12 +81,14 @@ def add_speed_score_to_df(fields, animal):
     return fields
 
 
-def compare_speed_modulated_and_non_modulated(grid_fields, animal):
-    speed_mod = grid_fields[grid_fields.speed_score > 0.1]
-    not_speed_mod = grid_fields[grid_fields.speed_score <= 0.1]
+def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_threshold=0.1):
+    print('Speed threshold is :' + str(speed_threshold))
+    speed_mod = grid_fields[grid_fields.speed_score > speed_threshold]
+    not_speed_mod = grid_fields[grid_fields.speed_score <= speed_threshold]
     dir_bins_speed = speed_mod.number_of_different_bins_bh
     not_dir_bins_speed = not_speed_mod.number_of_different_bins_bh
     D, p = scipy.stats.ks_2samp(dir_bins_speed, not_dir_bins_speed)
+    print('_______________________')
     print(animal)
     print('KS test on number of significant bins (D, p): ')
     print(D)
@@ -94,8 +96,19 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal):
 
     percentile_speed_mod = speed_mod.directional_percentile
     percentile_not_speed_mod = not_speed_mod.directional_percentile
+
+    print('Number of directional fields that are speed modulated:')
+    print(len(speed_mod[speed_mod.directional_percentile > 95]))
+    print('Number of non directional fields that are speed modulated:')
+    print(len(speed_mod[speed_mod.directional_percentile <= 95]))
+
+
+    print('Number of directional fields that are not speed modulated:')
+    print(len(not_speed_mod[not_speed_mod.directional_percentile > 95]))
+    print('Number of non directional fields that are not speed modulated:')
+    print(len(not_speed_mod[not_speed_mod.directional_percentile <= 95]))
+
     D, p = scipy.stats.ks_2samp(percentile_speed_mod, percentile_not_speed_mod)
-    print(animal)
     print('KS test on directional percentiles (D, p): ')
     print(D)
     print(p)
@@ -126,6 +139,7 @@ def process_data(animal):
 
     plot_results(grid_fields, animal)
     compare_speed_modulated_and_non_modulated(grid_fields, animal)
+    compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_threshold=0.05)
 
 
 def main():
