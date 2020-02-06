@@ -49,6 +49,15 @@ def plot_results(grid_fields, animal):
     plt.ylabel('Number of significant bins', fontsize=16)
     plt.xlabel('Speed score', fontsize=16)
     plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score' + animal + '.png')
+    plt.cla()
+
+    plt.figure()
+    plt.scatter(speed_score, grid_fields.directional_percentile)
+    plt.axvline(x=0.1, color='red')
+    plt.ylabel('Directional percentile', fontsize=16)
+    plt.xlabel('Speed score', fontsize=16)
+    plt.savefig(analysis_path + 'directional_percentile_vs_speed_score' + animal + '.png')
+    plt.cla()
 
 
 def add_percentiles(fields):
@@ -70,6 +79,19 @@ def add_speed_score_to_df(fields, animal):
     df = df[['cell_id', 'speed_score']]
     fields = pd.merge(fields, df, on='cell_id')
     return fields
+
+
+def compare_speed_modulated_and_non_modulated(grid_fields, animal):
+    speed_mod = grid_fields[grid_fields.speed_score > 0.1]
+    not_speed_mod = grid_fields[grid_fields.speed_score <= 0.1]
+    dir_bins_speed = speed_mod.number_of_different_bins_bh
+    not_dir_bins_speed = not_speed_mod.number_of_different_bins_bh
+    D, p = scipy.stats.ks_2samp(dir_bins_speed, not_dir_bins_speed)
+    print(animal)
+    print('KS test on number of significant bins (D, p): ')
+    print(D)
+    print(p)
+
 
 
 def process_data(animal):
@@ -95,6 +117,7 @@ def process_data(animal):
     grid_fields = add_percentiles(grid_fields)
 
     plot_results(grid_fields, animal)
+    compare_speed_modulated_and_non_modulated(grid_fields, animal)
 
 
 def main():
