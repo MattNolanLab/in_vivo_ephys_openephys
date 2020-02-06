@@ -68,8 +68,8 @@ def check_if_they_correlate(fields):
     print("slope: %f    intercept: %f  p_value %f" % (slope, intercept, p_value))
 
 
-
 def process_data(animal):
+    print(animal)
     if animal == 'mouse':
         local_path_to_field_data = local_path_to_shuffled_field_data_mice
         accepted_fields = pd.read_excel(analysis_path + 'list_of_accepted_fields.xlsx')
