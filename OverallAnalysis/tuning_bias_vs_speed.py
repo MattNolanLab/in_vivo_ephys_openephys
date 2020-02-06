@@ -40,14 +40,15 @@ def compare_trajectory_hd_to_uniform_dist(fields):
     return fields
 
 
-def plot_results(grid_fields):
+def plot_results(grid_fields, animal):
     number_of_significantly_directional_bins = grid_fields.number_of_different_bins_bh
     speed_score = grid_fields.speed_score
     plt.figure()
-    plt.scatter(number_of_significantly_directional_bins, speed_score)
-    plt.xlabel('Number of directional bins', fontsize=20)
-    plt.ylabel('Bias in trajectory', fontsize=20)
-    plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score.png')
+    plt.scatter(speed_score, number_of_significantly_directional_bins)
+    plt.axvline(x=0.1, colour='red')
+    plt.ylabel('Number of significant bins', fontsize=16)
+    plt.xlabel('Speed score', fontsize=16)
+    plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score' + animal + '.png')
 
 
 def add_percentiles(fields):
@@ -93,7 +94,7 @@ def process_data(animal):
     grid_fields = add_speed_score_to_df(grid_fields, animal)
     grid_fields = add_percentiles(grid_fields)
 
-    plot_results(grid_fields)
+    plot_results(grid_fields, animal)
 
 
 def main():
