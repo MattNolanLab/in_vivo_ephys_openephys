@@ -18,6 +18,7 @@ import PostSorting.compare_first_and_second_half
 import PostSorting.compare_rate_maps
 import PostSorting.open_field_firing_maps
 import PostSorting.open_field_head_direction
+import PostSorting.open_field_make_plots
 import PostSorting.parameters
 import scipy.stats
 
@@ -218,7 +219,7 @@ def add_hd_histogram_of_observed_data_to_df(fields, sampling_rate_video, number_
         hd_hist_session /= prm.get_sampling_rate()
         angles_spike = fields.hd[0]
         hd_hist_spikes = PostSorting.open_field_head_direction.get_hd_histogram(angles_spike)
-        fields['hd_histogram_real_data_hz'] = [hd_hist_spikes / hd_hist_session / 1000]
+        fields['hd_histogram_real_data_hz_smooth'] = [hd_hist_spikes / hd_hist_session / 1000]
     return fields
 
 
@@ -244,6 +245,8 @@ def split_in_two(cell, sampling_rate_video):
 
     first = add_hd_histogram_of_observed_data_to_df(first, sampling_rate_video)
     second = add_hd_histogram_of_observed_data_to_df(second, sampling_rate_video)
+    first = add_hd_histogram_of_observed_data_to_df(first, sampling_rate_video, number_of_bins=360, binning='smooth')
+    second = add_hd_histogram_of_observed_data_to_df(second, sampling_rate_video, number_of_bins=360, binning='smooth')
 
     return first, second, synced_spatial_data_first_half, synced_spatial_data_second_half
 
@@ -437,11 +440,19 @@ def check_how_much_rate_maps_correlate_fields_only(rate_map_1, rate_map_2, indic
     return pearson, percentage_of_bins_excluded
 
 
+def plot_smooth_halves(first, second):
+    hd_first = first.hd_histogram_real_data_hz_smooth.iloc[0]
+    hd_second = second.hd_histogram_real_data_hz_smooth.iloc[0]
+    PostSorting.open_field_make_plots.plot_polar_hd_hist(hd_first, hd_second, 0, local_path + 'smooth_halves' + first.session_id.iloc[0] + str(first.cluster_id.iloc[0]) + str(first.field_id.iloc[0]), color1='lime', color2='navy', title='')
+
+
 def compare_observed_and_shuffled_correlations(iterator, grid_data, all_cells, aggregated_data, sampling_rate_video):
     print(iterator)
     print(grid_data.iloc[iterator].session_id)
     first_half, second_half, position_first, position_second = split_in_two(grid_data.iloc[iterator:iterator + 1],
                                                                             sampling_rate_video=sampling_rate_video)
+    # plot smooth hd polar plots
+    plot_smooth_halves(first_half, second_half)
     first_half_whole_cell, second_half_whole_cell, position_first_whole_cell, position_second_whole_cell = get_half_rate_map_from_whole_cell(
         all_cells, first_half.session_id, first_half.cluster_id)
     spatial_correlation_between_halves, percentage_of_excluded_bins, rate_map_1, rate_map_2 = check_how_much_rate_maps_correlate(
