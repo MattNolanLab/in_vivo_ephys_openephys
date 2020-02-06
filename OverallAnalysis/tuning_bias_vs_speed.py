@@ -92,6 +92,14 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal):
     print(D)
     print(p)
 
+    percentile_speed_mod = speed_mod.directional_percentile
+    percentile_not_speed_mod = not_speed_mod.directional_percentile
+    D, p = scipy.stats.ks_2samp(percentile_speed_mod, percentile_not_speed_mod)
+    print(animal)
+    print('KS test on directional percentiles (D, p): ')
+    print(D)
+    print(p)
+
 
 
 def process_data(animal):
