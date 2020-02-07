@@ -1043,11 +1043,11 @@ def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
 
     plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
     plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
-    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_indices2], in_between_coefs, tag='wall_1' + animal + tag)
-    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_indices2], in_between_coefs, tag='wall_2' + animal + tag)
-    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_indices2], in_between_coefs, tag='wall_3' + animal + tag)
-    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_indices2], in_between_coefs, tag='wall_4' + animal + tag)
-    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_centre.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_centre.values[list_of_indices2], in_between_coefs, tag='centre' + animal + tag)
+    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_indices2]), in_between_coefs, tag='wall_1' + animal + tag)
+    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_indices2]), in_between_coefs, tag='wall_2' + animal + tag)
+    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_indices2]), in_between_coefs, tag='wall_3' + animal + tag)
+    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_indices2]), in_between_coefs, tag='wall_4' + animal + tag)
+    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_centre.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_centre.values[list_of_indices2]), in_between_coefs, tag='centre' + animal + tag)
 
 
     calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
