@@ -373,6 +373,7 @@ def get_random_indices_for_shuffle(cell, number_of_times_to_shuffle, shuffle_typ
         shuffle_indices = np.random.randint(0, length_of_recording, size=(number_of_times_to_shuffle, number_of_spikes_in_field))
     else:
         rates = cell.rate_map_values_session  # normalize to make sure it adds up to 1
+        rates = np.nan_to_num(rates)  # assign 0 probability to sampling unsampled ranges
         rates /= sum(rates)
         shuffle_indices = np.random.choice(range(0, length_of_recording), size=(number_of_times_to_shuffle, number_of_spikes_in_field), p=rates)
     return shuffle_indices
