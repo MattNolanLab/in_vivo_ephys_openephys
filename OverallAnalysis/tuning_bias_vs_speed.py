@@ -45,7 +45,7 @@ def plot_results(grid_fields, animal):
     speed_score = grid_fields.speed_score
     plt.figure()
     plt.scatter(speed_score, number_of_significantly_directional_bins)
-    plt.axvline(x=0.1, color='red')
+    # plt.axvline(x=0.1, color='red')
     plt.ylabel('Number of significant bins', fontsize=16)
     plt.xlabel('Speed score', fontsize=16)
     plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score' + animal + '.png')
@@ -53,7 +53,7 @@ def plot_results(grid_fields, animal):
 
     plt.figure()
     plt.scatter(speed_score, grid_fields.directional_percentile)
-    plt.axvline(x=0.1, color='red')
+    # plt.axvline(x=0.1, color='red')
     plt.ylabel('Directional percentile', fontsize=16)
     plt.xlabel('Speed score', fontsize=16)
     plt.savefig(analysis_path + 'directional_percentile_vs_speed_score' + animal + '.png')
@@ -87,10 +87,10 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_thresho
     not_speed_mod = grid_fields[grid_fields.speed_score <= speed_threshold]
     dir_bins_speed = speed_mod.number_of_different_bins_bh
     not_dir_bins_speed = not_speed_mod.number_of_different_bins_bh
-    D, p = scipy.stats.ks_2samp(dir_bins_speed, not_dir_bins_speed)
+    D, p = scipy.stats.mannwhitneyu(dir_bins_speed, not_dir_bins_speed)
     print('_______________________')
     print(animal)
-    print('KS test on number of significant bins (D, p): ')
+    print('MW test on number of significant bins (U, p): ')
     print(D)
     print(p)
 
@@ -108,8 +108,8 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_thresho
     print('Number of non directional fields that are not speed modulated:')
     print(len(not_speed_mod[not_speed_mod.directional_percentile <= 95]))
 
-    D, p = scipy.stats.ks_2samp(percentile_speed_mod, percentile_not_speed_mod)
-    print('KS test on directional percentiles (D, p): ')
+    D, p = scipy.stats.mannwhitneyu(percentile_speed_mod, percentile_not_speed_mod)
+    print('MW test on directional percentiles (U, p): ')
     print(D)
     print(p)
 
