@@ -264,6 +264,8 @@ def compare_hd_histograms(field_data, type='cell'):
 def get_pearson_coefs_all(field_data):
     if len(field_data) > 0:
         pearson_coefs_all = []
+        list_of_indices = []
+        list_of_indices2 = []
         field_histograms = field_data.normalized_hd_hist
         for index1, field1 in enumerate(field_histograms):
             for index2, field2 in enumerate(field_histograms):
@@ -273,7 +275,9 @@ def get_pearson_coefs_all(field_data):
                     if len(field1_clean_z) > 1:
                         pearson_coef = scipy.stats.pearsonr(field1_clean_z, field2_clean_z)[0]
                         pearson_coefs_all.extend([pearson_coef])
-        return pearson_coefs_all
+                        list_of_indices.append(index1)
+                        list_of_indices2.append(index2)
+        return pearson_coefs_all, list_of_indices, list_of_indices2
 
 
 def get_pearson_coefs_all_shuffled(field_data):
@@ -340,7 +344,7 @@ def get_highest_correlation_angles(field_data):
 
 
 def get_distance_vs_correlations(field_data, type='grid cells'):
-    pearson_coefs_all = get_pearson_coefs_all(field_data)
+    pearson_coefs_all, list_of_field_indices, list_of_indices2 = get_pearson_coefs_all(field_data)
     distances = get_distances_all(field_data)
     highest_correlation_angles = get_highest_correlation_angles(field_data)
     coefs_list = np.asanyarray(pearson_coefs_all)
@@ -359,7 +363,7 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
     print('Correlation between distance between fields and highest correlating rotation angle:')
     print(corr)
     print('p: ' + str(p))
-    return distances_list, coefs_list, highest_correlation_angles_list
+    return distances_list, coefs_list, highest_correlation_angles_list, list_of_field_indices, list_of_indices2
 
 
 def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colours=[0]):
@@ -375,6 +379,23 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colou
     ax.tick_params(axis='both', which='major', labelsize=20)
 
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
+    plt.close()
+
+
+def plot_distances_from_speficic_point(distances, in_between_coefs, tag):
+    plt.cla()
+    f, ax = plt.subplots(figsize=(11, 9))
+
+    plt.scatter(distances * 2.5, in_between_coefs)
+    print(tag)
+    if tag == 'centre':
+        ax.set_xlabel('Distance from centre (cm)', fontsize=30)
+    else:
+        ax.set_xlabel('Distance from wall (cm)', fontsize=30)
+    ax.set_ylabel('R', fontsize=30)
+    ax.tick_params(axis='both', which='major', labelsize=20)
+
+    plt.savefig(local_path + 'distance_from_wall_vs_correlation' + tag + '.png')
     plt.close()
 
 
@@ -515,26 +536,32 @@ def add_distance_from_walls(field_data):
     distance_from_wall_2 = []
     distance_from_wall_3 = []
     distance_from_wall_4 = []
+    distance_from_centre = []
 
     for index, field in field_data.iterrows():
         rate_map = field.rate_map.iloc[0]
         field_indices = field.indices_rate_map
         y_max = len(rate_map)
         x_max = len(rate_map[0])
+        centre_x = x_max / 2
+        centre_y = y_max / 2
 
         d1 = field_indices[:, 0] * 2.5  # convert to cm
         d2 = field_indices[:, 1] * 2.5
         d3 = (x_max - field_indices[:, 1]) * 2.5
         d4 = (y_max - field_indices[:, 0]) * 2.5
+        d_centre = np.sqrt(np.square(field_indices[:, 0] - centre_x) + np.square(field_indices[:, 1] - centre_y))
         distance_from_wall_1.append(d1.mean())
         distance_from_wall_2.append(d2.mean())
         distance_from_wall_3.append(d3.mean())
         distance_from_wall_4.append(d4.mean())
+        distance_from_centre.append(d_centre.mean())
 
     field_data['distance_from_wall_1'] = distance_from_wall_1
     field_data['distance_from_wall_2'] = distance_from_wall_2
     field_data['distance_from_wall_3'] = distance_from_wall_3
     field_data['distance_from_wall_4'] = distance_from_wall_4
+    field_data['distance_from_centre'] = distance_from_centre
     return field_data
 
 
@@ -1011,11 +1038,17 @@ def add_animal_identity_to_df(fields):
 
 def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
     shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
-    distances, in_between_coefs, highest_corr_angles = get_distance_vs_correlations(all_accepted_grid_cells_df,
+    distances, in_between_coefs, highest_corr_angles, list_of_field_indices, list_of_indices2 = get_distance_vs_correlations(all_accepted_grid_cells_df,
                                                                                     type='grid cells ' + animal)
 
     plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
     plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
+    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_indices2], in_between_coefs, tag='wall_1' + animal + tag)
+    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_indices2], in_between_coefs, tag='wall_2' + animal + tag)
+    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_indices2], in_between_coefs, tag='wall_3' + animal + tag)
+    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_indices2], in_between_coefs, tag='wall_4' + animal + tag)
+    plot_distances_from_speficic_point(all_accepted_grid_cells_df.distance_from_centre.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_centre.values[list_of_indices2], in_between_coefs, tag='centre' + animal + tag)
+
 
     calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
 
@@ -1109,6 +1142,7 @@ def process_circular_data(animal, tag=''):
 
     field_data = add_cell_types_to_data_frame(field_data)
     field_data = tag_border_and_middle_fields(field_data)
+
     field_data = add_distance_from_walls(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
@@ -1119,6 +1153,7 @@ def process_circular_data(animal, tag=''):
 
     all_accepted_grid_cells_df = add_animal_identity_to_df(all_accepted_grid_cells_df)
     list_of_unique_animal_ids = np.unique(all_accepted_grid_cells_df.animal_id)
+    '''
     print('---- Animal by animal analysis ----')
     for animal_id in list_of_unique_animal_ids:
         animal_indices = all_accepted_grid_cells_df.animal_id == animal_id
@@ -1127,6 +1162,7 @@ def process_circular_data(animal, tag=''):
         analyze_pattern_of_directions(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
         compare_centre_and_border_fields(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
         compare_pure_and_conjunctive_grid_cells(all_accepted_grid_cells_df_animal, animal_name, tag + str(animal_id))
+    '''
 
 
 def main():
