@@ -1036,6 +1036,15 @@ def add_animal_identity_to_df(fields):
     return fields
 
 
+def calculate_correlation_between_distances_and_corr(distances, in_between_coefs, tag):
+    corr, p = scipy.stats.pearsonr(distances, in_between_coefs)
+    # print('number of fields: ' + str(len(in_between_coefs)))
+    print(tag)
+    print('Correlation between distance between from wall and correlation of field shape:')
+    print(corr)
+    print('p: ' + str(p))
+
+
 def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
     shuffled_corr_coefs = get_pearson_coefs_all_shuffled(all_accepted_grid_cells_df)
     distances, in_between_coefs, highest_corr_angles, list_of_field_indices, list_of_indices2 = get_distance_vs_correlations(all_accepted_grid_cells_df,
@@ -1043,14 +1052,22 @@ def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
 
     plot_distances_vs_field_correlations(distances, in_between_coefs, tag='grid_cells_' + animal)
     plot_distances_vs_field_correlations(distances, shuffled_corr_coefs, tag='grid_cells_shuffled' + animal)
-    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_indices2]), in_between_coefs, tag='wall_1' + animal + tag)
-    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_indices2]), in_between_coefs, tag='wall_2' + animal + tag)
-    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_indices2]), in_between_coefs, tag='wall_3' + animal + tag)
-    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_indices2]), in_between_coefs, tag='wall_4' + animal + tag)
-    plot_distances_from_speficic_point(np.abs(all_accepted_grid_cells_df.distance_from_centre.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_centre.values[list_of_indices2]), in_between_coefs, tag='centre' + animal + tag)
+    wall_distances_1 = np.abs(all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_1.values[list_of_indices2])
+    wall_distances_2 = np.abs(all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_2.values[list_of_indices2])
+    wall_distances_3 = np.abs(all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_3.values[list_of_indices2])
+    wall_distances_4 = np.abs(all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_wall_4.values[list_of_indices2])
+    wall_distances_centre = np.abs(all_accepted_grid_cells_df.distance_from_centre.values[list_of_field_indices] - all_accepted_grid_cells_df.distance_from_centre.values[list_of_indices2])
+
+
+    plot_distances_from_speficic_point(wall_distances_1, in_between_coefs, tag='wall_1' + animal + tag)
+    plot_distances_from_speficic_point(wall_distances_2, in_between_coefs, tag='wall_2' + animal + tag)
+    plot_distances_from_speficic_point(wall_distances_3, in_between_coefs, tag='wall_3' + animal + tag)
+    plot_distances_from_speficic_point(wall_distances_4, in_between_coefs, tag='wall_4' + animal + tag)
+    plot_distances_from_speficic_point(wall_distances_centre, in_between_coefs, tag='centre' + animal + tag)
 
 
     calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
+    calculate_correlation_between_distances_and_corr(wall_distances_1, in_between_coefs, 'wall_1' + animal + tag)
 
     plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
 
