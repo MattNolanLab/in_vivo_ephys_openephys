@@ -1037,6 +1037,7 @@ def add_animal_identity_to_df(fields):
 
 
 def calculate_correlation_between_distances_and_corr(distances, in_between_coefs, tag):
+    print('**********************')
     corr, p = scipy.stats.pearsonr(distances, in_between_coefs)
     # print('number of fields: ' + str(len(in_between_coefs)))
     print(tag)
@@ -1068,6 +1069,10 @@ def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
 
     calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled_corr_coefs)
     calculate_correlation_between_distances_and_corr(wall_distances_1, in_between_coefs, 'wall_1' + animal + tag)
+    calculate_correlation_between_distances_and_corr(wall_distances_2, in_between_coefs, 'wall_2' + animal + tag)
+    calculate_correlation_between_distances_and_corr(wall_distances_3, in_between_coefs, 'wall_3' + animal + tag)
+    calculate_correlation_between_distances_and_corr(wall_distances_4, in_between_coefs, 'wall_4' + animal + tag)
+    calculate_correlation_between_distances_and_corr(wall_distances_centre, in_between_coefs, 'centre' + animal + tag)
 
     plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag='grid_cells_' + animal)
 
