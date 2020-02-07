@@ -48,6 +48,8 @@ def plot_results(grid_fields, animal):
     # plt.axvline(x=0.1, color='red')
     plt.ylabel('Number of significant bins', fontsize=16)
     plt.xlabel('Speed score', fontsize=16)
+    plt.xticks([-0.2, -0.1, 0, 0.1, 0.2], fontsize=12)
+    plt.yticks([0, 5, 10, 15], fontsize=12)
     plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score' + animal + '.png')
     plt.cla()
 
@@ -99,12 +101,18 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_thresho
 
     print('Number of directional fields that are speed modulated:')
     print(len(speed_mod[speed_mod.directional_percentile > 95]))
+    print('Number of significant bins (mean and SD):')
+    print(speed_mod[speed_mod.directional_percentile > 95].number_of_different_bins_bh.mean())
+    print(speed_mod[speed_mod.directional_percentile > 95].number_of_different_bins_bh.std())
     print('Number of non directional fields that are speed modulated:')
     print(len(speed_mod[speed_mod.directional_percentile <= 95]))
 
 
     print('Number of directional fields that are not speed modulated:')
     print(len(not_speed_mod[not_speed_mod.directional_percentile > 95]))
+    print('Number of significant bins (mean and SD):')
+    print(not_speed_mod[not_speed_mod.directional_percentile > 95].number_of_different_bins_bh.mean())
+    print(not_speed_mod[not_speed_mod.directional_percentile > 95].number_of_different_bins_bh.std())
     print('Number of non directional fields that are not speed modulated:')
     print(len(not_speed_mod[not_speed_mod.directional_percentile <= 95]))
 
@@ -112,7 +120,6 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_thresho
     print('MW test on directional percentiles (U, p): ')
     print(D)
     print(p)
-
 
 
 def process_data(animal):
