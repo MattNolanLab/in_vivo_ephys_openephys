@@ -388,7 +388,7 @@ def plot_distances_from_speficic_point(distances, in_between_coefs, tag):
 
     plt.scatter(distances * 2.5, in_between_coefs)
     print(tag)
-    if tag == 'centre':
+    if tag.startswith('centre'):
         ax.set_xlabel('Distance from centre (cm)', fontsize=30)
     else:
         ax.set_xlabel('Distance from wall (cm)', fontsize=30)
