@@ -88,10 +88,11 @@ def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_thresho
     speed_mod = grid_fields[grid_fields.speed_score > speed_threshold]
     not_speed_mod = grid_fields[grid_fields.speed_score <= speed_threshold]
     dir_bins_speed = speed_mod.number_of_different_bins_bh
-    not_dir_bins_speed = not_speed_mod.number_of_different_bins_bh
-    D, p = scipy.stats.mannwhitneyu(dir_bins_speed, not_dir_bins_speed)
+    dir_bins_not_speed = not_speed_mod.number_of_different_bins_bh
+    D, p = scipy.stats.mannwhitneyu(dir_bins_speed, dir_bins_not_speed)
     print('_______________________')
     print(animal)
+    print('Compare number of significant bins for speed dep and non speed dep')
     print('MW test on number of significant bins (U, p): ')
     print(D)
     print(p)
