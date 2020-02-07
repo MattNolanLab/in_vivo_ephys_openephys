@@ -59,7 +59,7 @@ rule process_firings:
     output:
         spike_data ='{recording}/processed/spatial_firing.pkl'
     script:
-        'scripts/03_process_firings.py'
+        '03_process_firings.py'
 
 rule process_expt:
     input:
