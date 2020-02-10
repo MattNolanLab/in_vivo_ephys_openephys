@@ -283,7 +283,7 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_vid
         plt.close()
 
 
-def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, path, colors=None, number_of_bins=20):
+def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, path, colors=None, number_of_bins=20, smooth=False):
     counter = 0
     for index, cell in spatial_firing.iterrows():
         if colors is None:
@@ -301,7 +301,12 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         field_spikes_hd = cell['hd_in_field_spikes']
         time_spent_in_bins = cell['time_spent_in_bins']
         # shuffled_histograms_hz = cell['field_histograms_hz']
-        real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0]
+        if smooth:
+            real_data_hz = PostSorting.open_field_head_direction.get_rolling_sum(real_data_hz, window=23)
+        real_data_hz = real_data_hz * sampling_rate_video / time_spent_in_bins
+
+
         max_rate = np.round(real_data_hz[~np.isnan(real_data_hz)].max(), 2)
         x_pos = np.linspace(0, 2*np.pi, real_data_hz.shape[0] + 1.5)
 
