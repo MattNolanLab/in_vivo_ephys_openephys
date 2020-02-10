@@ -317,7 +317,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
-        plt.xticks(x_pos, x_labels)
+        plt.xticks((np.linspace(0, 2*np.pi, 21.50)), x_labels)
         ax.fill_between(x_pos, mean - percentile_5, percentile_95 + mean, color='grey', alpha=0.4)
         ax.plot(x_pos, mean, color='grey', linewidth=5, alpha=0.7)
         observed_data = np.append(real_data_hz, real_data_hz[0])
