@@ -73,7 +73,7 @@ def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins
         std_shuffled = np.std(field_histograms_hz, axis=0)
         fields_stdevs.append(std_shuffled)
 
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
         real_data_hz_all_fields.append(real_data_hz)
     field_data['shuffled_means'] = fields_means
     field_data['shuffled_std'] = fields_stdevs
