@@ -341,7 +341,7 @@ def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_
     field_data = calculate_corrected_p_values(field_data, type='holm')  # Holm correction on p values from previous function
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh')
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='holm')
-    field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=20)
+    field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=number_of_bins)
     plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
     plot_bar_chart_for_cells_percentile_error_bar_polar(field_data, sampling_rate_video, save_path)
