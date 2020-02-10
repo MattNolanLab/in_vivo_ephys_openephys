@@ -334,7 +334,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
 
 # the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
 def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20, shuffle_type='', smooth=False):
-    field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins, smooth=smooth)
+    field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins=number_of_bins, smooth=smooth)
     field_data = add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=number_of_bins, smooth=smooth)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
     field_data = test_if_shuffle_differs_from_other_shuffles(field_data)
