@@ -303,7 +303,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         # shuffled_histograms_hz = cell['field_histograms_hz']
         real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0]
         if smooth:
-            real_data_hz = PostSorting.open_field_head_direction.get_rolling_sum(real_data_hz, window=23)
+            real_data_hz = PostSorting.open_field_head_direction.get_hd_histogram(field_spikes_hd)
         real_data_hz = real_data_hz * sampling_rate_video / time_spent_in_bins
 
 
@@ -349,7 +349,7 @@ def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_
     field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=number_of_bins)
     plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path, '_' + shuffle_type, number_of_bins=number_of_bins)
     plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path, '_' + shuffle_type, number_of_bins=number_of_bins)
-    plot_bar_chart_for_cells_percentile_error_bar_polar(field_data, sampling_rate_video, save_path, number_of_bins=number_of_bins)
+    plot_bar_chart_for_cells_percentile_error_bar_polar(field_data, sampling_rate_video, save_path, number_of_bins=number_of_bins, smooth=smooth)
     return field_data
 
 
