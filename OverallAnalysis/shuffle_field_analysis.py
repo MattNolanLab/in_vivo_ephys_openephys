@@ -241,7 +241,7 @@ def calculate_corrected_p_values(field_data, type='bh'):
     return field_data
 
 
-def plot_bar_chart_for_fields(field_data, sampling_rate_video, path, shuffle_type=''):
+def plot_bar_chart_for_fields(field_data, sampling_rate_video, path, shuffle_type='', number_of_bins=20):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
         std = field['shuffled_std']
@@ -255,13 +255,13 @@ def plot_bar_chart_for_fields(field_data, sampling_rate_video, path, shuffle_typ
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.title(str(field.number_of_spikes_in_field))
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
         plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['session_id']) + str(field['cluster_id']) + str(field['field_id']) + '_SD.png')
         plt.close()
 
 
-def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, path, shuffle_type=''):
+def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, path, shuffle_type='', number_of_bins=20):
     for index, field in field_data.iterrows():
         mean = field['shuffled_means']
         percentile_95 = field['error_bar_95']
@@ -277,13 +277,13 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_vid
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
         plt.title(str(field.number_of_spikes_in_field))
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='navy', s=40)
         plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['session_id']) + str(field['cluster_id']) + str(field['field_id'])  + '_percentile.png')
         plt.close()
 
 
-def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, path, colors=None):
+def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling_rate_video, path, colors=None, number_of_bins=20):
     counter = 0
     for index, cell in spatial_firing.iterrows():
         if colors is None:
@@ -301,7 +301,7 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
         field_spikes_hd = cell['hd_in_field_spikes']
         time_spent_in_bins = cell['time_spent_in_bins']
         # shuffled_histograms_hz = cell['field_histograms_hz']
-        real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
+        real_data_hz = np.histogram(field_spikes_hd, bins=number_of_bins)[0] * sampling_rate_video / time_spent_in_bins
         max_rate = np.round(real_data_hz[~np.isnan(real_data_hz)].max(), 2)
         x_pos = np.linspace(0, 2*np.pi, real_data_hz.shape[0] + 1.5)
 
@@ -342,9 +342,9 @@ def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='bh')
     field_data = count_number_of_significantly_different_bars_per_field(field_data, significance_level=95, type='holm')
     field_data = test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, sampling_rate_video, number_of_bars=number_of_bins)
-    plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
-    plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path, '_' + shuffle_type)
-    plot_bar_chart_for_cells_percentile_error_bar_polar(field_data, sampling_rate_video, save_path)
+    plot_bar_chart_for_fields(field_data, sampling_rate_video, save_path, '_' + shuffle_type, number_of_bins=number_of_bins)
+    plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_video, save_path, '_' + shuffle_type, number_of_bins=number_of_bins)
+    plot_bar_chart_for_cells_percentile_error_bar_polar(field_data, sampling_rate_video, save_path, number_of_bins=number_of_bins)
     return field_data
 
 
