@@ -52,7 +52,7 @@ def format_bar_chart(ax):
     return ax
 
 
-def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins=20):
+def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins=20, smooth=False):
     fields_means = []
     fields_stdevs = []
     real_data_hz_all_fields = []
@@ -63,6 +63,8 @@ def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins
         field_spikes_hd = field['hd_in_field_spikes']  # real hd when the cell fired
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
+        if smooth:
+            time_spent_in_bins = PostSorting.open_field_head_direction.get_rolling_sum(time_spent_in_bins, window=23)
         time_spent_in_bins_all.append(time_spent_in_bins)
         field_histograms_hz = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         field_histograms_hz_all.append(field_histograms_hz)
@@ -81,7 +83,7 @@ def add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins
     return field_data
 
 
-def add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20):
+def add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20, smooth=False):
     field_percentile_values_95_all = []
     field_percentile_values_5_all = []
     error_bar_up_all = []
@@ -90,6 +92,8 @@ def add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=
         field_histograms = field['shuffled_data']
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bins)[0]
+        if smooth:
+            time_spent_in_bins = PostSorting.open_field_head_direction.get_rolling_sum(time_spent_in_bins, window=23)
         field_histograms_hz = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentile_value_shuffled_95 = np.percentile(field_histograms_hz, 95, axis=0)
         field_percentile_values_95_all.append(percentile_value_shuffled_95)
@@ -188,12 +192,14 @@ def test_if_shuffle_differs_from_other_shuffles_corrected_p_values(field_data, s
 
 
 # calculate percentile of real data relative to shuffled for each bar
-def calculate_percentile_of_observed_data(field_data, sampling_rate_video, number_of_bars=20):
+def calculate_percentile_of_observed_data(field_data, sampling_rate_video, number_of_bars=20, smooth=False):
     percentile_observed_data_bars = []
     for index, field in field_data.iterrows():
         field_histograms = field['shuffled_data']
         field_session_hd = field['hd_in_field_session']  # hd from the whole session in field
         time_spent_in_bins = np.histogram(field_session_hd, bins=number_of_bars)[0]
+        if smooth:
+            time_spent_in_bins = PostSorting.open_field_head_direction.get_rolling_sum(time_spent_in_bins, window=23)
         shuffled_data_normalized = field_histograms * sampling_rate_video / time_spent_in_bins  # sampling rate is 30Hz for movement data
         percentiles_of_observed_bars = np.empty(number_of_bars)
         percentiles_of_observed_bars[:] = np.nan
@@ -322,13 +328,13 @@ def plot_bar_chart_for_cells_percentile_error_bar_polar(spatial_firing, sampling
 
 
 # the results of these are added to field_data so it can be combined from all cells later (see load_data_frames and shuffle_field_analysis_all_mice)
-def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20, shuffle_type=''):
-    field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins)
-    field_data = add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20)
+def analyze_shuffled_data(field_data, save_path, sampling_rate_video, number_of_bins=20, shuffle_type='', smooth=False):
+    field_data = add_mean_and_std_to_field_df(field_data, sampling_rate_video, number_of_bins, smooth=smooth)
+    field_data = add_percentile_values_to_df(field_data, sampling_rate_video, number_of_bins=20, smooth=smooth)
     field_data = test_if_real_hd_differs_from_shuffled(field_data)  # is the observed data within 95th percentile of the shuffled?
     field_data = test_if_shuffle_differs_from_other_shuffles(field_data)
 
-    field_data = calculate_percentile_of_observed_data(field_data, sampling_rate_video, number_of_bins)  # this is relative to shuffled data
+    field_data = calculate_percentile_of_observed_data(field_data, sampling_rate_video, number_of_bins, smooth=smooth)  # this is relative to shuffled data
     # field_data = calculate_percentile_of_shuffled_data(field_data, number_of_bars=20)
     field_data = convert_percentile_to_p_value(field_data)  # this is needed to make it 2 tailed so diffs are picked up both ways
     field_data = calculate_corrected_p_values(field_data, type='bh')  # BH correction on p values from previous function
