@@ -63,7 +63,7 @@ def add_trajectory_data_to_spatial_firing_df(position, spatial_firing):
 def plot_shuffled_number_of_bins_vs_observed(cell):
     # percentile = scipy.stats.percentileofscore(cell.number_of_different_bins_shuffled_corrected_p.iloc[0], cell.number_of_different_bins_bh.iloc[0])
     for index, field in cell.iterrows():
-        shuffled_distribution = cell.number_of_different_bins_shuffled_corrected_p.iloc[index]
+        shuffled_distribution = field.number_of_different_bins_shuffled_corrected_p
         plt.cla()
         fig = plt.figure(figsize=(6, 3))
         plt.yticks([0, 500, 1000])
@@ -72,11 +72,11 @@ def plot_shuffled_number_of_bins_vs_observed(cell):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.hist(shuffled_distribution, bins=range(20), color='gray')
-        ax.axvline(x=cell.number_of_different_bins_bh.iloc[0], color='navy', linewidth=3)
+        ax.axvline(x=field.number_of_different_bins_bh.iloc[0], color='navy', linewidth=3)
         ax.xaxis.set_tick_params(labelsize=20)
         ax.yaxis.set_tick_params(labelsize=20)
         # plt.xscale('log')
-        max_x_value = max(cell.number_of_different_bins_bh.iloc[0], shuffled_distribution.max())
+        max_x_value = max(field.number_of_different_bins_bh.iloc[0], shuffled_distribution.max())
         plt.xlim(0, max_x_value + 1)
         plt.ylabel('N (shuffles)', fontsize=24)
         plt.xlabel('N (significant bins)', fontsize=24)
@@ -96,6 +96,7 @@ def process_data():
         position = pd.read_pickle(analysis_path + 'DataFrames/position.pkl')
         shuffled_fields = get_shuffled_field_data(firing, position)
         shuffled_fields.to_pickle(analysis_path + 'DataFrames/fields.pkl')
+
 
     firing = add_trajectory_data_to_spatial_firing_df(position, firing)
 
