@@ -163,6 +163,7 @@ def format_bar_chart(ax, x_label, y_label):
 
 
 def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=''):
+    print('Figure 5b')
     grid_coefs = clean_data(coefs_grid)
     fig, ax = plt.subplots()
     ax = format_bar_chart(ax, 'r', 'Proportion')
@@ -190,6 +191,11 @@ def plot_pearson_coefs_of_field_hist(coefs_grid, coefs_conjunctive, animal, tag=
         print(str(np.std(conj_coefs)))
     plt.savefig(local_path + animal + tag + '_correlation_of_field_histograms_cumulative.png')
     plt.close()
+
+    coef_grid_flat = [item for sublist in coefs_grid for item in sublist]
+    coef_conj_flat = [item for sublist in coefs_conjunctive for item in sublist]
+    stat, p = scipy.stats.ks_2samp(coef_grid_flat, coef_conj_flat)
+    print('Kolmogorov-Smirnov result grid cells vs conj cells ' + str(stat) + ' ' + str(p))
 
 
 def plot_pearson_coefs_of_field_hist_centre_border(coefs_centre, coefs_border, animal, tag=''):
@@ -814,24 +820,24 @@ def process_circular_data(animal, tag='', number_of_spikes_cutoff=400):
     field_data = tag_border_and_middle_fields(field_data)
     enough_spikes = field_data.number_of_spikes_in_field > number_of_spikes_cutoff
 
-    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & enough_spikes]
-    save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    # save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
     grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
-    save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
-    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False) & enough_spikes]
+    # save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
+    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
     grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
-    save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
-    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True) & enough_spikes]
+    # save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
+    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
     grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
-    save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
+    # save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
     conjunctive_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive')]
-    save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
+    # save_half_fields_as_csv(all_accepted_grid_cells_df, 'half_fields')
     # compare_within_field_with_other_fields_correlating_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
     compare_within_field_with_other_fields(all_accepted_grid_cells_df, 'grid_' + animal + tag)
 
     conjunctive_cell_pearson = compare_hd_histograms(conjunctive_cells_df, type='conjunctive cells ' + animal)
-    save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
+    # save_hd_histograms_csv(conjunctive_cells_df, animal + '_conjunctive_cells')
     conjunctive_pearson_centre = compare_hd_histograms(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'conjunctive') & (field_data.border_field == False)])
     compare_within_field_with_other_fields(conjunctive_cells_df, 'conj_' + animal + tag)
     plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
@@ -894,8 +900,8 @@ def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
 def main():
     process_circular_data('mouse')
     process_circular_data('rat')
-    process_circular_data('simulated', 'ventral_narrow')
-    process_circular_data('simulated', 'control_narrow')
+    # process_circular_data('simulated', 'ventral_narrow')
+    # process_circular_data('simulated', 'control_narrow')
     compare_correlations_from_different_experiments()
 
 
