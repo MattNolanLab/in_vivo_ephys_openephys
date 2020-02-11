@@ -370,10 +370,11 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
 def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colours=[0]):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
+    distances *= 2.5
     if len(colours) > 1:
-        plt.scatter(distances * 2.5, in_between_coefs, c=colours)
+        plt.scatter(distances, in_between_coefs, c=colours)
     else:
-        plt.scatter(distances * 2.5, in_between_coefs)
+        plt.scatter(distances, in_between_coefs)
     print(tag)
     ax.set_xlabel('Distance between fields (cm)', fontsize=30)
     ax.set_ylabel('R', fontsize=30)
@@ -389,8 +390,8 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colou
 def plot_distances_from_speficic_point(distances, in_between_coefs, tag):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
-
-    plt.scatter(distances * 2.5, in_between_coefs)
+    distances *= 2.5
+    plt.scatter(distances, in_between_coefs)
     print(tag)
     if tag.startswith('centre'):
         ax.set_xlabel('Distance from centre (cm)', fontsize=30)
