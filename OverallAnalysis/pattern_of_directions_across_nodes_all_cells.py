@@ -379,6 +379,9 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag, colou
     ax.set_ylabel('R', fontsize=30)
     ax.tick_params(axis='both', which='major', labelsize=20)
 
+    slope, intercept, r_value, p_value, std_err = linregress(distances, in_between_coefs)
+    plt.plot(distances, distances * slope + intercept, 'r')
+
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
     plt.close()
 
@@ -395,6 +398,8 @@ def plot_distances_from_speficic_point(distances, in_between_coefs, tag):
         ax.set_xlabel('Distance from wall (cm)', fontsize=30)
     ax.set_ylabel('R', fontsize=30)
     ax.tick_params(axis='both', which='major', labelsize=20)
+    slope, intercept, r_value, p_value, std_err = linregress(distances, in_between_coefs)
+    plt.plot(distances, distances * slope + intercept, 'r')
 
     plt.savefig(local_path + 'distance_from_wall_vs_correlation' + tag + '.png')
     plt.close()
