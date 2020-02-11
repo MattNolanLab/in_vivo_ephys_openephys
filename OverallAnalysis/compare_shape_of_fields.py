@@ -630,6 +630,11 @@ def compare_within_field_with_other_fields(field_data, animal):
         plt.xlim(-1, 1)
         plt.savefig(local_path + animal + 'half_session_correlations_cumulative2.png')
         plt.close()
+        print('*********************** Compare in-between and within field correlations *****************************')
+        print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
+        stat, p = scipy.stats.ks_2samp(in_between_fields[~np.isnan(in_between_fields)], within_field_corr[~np.isnan(within_field_corr)])
+        print(stat)
+        print(p)
 
         # plot only within field comparisons
         fig, ax = plt.subplots()
@@ -677,74 +682,6 @@ def compare_within_field_with_other_fields_stat(field_data, animal):
 
     t, p = scipy.stats.wilcoxon(within_field_corr)
     print('Wilcoxon p value for within field correlations is ' + str(p) + ' T is ' + str(t))
-
-
-def compare_within_field_with_other_fields_correlating_fields(field_data, animal):
-    if 'unique_cell_id' not in field_data:
-        field_data['unique_cell_id'] = field_data.session_id + field_data.cluster_id.map(str)
-    # correlation_within, p = get_correlation_values_within_fields(field_data)
-    list_of_cells = np.unique(list(field_data.unique_cell_id))
-    correlation_values = []
-    correlation_p = []
-    count_f1 = 0
-    count_f2 = 0
-    for cell in range(len(list_of_cells)):
-        cell_id = list_of_cells[cell]
-        first_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_first_half
-        second_halves = field_data.loc[field_data['unique_cell_id'] == cell_id].hd_hist_second_half
-        correlation_within, p_within = get_correlation_values_within_fields(field_data.loc[field_data['unique_cell_id'] == cell_id])
-        for index, field1 in enumerate(first_halves):
-            for index2, field2 in enumerate(second_halves):
-                if count_f1 != count_f2:
-                    if (correlation_within[index] >= 0.4) & (correlation_within[index2] >= 0.4):
-                        # field_1_clean, field_2_clean = remove_zeros(field1, field2)
-                        field_1_clean, field_2_clean = remove_nans(field1, field2)
-                        if len(field_1_clean) > 1:
-                            pearson_coef, corr_p = scipy.stats.pearsonr(field_1_clean, field_2_clean)
-                            correlation_values.append(pearson_coef)
-                            correlation_p.append(corr_p)
-                        else:
-                            correlation_values.append(np.nan)
-                            correlation_p.append(np.nan)
-
-                count_f2 += 1
-            count_f1 += 1
-
-    in_between_fields = np.array(correlation_values)
-    in_between_fields_p = np.array(correlation_p)
-
-    within_field, p_within_field = get_correlation_values_within_fields(field_data)
-    save_corr_coef_in_csv(within_field, p_within_field, 'within_fields_correlating_only_' + animal)
-    within_field = within_field[within_field >= 0.4]
-
-    fig, ax = plt.subplots()
-    plt.axvline(x=0, linewidth=3, color='red')
-    ax = format_bar_chart(ax, 'r', 'Proportion')
-    plot_utility.plot_cumulative_histogram(in_between_fields[~np.isnan(in_between_fields)], ax, color='navy')
-    plot_utility.plot_cumulative_histogram(within_field[~np.isnan(within_field)], ax, color='gray')
-    plt.xlim(-1, 1)
-    plt.savefig(local_path + animal + 'half_session_correlations_internally_correlating_only_r04_cumulative.png')
-    plt.close()
-
-    stat, p = scipy.stats.ks_2samp(in_between_fields, within_field)
-    print('for Pearson r >= 0.4')
-    print('median of in-between fields: ' + str(np.median(in_between_fields)) + ' sd: ' + str(np.std(in_between_fields)))
-    print('median of within fields: ' + str(np.median(within_field)) + ' sd: ' + str(np.std(within_field)))
-    print('Kolmogorov-Smirnov result to compare in between and within field correlations for ' + animal)
-    print(stat)
-    print(p)
-    print('number of fields ' + str(len(within_field)))
-
-    print('% of coefficients with significant p for in between field correlations:')
-    print(sum(in_between_fields_p < 0.01) / len(in_between_fields_p) * 100)
-    save_corr_coef_in_csv(in_between_fields, in_between_fields_p, 'in_between_fields_correlating_only_' + animal)
-
-    print('% of coefficients with significant p for within field correlations:')
-    print(sum(p_within_field < 0.01) / len(p_within_field) * 100)
-    t, p = scipy.stats.wilcoxon(in_between_fields)
-    print('Wilcoxon p value for correlations in between fields (all, R>0.4)' + str(p) + ' T is ' + str(t) + animal)
-    t, p = scipy.stats.wilcoxon(within_field)
-    print('Wilcoxon p value for correlations within fields (all, R>0.4)' + str(p) + ' T is ' + str(t) + animal)
 
 
 def plot_half_fields(field_data, animal):
@@ -811,9 +748,7 @@ def analyze_centre_and_border_fields(field_data, animal):
     print(p)
 
 
-
-
-def process_circular_data(animal, tag='', number_of_spikes_cutoff=400):
+def process_circular_data(animal, tag='', number_of_spikes_cutoff=500):
     print('*************************' + animal + tag + '***************************')
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
     if animal == 'mouse':
