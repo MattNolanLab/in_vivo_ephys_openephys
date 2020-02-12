@@ -45,9 +45,9 @@ def plot_results(grid_fields, animal):
     number_of_significantly_directional_bins = grid_fields.number_of_different_bins_bh
     watson_stats = grid_fields.watson_stat
     plt.figure()
-    plt.scatter(number_of_significantly_directional_bins, watson_stats)
-    plt.xlabel('Number of directional bins', fontsize=20)
-    plt.ylabel('Bias in trajectory', fontsize=20)
+    plt.scatter(watson_stats, number_of_significantly_directional_bins)
+    plt.xlabel('Bias in trajectory', fontsize=18)
+    plt.ylabel('Number of directional bins', fontsize=18)
     plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_watson_stats' + animal + '.png')
 
 
