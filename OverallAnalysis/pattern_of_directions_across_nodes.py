@@ -16,6 +16,8 @@ import plot_utility
 import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
 
+from scipy.stats import linregress
+
 prm = PostSorting.parameters.Parameters()
 prm.set_sorter_name('MountainSort')
 
@@ -362,11 +364,15 @@ def get_distance_vs_correlations(field_data, type='grid cells'):
 def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
     plt.cla()
     f, ax = plt.subplots(figsize=(11, 9))
-    plt.scatter(distances * 2.5, in_between_coefs)
+    distances *= 2.5
+    plt.scatter(distances, in_between_coefs)
     ax.set_xlabel('Distance between fields (cm)', fontsize=30)
     # Pearson correlation between fields
     ax.set_ylabel('R', fontsize=30)
     ax.tick_params(axis='both', which='major', labelsize=20)
+    slope, intercept, r_value, p_value, std_err = linregress(distances, in_between_coefs)
+    plt.plot(distances, distances * slope + intercept, 'r')
+    print('R = ' + str(r_value) + 'p = ' + str(p_value))
 
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
     plt.close()
@@ -375,11 +381,15 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
 # plot distance between fields vs highest correlating rotation (one of the fields is rotated to find the highest corr)
 def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag):
     plt.cla()
+    distances *= 2.5 # convert to cm
     f, ax = plt.subplots(figsize=(11, 9))
-    plt.scatter(distances * 2.5, highest_corr_angles)
+    plt.scatter(distances, highest_corr_angles)
     ax.set_xlabel('Distance between fields(cm)', fontsize=30)
     ax.set_ylabel('Highest correlating rotation (deg)', fontsize=30)
     ax.tick_params(axis='both', which='major', labelsize=20)
+    slope, intercept, r_value, p_value, std_err = linregress(distances, highest_corr_angles)
+    plt.plot(distances, distances * slope + intercept, 'r')
+    print('R = ' + str(r_value) + 'p = ' + str(p_value))
 
     plt.savefig(local_path + 'distance_between_fields_vs_highest_correlating_angle' + tag + '.png')
     plt.close()
