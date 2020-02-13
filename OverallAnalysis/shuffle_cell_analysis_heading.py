@@ -793,16 +793,15 @@ def process_downsampled_data(spatial_firing, sampling_rate_video, local_path, an
         sampling_rate_video /= downsample_by
 
     good_cell = spatial_firing.false_positive == False
-
-    spatial_firing = shuffle_data(spatial_firing[good_cell], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
-    spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20, shuffle_type=shuffle_type)
-    print('I finished the shuffled analysis on ' + animal + ' data.\n')
-
     grid = spatial_firing.grid_score >= 0.4
     hd = spatial_firing.hd_score >= 0.5
     not_classified = np.logical_and(np.logical_not(grid), np.logical_not(hd))
     hd_cells = np.logical_and(np.logical_not(grid), hd)
     grid_cells = np.logical_and(grid, np.logical_not(hd))
+
+    spatial_firing = shuffle_data(spatial_firing[good_cell & grid_cells], 20, number_of_times_to_shuffle=1000, animal=animal, shuffle_type=shuffle_type)
+    spatial_firing = analyze_shuffled_data(spatial_firing, local_path, sampling_rate_video, animal, number_of_bins=20, shuffle_type=shuffle_type)
+    print('I finished the shuffled analysis on ' + animal + ' data.\n')
 
     shuffled_spatial_firing_grid = spatial_firing[grid_cells & good_cell]
     shuffled_spatial_firing_not_classified = spatial_firing[not_classified & good_cell]
