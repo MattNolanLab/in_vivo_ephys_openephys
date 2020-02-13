@@ -738,6 +738,10 @@ def get_number_of_directional_cells_heading(cells, tag='grid'):
     cells['directional_correction'] = np.array(percentiles_correction) > 95
     cells.to_pickle(local_path + tag + 'cells_heading.pkl')
 
+    print('Mean and SD of number of significant bins / field:')
+    print(cells.number_of_different_bins_bh_heading.mean())
+    print(cells.number_of_different_bins_bh_heading.std())
+
 
 def process_data(spatial_firing, sampling_rate_video, local_path, ephys_sampling_rate, animal='mouse', shuffle_type='occupancy'):
     if animal == 'mouse':
@@ -818,13 +822,13 @@ def process_downsampled_data(spatial_firing, sampling_rate_video, local_path, an
 
 
 def main():
-
+    prm.set_pixel_ratio(440)
+    spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
+    process_data(spatial_firing_all_mice, 30, local_path_mouse, 30000, animal='mouse', shuffle_type='distributive')
     spatial_firing_all_rats = load_data_frame_spatial_firing(local_path_rat, server_path_rat, spike_sorter='')
     prm.set_pixel_ratio(100)
     process_data(spatial_firing_all_rats, 50, local_path_rat, 1, animal='rat', shuffle_type='distributive')
-    #prm.set_pixel_ratio(440)
-    #spatial_firing_all_mice = load_data_frame_spatial_firing(local_path_mouse, server_path_mouse, spike_sorter='/MountainSort')
-    #process_data(spatial_firing_all_mice, 30, local_path_mouse, 30000, animal='mouse', shuffle_type='distributive')
+
     '''
 
     local_path_df_ventral_narrow = local_path + 'all_simulated_df_ventral_narrow.pkl'
