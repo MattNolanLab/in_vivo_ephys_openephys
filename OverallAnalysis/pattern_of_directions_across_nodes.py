@@ -372,7 +372,8 @@ def plot_distances_vs_field_correlations(distances, in_between_coefs, tag):
     ax.tick_params(axis='both', which='major', labelsize=20)
     slope, intercept, r_value, p_value, std_err = linregress(distances, in_between_coefs)
     plt.plot(distances, distances * slope + intercept, 'r')
-    print('R = ' + str(r_value) + 'p = ' + str(p_value))
+    print('distances vs field corr')
+    print('R = ' + str(r_value) + ' p = ' + str(p_value))
 
     plt.savefig(local_path + 'distance_between_fields_vs_correlation' + tag + '.png')
     plt.close()
@@ -389,7 +390,8 @@ def plot_distances_vs_most_correlating_angle(distances, highest_corr_angles, tag
     ax.tick_params(axis='both', which='major', labelsize=20)
     slope, intercept, r_value, p_value, std_err = linregress(distances, highest_corr_angles)
     plt.plot(distances, distances * slope + intercept, 'r')
-    print('R = ' + str(r_value) + 'p = ' + str(p_value))
+    print('distances vs most correlating angle')
+    print('R = ' + str(r_value) + ' p = ' + str(p_value))
 
     plt.savefig(local_path + 'distance_between_fields_vs_highest_correlating_angle' + tag + '.png')
     plt.close()
