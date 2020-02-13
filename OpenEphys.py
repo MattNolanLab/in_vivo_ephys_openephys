@@ -21,6 +21,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import scipy.io
 import scipy.signal
+import glob
 
 # constants
 NUM_HEADER_BYTES = 1024
@@ -170,8 +171,9 @@ def writeBinaryData(parentFolder,signals):
     timestamps = np.arange(signals.shape[0],dtype='i8')
     np.save(str(folderpath/'timestamps.npy'), timestamps)
 
-def load_OpenEphysRecording4BinaryFile(folder,num_tetrodes,
-     data_file_prefix, data_file_suffix,dtype=float):
+def load_OpenEphysRecording4BinaryFile(folder,
+     source_prefix ='100', dtype=np.int16, num_data_channel=16,
+     num_adc_channel =8, num_aux_channel = 3):
     """Load continuous data to be converted to flat binary files
 
     Arguments:
@@ -185,15 +187,22 @@ def load_OpenEphysRecording4BinaryFile(folder,num_tetrodes,
     """
     signal = []
     headers = []
-    for i in range(num_tetrodes*4):
-        fname = folder+'/'+data_file_prefix+str(i+1)+data_file_suffix+'.continuous'
+
+    ADCList = [folder+f'/{source_prefix}_ADC{i+1}.continuous' for i in range(num_adc_channel)]
+    ChList =[folder+f'/{source_prefix}_CH{i+1}.continuous' for i in range(num_data_channel)]
+    AUXList = [folder+f'/{source_prefix}_AUX{i+1}.continuous' for i in range(num_aux_channel)]
+
+    fileList = ChList + ADCList + AUXList
+
+    for i,fname in enumerate(fileList):
+        # fname = folder+'/'+data_file_prefix+str(i+1)+data_file_suffix+'.continuous'
         dataFile = loadContinuousFast(fname, dtype=dtype)
         x= dataFile['data']
         headers.append(dataFile['header'])
 
         if i==0:
             #preallocate array on first run
-            signal = np.zeros((num_tetrodes*4,x.shape[0]),dtype=dtype)
+            signal = np.zeros((len(fileList),x.shape[0]),dtype=dtype)
         signal[i,:] = x
     return signal,headers
 
@@ -214,12 +223,13 @@ def writeStructFile(filename,headers):
         "source_processor_sub_idx":0,
         "recorded_processor":"Demo source",
         "recorded_processor_id":100,
-        "num_channels":16,
+        "num_channels":len(headers),
         "channels":[]
     }]
 
     #assemble channel data
     channels = []
+    # print(headers)
     for i,h in enumerate(headers):
         channels.append({
             
@@ -526,7 +536,7 @@ def readHeader(f):
     h = f.read(1024).decode().replace('\n','').replace('header.','')
     for i,item in enumerate(h.split(';')):
         if '=' in item:
-            header[item.split(' = ')[0]] = item.split(' = ')[1]
+            header[item.split(' = ')[0]] = item.split(' = ')[1].replace("'",'')
     return header
 
 def downsample(trace,down):
