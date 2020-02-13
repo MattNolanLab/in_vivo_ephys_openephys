@@ -391,7 +391,7 @@ def get_number_of_directional_fields(fields, tag='grid'):
 
     print('Median and SD of number of significant bins / field:')
     print(fields.number_of_different_bins_bh.median())
-    print(fields.number_of_different_bins_bh.stdev())
+    print(fields.number_of_different_bins_bh.std())
 
 
 def add_heading_to_field_df(fields, ephys_sampling, video_sampling, path_to_cell_data, save_path):
