@@ -1033,7 +1033,7 @@ def calculate_correlation_between_distance_and_shuffled_corr(distances, shuffled
     print('p: ' + str(p))
 
     slope, intercept, r_value, p_value, std_err = linregress(distances, shuffled_corr_coefs)
-    print("slope: %f    intercept: %f  p_value %f std_err %f" % (slope, intercept, p_value, std_err))
+    print('R = ' + str(r_value) + 'p = ' + str(p_value))
 
 
 def add_animal_identity_to_df(fields):
@@ -1056,7 +1056,7 @@ def calculate_correlation_between_distances_and_corr(distances, in_between_coefs
     print('p: ' + str(p))
 
     slope, intercept, r_value, p_value, std_err = linregress(distances, in_between_coefs)
-    print("slope: %f    intercept: %f  p_value %f std_err %f" % (slope, intercept, p_value, std_err))
+    print('R = ' + str(r_value) + 'p = ' + str(p_value))
 
 
 def analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag):
