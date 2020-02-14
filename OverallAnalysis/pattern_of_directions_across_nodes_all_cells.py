@@ -155,6 +155,31 @@ def clean_data(coefs):
     return [x for x in flat_coefs if str(x) != 'nan']
 
 
+def plot_average_field_in_region(field_data, x1, x2, y1, y2, tag):
+    for index, fields in field_data.iterrows():
+        pass
+
+
+def plot_all_fields(field_data):
+    if not os.path.isdir(local_path + 'smooth_histograms/'):
+        os.mkdir(local_path + 'smooth_histograms/')
+
+    plot_average_field_in_region(field_data, x1=0, x2=33, y1=0, y2=33, tag='region_1')
+
+    for index, field in field_data.iterrows():
+        save_path = local_path + 'smooth_histograms/' + field.session_id + str(field.cluster_id) + str(field.field_id) + '_'
+        field_indices = field.indices_rate_map
+
+        d1 = (field_indices[:, 0] * 2.5).mean()  # convert to cm
+        d2 = (field_indices[:, 1] * 2.5).mean()
+        PostSorting.open_field_make_plots.plot_single_polar_hd_hist(field.normalized_hd_hist, 0, save_path + str(round(d1,1)) + '_' + str(round(d2,1)), color1='navy', title='')
+
+    print('I made smooth plots for all fields.')
+
+
+
+
+
 def format_bar_chart(ax, x_label, y_label):
     plt.gcf().subplots_adjust(bottom=0.2)
     plt.gcf().subplots_adjust(left=0.2)
@@ -1181,6 +1206,9 @@ def process_circular_data(animal, tag=''):
     field_data = add_distance_from_walls(field_data)
 
     all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    plot_all_fields(all_accepted_grid_cells_df)
+
+
     all_accepted_grid_cells_df = add_shuffled_hd_histograms(all_accepted_grid_cells_df)
     analyze_pattern_of_directions(all_accepted_grid_cells_df, animal, tag)
     compare_centre_and_border_fields(field_data, animal, tag)
