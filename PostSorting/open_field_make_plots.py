@@ -166,7 +166,7 @@ def plot_single_polar_hd_hist(hist_1, cluster, save_path, color1='lime', title='
     ax = plot_utility.style_polar_plot(ax)
     plt.xticks([])
     plt.yticks([])
-    plt.ylim(0, hist_1.max() * 1.4)
+    plt.ylim(0, np.nanmax(hist_1) * 1.4)
     plt.xticks([math.radians(0), math.radians(90), math.radians(180), math.radians(270)])
     ax.plot(theta[:-1], hist_1, color=color1, linewidth=6)
     plt.title(title)
