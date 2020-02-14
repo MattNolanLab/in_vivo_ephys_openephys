@@ -86,7 +86,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
 
         significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
         significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
-        y_value_markers = [max_rate + 0.5] * len(significant_bins_to_mark)
+        y_value_markers = [max_rate + 2] * len(significant_bins_to_mark)
 
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
@@ -163,8 +163,6 @@ def plot_hd_vs_shuffled():
     example_cell = df_grid[example_session]
     colors = PostSorting.open_field_make_plots.generate_colors(len(example_cell))
     plot_bar_chart_for_cells_percentile_error_bar(example_cell, analysis_path, 'example_mouse', shuffle_type='distributive', colors=colors)
-
-
 
 
 def main():
