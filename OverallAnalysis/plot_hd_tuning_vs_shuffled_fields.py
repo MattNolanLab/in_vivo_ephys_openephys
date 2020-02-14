@@ -86,7 +86,7 @@ def plot_bar_chart_for_cells_percentile_error_bar(spatial_firing, path, animal, 
 
         significant_bins_to_mark = np.where(cell.p_values_corrected_bars_bh < 0.05)  # indices
         significant_bins_to_mark = x_pos[significant_bins_to_mark[0]]
-        y_value_markers = [max_rate + max_rate * 0.1] * len(significant_bins_to_mark)
+        y_value_markers = [max_rate + max_rate * 0.2] * len(significant_bins_to_mark)
 
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
