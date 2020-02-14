@@ -156,8 +156,32 @@ def clean_data(coefs):
 
 
 def plot_average_field_in_region(field_data, x1, x2, y1, y2, tag):
-    for index, fields in field_data.iterrows():
-        pass
+    sum_of_fields = np.zeros(360)
+    sum_of_fields_norm = np.zeros(360)
+    number_of_fields = 0
+    for index, field in field_data.iterrows():
+        field_indices = field.indices_rate_map
+        x = (field_indices[:, 0] * 2.5).mean()  # convert to cm
+        y = (field_indices[:, 1] * 2.5).mean()
+        if (x >= x1) & (x < x2) & (y >= y1) & (y < y2):
+            field_hist = np.nan_to_num(field.normalized_hd_hist)
+            sum_of_fields += np.nan_to_num(field_hist)
+            number_of_fields += 1
+            normalized_hist = field_hist / np.nanmax(field_hist)
+            sum_of_fields_norm += normalized_hist
+
+    avg = sum_of_fields / number_of_fields
+    print('Number of fields in ' + tag)
+    print(number_of_fields)
+    if number_of_fields > 0:
+        save_path = local_path + 'smooth_histograms/' + tag + 'not_normalized'
+        PostSorting.open_field_make_plots.plot_single_polar_hd_hist(avg, 0,
+                                                                    save_path, color1='red', title='')
+
+        avg_norm = sum_of_fields_norm / number_of_fields
+        save_path = local_path + 'smooth_histograms/' + tag + 'normalized'
+        PostSorting.open_field_make_plots.plot_single_polar_hd_hist(avg_norm, 0,
+                                                                    save_path, color1='red', title='')
 
 
 def plot_all_fields(field_data):
@@ -165,6 +189,16 @@ def plot_all_fields(field_data):
         os.mkdir(local_path + 'smooth_histograms/')
 
     plot_average_field_in_region(field_data, x1=0, x2=33, y1=0, y2=33, tag='region_1')
+    plot_average_field_in_region(field_data, x1=33, x2=66, y1=0, y2=33, tag='region_2')
+    plot_average_field_in_region(field_data, x1=66, x2=100, y1=0, y2=33, tag='region_3')
+
+    plot_average_field_in_region(field_data, x1=0, x2=33, y1=33, y2=66, tag='region_4')
+    plot_average_field_in_region(field_data, x1=33, x2=66, y1=33, y2=66, tag='region_5')
+    plot_average_field_in_region(field_data, x1=66, x2=100, y1=33, y2=66, tag='region_6')
+
+    plot_average_field_in_region(field_data, x1=0, x2=33, y1=66, y2=100, tag='region_7')
+    plot_average_field_in_region(field_data, x1=33, x2=66, y1=66, y2=100, tag='region_8')
+    plot_average_field_in_region(field_data, x1=66, x2=100, y1=66, y2=100, tag='region_9')
 
     for index, field in field_data.iterrows():
         save_path = local_path + 'smooth_histograms/' + field.session_id + str(field.cluster_id) + str(field.field_id) + '_'
