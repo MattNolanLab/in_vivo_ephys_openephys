@@ -8,6 +8,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import OverallAnalysis.folder_path_settings
 import OverallAnalysis.shuffle_field_analysis_all_animals
+import OverallAnalysis.shuffle_cell_analysis
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
@@ -15,6 +16,9 @@ import scipy.stats
 # utils = importr('utils')
 # utils.install_packages('circular')
 
+import PostSorting.parameters
+
+prm = PostSorting.parameters.Parameters()
 
 analysis_path = OverallAnalysis.folder_path_settings.get_local_path() + '/tuning_bias_vs_speed/'
 local_path_to_shuffled_field_data_mice = analysis_path + 'shuffled_field_data_all_mice.pkl'
@@ -53,34 +57,48 @@ def plot_results(grid_fields, animal):
     plt.savefig(analysis_path + 'number_of_significantly_directional_bins_vs_speed_score' + animal + '.png')
     plt.cla()
 
+    '''
     plt.figure()
     plt.scatter(speed_score, grid_fields.directional_percentile)
     # plt.axvline(x=0.1, color='red')
     plt.ylabel('Directional percentile', fontsize=16)
     plt.xlabel('Speed score', fontsize=16)
     plt.savefig(analysis_path + 'directional_percentile_vs_speed_score' + animal + '.png')
-    plt.cla()
+    plt.cla()    
+    '''
 
 
-def add_percentiles(fields):
+def add_percentiles(fields, animal='', sampling_rate_video=30):
     percentiles_correction = []
-    for index, field in fields.iterrows():
-        percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
-        percentiles_correction.append(percentile)
+    if 'number_of_different_bins_shuffled_corrected_p' in fields:
+        for index, field in fields.iterrows():
+            percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
+            percentiles_correction.append(percentile)
+    else:
+        fields = OverallAnalysis.shuffle_cell_analysis.shuffle_data(fields, 20, number_of_times_to_shuffle=1000, animal=animal,
+                                      shuffle_type='distributive')
+        fields = OverallAnalysis.shuffle_cell_analysis.analyze_shuffled_data(fields, analysis_path, sampling_rate_video, animal,
+                                               number_of_bins=20, shuffle_type='distributive')
+
+        for index, field in fields.iterrows():
+            percentile = scipy.stats.percentileofscore(field.number_of_different_bins_shuffled_corrected_p, field.number_of_different_bins_bh)
+            percentiles_correction.append(percentile)
+
     fields['directional_percentile'] = percentiles_correction
     return fields
 
 
-def add_speed_score_to_df(fields, animal):
-    fields['cell_id'] = fields.session_id + fields.cluster_id.astype(str)
-    if animal == 'mouse':
-        df = pd.read_pickle(analysis_path + 'all_mice_df.pkl')
-    else:
-        df = pd.read_pickle(analysis_path + 'all_rats_df.pkl')
+# df could be cells of fields
+def add_speed_score_to_df(df, animal):
     df['cell_id'] = df.session_id + df.cluster_id.astype(str)
-    df = df[['cell_id', 'speed_score']]
-    fields = pd.merge(fields, df, on='cell_id')
-    return fields
+    if animal == 'mouse':
+        speed_df = pd.read_pickle(analysis_path + 'all_mice_df_speed.pkl')
+    else:
+        speed_df = pd.read_pickle(analysis_path + 'all_rats_df_speed.pkl')
+    speed_df['cell_id'] = speed_df.session_id + speed_df.cluster_id.astype(str)
+    speed_df = speed_df[['cell_id', 'speed_score']]
+    df = pd.merge(df, speed_df, on='cell_id')
+    return df
 
 
 def compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_threshold=0.1):
@@ -150,7 +168,34 @@ def process_data(animal):
     compare_speed_modulated_and_non_modulated(grid_fields, animal, speed_threshold=0.05)
 
 
+def process_data_whole_cell(animal):
+    if animal == 'mouse':
+        prm.set_pixel_ratio(440)
+        df = pd.read_pickle(analysis_path + 'all_mice_df.pkl')
+        sampling_rate_video = 30
+    else:
+        prm.set_pixel_ratio(100)
+        df = pd.read_pickle(analysis_path + 'all_rats_df.pkl')
+        sampling_rate_video = 50
+
+    if animal == 'mouse':
+        df = OverallAnalysis.shuffle_cell_analysis.tag_false_positives(df)
+    else:
+        df['false_positive'] = False
+
+    accepted_cells = df.false_positive == False
+    grid = df.grid_score >= 0.4
+    hd = df.hd_score >= 0.5
+    grid_cells = np.logical_and(grid, np.logical_not(hd))
+    df = add_speed_score_to_df(df[grid_cells & accepted_cells], animal)
+    df = add_percentiles(df, animal=animal, sampling_rate_video=sampling_rate_video)
+    plot_results(df, animal + '_whole_cell')
+    compare_speed_modulated_and_non_modulated(df, animal + '_whole_cell')
+
+
 def main():
+    process_data_whole_cell('mouse')
+    process_data_whole_cell('rat')
     process_data('mouse')
     process_data('rat')
 
