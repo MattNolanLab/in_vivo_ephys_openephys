@@ -192,7 +192,7 @@ def load_OpenEphysRecording4BinaryFile(folder,
     ChList =[folder+f'/{source_prefix}_CH{i+1}.continuous' for i in range(num_data_channel)]
     AUXList = [folder+f'/{source_prefix}_AUX{i+1}.continuous' for i in range(num_aux_channel)]
 
-    fileList = ChList + ADCList + AUXList
+    fileList = ChList + AUXList + ADCList
 
     for i,fname in enumerate(fileList):
         # fname = folder+'/'+data_file_prefix+str(i+1)+data_file_suffix+'.continuous'
