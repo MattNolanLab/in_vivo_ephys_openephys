@@ -239,6 +239,9 @@ def plot_number_of_significant_p_values(field_data, type='bh', shuffle_type='occ
 def compare_distributions(x, y):
     # stat, p = scipy.stats.mannwhitneyu(x, y)
     stat, p = scipy.stats.ranksums(x, y)
+    print('p value and test statistic for MW U test:')
+    print(p)
+    print(stat)
     return p, stat
 
 
