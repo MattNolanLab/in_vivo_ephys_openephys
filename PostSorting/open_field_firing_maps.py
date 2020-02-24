@@ -50,6 +50,8 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
 
     spike_positions_y = spike_positions_y[~np.isnan(spike_positions_y)]
     spike_positions_x = spike_positions_x[~np.isnan(spike_positions_x)]
+    positions_y = positions_y[~np.isnan(positions_y)]
+    positions_x = positions_x[~np.isnan(positions_x)]
 
     x = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_x)-(bin_size_pixels/2), number_of_bins_x)
     y = np.linspace((bin_size_pixels/2), (bin_size_pixels*number_of_bins_y)-(bin_size_pixels/2), number_of_bins_y)
