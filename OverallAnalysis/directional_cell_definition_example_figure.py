@@ -12,7 +12,7 @@ import os
 import glob
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path()
-analysis_path = local_path + '/methods_directional_field/'
+analysis_path = local_path + '/methods_directional_cell/'
 
 
 def get_number_of_directional_cells(cells, tag='grid'):
