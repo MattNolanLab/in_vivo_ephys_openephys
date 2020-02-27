@@ -784,7 +784,7 @@ def process_circular_data(animal, tag='', number_of_spikes_cutoff=500):
     compare_within_field_with_other_fields_stat(all_accepted_grid_cells_df, 'grid_' + animal + tag)
     analyze_centre_and_border_fields(field_data, animal)
     # plot_correlation_matrix(field_data, animal)
-    # plot_correlation_matrix_individual_cells(field_data, animal)
+    plot_correlation_matrix_individual_cells(field_data, animal)
     # plot_half_fields(field_data, 'mouse')
 
 
