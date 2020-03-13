@@ -75,7 +75,7 @@ def process_border_data(spatial_firing):
     for index, cluster in spatial_firing.iterrows():
         cluster_id = cluster.cluster_id
 
-        firing_rate_map = cluster.firing_maps
+        firing_rate_map = cluster.firing_maps.copy()
         firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
 
         '''
@@ -94,7 +94,7 @@ def process_border_data(spatial_firing):
 
         border_scores.append(border_score)
 
-        #plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
+        plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
 
     spatial_firing['border_score'] = border_scores
     return spatial_firing
@@ -107,7 +107,7 @@ def process_corner_data(spatial_firing):
     for index, cluster in spatial_firing.iterrows():
         cluster_id = cluster.cluster_id
 
-        firing_rate_map = cluster.firing_maps
+        firing_rate_map = cluster.firing_maps.copy()
         firing_rate_map = putative_border_fields_clip_by_firing_rate(firing_rate_map, threshold=threshold)
 
         '''

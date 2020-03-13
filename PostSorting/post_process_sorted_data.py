@@ -18,6 +18,7 @@ import PostSorting.open_field_grid_cells
 import PostSorting.make_plots
 import PostSorting.make_opto_plots
 import PostSorting.compare_first_and_second_half
+import PostSorting.open_field_border_cells
 
 import numpy as np
 
@@ -154,6 +155,8 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
                                                                                                   prm)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
+    spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
+    spatial_firing = PostSorting.open_field_border_cells.process_corner_data(spatial_firing)
 
     if opto_analysis:
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
@@ -209,7 +212,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
 
-            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
+            #save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 
 #
 #  this is here for testing
