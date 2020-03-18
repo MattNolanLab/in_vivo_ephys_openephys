@@ -222,35 +222,38 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
 
     for cluster_index in range(len(spike_data)):
         cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
-        spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
-        ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        firing_times_cluster = spike_data.firing_times[cluster_index]
+        if len(firing_times_cluster)>1:
 
-        #uncomment if you want to plot stops
-        #ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-        #ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-        #ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+            x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+            spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
+            ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-        ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
-        ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
-        ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
-        ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
+            #uncomment if you want to plot stops
+            #ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+            #ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+            #ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
-        plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
-        plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-        plt.xlim(0,200)
-        ax.yaxis.set_ticks_position('left')
-        ax.xaxis.set_ticks_position('bottom')
+            ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
+            ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+            ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
+            ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
 
-        plot_utility.style_track_plot(ax, 200)
-        plot_utility.style_vr_plot(ax, x_max)
-        plt.locator_params(axis = 'y', nbins  = 4)
-        try:
-            plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-        except ValueError:
-            continue
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
-        plt.close()
+            plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
+            plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+            plt.xlim(0,200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+
+            plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis = 'y', nbins  = 4)
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+            plt.close()
 
 
 def plot_firing_rate_maps(spike_data, prm, prefix):

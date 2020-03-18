@@ -19,7 +19,7 @@ def plot_spike_histogram(spatial_firing, prm):
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
 
-        if len(spatial_firing.firing_times[cluster])<1: # catches cases where there is no spikes found in the VR but is found in the OF
+        if len(spatial_firing.firing_times[cluster])>1: # catches cases where there is no spikes found in the VR but is found in the OF
             number_of_bins = int((spatial_firing.firing_times[cluster][-1] - spatial_firing.firing_times[cluster][0]) / (5 * sampling_rate))
             firings_cluster = spatial_firing.firing_times[cluster] / sampling_rate / 60
             spike_hist = plt.figure()
@@ -151,9 +151,10 @@ def plot_autocorrelograms(spike_data: pd.DataFrame, prm: object) -> None:
     for cluster in range(len(spike_data)):
         cluster = spike_data.cluster_id.values[cluster] - 1
         firing_times_cluster = spike_data.firing_times[cluster]
-        corr_10, time_10 = get_10ms_autocorr(firing_times_cluster, prm)
-        corr_250, time_250 = get_250ms_autocorr(firing_times_cluster, prm)
-        make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, save_path, cluster)
+        if len(firing_times_cluster)>1: # only calculate autocorr if there are any spikes
+            corr_10, time_10 = get_10ms_autocorr(firing_times_cluster, prm)
+            corr_250, time_250 = get_250ms_autocorr(firing_times_cluster, prm)
+            make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, save_path, cluster)
 
 
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, snippet_column_name):

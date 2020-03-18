@@ -94,7 +94,7 @@ def process_border_data(spatial_firing):
 
         border_scores.append(border_score)
 
-        plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
+        #plot_fields_in_cluster_border_scores(firing_fields_cluster, border_score)
 
     spatial_firing['border_score'] = border_scores
     return spatial_firing
