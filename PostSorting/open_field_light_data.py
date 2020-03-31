@@ -7,6 +7,7 @@ import PostSorting.parameters
 
 import PostSorting.open_field_make_plots
 
+ignore_opto = True
 
 def load_opto_data(recording_to_process, prm):
     is_found = False
@@ -45,6 +46,9 @@ def process_opto_data(recording_to_process, prm):
     else:
         prm.set_opto_tagging_start_index(None)
 
+    if ignore_opto:
+        prm.set_opto_tagging_start_index(None)
+
     return opto_on, opto_off, is_found
 
 
@@ -76,7 +80,7 @@ def get_firing_times(cell):
     if 'firing_times_opto' in cell:
         firing_times = np.append(cell.firing_times, cell.firing_times_opto)
     else:
-        firing_times = cell.fiting_times
+        firing_times = cell.firing_times
     return firing_times
 
 
