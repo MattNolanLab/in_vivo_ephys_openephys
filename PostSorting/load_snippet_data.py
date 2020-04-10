@@ -60,6 +60,8 @@ def get_snippets(firing_data, prm, random_snippets=True):
     snippets_all_clusters = []
     if os.path.exists(filtered_data_path):
         filtered_data = mdaio.readmda(filtered_data_path)
+        if prm.stitchpoint is not None and prm.paired_order == "first":
+            filtered_data = filtered_data[:, prm.stitchpoint:]
         for cluster in range(len(firing_data)):
             cluster = firing_data.cluster_id.values[cluster] - 1
             firing_times = firing_data.firing_times[cluster]
