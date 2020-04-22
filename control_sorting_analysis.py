@@ -213,22 +213,22 @@ def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
                                       paired_recording_to_sort, paired_session_type,
                                       stitch_point, tags):
 
-    recording_to_sort = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
+    recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
     paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort)
 
     if paired_session_type == "openfield":
         post_process_sorted_data.post_process_recording(paired_recording_to_sort, "openfield", paired_order="first",
-                                                        running_parameter_tags=tags, stitchpoint=stitch_point)
+                                                        running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
     elif paired_session_type == "vr":
         post_process_sorted_data_vr.post_process_recording(paired_recording_to_sort, "vr", paired_order="first",
-                                                           running_parameter_tags=tags, stitchpoint=stitch_point)
+                                                           running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
     if session_type == "openfield":
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order="second",
-                                                        running_parameter_tags=tags, stitchpoint=stitch_point)
+                                                        running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
     elif session_type == "vr":
         post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order="second",
-                                                           running_parameter_tags=tags, stitchpoint=stitch_point)
+                                                           running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
         
 def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None, paired_session_type=None):
