@@ -98,7 +98,7 @@ def process_running_parameter_tag(running_parameter_tags):
     return stop_threshold, track_length, cue_conditioned_goal
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False,
-                           sorter_name='MountainSort', stitchpoint=None, paired_order=None):
+                           sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
 
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
@@ -108,6 +108,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_stop_threshold(stop_threshold)
     prm.set_track_length(track_length)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
+    if total_length is not None:
+        prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
 
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())

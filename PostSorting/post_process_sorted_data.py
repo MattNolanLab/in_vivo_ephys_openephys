@@ -175,7 +175,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None):
+                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
@@ -186,6 +186,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
     prm.set_delete_two_minutes(delete_first_two_minutes)
+    if total_length is not None:
+        prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
     else:
