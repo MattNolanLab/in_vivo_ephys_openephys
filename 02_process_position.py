@@ -14,7 +14,7 @@ import scipy.signal as signal
 import SnakeIOHelper
 
 #%% Define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/processed_position.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/processed_position.pkl'],
     'process_position')
 
 #%% Load and downsample the position data

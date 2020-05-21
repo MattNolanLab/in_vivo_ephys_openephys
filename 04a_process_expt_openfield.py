@@ -14,7 +14,7 @@ import SnakeIOHelper
 import pickle
 #%% define input and output
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_of.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_of.smk', [setting.debug_folder+'/processed/spatial_firing_of.pkl'],
     'process_expt')
 
 #%% Load data

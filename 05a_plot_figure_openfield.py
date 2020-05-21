@@ -11,7 +11,7 @@ import logging
 
 #%% define input and output
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'op_workflow.smk', [setting.debug_folder+'/processed/snakemake.done'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_of.smk', [setting.debug_folder+'/processed/snakemake.done'],
 'plot_figures')
 
 logger = logging.Logger(__file__)

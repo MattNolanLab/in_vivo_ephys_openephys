@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import SnakeIOHelper
 
 # #%% define sinput and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/spatial_firing_vr.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/spatial_firing_vr.pkl'],
     'process_expt')
 
 

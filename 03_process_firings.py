@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import SnakeIOHelper 
 
 #%%
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
     'process_firings')
 
 #%% process firing times
