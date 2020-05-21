@@ -1,0 +1,6 @@
+
+scipy
+tqdm
+spikeinterface
+ml_ms4alg
+snakemake

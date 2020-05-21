@@ -1,37 +1,47 @@
-name: ms4
+name: ms42
 channels:
   - defaults
   - conda-forge
 dependencies:
   - _libgcc_mutex=0.1=main
+  - blas=1.0=mkl
   - ca-certificates=2020.1.1=0
   - certifi=2020.4.5.1=py36_0
+  - intel-openmp=2020.1=217
   - ld_impl_linux-64=2.33.1=h53a641e_7
   - libedit=3.1.20181209=hc058e9b_0
   - libffi=3.3=he6710b0_1
   - libgcc-ng=9.1.0=hdf63c60_0
+  - libgfortran-ng=7.3.0=hdf63c60_0
   - libstdcxx-ng=9.1.0=hdf63c60_0
+  - mkl=2020.1=217
+  - mkl-service=2.3.0=py36he904b0f_0
+  - mkl_fft=1.0.15=py36ha843d7b_0
+  - mkl_random=1.1.0=py36hd6b4f25_0
   - ncurses=6.2=he6710b0_1
+  - numpy=1.18.1=py36h4f9e942_0
+  - numpy-base=1.18.1=py36hde5b4d6_1
   - openssl=1.1.1g=h7b6447c_0
   - pip=20.0.2=py36_3
   - python=3.6.10=h7579374_2
   - readline=8.0=h7b6447c_0
+  - scipy=1.4.1=py36h0b6359f_0
   - setuptools=46.4.0=py36_0
+  - six=1.14.0=py36_0
   - sqlite=3.31.1=h62c20be_1
   - tk=8.6.8=hbc83047_0
+  - tqdm=4.46.0=py_0
   - wheel=0.34.2=py36_0
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h7b6447c_3
   - pip:
     - alabaster==0.7.12
     - appdirs==1.4.4
-    - astropy==4.0.1.post1
     - attrs==19.3.0
     - babel==2.8.0
     - backcall==0.1.0
     - bleach==3.1.5
     - chardet==3.0.4
-    - cmocean==2.0
     - configargparse==1.2.3
     - cycler==0.10.0
     - datrie==0.8.2
@@ -42,8 +52,6 @@ dependencies:
     - gitpython==3.1.2
     - h5py==2.10.0
     - idna==2.9
-    - imagecodecs==2020.2.18
-    - imageio==2.8.0
     - imagesize==1.2.0
     - importlib-metadata==1.6.0
     - ipykernel==5.3.0
@@ -59,10 +67,8 @@ dependencies:
     - jupyter-client==6.1.3
     - jupyter-core==4.6.3
     - kiwisolver==1.2.0
-    - llvmlite==0.32.1
     - markupsafe==1.1.1
     - matplotlib==3.2.1
-    - meautility==1.4.6
     - mistune==0.8.4
     - ml-ms4alg==0.3.2
     - mountainlab-pytools==0.7.5
@@ -70,8 +76,6 @@ dependencies:
     - nbformat==5.0.6
     - networkx==2.4
     - notebook==6.0.3
-    - numba==0.49.1
-    - numpy==1.18.4
     - numpydoc==0.9.2
     - packaging==20.4
     - pandas==1.0.3
@@ -79,7 +83,6 @@ dependencies:
     - parso==0.7.0
     - pexpect==4.8.0
     - pickleshare==0.7.5
-    - pillow==7.1.2
     - prometheus-client==0.7.1
     - prompt-toolkit==3.0.5
     - psutil==5.7.0
@@ -90,15 +93,11 @@ dependencies:
     - pyrsistent==0.16.0
     - python-dateutil==2.8.1
     - pytz==2020.1
-    - pywavelets==1.1.1
     - pyzmq==19.0.1
     - ratelimiter==1.2.0.post0
     - requests==2.23.0
-    - scikit-image==0.17.2
     - scikit-learn==0.23.1
-    - scipy==1.4.1
     - send2trash==1.5.0
-    - six==1.15.0
     - sklearn==0.0
     - smmap==3.0.4
     - snakemake==5.18.0
@@ -110,21 +109,18 @@ dependencies:
     - sphinxcontrib-jsmath==1.0.1
     - sphinxcontrib-qthelp==1.0.3
     - sphinxcontrib-serializinghtml==1.1.4
-    - spikecomparison==0.2.6
-    - spikeextractors==0.8.4
-    - spikefeatures==0.1.1
-    - spikeinterface==0.9.9
+    - spikecomparison==0.2.0
+    - spikeextractors==0.7.0
+    - spikeinterface==0.9.1
     - spikemetrics==0.2.0
-    - spikesorters==0.3.3
-    - spiketoolkit==0.6.3
-    - spikewidgets==0.4.3
+    - spikesorters==0.2.0
+    - spiketoolkit==0.5.0
+    - spikewidgets==0.3.1
     - terminado==0.8.3
     - testpath==0.4.4
     - threadpoolctl==2.0.0
-    - tifffile==2020.5.11
     - toposort==1.5
     - tornado==6.0.4
-    - tqdm==4.46.0
     - traitlets==4.3.3
     - vdom==0.6
     - wcwidth==0.1.9
@@ -132,5 +128,5 @@ dependencies:
     - widgetsnbextension==3.5.1
     - wrapt==1.12.1
     - zipp==3.1.0
-prefix: /home/ubuntu/miniconda3/envs/ms43
+prefix: /home/ubuntu/miniconda3/envs/ms42
 
