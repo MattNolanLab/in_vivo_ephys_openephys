@@ -162,8 +162,7 @@ def convertContinuous2Binary(continuousFolder, binaryFolder):
         binaryFolder {str} -- target folder of flat binary format
     """
 
-    data,headers = OpenEphys.load_OpenEphysRecording4BinaryFile(continuousFolder,setting.num_tetrodes, setting.data_file_prefix,
-        setting.data_file_suffix, dtype=np.int16)
+    data,headers = OpenEphys.load_OpenEphysRecording4BinaryFile(continuousFolder)
     OpenEphys.writeBinaryData(binaryFolder,data)
     OpenEphys.writeStructFile(binaryFolder+'/structure.oebin',headers)
 
