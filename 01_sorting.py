@@ -49,7 +49,8 @@ logger.info('Filtering files') #TODO logging not show correctly
 
 recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
 recording = recording.load_probe_file(sinput.probe_file) #load probe definition
-recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000, cache_chunks=True)
+# recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000, cache_chunks=True)
+filterRecording(recording,setting.sampling_rate) #for faster operation later
 
 #%% Remove some bad channels
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
@@ -63,10 +64,13 @@ sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=set
     adjacency_radius=param['adjacency_radius'], filter=False,
     detect_sign=param['detect_sign'],verbose=True)
 
+print('Saving sorting results')
 with open(soutput.sorter,'wb') as f:
     pickle.dump(sorting_ms4,f)
     
 #%% compute some property of the sorting
+print('Computing sorting metrics...')
+
 st.postprocessing.get_unit_max_channels(recording, sorting_ms4, save_as_property=True,max_spikes_per_unit=100)
 st.postprocessing.get_unit_waveforms(recording, sorting_ms4,save_as_features=True, max_spikes_per_unit=100)
 
@@ -86,6 +90,7 @@ sorter_df.to_pickle(soutput.sorter_df)
 
 #%% Do some simple curation for now
 # less to remove
+print('Doing curation...')
 sorting_ms4_curated = st.curation.threshold_snrs(sorting=sorting_ms4, recording = recording,
   threshold = 2, threshold_sign='less',
     max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
