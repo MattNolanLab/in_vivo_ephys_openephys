@@ -58,17 +58,13 @@ The each script of the workflow can be run independently or as a workflow as a w
     ```
 - How to view plots on Eleanor
 
-    If you are running the pipeline on a remote server, one of the easy way to see the plots is simply to run a HTTP server on it. To do that, map to a local port when you connect to the remote server e.g.
-    ```
-    ssh 8000:localhost:8000 ubuntu@<your ip>
-    ```
-    Then at the folder of your choice, execute
-    ```
-    python -m http.server
-    ```
-    By default the folders on the remote server should be reachable by `http://localhost:8000` in your browser
+    The best way to view plot is to connect to the remove instance directly as a network drive.
 
-    If you are on Linux, the better way is to map the remote folder to a local folder using [sshfs](https://askubuntu.com/questions/412477/mount-remote-directory-using-ssh)
+    - Linux: Use [sshfs](https://askubuntu.com/questions/412477/mount-remote-directory-using-ssh)
+
+    - Mac: [Mountain duck](https://mountainduck.io/) or [cyberduck](https://cyberduck.io/)
+
+    - Windows: [SSH-FS Win Manager](https://github.com/evsar3/sshfs-win-manager)
 
 - Executing cell blocks
 
