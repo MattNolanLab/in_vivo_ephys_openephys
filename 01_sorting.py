@@ -23,13 +23,13 @@ import SnakeIOHelper
 import spikeinterfaceHelper
 from PostSorting.make_plots import plot_waveforms
 from PreClustering.pre_process_ephys_data import filterRecording
-
+import time 
 #for logging
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'vr_workflow.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
     'sort_spikes')
 
 #%% Load data and create recording extractor
@@ -49,28 +49,30 @@ logger.info('Filtering files') #TODO logging not show correctly
 
 recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
 recording = recording.load_probe_file(sinput.probe_file) #load probe definition
-filterRecording(recording,setting.sampling_rate) #for faster operation later
+recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000, cache_chunks=True)
 
 #%% Remove some bad channels
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
 tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
 #%% perform sorting
+
+now = time.time()
 with open(sinput.sort_param) as f:
     param = json.load(f)
 sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=setting.sorterName,
-    adjacency_radius=param['adjacency_radius'], detect_sign=param['detect_sign'],verbose=True)
+    adjacency_radius=param['adjacency_radius'], filter=False,
+    detect_sign=param['detect_sign'],verbose=True)
 
 with open(soutput.sorter,'wb') as f:
     pickle.dump(sorting_ms4,f)
     
-
 #%% compute some property of the sorting
 st.postprocessing.get_unit_max_channels(recording, sorting_ms4, save_as_property=True,max_spikes_per_unit=100)
 st.postprocessing.get_unit_waveforms(recording, sorting_ms4,save_as_features=True, max_spikes_per_unit=100)
 
 for id in sorting_ms4.get_unit_ids():
     number_of_spikes = len(sorting_ms4.get_unit_spike_train(id))
-    mean_firing_rate = number_of_spikes/(recording._recording._timeseries.shape[1]/setting.sampling_rate)
+    mean_firing_rate = number_of_spikes/(recording.get_traces().shape[1]/setting.sampling_rate)
     sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 
@@ -108,3 +110,5 @@ with open(soutput.sorter_curated,'wb') as f:
 
 #%% Plot spike waveforms
 plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure)
+
+print(f'Elapsed time {time.time()-now}')

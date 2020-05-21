@@ -6,11 +6,13 @@ from tqdm import tqdm
 import file_utility
 import numpy as np
 from PreClustering import convert_open_ephys_to_mda
+import spikeinterface as si
 
 prm = parameters.Parameters()
 
 
 def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
+    # Do the filtering manually instead of using spikeinterface for speed
     fn = sampling_freq / 2.
     band = np.array([lp_freq, hp_freq]) / fn
 
@@ -19,9 +21,16 @@ def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
     if not (np.all(np.abs(np.roots(a)) < 1) and np.all(np.abs(np.roots(a)) < 1)):
         raise ValueError('Filter is not stable')
     
-    for i in tqdm(range(recording._timeseries.shape[0])):
-        recording._timeseries[i,:] = filtfilt(b,a,recording._timeseries[i,:])
-
+    if isinstance(recording, si.extractors.NumpyRecordingExtractor):
+        for i in tqdm(range(recording._timeseries.shape[0])):
+            recording._timeseries[i,:] = filtfilt(b,a,recording._timeseries[i,:])
+    elif isinstance(recording, si.extractors.SubRecordingExtractor):
+        parent_recording = recording._parent_recording
+        for i in tqdm(range(parent_recording._timeseries.shape[0])):
+            parent_recording._timeseries[i,:] = filtfilt(b,a,parent_recording._timeseries[i,:])
+        recording._parent_recording = parent_recording
+    else:
+        raise TypeError("Recording type not supported")
     return recording
 
 def init_params():

@@ -6,9 +6,9 @@ import shutil
 
 #%% create short files for debugging purpose
 # basePath = '/media/data2/pipeline_testing_data/M1_D31_2018-11-01_12-28-25'
-basePath = '/media/data2/pipeline_testing_data/M5_2018-03-06_15-34-44_of'
+basePath = '/home/ubuntu/testdata/M1_D31_2018-11-01_12-28-25'
 newPath = basePath+'_short'
-shortenLength = 30000*60*10
+shortenLength = 30000*60*3
 
 try:
     os.mkdir(newPath)
