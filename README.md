@@ -5,6 +5,11 @@ Snakemake pipeline for processing open-ephys data
 - snakmake, spikeinterface, ml_ms4alg
 - Any package that's required by the original pipeline
 
+An environment file is provided for all the dependencies. Please create the conda environment by 
+```
+conda create -f environment.yml
+```
+
 ### Code structure
 A workflow is defined in a snakefile. Currently, two snakefiles are provided, namely `vr_workflow.smk` and `op_workflow.smk` for VR and openfield experiment respectively.
 
