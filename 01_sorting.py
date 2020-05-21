@@ -86,17 +86,19 @@ sorter_df.to_pickle(soutput.sorter_df)
 
 #%% Do some simple curation for now
 # less to remove
-sorting_ms4_curated = st.curation.threshold_snr(sorting=sorting_ms4, recording = recording,
+sorting_ms4_curated = st.curation.threshold_snrs(sorting=sorting_ms4, recording = recording,
   threshold = 2, threshold_sign='less',
     max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
 print(sorting_ms4_curated.get_unit_ids())
 
-sorting_ms4_curated=st.curation.threshold_firing_rate(sorting_ms4_curated,
+sorting_ms4_curated=st.curation.threshold_firing_rates(sorting_ms4_curated,
+    duration_in_frames=recording.get_num_frames(),
     threshold=0.5, threshold_sign='less')
 print(sorting_ms4_curated.get_unit_ids())
 
 sorting_ms4_curated=st.curation.threshold_isi_violations(sorting_ms4_curated, 
-    threshold = 0.9)
+    threshold = 0.9, threshold_sign='greater', 
+    duration_in_frames=recording.get_num_frames())
 print(sorting_ms4_curated.get_unit_ids())
 
 
