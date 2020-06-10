@@ -10,6 +10,8 @@ An environment file is provided for all the dependencies. Please create the cond
 conda create -f environment.yml
 ```
 
+note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first
+
 ### Code structure
 A workflow is defined in a snakefile. Currently, two snakefiles are provided, namely `vr_workflow.smk` and `op_workflow.smk` for VR and openfield experiment respectively.
 
