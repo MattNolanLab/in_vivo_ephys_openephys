@@ -86,7 +86,7 @@ print(paste("Number of theta-rhythmic (TR) HD cells (theta index threshold > 0.0
   
 """
 
-def calculate_spectral_density(firing_rate, prm, spike_data, cluster, cluster_index, save_path):
+def calculate_spectral_density(firing_rate, prm, cluster_data, save_path):
     f, Pxx_den = signal.welch(firing_rate, fs=1000, nperseg=10000, scaling='spectrum')
     Pxx_den = Pxx_den*f
     #print(cluster)
@@ -98,7 +98,10 @@ def calculate_spectral_density(firing_rate, prm, spike_data, cluster, cluster_in
     #plt.ylim([0.5e-3, 1])
     plt.xlabel('frequency [Hz]')
     plt.ylabel('PSD [V**2/Hz]')
-    plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster_index) + '_power_spectra_ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    try:
+        plt.savefig(save_path + '/' + cluster_data.session_id + '_' + str(cluster_data.cluster_id) + '_power_spectra_ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    except:
+        print("you do not have permission to save a figure here, ", save_path)
     plt.close()
     return f, Pxx_den
 
@@ -126,8 +129,8 @@ def get_rolling_sum(array_in, window):
     array_out = np.hstack((beginning, inner_part_result, end))
     return array_out
 
-def extract_instantaneous_firing_rate(spike_data, cluster):
-    firing_times=spike_data.at[cluster, "firing_times"]/30 # convert from samples to ms
+def extract_instantaneous_firing_rate(cluster_data):
+    firing_times=cluster_data.firing_times/30 # convert from samples to ms
     bins = np.arange(0,np.max(firing_times), 1)
     instantaneous_firing_rate = np.histogram(firing_times, bins=bins, range=(0, max(bins)))[0]
 
@@ -149,49 +152,63 @@ def calculate_theta_power(Pxx_den,f):
 def calculate_theta_index(spike_data,prm):
     print('I am calculating theta index...')
     save_path = prm.get_output_path() + '/Figures/firing_properties/autocorrelograms'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
+    try:
+        if os.path.exists(save_path) is False:
+            os.makedirs(save_path)
+    except:
+        print("you don not have permissioned to create a directory here, ", save_path)
 
     theta_indices = []
     theta_powers = []
     for cluster in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster] - 1
+        cluster_data = spike_data.iloc[cluster]
 
-
-        if len(spike_data.at[cluster, "firing_times"])<=1:
+        if len(cluster_data.firing_times)<=1:
             # in the case no or 1 spike is found in open field or vr
             theta_indices.append(np.nan)
             theta_powers.append(np.nan)
 
         else:
-            instantaneous_firing_rate = extract_instantaneous_firing_rate(spike_data, cluster)
-            #convolved_spikes = convolve_spikes(instantaneous_firing_rate)
+            instantaneous_firing_rate = extract_instantaneous_firing_rate(cluster_data)
             firing_rate = calculate_firing_probability(instantaneous_firing_rate)
-            f, Pxx_den = calculate_spectral_density(firing_rate, prm, spike_data, cluster, cluster_index, save_path)
+            f, Pxx_den = calculate_spectral_density(firing_rate, prm, cluster_data, save_path)
 
             t_index, t_power = calculate_theta_power(Pxx_den, f)
             theta_indices.append(t_index)
             theta_powers.append(t_power)
 
-            firing_times_cluster = spike_data.firing_times[cluster]
+            firing_times_cluster = cluster_data.firing_times
             corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 600)
 
-            fig = plt.figure(figsize=(7,6)) # width, height?
+            fig = plt.figure(figsize=(7,4)) # width, height?
             ax = fig.add_subplot(1, 2, 1)  # specify (nrows, ncols, axnum)
+            ax.set_ylim(bottom=0, top=max(corr)+(0.05*max(corr)))
+            ax.set_ylabel("Spike prob.", fontsize=15)
+            ax.set_xlabel("Time (ms)", fontsize=15)
             ax.set_xlim(-300, 300)
             ax.plot(time, corr, '-', color='black')
             x=np.max(corr)
-            ax.text(-200,x, "theta index = " + str(round(t_index,3)), fontsize =10)
+            #ax.text(-200,x, "theta index = " + str(round(t_index,3)), fontsize =10)
+            ax.tick_params(axis='both', which='major', labelsize=15)
+            plt.gca().spines['top'].set_visible(False)
+            plt.gca().spines['right'].set_visible(False)
 
             ax = fig.add_subplot(1, 2, 2)  # specify (nrows, ncols, axnum)
             ax.plot(f, Pxx_den, color='black')
             plt.ylim([0,max(Pxx_den)])
             plt.xlim(([0,20]))
-            ax.set_xlabel('frequency [Hz]')
-            ax.set_ylabel('PSD [V**2/Hz]')
+            ax.set_xlabel('Frequency (Hz)', fontsize=15)
+            ax.set_ylabel('Power', fontsize=15)
             x = max(Pxx_den)
-            ax.text(3,x, "theta power = " + str(np.round(t_power,decimals=2)), fontsize =10)
-            plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster_index) + '_theta_properties.png', dpi=300)
+            ax.tick_params(axis='both', which='major', labelsize=15)
+            plt.gca().spines['top'].set_visible(False)
+            plt.gca().spines['right'].set_visible(False)
+            ax.text(1,x, "Theta index = " + str(np.round(t_index,decimals=2)), fontsize =15)
+            fig.tight_layout(pad=3.0)
+            try:
+                plt.savefig(save_path + '/' + cluster_data.session_id + '_' + str(cluster_data.cluster_id) + '_theta_properties.png', dpi=300)
+            except:
+                print("you do not have permission to save a figure here, ", save_path)
             plt.close()
 
     spike_data["ThetaPower"] = theta_powers
@@ -234,33 +251,6 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     corr = counts / counted
     time = np.arange(-half_window, half_window + 1, bin_size)
     return corr, time
-
-
-
-def plot_autocorrelograms(spike_data, prm):
-    plt.close()
-    print('I will plot autocorrelograms for each cluster.')
-    save_path = prm.get_output_path() + '/Figures/firing_properties/autocorrelograms'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
-    for cluster in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster] - 1
-        firing_times_cluster = spike_data.firing_times[cluster]
-        #lags = plt.acorr(firing_times_cluster, maxlags=firing_times_cluster.size-1)
-        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 20)
-        plt.xlim(-10, 10)
-        plt.bar(time, corr, align='center', width=1, color='black')
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster_index) + '_autocorrelogram_10ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.close()
-        plt.figure()
-        corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 500)
-        plt.xlim(-250, 250)
-        plt.bar(time, corr, align='center', width=1, color='black')
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster_index) + '_autocorrelogram_250ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        plt.close()
-
-
-
 
 def convolve_array(spikes):
     window = signal.gaussian(2, std=5)
@@ -344,6 +334,7 @@ def run_for_x(path_to_recording_list):
     for i in range(len(list_of_recordings)):
         try:
             recording_path = list_of_recordings[i]
+            print("processing recording ", recording_path)
             spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
             spatial_firing = pd.read_pickle('/mnt/datastore/'+spatial_firing_path)
             spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
@@ -351,6 +342,7 @@ def run_for_x(path_to_recording_list):
             test_params.set_sampling_rate(30000)
             spatial_firing = run_test(spatial_firing)
             spatial_firing.to_pickle('/mnt/datastore/'+spatial_firing_path)
+            print("successful on recording, ", list_of_recordings[i])
 
         except Exception as ex:
             print("failed on recording, ", list_of_recordings[i])
@@ -372,19 +364,23 @@ def main():
     spatial_firing.to_pickle(spatial_firing_path)
     '''
 
-    #run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/of_list.txt")
-    #run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/vr_list.txt")
+    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/of_list.txt")
+    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/vr_list.txt")
+    print("done one")
 
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/VirtualReality/vrlist.txt")
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m2.txt")
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m3.txt")
+    print("done one")
 
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/VirtualReality/vrlist_cohort3.txt")
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M1_of.txt")
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M6_of_1.txt")
+    print("done one")
 
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/VirtualReality/with_of_recordings.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/OpenFeild/Mouse_info/filelist_all.txt")
+    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/OpenField/Mouse_info/filelist_all.txt")
+    print("done one")
 
     # generate a dummy spatial firing dataframe to test if theta index can come out low if made randomly.
     #random_firing = gen_modulated_firing(n_clusters=3, freq=8)
