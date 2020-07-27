@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 
-ignore_curation = False
+ignore_curation = True
 
 def load_curation_metrics(spike_data_frame, prm):
     isolations = []
