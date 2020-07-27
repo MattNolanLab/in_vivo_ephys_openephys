@@ -14,6 +14,7 @@ import PostSorting.vr_FiringMaps_InTime
 import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
+import PostSorting.theta_modulation
 
 prm = PostSorting.parameters.Parameters()
 
@@ -145,6 +146,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
+    spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
 
     save_data_frames(prm,
                      spatial_firing_movement=spike_data_movement,
