@@ -19,6 +19,7 @@ import PostSorting.make_plots
 import PostSorting.make_opto_plots
 import PostSorting.compare_first_and_second_half
 import PostSorting.open_field_border_cells
+import PostSorting.theta_modulation
 
 import numpy as np
 
@@ -157,6 +158,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
     spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
     spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
     spatial_firing = PostSorting.open_field_border_cells.process_corner_data(spatial_firing)
+    spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, prm)
 
     if opto_analysis:
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
@@ -197,6 +199,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
         # todo implement different opto-tagging protocols here based on tags
         opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
+        opto_is_found=False # TODO undo this, quick hack by Harry
         # process spatial data
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
         if position_was_found:
