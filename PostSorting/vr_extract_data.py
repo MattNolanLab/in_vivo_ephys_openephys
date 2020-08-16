@@ -10,22 +10,22 @@ def extract_instant_rates(spike_data, cluster_index):
 
 
 def extract_firing_rate_data(spike_data, cluster_index):
-    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.loc[cluster_index].spike_rate_on_trials[0], 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials[2]})
+    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.iloc[cluster_index].spike_rate_on_trials[0], 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials[2]})
     return cluster_firings
 
 
 def extract_smoothed_firing_rate_data(spike_data, cluster_index):
-    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[0], 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[2]})
+    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.iloc[cluster_index].spike_rate_on_trials_smoothed[0], 'trial_number' :  spike_data.iloc[cluster_index].spike_rate_on_trials_smoothed[1], 'trial_type' :  spike_data.iloc[cluster_index].spike_rate_on_trials_smoothed[2]})
     return cluster_firings
 
 
 def extract_gc_firing_rate_data(spike_data, cluster_index):
-    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.loc[cluster_index].firing_maps, 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[2]})
+    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.iloc[cluster_index].firing_maps, 'trial_number' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[1], 'trial_type' :  spike_data.loc[cluster_index].spike_rate_on_trials_smoothed[2]})
     return cluster_firings
 
 
 def extract_firing_num_data(spike_data, cluster_index):
-    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.loc[cluster_index].spike_num_on_trials[0], 'trial_number' :  spike_data.loc[cluster_index].spike_num_on_trials[1], 'trial_type' :  spike_data.loc[cluster_index].spike_num_on_trials[2]})
+    cluster_firings = pd.DataFrame({ 'firing_rate' :  spike_data.iloc[cluster_index].spike_num_on_trials[0], 'trial_number' :  spike_data.loc[cluster_index].spike_num_on_trials[1], 'trial_type' :  spike_data.loc[cluster_index].spike_num_on_trials[2]})
     return cluster_firings
 
 

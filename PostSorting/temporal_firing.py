@@ -1,11 +1,15 @@
+import numpy as np
+
 # calculate number of spikes and mean firing rate for each cluster and add to spatial firing df
 def add_temporal_firing_properties_to_df(spatial_firing, prm):
     total_number_of_spikes_per_cluster = []
     mean_firing_rates = []
     mean_firing_rates_local = []
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_times = spatial_firing.firing_times[cluster]
+    for cluster, cluster_id in enumerate(spatial_firing.cluster_id):
+        firing_times = np.asarray(spatial_firing[spatial_firing.cluster_id == cluster_id].firing_times)[0]
+
+        #cluster = spatial_firing.cluster_id.values[cluster] - 1
+        #firing_times = spatial_firing.firing_times[cluster]
         total_number_of_spikes = len(firing_times)
         total_length_of_recording = prm.get_total_length_sampling_points()  # this does not include opto
 
@@ -36,14 +40,14 @@ def add_temporal_firing_properties_to_df(spatial_firing, prm):
 
 def correct_for_stitch(spatial_firing, prm):
     if prm.paired_order is not None:
-        for cluster in range(len(spatial_firing)):
-            cluster = spatial_firing.cluster_id.values[cluster] - 1
-            firing_times = spatial_firing.firing_times[cluster]
+
+        for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+            firing_times = np.asarray(spatial_firing[spatial_firing.cluster_id == cluster_id].firing_times)[0]
 
             if prm.paired_order == "first":
-                spatial_firing.firing_times[cluster] = firing_times[firing_times > 0]
+                spatial_firing.firing_times.iloc[cluster_index] = firing_times[firing_times > 0]
             elif prm.paired_order == "second":
-                spatial_firing.firing_times[cluster] = firing_times[firing_times < prm.stitchpoint]
+                spatial_firing.firing_times.iloc[cluster_index] = firing_times[firing_times < prm.stitchpoint]
 
     return spatial_firing
 

@@ -211,7 +211,7 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
     plt.close()
 
 
-def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, prm, prefix):
+def plot_spikes_on_track(spike_data,processed_position_data, prm, prefix):
     print('plotting spike rastas...')
     save_path = prm.get_output_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
@@ -220,12 +220,11 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
     rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0)) #
     rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
 
-    for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        firing_times_cluster = spike_data.firing_times[cluster_index]
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        firing_times_cluster = spike_data.firing_times.iloc[cluster_index]
         if len(firing_times_cluster)>1:
 
-            x_max = max(np.array(spike_data.at[cluster_index, 'beaconed_trial_number'])) + 1
+            x_max = max(np.array(spike_data.beaconed_trial_number.iloc[cluster_index])) + 1
             spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
             ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
@@ -234,9 +233,9 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
             #ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
             #ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
 
-            ax.plot(spike_data.loc[cluster_index].beaconed_position_cm, spike_data.loc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
-            ax.plot(spike_data.loc[cluster_index].nonbeaconed_position_cm, spike_data.loc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
-            ax.plot(spike_data.loc[cluster_index].probe_position_cm, spike_data.loc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
+            ax.plot(spike_data.iloc[cluster_index].beaconed_position_cm, spike_data.iloc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
+            ax.plot(spike_data.iloc[cluster_index].nonbeaconed_position_cm, spike_data.iloc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+            ax.plot(spike_data.iloc[cluster_index].probe_position_cm, spike_data.iloc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
             ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
 
             plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
@@ -252,7 +251,7 @@ def plot_spikes_on_track(spike_data,raw_position_data,processed_position_data, p
                 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
             except ValueError:
                 continue
-            plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_track_firing_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+            plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_firing_Cluster_' + str(cluster_id) + '.png', dpi=200)
             plt.close()
 
 
@@ -261,10 +260,9 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
     save_path = prm.get_output_path() + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster_index in range(len(spike_data)):
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
-        avg_spikes_on_track = plt.figure(figsize=(6,4))
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
 
+        avg_spikes_on_track = plt.figure(figsize=(6,4))
         avg_beaconed_spike_rate, avg_nonbeaconed_spike_rate, avg_probe_spike_rate = PostSorting.vr_extract_data.extract_smoothed_average_firing_rate_data(spike_data, cluster_index, prm)
 
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -291,7 +289,7 @@ def plot_firing_rate_maps(spike_data, prm, prefix):
         plot_utility.style_track_plot(ax, 200)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_map_Cluster_' + str(cluster_index +1) + '.png', dpi=200)
+        plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_rate_map_Cluster_' + str(cluster_id) + '.png', dpi=200)
         plt.close()
 
 
@@ -397,7 +395,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
             gc.collect()
             plot_firing_rate_maps(spike_data, prm, prefix='_all')
-            plot_spikes_on_track(spike_data, raw_position_data, processed_position_data, prm, prefix='_movement')
+            plot_spikes_on_track(spike_data, processed_position_data, prm, prefix='_movement')
             #plot_convolved_rates_in_time(spike_data, prm)
             #plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             #make_combined_figure(prm, spike_data, prefix='_all')

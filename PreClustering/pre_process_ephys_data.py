@@ -27,17 +27,23 @@ def init_params():
 def split_back(recording_to_sort, stitch_point):
     dir = [f.path for f in os.scandir(recording_to_sort)]
 
+    n_timestamps = 0
     for filepath in dir:
         filename = filepath.split("/")[-1]
 
         if filename.startswith(prm.get_continuous_file_name()):
             ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
+
+            # this calculates total sample length of recordings a + b
+            if n_timestamps == 0:
+                n_timestamps = len(ch["data"])
+
             ch['data'] = ch['data'][:stitch_point]
             ch['timestamps'] = ch['timestamps'][:stitch_point]
             ch['recordingNumber'] = ch['recordingNumber'][:stitch_point]
             OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
 
-    return recording_to_sort
+    return recording_to_sort, n_timestamps
 
 def stitch_recordings(recording_to_sort, paired_recording):
     init_params()

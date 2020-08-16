@@ -116,19 +116,19 @@ def add_data_to_dataframe(cluster_index, firing_rate_map, spike_data):
     sn.append(np.array(firing_rate_map['trial_number']))
     sn.append(np.array(firing_rate_map['trial_type']))
     sn.append(np.array(firing_rate_map['dwell_time']))
-    spike_data.at[cluster_index, 'spike_num_on_trials'] = list(sn)
+    spike_data.spike_num_on_trials.iloc[cluster_index] = list(sn)
 
     sr=[]
     sr.append(np.array(firing_rate_map['spike_rate_on_trials']))
     sr.append(np.array(firing_rate_map['trial_number']))
     sr.append(np.array(firing_rate_map['trial_type']))
-    spike_data.at[cluster_index, 'spike_rate_on_trials'] = list(sr)
+    spike_data.spike_rate_on_trials.iloc[cluster_index] = list(sr)
 
     sr_smooth=[]
     sr_smooth.append(np.array(firing_rate_map['spike_rate_on_trials_convolved']))
     sr_smooth.append(np.array(firing_rate_map['trial_number']))
     sr_smooth.append(np.array(firing_rate_map['trial_type']))
-    spike_data.at[cluster_index, 'spike_rate_on_trials_smoothed'] = list(sr_smooth)
+    spike_data.spike_rate_on_trials_smoothed.iloc[cluster_index] = list(sr_smooth)
     return spike_data
 
 
@@ -163,7 +163,7 @@ def plot_rate_data(prm, firing_rate_map, spike_data, number_of_trials, cluster_i
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.plot(data)
-    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id[cluster_index] + '_rate_' + str(cluster_index +1) + '.png')
+    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id.iloc[cluster_index] + '_rate_' + str(spike_data.cluster_id.iloc[cluster_index]) + '.png')
     plt.close()
 
 
@@ -173,7 +173,7 @@ def plot_rate_norm_data(prm, firing_rate_map, spike_data, number_of_trials, clus
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.plot(data)
-    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id[cluster_index] + '_rate_norm_' + str(cluster_index +1) + '.png')
+    plt.savefig(prm.get_output_path() + '/Figures/spike_data/' + '/' + spike_data.session_id.iloc[cluster_index] + '_rate_norm_' + str(spike_data.cluster_id.iloc[cluster_index]) + '.png')
     plt.close()
 
 
@@ -182,8 +182,8 @@ def find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cl
     bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1,number_of_trials,1) # array of unique trial numbers
-    firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), number_of_bins,array_of_trials)
-    quick_spike_plot(spike_data, prm, np.array(spike_data.at[cluster_index, 'trial_number']), np.array(spike_data.at[cluster_index, 'x_position_cm']), cluster_index)
+    firing_rate_map['spike_num_on_trials'] = bin_spikes_over_location_on_trials(raw_position_data,np.array(spike_data.trial_number.iloc[cluster_index]), np.array(spike_data.x_position_cm.iloc[cluster_index]), number_of_bins,array_of_trials)
+    quick_spike_plot(spike_data, prm, np.array(spike_data.trial_number.iloc[cluster_index]), np.array(spike_data.x_position_cm.iloc[cluster_index]), cluster_index)
     return firing_rate_map,number_of_bins,array_of_trials
 
 
@@ -192,7 +192,7 @@ def quick_spike_plot(spike_data, prm, trials, locations, cluster_index):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.plot(locations, trials, 'o', markersize=0.5)
-    plt.savefig(prm.get_output_path() + '/Figures/spike_number/' + '/' + spike_data.session_id[cluster_index] + str(cluster_index +1) + '.png')
+    plt.savefig(prm.get_output_path() + '/Figures/spike_number/' + '/' + spike_data.session_id.iloc[cluster_index] + str(spike_data.cluster_id.iloc[cluster_index]) + '.png')
     plt.close()
     return
 
@@ -202,24 +202,25 @@ def bin_spike_counts(firing_rate_map, raw_position_data, spike_data, cluster_ind
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     array_of_trials = np.arange(1, number_of_trials+1, 1) # array of unique trial numbers
 
-    spike_num_hist   = create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'trial_number']),             np.array(spike_data.at[cluster_index, 'x_position_cm']),           number_of_bins, array_of_trials)
-    b_spike_num_hist = create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'beaconed_trial_number']),    np.array(spike_data.at[cluster_index, 'beaconed_position_cm']),    number_of_bins, array_of_trials)
-    nb_spike_num_hist= create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'nonbeaconed_trial_number']), np.array(spike_data.at[cluster_index, 'nonbeaconed_position_cm']), number_of_bins, array_of_trials)
-    p_spike_num_hist = create_2dhistogram(raw_position_data, np.array(spike_data.at[cluster_index, 'probe_trial_number']),       np.array(spike_data.at[cluster_index, 'probe_position_cm']),       number_of_bins, array_of_trials)
+    spike_num_hist   = create_2dhistogram(raw_position_data, np.array(spike_data.trial_number.iloc[cluster_index]),             np.array(spike_data.x_position_cm.iloc[cluster_index]),           number_of_bins, array_of_trials)
+    b_spike_num_hist = create_2dhistogram(raw_position_data, np.array(spike_data.beaconed_trial_number.iloc[cluster_index]),    np.array(spike_data.beaconed_position_cm.iloc[cluster_index]),    number_of_bins, array_of_trials)
+    nb_spike_num_hist= create_2dhistogram(raw_position_data, np.array(spike_data.nonbeaconed_trial_number.iloc[cluster_index]), np.array(spike_data.nonbeaconed_position_cm.iloc[cluster_index]), number_of_bins, array_of_trials)
+    p_spike_num_hist = create_2dhistogram(raw_position_data, np.array(spike_data.probe_trial_number.iloc[cluster_index]),       np.array(spike_data.probe_position_cm.iloc[cluster_index]),       number_of_bins, array_of_trials)
 
-    spike_data.at[cluster_index,'spike_num_hist']    = spike_num_hist.tolist()
-    spike_data.at[cluster_index,'b_spike_num_hist']  = b_spike_num_hist.tolist()
-    spike_data.at[cluster_index,'nb_spike_num_hist'] = nb_spike_num_hist.tolist()
-    spike_data.at[cluster_index,'p_spike_num_hist']  = p_spike_num_hist.tolist()
+    spike_data.spike_num_hist.iloc[cluster_index]  = spike_num_hist.tolist()
+    spike_data.b_spike_num_hist.iloc[cluster_index]  = b_spike_num_hist.tolist()
+    spike_data.nb_spike_num_hist.iloc[cluster_index] = nb_spike_num_hist.tolist()
+    spike_data.p_spike_num_hist.iloc[cluster_index]  = p_spike_num_hist.tolist()
 
     return firing_rate_map, spike_data
 
 
 def make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm):
     print('I am calculating the average firing rate ...')
-    for cluster_index in range(len(spike_data)):
+    #for cluster_index in range(len(spike_data)):
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         firing_rate_map = pd.DataFrame()
-        cluster_index = spike_data.cluster_id.values[cluster_index] - 1
+        #cluster_index = spike_data.cluster_id.values[cluster_index] - 1
         firing_rate_map,number_of_bins,array_of_trials = find_spikes_on_trials_all(firing_rate_map, spike_data, raw_position_data, cluster_index, prm)
         firing_rate_map = add_trial_number(firing_rate_map, processed_position_data)
         firing_rate_map = add_trial_type(firing_rate_map, processed_position_data)

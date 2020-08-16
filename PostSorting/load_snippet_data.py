@@ -62,14 +62,15 @@ def get_snippets(firing_data, prm, random_snippets=True):
         filtered_data = mdaio.readmda(filtered_data_path)
         if prm.stitchpoint is not None and prm.paired_order == "first":
             filtered_data = filtered_data[:, prm.stitchpoint:]
-        for cluster in range(len(firing_data)):
-            cluster = firing_data.cluster_id.values[cluster] - 1
-            firing_times = firing_data.firing_times[cluster]
+
+        for cluster, cluster_id in enumerate(firing_data.cluster_id):
+            tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
+            firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id].firing_times)[0]
 
             if random_snippets is True:
-                snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50, prm)
+                snippets = extract_random_snippets(filtered_data, firing_times, tetrode, 50, prm)
             else:
-                snippets = extract_all_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], prm)
+                snippets = extract_all_snippets(filtered_data, firing_times, tetrode, prm)
             snippets_all_clusters.append(snippets)
 
     if random_snippets is True:
