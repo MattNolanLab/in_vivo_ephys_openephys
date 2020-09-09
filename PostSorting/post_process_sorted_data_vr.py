@@ -171,6 +171,7 @@ def main():
     params.track_length = 300
 
     recording_folder = '/home/nolanlab/to_sort/recordings/M2_D17_2019-09-25_12-39-02'
+
     print('Processing ' + str(recording_folder))
 
     post_process_recording(recording_folder, 'vr')

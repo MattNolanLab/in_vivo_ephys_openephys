@@ -11,6 +11,9 @@ from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
 import traceback
 import warnings
 import sys
+from scipy import fftpack
+import elephant
+
 warnings.filterwarnings('ignore')
 
 test_params = PostSorting.parameters.Parameters()
@@ -86,6 +89,17 @@ print(paste("Number of theta-rhythmic (TR) HD cells (theta index threshold > 0.0
   
 """
 
+
+"""
+Alternative Theta modulation classification. 
+Boccara et al. Nature Neuroscience, 2010): "Individual cells were defined as
+being theta modulated if the mean spectral power within 1 Hz of the peak in 
+the 4–11-Hz frequency range of the spike-train autocorrelogram was at least 
+fivefold greater than the mean spectral power between 0 and 125 Hz
+
+This is calculated and called Boccara_theta_class either 1=modulated, 0=not modulated
+"""
+
 def calculate_spectral_density(firing_rate, prm, cluster_data, save_path):
     f, Pxx_den = signal.welch(firing_rate, fs=1000, nperseg=10000, scaling='spectrum')
     Pxx_den = Pxx_den*f
@@ -149,6 +163,105 @@ def calculate_theta_power(Pxx_den,f):
     t_index = x/y
     return t_index, theta_power
 
+def calculate_boccara_theta(Pxx_den, f):
+    # see above for definition
+
+
+    f_peak = calculate_theta_peak(Pxx_den, f)
+    f_lower = f_peak-1
+    f_higher = f_peak+1
+    mean_peak_theta_power = np.nanmean(np.take(Pxx_den, np.where(np.logical_and(f > f_lower, f < f_higher))))
+    mean_baseline_power = np.nanmean(np.take(Pxx_den, np.where(np.logical_and(f > 0, f < 125))))
+
+    if mean_peak_theta_power>(mean_baseline_power*5):
+        boccara_theta_mod = 1 # classified as theta modulated if at least 5 fold larger
+    else:
+        boccara_theta_mod = 0
+
+    #print(mean_peak_theta_power/mean_baseline_power)
+    return boccara_theta_mod
+
+def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
+
+    firing_times_cluster = cluster_data.firing_times
+    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 2000)
+
+    #corr, time = calculate_autocorrelogram_hist2(np.array(firing_times_cluster), 1, prm.get_sampling_rate())
+    #time = time/prm.get_sampling_rate()
+    corr = corr[1000:]
+    time = time[1000:]
+    '''
+    fig, ax = plt.subplots()
+    ax.plot(corr)
+    plt.savefig("/mnt/datastore/Harry/signal.png")
+
+    f = 7  # Frequency, in cycles per second, or Hertz
+    f_s = 100  # Sampling rate, or number of measurements per second
+    t = np.linspace(0, 2, 2 * f_s, endpoint=False)
+    x = np.sin(f * 2 * np.pi * t)
+    fig, ax = plt.subplots()
+    ax.plot(x)
+    plt.savefig("/mnt/datastore/Harry/sim_signal.png")
+
+    X = fftpack.fft(x)
+    freqs = fftpack.fftfreq(len(x)) * f_s
+    freqs, X = signal.welch(x, f_s)
+    fig, ax = plt.subplots()
+    ax.plot(freqs, np.abs(X))
+    ax.set_xlim([0,50])
+    plt.savefig("/mnt/datastore/Harry/sim_fft_signal.png")
+    
+    '''
+
+    fig = plt.figure(figsize=(7,4)) # width, height?
+    ax = fig.add_subplot(1, 2, 1)  # specify (nrows, ncols, axnum)
+    ax.plot(time, corr)
+
+    ax = fig.add_subplot(1, 2, 2)  # specify (nrows, ncols, axnum)
+    '''
+    corr_fft = fftpack.rfft(corr)
+    freqs = (fftpack.rfftfreq(len(corr_fft))*1000)
+    corr_fft = corr_fft[1::2]
+    freqs = freqs[1::2]
+    corr_fft = np.abs(corr_fft)**2
+    ax.plot(freqs, corr_fft, label="fft")
+    ax.set_xlim([0, 125])
+    '''
+    freqs, corr_fft = signal.welch(corr, fs=1000, scaling='density')
+    freqs, corr_fft = elephant.spectral.welch_psd(corr, freq_res=1, fs=1000)
+    freqs = freqs[1:]
+    corr_fft = corr_fft[1:]
+    corr_fft = corr_fft/np.sum(corr_fft)
+    ax.plot(freqs, corr_fft, label="fft")
+    ax.set_xlim([0, 125])
+
+    f_peak = calculate_theta_peak(corr_fft, freqs)
+    f_lower = f_peak-1
+    f_higher = f_peak+1
+    mean_peak_theta_power = np.nanmean(np.take(corr_fft, np.where(np.logical_and(freqs >= f_lower, freqs <= f_higher))))
+    mean_baseline_power = np.nanmean(np.take(corr_fft, np.where(np.logical_and(freqs >= 0, freqs <= 125))))
+
+    if mean_peak_theta_power>(mean_baseline_power*5):
+        boccara_theta_mod = 1 # classified as theta modulated if at least 5 fold larger
+    else:
+        boccara_theta_mod = 0
+
+    #print(mean_peak_theta_power/mean_baseline_power)
+
+    plt.title("t ="+str(mean_peak_theta_power/mean_baseline_power))
+    rn = np.random.randint(1000000, size=1)
+
+    plt.savefig("/mnt/datastore/Harry/test_function_figure_space/fft_signal"+str(rn)+".png")
+    return boccara_theta_mod
+
+
+
+def calculate_theta_peak(Pxx_den,f):
+    theta_powers = np.take(Pxx_den, np.where(np.logical_and(f >= 4, f <=11)))
+    theta_frequencies = np.take(f, np.where(np.logical_and(f >= 4, f <=11)))
+    theta_peak = theta_frequencies[0, np.argmax(theta_powers)]
+    return theta_peak
+
 def calculate_theta_index(spike_data,prm):
     print('I am calculating theta index...')
     save_path = prm.get_output_path() + '/Figures/firing_properties/autocorrelograms'
@@ -156,10 +269,13 @@ def calculate_theta_index(spike_data,prm):
         if os.path.exists(save_path) is False:
             os.makedirs(save_path)
     except:
-        print("you don not have permissioned to create a directory here, ", save_path)
+        print("you do not have permissioned to create a directory here, ", save_path)
+
 
     theta_indices = []
     theta_powers = []
+    boccara_thetas = []
+
     for cluster in range(len(spike_data)):
         cluster_data = spike_data.iloc[cluster]
 
@@ -173,9 +289,13 @@ def calculate_theta_index(spike_data,prm):
             firing_rate = calculate_firing_probability(instantaneous_firing_rate)
             f, Pxx_den = calculate_spectral_density(firing_rate, prm, cluster_data, save_path)
 
+            boccara_theta = calculate_boccara_theta(Pxx_den, f)
+            boccara_theta = calculate_boccara_theta_2(firing_rate, prm, cluster_data)
             t_index, t_power = calculate_theta_power(Pxx_den, f)
+
             theta_indices.append(t_index)
             theta_powers.append(t_power)
+            boccara_thetas.append(boccara_theta)
 
             firing_times_cluster = cluster_data.firing_times
             corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 600)
@@ -213,13 +333,8 @@ def calculate_theta_index(spike_data,prm):
 
     spike_data["ThetaPower"] = theta_powers
     spike_data["ThetaIndex"] = theta_indices
+    spike_data["Boccara_theta_class"] = boccara_thetas
     return spike_data
-
-
-
-
-##################################################################################
-
 
 
 def calculate_autocorrelogram_hist(spikes, bin_size, window):
@@ -251,6 +366,38 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     corr = counts / counted
     time = np.arange(-half_window, half_window + 1, bin_size)
     return corr, time
+
+def calculate_autocorrelogram_hist2(spikes, bin_size, window):
+
+    half_window = int(window/2)
+    number_of_bins = int(math.ceil(spikes[-1]))
+    train = np.zeros(number_of_bins)
+    bins = np.zeros(len(spikes))
+
+    for spike in range(len(spikes)-1):
+        bin = math.floor(spikes[spike])
+        train[bin] = train[bin] + 1
+        bins[spike] = bin
+
+    counts = np.zeros(window+1)
+    counted = 0
+    for b in range(len(bins)):
+        bin = int(bins[b])
+        window_start = int(bin - half_window)
+        window_end = int(bin + half_window + 1)
+        if (window_start > 0) and (window_end < len(train)):
+            counts = counts + train[window_start:window_end]
+            counted = counted + sum(train[window_start:window_end]) - train[bin]
+
+    counts[half_window] = 0
+    if max(counts) == 0 and counted == 0:
+        counted = 1
+
+    corr = counts / counted
+    time = np.arange(-half_window, half_window + 1, bin_size)
+    return corr, time
+
+
 
 def convolve_array(spikes):
     window = signal.gaussian(2, std=5)

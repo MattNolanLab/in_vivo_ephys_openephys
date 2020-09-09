@@ -113,7 +113,7 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     plt.close()
 
 
-def plot_stop_histogram(raw_position_data, processed_position_data, prm):
+def plot_stop_histogram(processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -136,7 +136,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     plt.close()
 
 
-def plot_speed_histogram(raw_position_data, processed_position_data, prm):
+def plot_speed_histogram(processed_position_data, prm):
     print('plotting speed histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -211,7 +211,7 @@ def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
     plt.close()
 
 
-def plot_spikes_on_track(spike_data,processed_position_data, prm, prefix):
+def plot_spikes_on_track(spike_data,processed_position_data, prm, prefix, plot_trials=["beaconed", "non_beaconed", "probe"]):
     print('plotting spike rastas...')
     save_path = prm.get_output_path() + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
@@ -225,19 +225,21 @@ def plot_spikes_on_track(spike_data,processed_position_data, prm, prefix):
         if len(firing_times_cluster)>1:
 
             x_max = max(np.array(spike_data.beaconed_trial_number.iloc[cluster_index])) + 1
-            spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
+            if x_max>100:
+                spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
+            else:
+                spikes_on_track = plt.figure(figsize=(4,(x_max/20)))
+
             ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-            #uncomment if you want to plot stops
-            #ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-            #ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
-            #ax.plot(probe[:,0], probe[:,1], 'o', color='LimeGreen', markersize=2, alpha=0.5)
+            if "beaconed" in plot_trials:
+                ax.plot(spike_data.iloc[cluster_index].beaconed_position_cm, spike_data.iloc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
+            if "non_beaconed" in plot_trials:
+                ax.plot(spike_data.iloc[cluster_index].nonbeaconed_position_cm, spike_data.iloc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
+            if "probe" in plot_trials:
+                ax.plot(spike_data.iloc[cluster_index].probe_position_cm, spike_data.iloc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
 
-            ax.plot(spike_data.iloc[cluster_index].beaconed_position_cm, spike_data.iloc[cluster_index].beaconed_trial_number, '|', color='Black', markersize=4)
-            ax.plot(spike_data.iloc[cluster_index].nonbeaconed_position_cm, spike_data.iloc[cluster_index].nonbeaconed_trial_number, '|', color='Red', markersize=4)
-            ax.plot(spike_data.iloc[cluster_index].probe_position_cm, spike_data.iloc[cluster_index].probe_trial_number, '|', color='Blue', markersize=4)
-            ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
-
+            #ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
             plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
             plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
             plt.xlim(0,200)
@@ -251,7 +253,10 @@ def plot_spikes_on_track(spike_data,processed_position_data, prm, prefix):
                 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
             except ValueError:
                 continue
-            plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_firing_Cluster_' + str(cluster_id) + '.png', dpi=200)
+            if len(plot_trials)<3:
+                plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_firing_Cluster_' + str(cluster_id) + "_" + str("_".join(plot_trials)) + '.png', dpi=200)
+            else:
+                plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_firing_Cluster_' + str(cluster_id) + '.png', dpi=200)
             plt.close()
 
 
@@ -387,15 +392,15 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         PostSorting.vr_cued_make_plots.make_plots(raw_position_data, processed_position_data, spike_data, prm)
     else:
         plot_stops_on_track(raw_position_data, processed_position_data, prm)
-        plot_stop_histogram(raw_position_data, processed_position_data, prm)
-        plot_speed_histogram(raw_position_data, processed_position_data, prm)
+        plot_stop_histogram(processed_position_data, prm)
+        plot_speed_histogram(processed_position_data, prm)
         if spike_data is not None:
             PostSorting.make_plots.plot_waveforms(spike_data, prm)
             PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
             PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
             gc.collect()
             plot_firing_rate_maps(spike_data, prm, prefix='_all')
-            plot_spikes_on_track(spike_data, processed_position_data, prm, prefix='_movement')
+            plot_spikes_on_track(spike_data, processed_position_data, prm, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
             #plot_convolved_rates_in_time(spike_data, prm)
             #plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             #make_combined_figure(prm, spike_data, prefix='_all')
@@ -516,38 +521,43 @@ def main():
     print('-------------------------------------------------------------')
 
     params = PostSorting.parameters.Parameters()
-    params.stop_threshold = 7.0
-    params.track_length = 300
-    params.cue_conditioned_goal = True
-    params.set_output_path(r'C:\Users\44756\Desktop\test_recordings_waveform_matching')
+    params.stop_threshold = 4.7
+    params.track_length = 200
+    params.cue_conditioned_goal = False
 
-    raw_position_data =       pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\raw_position_data.pkl')  # m4
-    processed_position_data = pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\processed_position_data.pkl') #m4
-    spatial_firing =          pd.read_pickle(r'C:\Users\44756\Desktop\test_recordings_waveform_matching\spatial_firing.pkl') #m4
-    #m2 processed_position_data = pd.read_pickle('Z:\ActiveProjects\Harry\MouseVR\data\Cue_conditioned_cohort1_190902\M2_D21_2019-10-01_13-00-22\MountainSort\DataFrames\processed_position_data.pkl') #m2
+    params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D5_2020-08-07_14-27-26_fixed/MountainSort")
+    recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D5_2020-08-07_14-27-26_fixed/MountainSort/DataFrames/spatial_firing.pkl")
+    recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D5_2020-08-07_14-27-26_fixed/MountainSort/DataFrames/processed_position_data.pkl")
+    plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
 
-    make_plots(raw_position_data, processed_position_data, spike_data=spatial_firing, prm=params)
-    #criteria_plot_offset(processed_position_data, prm=params)
-    #beaconed = np.array([[0.1, 1, 0],
-    #                     [0.1, 2, 0],
-    #                     [0.2, 2, 0],
-    #                     [0.7, 3, 0],
-    #                     [0.4, 3, 0],
-    #                     [0.5, 4, 0]])
-    #non_beaconed = np.array([[0.12, 5, 1],
-    #                         [0.41, 7, 1],
-    #                         [0.25, 7, 1],
-    #                         [0.47, 8, 1],
-    #                         [0.94, 9, 1],
-    #                         [0.15, 9, 1]])
+    params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort")
+    recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/spatial_firing.pkl")
+    recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/processed_position_data.pkl")
+    plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
 
-    #trial_bb_start = [0.1, 0.5, 0.11, 0.4, 0.2, 0.5, 0.1, 0.123, 0.421]
-    #trial_bb_end = [0.4, 0.8, 0.41, 0.7, 0.5, 0.8, 0.4, 0.423, 0.721]
-    #probe = 0
-    #new_beaconed, new_non_beaconed, _, new_trial_bb_start, new_trial_bb_end = order_by_cue(beaconed, non_beaconed, probe, trial_bb_start, trial_bb_end)
-    #print("hello there")
+    params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort")
+    recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/spatial_firing.pkl")
+    recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/processed_position_data.pkl")
+    plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
 
+    params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort")
+    recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/spatial_firing.pkl")
+    recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/processed_position_data.pkl")
+    plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
+    plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
 
+    #make_plots(raw_position_data, processed_position_data, spike_data=spatial_firing, prm=params)
 
 if __name__ == '__main__':
     main()
