@@ -145,6 +145,8 @@ def get_rolling_sum(array_in, window):
 
 def extract_instantaneous_firing_rate(cluster_data):
     firing_times=cluster_data.firing_times/30 # convert from samples to ms
+    if isinstance(firing_times, pd.Series):
+        firing_times = firing_times.iloc[0]
     bins = np.arange(0,np.max(firing_times), 1)
     instantaneous_firing_rate = np.histogram(firing_times, bins=bins, range=(0, max(bins)))[0]
 
@@ -283,19 +285,24 @@ def calculate_theta_index(spike_data,prm):
             # in the case no or 1 spike is found in open field or vr
             theta_indices.append(np.nan)
             theta_powers.append(np.nan)
+            boccara_thetas.append(np.nan)
 
         else:
             instantaneous_firing_rate = extract_instantaneous_firing_rate(cluster_data)
             firing_rate = calculate_firing_probability(instantaneous_firing_rate)
             f, Pxx_den = calculate_spectral_density(firing_rate, prm, cluster_data, save_path)
 
-            boccara_theta = calculate_boccara_theta(Pxx_den, f)
+            #boccara_theta = calculate_boccara_theta(Pxx_den, f)
             boccara_theta = calculate_boccara_theta_2(firing_rate, prm, cluster_data)
             t_index, t_power = calculate_theta_power(Pxx_den, f)
 
             theta_indices.append(t_index)
             theta_powers.append(t_power)
             boccara_thetas.append(boccara_theta)
+
+            print("t_index = "+str(t_index))
+            print("theta_powers = "+str(t_power))
+            print("boccara_thetas = "+str(boccara_theta))
 
             firing_times_cluster = cluster_data.firing_times
             corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 600)
@@ -334,6 +341,7 @@ def calculate_theta_index(spike_data,prm):
     spike_data["ThetaPower"] = theta_powers
     spike_data["ThetaIndex"] = theta_indices
     spike_data["Boccara_theta_class"] = boccara_thetas
+
     return spike_data
 
 

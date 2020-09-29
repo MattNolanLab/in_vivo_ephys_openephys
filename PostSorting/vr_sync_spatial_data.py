@@ -10,6 +10,7 @@ import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
 import PostSorting.vr_cued
 import matplotlib.pyplot as plt
+from scipy import signal
 
 
 def correct_for_restart(location):
@@ -252,6 +253,7 @@ The location array is duplicated, and shifted in a way that it can be subtracted
 subtracted from the original location array.)
 '''
 
+
 def calculate_instant_velocity(position_data, prm):
     print('Calculating velocity...')
     #location = np.array(position_data['x_position_cm']) # Get the raw location from the movement channel
@@ -265,6 +267,64 @@ def calculate_instant_velocity(position_data, prm):
 
     location = np.array(position_data['x_position_cm'], dtype=np.float32)
 
+    instant_location_differences = np.append(0, np.diff(location))
+
+    '''
+    new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
+
+    # another try
+    for new_trial_indice in new_trial_indices:
+
+        if new_trial_indice>0:
+            for i in range(int(new_trial_indice)-2000, int(new_trial_indice)+2000):
+                if i<len(instant_location_differences):
+                    instant_location_differences[i] = np.mean(instant_location_differences[i-30:i])
+
+    '''
+    # one attempt
+    look_for_jumps = False
+    for i in range(len(instant_location_differences)):
+
+        if look_for_jumps:
+            if (np.sign(instant_location_differences[i]) == jump_sign): # if negative (likely due to reset jump
+                instant_location_differences[i] = np.mean(instant_location_differences[i-20:i]) #replaces with average
+            else:
+                look_for_jumps = False
+
+        if (i == 0) and (np.abs(instant_location_differences[i]) > 2): # case only for first index
+            instant_location_differences[i] = 0
+        elif (np.abs(instant_location_differences[i]) > 2):
+            jump_sign = np.sign(instant_location_differences[i])
+            instant_location_differences[i] = np.mean(instant_location_differences[i-20:i]) #replaces with average
+            look_for_jumps = True
+
+    #print(new_trial_indices)
+
+    velocity = instant_location_differences*prm.get_sampling_rate()
+    position_data['velocity'] = velocity
+    PostSorting.vr_make_plots.plot_velocity(velocity, prm)
+
+
+    #for i in np.where(np.diff(location) < -10)[0]:
+    #    diff = abs(np.diff(location[i:i+2]))
+    #    location[i+1:] = np.add(location[i+1:], diff)
+
+    #sampling_points_per200ms = int(prm.get_sampling_rate()/5)
+    #end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    #beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    #location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
+    #velocity = location - location_to_subtract_from
+
+    #position_data['velocity'] = velocity*5
+    #PostSorting.vr_make_plots.plot_velocity(velocity*5, prm)
+    return position_data
+
+
+def calculate_instant_velocity2(position_data, prm):
+    print('Calculating velocity...')
+
+    location = np.array(position_data['x_position_cm'], dtype=np.float32)
+
     for i in np.where(np.diff(location) < -10)[0]:
         diff = abs(np.diff(location[i:i+2]))
         location[i+1:] = np.add(location[i+1:], diff)
@@ -275,9 +335,10 @@ def calculate_instant_velocity(position_data, prm):
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
     velocity = location - location_to_subtract_from
 
-    position_data['velocity'] = velocity*5
-    return position_data
+    PostSorting.vr_make_plots.plot_velocity(velocity, prm)
 
+    position_data['velocity'] = np.array(velocity*5, dtype=np.float32)
+    return position_data
 
 '''
 Calculates moving average
@@ -349,6 +410,7 @@ def get_avg_speed_200ms(position_data, prm):
     #position_data['speed_per200ms'] = get_rolling_sum(velocity, sampling_points_per200ms)# Calculate average speed at each point by averaging instant velocities
     position_data['speed_per200ms'] = running_mean(velocity, sampling_points_per200ms)  # Calculate average speed at each point by averaging instant velocities
     # position_data['speed_per200ms'] = velocity
+    PostSorting.vr_make_plots.plot_running_mean_velocity(running_mean(velocity, sampling_points_per200ms), prm)
     return position_data
 
 
@@ -356,6 +418,16 @@ def drop_columns_from_dataframe(position_data):
     #position_data = position_data.drop(['velocity'], axis=1)
     return position_data
 
+def downsampled_position_data(raw_position_data, prm):
+    position_data = pd.DataFrame()
+    downsample_factor = int(prm.get_sampling_rate()/ prm.get_downsampled_rate())
+    position_data["x_position_cm"] = raw_position_data["x_position_cm"][::downsample_factor]
+    position_data["time_seconds"] =  raw_position_data["time_seconds"][::downsample_factor]
+    position_data["speed_per200ms"] = raw_position_data["speed_per200ms"][::downsample_factor]
+    position_data["trial_number"] = raw_position_data["trial_number"][::downsample_factor]
+    position_data["trial_type"] = raw_position_data["trial_type"][::downsample_factor]
+
+    return position_data
 
 def syncronise_position_data(recording_folder, prm):
     raw_position_data = pd.DataFrame()
@@ -368,6 +440,7 @@ def syncronise_position_data(recording_folder, prm):
     raw_position_data = get_avg_speed_200ms(raw_position_data, prm)
     #raw_position_data = drop_columns_from_dataframe(raw_position_data)
     raw_position_data = PostSorting.vr_cued.add_goal_location(recording_folder, raw_position_data, prm)
+    position_data = downsampled_position_data(raw_position_data, prm)
 
     gc.collect()
-    return raw_position_data
+    return raw_position_data, position_data

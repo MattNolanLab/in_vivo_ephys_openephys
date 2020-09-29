@@ -22,6 +22,8 @@ class Parameters:
     sorter_name = []
     stitchpoint = None
     paired_order = None
+    ephys_channels = []
+    shared_ephys_channel_marker = "100_CH"
 
     # vr parameters
     first_trial_channel = ''  # vr
@@ -90,11 +92,30 @@ class Parameters:
     def set_sync_channel(self, sync_ch):
         Parameters.sync_channel = sync_ch
 
+    def get_ephys_channels(self):
+        return Parameters.ephys_channels
+
+    def set_ephys_channels(self, ephys_channels):
+        Parameters.ephys_channels = ephys_channels
+
+    def get_shared_ephys_channel_marker(self):
+        return Parameters.shared_ephys_channel_marker
+
+    def set_shared_ephys_channel_marker(self, shared_ephys_channel_marker):
+        Parameters.shared_ephys_channel_marker = shared_ephys_channel_marker
+
+
     def get_sampling_rate(self):
         return Parameters.sampling_rate
 
     def set_sampling_rate(self, sr):
         Parameters.sampling_rate = sr
+
+    def get_downsampled_rate(self):
+        return Parameters.downsampled_rate
+
+    def set_downsampled_rate(self, dsr):
+        Parameters.downsampled_rate = dsr
 
     def get_opto_tagging_start_index(self):
         return Parameters.opto_tagging_start_index

@@ -77,7 +77,7 @@ def get_number_of_bins(prm):
     number_of_bins = prm.track_length
     return number_of_bins
 
-def process_time(raw_position_data,processed_position_data, prm, recording_directory):
+def process_time(raw_position_data,processed_position_data, prm):
     processed_position_data = calculate_binned_time(raw_position_data,processed_position_data, prm)
     return processed_position_data
 

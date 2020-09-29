@@ -34,6 +34,8 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
         bin_means = (np.histogram(trial_x_position_cm, bins, weights = trial_speeds)[0] /
                      np.histogram(trial_x_position_cm, bins)[0])
 
+        position_bins = np.histogram(trial_x_position_cm, bins)[1]
+
         speed_trials_binned.append(bin_means)
         speed_trial_numbers.append(trial_number)
         speed_trialtypes.append(trial_type)
@@ -48,7 +50,7 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
             speed_trials_probe.append(bin_means)
             speed_trials_probe_trial_number.append(trial_number)
 
-
+    processed_position_data['position_bins'] = pd.Series(position_bins)
     processed_position_data['speed_trials_binned'] = pd.Series(speed_trials_binned)
     processed_position_data['speed_trial_numbers'] = pd.Series(speed_trial_numbers)
     processed_position_data['speed_trial_types'] = pd.Series(speed_trialtypes)
@@ -72,7 +74,7 @@ def get_number_of_bins(prm):
     number_of_bins = prm.track_length
     return number_of_bins
 
-def process_speed(raw_position_data,processed_position_data, prm, recording_directory):
+def process_speed(raw_position_data,processed_position_data, prm):
     processed_position_data = calculate_binned_speed(raw_position_data,processed_position_data, prm)
     return processed_position_data
 

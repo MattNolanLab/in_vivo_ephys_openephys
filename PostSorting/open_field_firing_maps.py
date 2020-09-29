@@ -41,11 +41,17 @@ def gaussian_kernel(kernx):
     return kerny
 
 
-def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+def calculate_firing_rate_for_cluster_parallel(cluster_id, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
-    print(cluster)
-    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
-    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
+    print(cluster_id)
+    #cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
+
+    cluster_firing_data_spatial = firing_data_spatial[firing_data_spatial.cluster_id == cluster_id]
+    cluster_firings = pd.DataFrame({'position_x': cluster_firing_data_spatial.position_x_pixels.iloc[0], 'position_y': cluster_firing_data_spatial.position_y_pixels.iloc[0]})
+
+    #cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
+
+
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
 
@@ -134,7 +140,10 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     smooth = 5 / 100 * prm.get_pixel_ratio()
     bin_size_pixels = get_bin_size(prm)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
+
     clusters = range(len(firing_data_spatial))
+    clusters = firing_data_spatial.cluster_id
+
     num_cores = int(os.environ['HEATMAP_CONCURRENCY']) if os.environ.get('HEATMAP_CONCURRENCY') else multiprocessing.cpu_count()
     time_start = time.time()
     if try_parallel_first:
@@ -203,9 +212,12 @@ def get_position_heatmap(spatial_data, prm):
 # this is the firing rate in the bin with the highest rate
 def find_maximum_firing_rate(spatial_firing):
     max_firing_rates = []
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_rate_map = spatial_firing.firing_maps[cluster]
+    #for cluster in range(len(spatial_firing)):
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        #cluster = spatial_firing.cluster_id.values[cluster] - 1
+        #firing_rate_map = spatial_firing.firing_maps[cluster]
+        firing_rate_map = cluster_df.firing_maps.iloc[0]
         max_firing_rate = np.max(firing_rate_map.flatten())
         max_firing_rates.append(max_firing_rate)
     spatial_firing['max_firing_rate'] = max_firing_rates

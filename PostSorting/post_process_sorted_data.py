@@ -20,6 +20,7 @@ import PostSorting.make_opto_plots
 import PostSorting.compare_first_and_second_half
 import PostSorting.open_field_border_cells
 import PostSorting.theta_modulation
+import PostSorting.lfp
 
 import numpy as np
 
@@ -40,6 +41,7 @@ def initialize_parameters(recording_to_process):
     else:
         prm.set_sync_channel('105_CH20_0.continuous')
 
+    prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process, prm))
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_file_path(recording_to_process)  # todo clean this
@@ -122,7 +124,7 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Firing_fields')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None):
+def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None, lfp_data=None):
     print('I will save the data frames now.')
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
@@ -132,6 +134,8 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
         snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
     if bad_clusters is not None:
         bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
+    if lfp_data is not None:
+        lfp_data.to_pickle(prm.get_output_path() + "/DataFrames/lfp_data.pkl")
 
 
 def save_data_for_plots(position_heat_map, hd_histogram, prm):
@@ -143,7 +147,7 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     pickle.dump(prm, file_handler)
 
 
-def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
+def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, lfp_data=None):
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
@@ -170,7 +174,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
     PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 
-    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
+    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
     save_data_for_plots(position_heat_map, hd_histogram, prm)
 
     return synced_spatial_data, spatial_firing
@@ -198,6 +202,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     if run_type == 'default':
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
         # todo implement different opto-tagging protocols here based on tags
+        lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
         opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
         opto_is_found=False # TODO undo this, quick hack by Harry
         # process spatial data
@@ -212,10 +217,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                 spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
                 snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                    save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
+                    save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
                     return
 
-            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
+            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found, lfp_data=lfp_data)
 
             #save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 

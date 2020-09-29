@@ -35,16 +35,24 @@ def plot_movement_channel(location, prm):
 # plot the trials to check all is good
 def plot_trials(trials, prm):
     plt.plot(trials)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials.png')
     plt.close()
+
+def plot_velocity(velocity, prm):
+    plt.plot(velocity)
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/velocity.png')
+
+def plot_running_mean_velocity(velocity, prm):
+    plt.plot(velocity)
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/running_mean_velocity.png')
 
 # plot the raw trial channels to check all is good
 def plot_trial_channels(trial1, trial2, prm):
     plt.plot(trial1[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type1' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type1.png')
     plt.close()
     plt.plot(trial2[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2' + '.png')
+    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2.png')
     plt.close()
 
 
@@ -83,7 +91,7 @@ def split_stop_data_by_trial_type(spatial_data, first_stops=False):
     return beaconed, nonbeaconed, probe
 
 
-def plot_stops_on_track(raw_position_data, processed_position_data, prm):
+def plot_stops_on_track(processed_position_data, prm):
     print('I am plotting stop rasta...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -95,18 +103,20 @@ def plot_stops_on_track(raw_position_data, processed_position_data, prm):
     reward_locs = np.array(processed_position_data.rewarded_stop_locations)
     reward_trials = np.array(processed_position_data.rewarded_trials)
 
-    ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
-    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
-    ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
-    ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
+    ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0', markersize=4)
+    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=4)
+    ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=4)
+    #ax.plot(reward_locs, reward_trials, '>', color='Red', markersize=3)
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    #plt.xlim(min(spatial_data.position_bins),max(spatial_data.position_bins))
     plt.xlim(0,200)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, 200)
-    x_max = max(raw_position_data.trial_number)+0.5
+    n_trials = int(processed_position_data.beaconed_total_trial_number.dropna() +
+                   processed_position_data.nonbeaconed_total_trial_number.dropna() +
+                   processed_position_data.probe_total_trial_number.dropna())
+    x_max = n_trials+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
@@ -119,22 +129,54 @@ def plot_stop_histogram(processed_position_data, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
-    ax = stop_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(processed_position_data["position_bins"])
-    average_stops = np.array(processed_position_data["average_stops"])
-    ax.plot(position_bins,average_stops, '-', color='Black')
-    plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
+    ax = stop_histogram.add_subplot(1, 1, 1)
+
+    bin_size = 5
+
+    stop_location_cm = np.asarray(processed_position_data['stop_location_cm'].dropna())
+    stop_trial_type = np.asarray(processed_position_data['stop_trial_type'].dropna())
+
+    beaconed_stops = stop_location_cm[stop_trial_type == 0]
+    non_beaconed_stops = stop_location_cm[stop_trial_type == 1]
+    probe_stops = stop_location_cm[stop_trial_type == 2]
+
+    beaconed_stop_hist, bin_edges = np.histogram(beaconed_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
+    non_beaconed_stop_hist, bin_edges = np.histogram(non_beaconed_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
+    probe_stop_hist, bin_edges = np.histogram(probe_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
+    bin_centres = 0.5*(bin_edges[1:]+bin_edges[:-1])
+
+    # specify (nrows, ncols, axnum)
+    #position_bins = np.array(processed_position_data["position_bins"])
+    #average_stops = np.array(processed_position_data["average_stops"])
+    #ax.plot(position_bins,average_stops, '-', color='Black')
+
+    ax.plot(bin_centres, beaconed_stop_hist/int(processed_position_data.beaconed_total_trial_number.dropna()), '-', color='Black')
+    ax.plot(bin_centres, non_beaconed_stop_hist/int(processed_position_data.nonbeaconed_total_trial_number.dropna()), '-', color='Red')
+    if int(processed_position_data.probe_total_trial_number.dropna())>0:
+        ax.plot(bin_centres, probe_stop_hist/int(processed_position_data.probe_total_trial_number.dropna()), '-', color='Blue')
+
+    plt.ylabel('Stops/Trial', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,prm.get_track_length())
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, prm.get_track_length())
-    x_max = max(processed_position_data.average_stops)+0.1
+
+    maxes = [max(beaconed_stop_hist/int(processed_position_data.beaconed_total_trial_number.dropna())),
+             max(non_beaconed_stop_hist/int(processed_position_data.nonbeaconed_total_trial_number.dropna()))]
+    x_max = max(maxes)+(0.1*max(maxes))
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
+def smoothen_speed(speed_array, speed_threshold_cm_per_second=10):
+    for i in range(1, len(speed_array)):
+        if (np.abs(speed_array[i] - speed_array[i-1])) > speed_threshold_cm_per_second:
+            speed_array[i] = speed_array[i-2]
+            speed_array[i+1] = speed_array[i-2]
+            speed_array[i+2] = speed_array[i-3]
+    return speed_array
 
 def plot_speed_histogram(processed_position_data, prm):
     print('plotting speed histogram...')
@@ -144,70 +186,35 @@ def plot_speed_histogram(processed_position_data, prm):
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
-    average_speed = np.array(processed_position_data["binned_speed_ms"].dropna(axis=0))
-    ax.plot(position_bins,average_speed, '-', color='Black')
+    bin_centres = 0.5*(position_bins[1:]+position_bins[:-1])
+
+    if "trial_averaged_beaconed_speeds" in list(processed_position_data):
+        average_speed_b = smoothen_speed(np.array(processed_position_data["trial_averaged_beaconed_speeds"].dropna(axis=0)))
+        ax.plot(bin_centres, average_speed_b, '-', color='Black')
+
+    if "trial_averaged_non_beaconed_speeds" in list(processed_position_data):
+        average_speed_nb = smoothen_speed(np.array(processed_position_data["trial_averaged_non_beaconed_speeds"].dropna(axis=0)))
+        ax.plot(bin_centres, average_speed_nb, '-', color='Red')
+
+    if "trial_averaged_probe_speeds" in list(processed_position_data):
+        average_speed_p = smoothen_speed(np.array(processed_position_data["trial_averaged_probe_speeds"].dropna(axis=0)))
+        ax.plot(bin_centres, average_speed_p, '-', color='Blue')
+
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
     plt.xlim(0,prm.get_track_length())
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, prm.get_track_length())
-    x_max = max(processed_position_data.binned_speed_ms)+0.5
+    #x_max = max(processed_position_data.binned_speed_ms)+0.5
+
+    if "trial_averaged_non_beaconed_speeds" in list(processed_position_data):
+        x_max = max([max(average_speed_b), max(average_speed_nb)])+0.5
+    else:
+        x_max = max(average_speed_b)+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
-    plt.close()
-
-
-def plot_combined_behaviour(raw_position_data,processed_position_data, prm):
-    print('making combined behaviour plot...')
-    save_path = prm.get_local_recording_folder_path() + '/Figures/behaviour'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
-    combined = plt.figure(figsize=(6,9))
-    ax = combined.add_subplot(3, 1, 1)  # specify (nrows, ncols, axnum)
-
-    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
-
-    ax.plot(beaconed[:,0], beaconed[:,1], 'o', color='0.5', markersize=2)
-    ax.plot(nonbeaconed[:,0], nonbeaconed[:,1], 'o', color='red', markersize=2)
-    ax.plot(probe[:,0], probe[:,1], 'o', color='blue', markersize=2)
-    plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,200)
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
-    x_max = max(raw_position_data.trial_number)+0.5
-    plot_utility.style_vr_plot(ax, x_max)
-
-    ax = combined.add_subplot(3, 1, 2)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
-    average_stops = np.array(processed_position_data["average_stops"].dropna(axis=0))
-    ax.plot(position_bins,average_stops, '-', color='Black')
-    plt.ylabel('Stops (cm/s)', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,200)
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
-    x_max = max(processed_position_data.average_stops)+0.5
-    plot_utility.style_vr_plot(ax, x_max)
-
-    ax = combined.add_subplot(3, 1, 3)  # specify (nrows, ncols, axnum)
-    position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
-    average_speed = np.array(processed_position_data["binned_speed_ms"].dropna(axis=0))
-    ax.plot(position_bins,average_speed, '-', color='Black')
-    plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,200)
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
-    x_max = max(processed_position_data.binned_speed_ms)+0.5
-    plot_utility.style_vr_plot(ax, x_max)
-    plt.subplots_adjust(hspace = .3, wspace = .3,  bottom = 0.06, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/behaviour/combined_behaviour' + '.png', dpi=200)
     plt.close()
 
 
@@ -391,7 +398,7 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
     if prm.cue_conditioned_goal:
         PostSorting.vr_cued_make_plots.make_plots(raw_position_data, processed_position_data, spike_data, prm)
     else:
-        plot_stops_on_track(raw_position_data, processed_position_data, prm)
+        plot_stops_on_track(processed_position_data, prm)
         plot_stop_histogram(processed_position_data, prm)
         plot_speed_histogram(processed_position_data, prm)
         if spike_data is not None:
@@ -404,6 +411,57 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
             #plot_convolved_rates_in_time(spike_data, prm)
             #plot_combined_spike_raster_and_rate(spike_data, raw_position_data, processed_position_data, prm, prefix='_all')
             #make_combined_figure(prm, spike_data, prefix='_all')
+
+
+def plot_field_centre_of_mass_on_track(spike_data, prm, plot_trials=["beaconed", "non_beaconed", "probe"]):
+
+    print('plotting field rastas...')
+    save_path = prm.get_output_path() + '/Figures/field_trajectories'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        firing_times_cluster = spike_data.firing_times.iloc[cluster_index]
+        if len(firing_times_cluster)>1:
+
+            x_max = max(np.array(spike_data.beaconed_trial_number.iloc[cluster_index])) + 1
+            if x_max>100:
+                spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
+            else:
+                spikes_on_track = plt.figure(figsize=(4,(x_max/20)))
+
+            ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+            cluster_firing_com = np.array(spike_data["fields_com"].iloc[cluster_index])
+            cluster_firing_com_trial_numbers = np.array(spike_data["fields_com_trial_number"].iloc[cluster_index])
+            cluster_firing_com_trial_types = np.array(spike_data["fields_com_trial_type"].iloc[cluster_index])
+
+            if "beaconed" in plot_trials:
+                ax.plot(cluster_firing_com[cluster_firing_com_trial_types == 0], cluster_firing_com_trial_numbers[cluster_firing_com_trial_types == 0], "s", color='Black', markersize=4)
+            if "non_beaconed" in plot_trials:
+                ax.plot(cluster_firing_com[cluster_firing_com_trial_types == 1], cluster_firing_com_trial_numbers[cluster_firing_com_trial_types == 1], "s", color='Red', markersize=4)
+            if "probe" in plot_trials:
+                ax.plot(cluster_firing_com[cluster_firing_com_trial_types == 2], cluster_firing_com_trial_numbers[cluster_firing_com_trial_types == 2], "s", color='Blue', markersize=4)
+
+            #ax.plot(rewarded_locations, rewarded_trials, '>', color='Red', markersize=3)
+            plt.ylabel('Field COM on trials', fontsize=12, labelpad = 10)
+            plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+            plt.xlim(0,200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+
+            plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis = 'y', nbins  = 4)
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            if len(plot_trials)<3:
+                plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_Cluster_' + str(cluster_id) + "_" + str("_".join(plot_trials)) + '.png', dpi=200)
+            else:
+                plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_Cluster_' + str(cluster_id) + '.png', dpi=200)
+            plt.close()
 
 # unused code but might use in future
 
@@ -525,18 +583,31 @@ def main():
     params.track_length = 200
     params.cue_conditioned_goal = False
 
+    recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M2_D29_2020-09-10_16-01-00/MountainSort/DataFrames/processed_position_data.pkl")
+    params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M2_D29_2020-09-10_16-01-00/MountainSort")
+    plot_stop_histogram(recording_spatial_data, params)
+    plot_stops_on_track(recording_spatial_data, params)
+    plot_speed_histogram(recording_spatial_data, params)
+    '''
     params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D5_2020-08-07_14-27-26_fixed/MountainSort")
     recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D5_2020-08-07_14-27-26_fixed/MountainSort/DataFrames/spatial_firing.pkl")
     recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D5_2020-08-07_14-27-26_fixed/MountainSort/DataFrames/processed_position_data.pkl")
     plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_stops_on_track(recording_spatial_data, params)
+    plot_stop_histogram(recording_spatial_data, params)
+    plot_speed_histogram(recording_spatial_data, params)
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
+    '''
 
     params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort")
     recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/spatial_firing.pkl")
     recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/processed_position_data.pkl")
     plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_stops_on_track(recording_spatial_data, params)
+    plot_stop_histogram(recording_spatial_data, params)
+    plot_speed_histogram(recording_spatial_data, params)
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
@@ -545,6 +616,9 @@ def main():
     recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/spatial_firing.pkl")
     recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/processed_position_data.pkl")
     plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_stops_on_track(recording_spatial_data, params)
+    plot_stop_histogram(recording_spatial_data, params)
+    plot_speed_histogram(recording_spatial_data, params)
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
@@ -553,6 +627,9 @@ def main():
     recording_spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/spatial_firing.pkl")
     recording_spatial_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/processed_position_data.pkl")
     plot_trials=["beaconed", "non_beaconed", "probe"]
+    plot_stops_on_track(recording_spatial_data, params)
+    plot_stop_histogram(recording_spatial_data, params)
+    plot_speed_histogram(recording_spatial_data, params)
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed", "non_beaconed", "probe"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["beaconed"])
     plot_spikes_on_track(recording_spike_data, recording_spatial_data, params, prefix='_movement', plot_trials=["non_beaconed"])
@@ -561,3 +638,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+

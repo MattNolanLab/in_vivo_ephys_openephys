@@ -18,9 +18,11 @@ def plot_spike_histogram(spatial_firing, prm):
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
 
-        if len(spatial_firing.firing_times.iloc[cluster_index])>1: # catches cases where there is no spikes found in the VR but is found in the OF
-            number_of_bins = int((spatial_firing.firing_times.iloc[cluster_index][-1] - spatial_firing.firing_times.iloc[cluster_index][0]) / (5 * sampling_rate))
-            firings_cluster = spatial_firing.firing_times.iloc[cluster_index] / sampling_rate / 60
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+        if len(cluster_df['firing_times'].iloc[0])>1: # catches cases where there is no spikes found in the VR but is found in the OF
+            number_of_bins = int((cluster_df['firing_times'].iloc[0][-1] - cluster_df['firing_times'].iloc[0][0]) / (5 * sampling_rate))
+            firings_cluster =cluster_df['firing_times'].iloc[0] / sampling_rate / 60
             spike_hist = plt.figure()
             spike_hist.set_size_inches(5, 5, forward=True)
             ax = spike_hist.add_subplot(1, 1, 1)
@@ -30,13 +32,13 @@ def plot_spike_histogram(spatial_firing, prm):
                 width = bins[1] - bins[0]
                 center = (bins[:-1] + bins[1:]) / 2
                 plt.bar(center, hist, align='center', width=width, color='black')
-            plt.title('Spike histogram \n total spikes = ' + str(spatial_firing.number_of_spikes.iloc[cluster_index]) + ', \n mean fr = ' + str(round(spatial_firing.mean_firing_rate.iloc[cluster_index], 0)) + ' Hz', y=1.08, fontsize=24)
+            plt.title('Spike histogram \n total spikes = ' + str(cluster_df['number_of_spikes'].iloc[0]) + ', \n mean fr = ' + str(round(cluster_df['mean_firing_rate'].iloc[0], 0)) + ' Hz', y=1.08, fontsize=24)
             plt.xlabel('Time (min)', fontsize=25)
             plt.ylabel('Number of spikes', fontsize=25)
             plt.xticks(fontsize=20)
             plt.yticks(fontsize=20)
 
-            plt.savefig(save_path + '/' + spatial_firing.session_id.iloc[cluster_index] + '_' + str(cluster_id) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
             # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', bbox_inches='tight', pad_inches=0)
             plt.close()
 
@@ -50,9 +52,11 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
     speed = spatial_data.speed[~np.isnan(spatial_data.speed)]
     number_of_bins = math.ceil(max(speed)) - math.floor(min(speed))
     session_hist, bins_s = np.histogram(speed, bins=number_of_bins, range=(math.floor(min(speed)), math.ceil(max(speed))))
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        speed_cluster = spatial_firing.speed[cluster]
+
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        speed_cluster = cluster_df['speed'].iloc[0]
         speed_cluster = sorted(speed_cluster)
         spike_hist = plt.figure()
         spike_hist.set_size_inches(5, 5, forward=True)
@@ -71,7 +75,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  prm):
         plt.xlabel('speed [cm/s]')
         plt.ylabel('firing rate [Hz]')
         plt.xlim(0, 30)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
@@ -148,32 +152,37 @@ def plot_autocorrelograms(spike_data: pd.DataFrame, prm: object) -> None:
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
-        firing_times_cluster = spike_data.firing_times.iloc[cluster_index]
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
+        firing_times_cluster = cluster_df['firing_times'].iloc[0]
         if len(firing_times_cluster)>1: # only calculate autocorr if there are any spikes
             corr_10, time_10 = get_10ms_autocorr(firing_times_cluster, prm)
             corr_250, time_250 = get_250ms_autocorr(firing_times_cluster, prm)
             make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, save_path, cluster_index, cluster_id)
 
 
-def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, snippet_column_name):
+def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster_id, channel, snippet_column_name):
+    cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
     snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
     plt.ylim(lowest_value - 10, highest_value + 30)
     plot_utility.style_plot(snippet_plot)
-    snippet_plot.plot(spike_data[snippet_column_name][cluster][channel, :, :] * -1, color='lightslategray')
-    snippet_plot.plot(np.mean(spike_data[snippet_column_name][cluster][channel, :, :], 1) * -1, color='red')
+    snippet_plot.plot(cluster_df[snippet_column_name].iloc[0][channel, :, :] * -1, color='lightslategray')
+    snippet_plot.plot(np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1, color='red')
     plt.xticks([0, 10, 30], [-10, 0, 20])
 
 
-def plot_spikes_for_channel_centered(grid, spike_data, cluster_index, channel, snippet_column_name):
-    max_channel = spike_data.primary_channel.iloc[cluster_index]
-    sd = np.std(spike_data.random_snippets.iloc[cluster_index][max_channel - 1, :, :] * -1)
-    highest_value = np.median(spike_data.random_snippets.iloc[cluster_index][max_channel - 1, :, :] * -1) + (sd * 4)
-    lowest_value = np.median(spike_data.random_snippets.iloc[cluster_index][max_channel - 1, :, :] * -1) - (sd * 4)
+def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippet_column_name):
+    cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
+    max_channel = cluster_df['primary_channel'].iloc[0]
+    sd = np.std(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1)
+    highest_value = np.median(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) + (sd * 4)
+    lowest_value = np.median(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) - (sd * 4)
     snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
     plt.ylim(lowest_value - 10, highest_value + 30)
     plot_utility.style_plot(snippet_plot)
-    snippet_plot.plot(spike_data[snippet_column_name].iloc[cluster_index][channel, :, :] * -1, color='lightslategray')
-    snippet_plot.plot(np.mean(spike_data[snippet_column_name].iloc[cluster_index][channel, :, :], 1) * -1, color='red')
+    snippet_plot.plot(cluster_df[snippet_column_name].iloc[0][channel, :, :] * -1, color='lightslategray')
+    snippet_plot.plot(np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1, color='red')
     plt.xticks([0, 30], [0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -187,14 +196,15 @@ def plot_waveforms(spike_data, prm):
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
         fig = plt.figure(figsize=(5, 5))
         plt.suptitle("Spike waveforms", fontsize=24)
         grid = plt.GridSpec(2, 2, wspace=1, hspace=0.5)
         for channel in range(4):
-            plot_spikes_for_channel_centered(grid, spike_data, cluster_index, channel, 'random_snippets')
+            plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, 'random_snippets')
 
-        plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-        # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.pdf', bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -204,17 +214,19 @@ def plot_waveforms_opto(spike_data, prm):
         save_path = prm.get_output_path() + '/Figures/opto_tagging'
         if os.path.exists(save_path) is False:
             os.makedirs(save_path)
-        for cluster in range(len(spike_data)):
-            cluster = spike_data.cluster_id.values[cluster] - 1
-            max_channel = spike_data.primary_channel[cluster]
-            highest_value = np.max(spike_data.random_snippets_opto[cluster][max_channel-1, :, :] * -1)
-            lowest_value = np.min(spike_data.random_snippets_opto[cluster][max_channel-1, :, :] * -1)
+
+        for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+            cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
+            max_channel = cluster_df['primary_channel'].iloc[0]
+            highest_value = np.max(cluster_df['random_snippets_opto'].iloc[0][max_channel-1, :, :] * -1)
+            lowest_value = np.min(cluster_df['random_snippets_opto'].iloc[0][max_channel-1, :, :] * -1)
             fig = plt.figure(figsize=(5, 5))
             grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
             for channel in range(4):
-                plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster, channel, 'random_snippets_opto')
+                plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster_id, channel, 'random_snippets_opto')
 
-            plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
+            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
             # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.pdf', bbox_inches='tight', pad_inches=0)
             plt.close()
 
