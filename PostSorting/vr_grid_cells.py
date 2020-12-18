@@ -29,6 +29,11 @@ def calculate_grid_field_com(cluster_spike_data, position_data, bin_size, prm):
     firing_field_com_trial_types = []
     #firing_field = []
 
+    firing_times=cluster_spike_data.firing_times/(prm.get_sampling_rate()/1000) # convert from samples to ms
+    if isinstance(firing_times, pd.Series):
+        firing_times = firing_times.iloc[0]
+    if len(firing_times)==0:
+        return firing_field_com, firing_field_com_trial_numbers, firing_field_com_trial_types
 
     trial_numbers = np.array(position_data['trial_number'].to_numpy())
     trial_types = np.array(position_data['trial_type'].to_numpy())
@@ -143,17 +148,112 @@ def process_vr_grid(spike_data, position_data, bin_size, prm):
     fields_com_trial_numbers_cluster = []
     fields_com_trial_types_cluster = []
 
+    minimum_distance_to_field_in_next_trial =[]
+    fields_com_next_trial_type = []
+
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
 
         fields_com, field_com_trial_numbers, field_com_trial_types = calculate_grid_field_com(cluster_df, position_data, bin_size, prm)
+
+        next_trial_type_cluster = []
+        minimum_distance_to_field_in_next_trial_cluster=[]
+
+        for i in range(len(fields_com)):
+            field = fields_com[i]
+            trial_number=field_com_trial_numbers[i]
+            trial_type = int(field_com_trial_types[i])
+
+            trial_type_tmp = position_data["trial_type"].to_numpy()
+            trial_number_tmp = position_data["trial_number"].to_numpy()
+
+            fields_in_next_trial = np.array(fields_com)[np.array(field_com_trial_numbers) == int(trial_number+1)]
+            fields_in_next_trial = fields_in_next_trial[(fields_in_next_trial>50) & (fields_in_next_trial<150)]
+
+            if len(fields_in_next_trial)>0:
+                next_trial_type = int(np.unique(trial_type_tmp[trial_number_tmp == int(trial_number+1)])[0])
+                minimum_field_difference = min(np.abs(fields_in_next_trial-field))
+
+                minimum_distance_to_field_in_next_trial_cluster.append(minimum_field_difference)
+                next_trial_type_cluster.append(next_trial_type)
+            else:
+                minimum_distance_to_field_in_next_trial_cluster.append(np.nan)
+                next_trial_type_cluster.append(np.nan)
+
         fields_com_cluster.append(fields_com)
         fields_com_trial_numbers_cluster.append(field_com_trial_numbers)
         fields_com_trial_types_cluster.append(field_com_trial_types)
 
+        minimum_distance_to_field_in_next_trial.append(minimum_distance_to_field_in_next_trial_cluster)
+        fields_com_next_trial_type.append(next_trial_type_cluster)
+
     spike_data["fields_com"] = fields_com_cluster
     spike_data["fields_com_trial_number"] = fields_com_trial_numbers_cluster
     spike_data["fields_com_trial_type"] = fields_com_trial_types_cluster
+
+    spike_data["minimum_distance_to_field_in_next_trial"] = minimum_distance_to_field_in_next_trial
+    spike_data["fields_com_next_trial_type"] = fields_com_next_trial_type
+
+    return spike_data
+
+def calculate_n_fields_per_trial(cluster_df, processed_position_data, trial_type):
+
+    cluster_firing_com = np.array(cluster_df["fields_com"].iloc[0])
+    cluster_firing_com_trial_types = np.array(cluster_df["fields_com_trial_type"].iloc[0])
+
+    if trial_type == "beaconed":
+        n_trials = processed_position_data.beaconed_total_trial_number.iloc[0]
+        firing_com = cluster_firing_com[cluster_firing_com_trial_types == 0]
+    elif trial_type == "non-beaconed":
+        n_trials = processed_position_data.nonbeaconed_total_trial_number.iloc[0]
+        firing_com = cluster_firing_com[cluster_firing_com_trial_types == 1]
+    elif trial_type == "probe":
+        n_trials = processed_position_data.probe_total_trial_number.iloc[0]
+        firing_com = cluster_firing_com[cluster_firing_com_trial_types == 2]
+    else:
+        print("no valid trial type was given")
+
+    if n_trials==0:
+        return np.nan
+    else:
+        return len(firing_com)/n_trials
+
+def process_vr_field_stats(spike_data, processed_position_data, prm):
+    n_beaconed_fields_per_trial = []
+    n_nonbeaconed_fields_per_trial = []
+    n_probe_fields_per_trial = []
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
+        n_beaconed_fields_per_trial.append(calculate_n_fields_per_trial(cluster_df, processed_position_data, trial_type="beaconed"))
+        n_nonbeaconed_fields_per_trial.append(calculate_n_fields_per_trial(cluster_df, processed_position_data, trial_type="non-beaconed"))
+        n_probe_fields_per_trial.append(calculate_n_fields_per_trial(cluster_df, processed_position_data, trial_type="probe"))
+
+    spike_data["n_beaconed_fields_per_trial"] = n_beaconed_fields_per_trial
+    spike_data["n_nonbeaconed_fields_per_trial"] = n_nonbeaconed_fields_per_trial
+    spike_data["n_probe_fields_per_trial"] = n_probe_fields_per_trial
+
+    return spike_data
+
+def process_vr_field_distances(spike_data, processed_position_data, prm):
+    distance_between_fields = []
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
+        cluster_firing_com = np.array(cluster_df["fields_com"].iloc[0])
+        cluster_firing_com_trial_types = np.array(cluster_df["fields_com_trial_type"].iloc[0])
+        cluster_firing_com_trial_numbers = np.array(cluster_df["fields_com_trial_number"].iloc[0])
+
+        distance_covered = (cluster_firing_com_trial_numbers*prm.get_track_length())-prm.get_track_length() #total elapsed distance
+        cluster_firing_com = cluster_firing_com+distance_covered
+
+        cluster_firing_com_distance_between = np.diff(cluster_firing_com)
+        distance_between_fields.append(cluster_firing_com_distance_between)
+
+    spike_data["distance_between_fields"] = distance_between_fields
+
     return spike_data
 
 
@@ -165,62 +265,106 @@ def main():
     params.set_sampling_rate(30000)
     bin_size = 20 # cm
 
+    # ideally want to give a path for a directory of recordings or path of a single recording
+
+
     params.set_output_path("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort")
     position_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort/DataFrames/position_data.pkl")
     spike_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort/DataFrames/spatial_firing.pkl")
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort/DataFrames/processed_position_data.pkl")
     spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
-
+    spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+    spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
+    PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_speed_per_trial(processed_position_data, prm=params)
 
 
     params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort")
     position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/position_data.pkl")
     spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/spatial_firing.pkl")
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D6_2020-08-10_14-17-21/MountainSort/DataFrames/processed_position_data.pkl")
     spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
-
+    spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+    spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
-
+    PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_speed_per_trial(processed_position_data, prm=params)
 
 
     params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort")
     position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/position_data.pkl")
     spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/spatial_firing.pkl")
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23/MountainSort/DataFrames/processed_position_data.pkl")
     spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
-
+    spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+    spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
-
+    PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_speed_per_trial(processed_position_data, prm=params)
 
 
     params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort")
     position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/position_data.pkl")
     spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/spatial_firing.pkl")
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D8_2020-08-12_15-06-01/MountainSort/DataFrames/processed_position_data.pkl")
     spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
-
+    spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+    spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
-
+    PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_speed_per_trial(processed_position_data, prm=params)
 
 
     params.set_output_path("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D9_2020-08-13_15-16-48/MountainSort")
     position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D9_2020-08-13_15-16-48/MountainSort/DataFrames/position_data.pkl")
     spike_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D9_2020-08-13_15-16-48/MountainSort/DataFrames/spatial_firing.pkl")
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D9_2020-08-13_15-16-48/MountainSort/DataFrames/processed_position_data.pkl")
     spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
-
+    spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+    spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
     PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
+    PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_speed_per_trial(processed_position_data, prm=params)
+
+
+    params.set_output_path("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/other_recordings/M2_D2_2019-11-26_16-59-05/MountainSort")
+    position_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/other_recordings/M2_D2_2019-11-26_16-59-05/MountainSort/DataFrames/position_data.pkl")
+    spike_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/other_recordings/M2_D2_2019-11-26_16-59-05/MountainSort/DataFrames/spatial_firing.pkl")
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/other_recordings/M2_D2_2019-11-26_16-59-05/MountainSort/DataFrames/processed_position_data.pkl")
+    spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
+    spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+    spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
+    PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
+    PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
+    PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
+    PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
+    PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+    PostSorting.vr_make_plots.plot_speed_per_trial(processed_position_data, prm=params)
+
+
+    #PostSorting.vr_make_plots.plot_field_analysis(spike_data, processed_position_data, params)
 
     print("look now`")
 
