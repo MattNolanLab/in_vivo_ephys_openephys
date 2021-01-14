@@ -15,9 +15,10 @@ downtime_lists_path = basefolder+'/to_sort/sort_downtime/'
 # Recording setting
 sampling_rate = 30000
 num_tetrodes = 4
-movement_ch = '100_ADC2.continuous' #channel that contains the movement data
-opto_ch = '100_ADC3.continuous'
-data_file_prefix = '100_CH' #prefix of data files
+source_id = '101'
+movement_ch = f'{source_id}_ADC2.continuous' #channel that contains the movement data
+opto_ch = f'{source_id}_ADC3.continuous'
+data_file_prefix = f'{source_id}_CH' #prefix of data files
 data_file_suffix = '' 
 wave_form_size = 40 
 
@@ -38,8 +39,8 @@ location_ds_rate = 1000 #the sampleing frequency in Hz to downsample the locatio
 ##########
 # VR
 track_length = 200
-first_trial_channel = '100_ADC4.continuous' #channel for the start of trial
-second_trial_channel = '100_ADC5.continuous' #channel for the stp of trial
+first_trial_channel = f'{source_id}_ADC4.continuous' #channel for the start of trial
+second_trial_channel = f'{source_id}_ADC5.continuous' #channel for the stp of trial
 reward_start = 88 #position for the reward
 reward_end = 110 #position for the reward
 
@@ -52,7 +53,7 @@ session_type = 'vr'
 # open field
 opto_tagging_start_index = None
 pixel_ratio = 440
-sync_channel = '100_ADC1.continuous' #channel for the sync pulse
+sync_channel = f'{source_id}_ADC1.continuous' #channel for the sync pulse
 bonsai_sampling_rate = 30
 
 ############
@@ -61,4 +62,7 @@ bonsai_sampling_rate = 30
 # debug_folder ='/media/data2/pipeline_testing_data/M1_D31_2018-11-01_12-28-25'
 # debug_folder ='/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
 # debug_folder = '../testdata/M1_D31_2018-11-01_12-28-25'
-debug_folder ='../testdata/M1_D31_2018-11-01_12-28-25_short'
+# debug_folder ='../testdata/M1_D31_2018-11-01_12-28-25_short'
+# debug_folder = '../testdata//M1_D8_2019-06-26_13-31-11'
+# debug_folder ='/home/ubuntu/to_sort/recordings/M2_D1_2021-01-11_15-53-56'
+debug_folder ='/home/ubuntu/to_sort/recordings/M1_D2_2021-01-12_15-04-58'
