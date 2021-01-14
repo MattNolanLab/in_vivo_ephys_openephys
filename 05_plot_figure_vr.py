@@ -23,7 +23,4 @@ PostSorting.vr_make_plots.plot_firing_rate_maps(spike_data, soutput.spike_rate, 
 #%%
 PostSorting.vr_make_plots.plot_convolved_rates_in_time(spike_data, soutput.convolved_rate)
 
-#%%
-with open(soutput.result,'w') as f:
-    f.write('Completed!')
-    
+
