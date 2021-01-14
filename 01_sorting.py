@@ -24,8 +24,7 @@ import spikeinterfaceHelper
 from PostSorting.make_plots import plot_waveforms
 from PreClustering.pre_process_ephys_data import filterRecording
 import time 
-#for logging
-# logging.basicConfig(level=logging.DEBUG)
+
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
@@ -119,3 +118,5 @@ with open(soutput.sorter_curated,'wb') as f:
 plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure)
 
 print(f'Elapsed time {time.time()-now}')
+
+# %%

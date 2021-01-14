@@ -6,16 +6,17 @@ def getRecording2sort(base_folder):
     with os.scandir(base_folder) as it:
         for entry in it:
             if entry.is_dir():
-                folder.append(entry.path)
+                folder.append(entry.name)
 
     return folder
 
 recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
 sorterPrefix = '{recording}/processed/'+setting.sorterName
 
-rule all:
-    input:
-        result=expand('{recording}/processed/snakemake.done',recording=recordings)
+# rule all:
+#     input:
+#         result=expand('{recording}/complete',recording=recordings)
+
 
 rule sort_spikes:
     input:
@@ -89,3 +90,4 @@ rule plot_figures:
         result = touch('{recording}/processed/snakemake.done')
     script:
         '05_plot_figure_vr.py'
+
