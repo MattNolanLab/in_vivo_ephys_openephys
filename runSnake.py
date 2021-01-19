@@ -9,7 +9,7 @@ import yaml
 from pathlib import Path
 from collections import defaultdict
 import shutil
-import logging
+# import logging
 
 # Command line argument
 parser = argparse.ArgumentParser(description="Run snakemake workflow on specified folder")
@@ -23,7 +23,7 @@ parser.add_argument('--uploadresults','-u', action= 'store_true', default=False,
 parser.add_argument('--clean','-c', action= 'store_true', default=False, help='whether to delete local copy of recordings')
 
 def _logPath(path,names):
-    logging.info(f'Working in {path}')
+    print(f'Working in {path}')
     return {}
 
 args =  parser.parse_args()
@@ -55,6 +55,8 @@ for expt_type, paths in targets.items():
 
     remote_folders = []
 
+    #TODO: copying files should be work on folder and folder basis, to avoid downloading all the files at once
+
     if args.remotefiles:
         for p in paths:
             # files is in remote server, need to copy to local folder first
@@ -80,8 +82,10 @@ for expt_type, paths in targets.items():
     else:
         target_files = [str(p/'processed/snakemake.done') for p in paths]
 
-    snakemake(snakefile,targets = target_files,dryrun=args.dryrun)
+    # to do: enable multiple core processing
+    snakemake(snakefile,targets = target_files,dryrun=args.dryrun, cores=config['cores'])
 
+    # add check to verify the snakemake process is completed before uploading files
     # If need to upload results back to server
     if args.uploadresults:
         for i,p in enumerate(paths):

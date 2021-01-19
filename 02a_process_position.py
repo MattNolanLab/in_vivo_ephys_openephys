@@ -24,6 +24,7 @@ unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = ppsd.p
     
 #%% Process opto channel
 opto_on, opto_off, is_found, opto_tagging_start_index = open_field_light_data.process_opto_data(sinput.recording_to_sort)  # indices
+
 if is_found:
     opto_data_frame = open_field_light_data.make_opto_data_frame(opto_on)
     opto_data_frame.to_pickle(soutput.opto_pulse)
@@ -45,3 +46,5 @@ open_field_sync_data.plot_sync_pulse(synced_spatial_data, ephys_sync_data, soutp
 #%% Save
 
 synced_spatial_data.to_pickle(soutput.synced_spatial_data)
+
+# %%

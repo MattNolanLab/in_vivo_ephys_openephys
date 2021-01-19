@@ -24,8 +24,9 @@ rule sort_spikes:
         sort_param = 'sorting_files/params.json',
         tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
         recording_to_sort = '{recording}',
+        parameter_file = '{recording}/parameters.yaml'
         # dead_channel = '{recording}/dead_channels.txt'
-    
+    threads: workflow.cores//2
     output:
         sorter = sorterPrefix +'/sorter.pkl',
         sorter_df = sorterPrefix +'/sorter_df.pkl',

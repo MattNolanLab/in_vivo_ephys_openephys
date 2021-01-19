@@ -4,13 +4,25 @@ import setting
 import OpenEphys
 import numpy as np
 import setting
+import glob
 
 
-def load_OpenEphysRecording(folder):
+def search4File(fname, expected_num_file=1):
+    file = glob.glob(fname)
+    if not len(file) == expected_num_file:
+        raise FileNotFoundError(f'Error, cannot find exact files, candidate: {file}')
+    
+    return file[0]
+
+
+def load_OpenEphysRecording(folder, data_file_suffix = setting.data_file_suffix):
     signal = []
     for i in range(setting.num_tetrodes*4):
-        fname = folder+'/'+setting.data_file_prefix+str(i+1)+setting.data_file_suffix+'.continuous'
+        # Different open ephys setting may lead to different source id for the data file
+        # so search for the data file instead of using hard-coded name
+        fname = search4File(folder+'/*_CH'+str(i+1)+data_file_suffix+'.continuous') #search for the data file
         x = OpenEphys.loadContinuousFast(fname)['data']
+
         if i==0:
             #preallocate array on first run
             signal = np.zeros((setting.num_tetrodes*4,x.shape[0]))
@@ -194,13 +206,15 @@ def parse_parameter_file(parameter_file_path):
 
 def get_tags_parameter_file(recording_directory):
     tags = False
-    parameters_path = recording_directory + '/parameters.txt'
-    param_file_reader = open(parameters_path, 'r')
-    parameters = param_file_reader.readlines()
-    parameters = list([x.strip() for x in parameters])
-    if len(parameters) > 2:
-        tags = parameters[2]
-    return tags
+    try:
+        parameters_path = recording_directory + '/parameters.txt'
+        param_file_reader = open(parameters_path, 'r')
+        parameters = param_file_reader.readlines()
+        parameters = list([x.strip() for x in parameters])
+        if len(parameters) > 2:
+            tags = parameters[2]
+    finally:
+        return tags
 
 
 def write_param_file_for_matlab(file_to_sort, path_to_server, is_openfield, is_vr, matlab_params_file_path, server_path_first_half):

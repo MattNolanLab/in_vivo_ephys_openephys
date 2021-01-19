@@ -3,3 +3,4 @@ snakefiles:
   openfield: workflow_of.smk
 local_recording_folder: /home/ubuntu/to_sort/recordings/ #location where the recordings are stored locally
 result_folder: processed #folder where the processed results are stored
+cores: 8

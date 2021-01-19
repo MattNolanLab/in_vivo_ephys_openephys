@@ -7,12 +7,16 @@ import pandas as pd
 import matplotlib.pylab as plt
 import OpenEphys
 import setting
+import glob
 
-def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_channel ):
+def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_channel_suffix ):
     is_found = False
     sync_data = None
     print('loading sync channel...')
-    file_path = recording_to_process + '/'+ sync_channel
+
+    file = glob.glob(recording_to_process + '/*'+ sync_channel)
+    assert len(file) == 1, f'Error: cannot find the exact file for sync data, possible candidates {file} '
+    file_path = file[0]
     if os.path.exists(file_path):
         sync_data = OpenEphys.loadContinuousFast(file_path)['data']
         is_found = True

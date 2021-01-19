@@ -31,8 +31,8 @@ class Parameters:
 
     sampling_rate = setting.sampling_rate
     num_tetrodes = setting.num_tetrodes
-    movement_ch = setting.movement_ch
-    opto_ch = setting.opto_ch
+    movement_ch = setting.movement_ch_suffix
+    opto_ch = setting.opto_ch_suffix
     waveform_size = setting.wave_form_size
 
     analyze_tetrode_by_tetrode = setting.is_tetrode_by_tetrode

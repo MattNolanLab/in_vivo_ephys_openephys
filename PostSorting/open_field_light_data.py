@@ -7,18 +7,20 @@ import PostSorting.parameters
 import setting
 import PostSorting.open_field_make_plots
 import OpenEphys
+from file_utility import search4File
 
-def load_opto_data(recording_to_process):
+def load_opto_data(recording_to_process, opto_ch = setting.opto_ch_suffix):
     is_found = False
     opto_data = None
     print('loading opto channel...')
-    file_path = recording_to_process +'/'+setting.opto_ch
-    print(file_path)
-    if os.path.exists(file_path):
+
+    try:
+        file_path =  search4File(recording_to_process +'/*'+opto_ch)
         opto_data = OpenEphys.loadContinuousFast(file_path)['data']
         is_found = True
-    else:
+    except FileNotFoundError:
         print('Opto data was not found.')
+
     return opto_data, is_found
 
 

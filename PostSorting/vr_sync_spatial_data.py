@@ -13,6 +13,7 @@ import setting
 import scipy.signal as signal
 from DataframeHelper import *
 import scipy.signal as signal
+from file_utility import search4File
 
 def downsample(x,downsample_factor):
     """downsample data
@@ -42,17 +43,19 @@ Loads raw location continuous channel from ACD1.continuous
 # output: raw location as numpy array
 """
 
-def get_raw_location(recording_folder, movement_channel):
+def get_raw_location(recording_folder, movement_channel = setting.movement_ch_suffix):
     print('Extracting raw location...')
-    file_path = recording_folder + '/' + movement_channel
+    file_path = search4File(recording_folder + '/*' + movement_channel)
     if os.path.exists(file_path):
         location = OpenEphys.loadContinuousFast(file_path)['data']
+        location=correct_for_restart(location)
+        return np.asarray(location, dtype=np.float16).ravel()
+
     else:
         print('Movement data was not found.')
+        return None
 
-    location=correct_for_restart(location)
     # PostSorting.vr_make_plots.plot_movement_channel(location, prm)
-    return np.asarray(location, dtype=np.float16).ravel()
 
 
 '''
@@ -169,18 +172,18 @@ def calculate_trial_numbers(position_data,skip = 15000):
 
 
 # two continuous channels represent trial type
-def load_first_trial_channel(recording_folder):
+def load_first_trial_channel(recording_folder, first_trial_channel_suffix = setting.first_trial_channel_suffix):
     first = []
-    file_path = recording_folder + '/' + setting.first_trial_channel #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    file_path = search4File(recording_folder + '/*' + first_trial_channel_suffix) #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_first = OpenEphys.loadContinuousFast(file_path)['data']
     first.append(trial_first)
     return np.asarray(first, dtype=np.uint8).ravel()
 
 
 # two continuous channels represent trial type
-def load_second_trial_channel(recording_folder):
+def load_second_trial_channel(recording_folder, second_trial_channel = setting.second_trial_channel_suffix):
     second = []
-    file_path = recording_folder + '/' + setting.second_trial_channel #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
+    file_path = search4File(recording_folder + '/*' + second_trial_channel) #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     trial_second = OpenEphys.loadContinuousFast(file_path)['data']
     second.append(trial_second)
     return np.asarray(second, dtype=np.uint8).ravel()

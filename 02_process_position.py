@@ -19,7 +19,7 @@ import SnakeIOHelper
 
 #%% Load and downsample the position data
 print('Loading location and trial onset files')
-recorded_location = get_raw_location(sinput.recording_to_sort, setting.movement_ch) # get raw location from DAQ pin
+recorded_location = get_raw_location(sinput.recording_to_sort) # get raw location from DAQ pin
 first_ch = load_first_trial_channel(sinput.recording_to_sort)
 second_ch = load_second_trial_channel(sinput.recording_to_sort)
 

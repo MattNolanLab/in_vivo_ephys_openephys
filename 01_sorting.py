@@ -33,6 +33,7 @@ logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% Load data and create recording extractor
 
+
 signal = file_utility.load_OpenEphysRecording(sinput.recording_to_sort)
 geom = pd.read_csv(sinput.tetrode_geom,header=None).values
 

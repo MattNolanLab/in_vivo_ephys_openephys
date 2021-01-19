@@ -31,6 +31,7 @@ rule sort_spikes:
         sort_param = 'sorting_files/params.json',
         tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
         recording_to_sort = '{recording}',
+        parameter_file = '{recording}/parameters.yaml'
         # dead_channel = '{recording}/dead_channels.txt'
     
     output:
@@ -99,6 +100,5 @@ rule plot_figures:
         firing_fields_coloured_spikes = directory(figure_prefix+'/firing_fields_coloured_spikes/'),
         combined = directory(figure_prefix+'/combined/'),
         result = touch('{recording}/processed/snakemake.done')
-
     script:
         '05a_plot_figure_openfield.py'
