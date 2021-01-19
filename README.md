@@ -31,9 +31,9 @@ The each script of the workflow can be run independently or as a workflow as a w
     - Just run `python <script name>` e.g. `python 01_sorting.py`
 
 - To run it as a complete workflow
-    - `snakemake --snakefile <snake file name> <recording folder>/processed/completed.txt` e.g.     
+    - `snakemake --snakefile <snake file name> <recording folder>/processed/snakemake.done` e.g.     
         ```
-        snakemake --snakefile op_workflow.smk /home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of/processed/completed.txt`
+        snakemake --snakefile op_workflow.smk /home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of/processed/snakemake.done`
         ```
 
 
