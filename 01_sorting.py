@@ -44,35 +44,61 @@ else:
     bad_channel = []
 
 
-#%% Create and filter the recording
+#%% Remove bad channel and filter the recording
 logger.info('Filtering files') #TODO logging not show correctly
-
+Fs = 30000
+# recording = se.NumpyRecordingExtractor(signal[:,:Fs*180],setting.sampling_rate,geom)
 recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
-recording = recording.load_probe_file(sinput.probe_file) #load probe definition
-# recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000, cache_chunks=True)
-filterRecording(recording,setting.sampling_rate) #for faster operation later
 
-#%% Remove some bad channels
+recording = recording.load_probe_file(sinput.probe_file) #load probe definition
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
+recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000, cache_chunks=True) #need to cache, otherwise the extracting waveform will take along time
+recording = se.CacheRecordingExtractor(recording, save_path=sinput.recording_to_sort+'/processed_data.dat') # cache recording for speedup
+
 tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
+
 #%% perform sorting
 
 now = time.time()
 with open(sinput.sort_param) as f:
     param = json.load(f)
-sorting_ms4 = sorters.run_sorter(setting.sorterName,recording, output_folder=setting.sorterName,
-    adjacency_radius=param['adjacency_radius'], filter=False,
-    detect_sign=param['detect_sign'],verbose=True)
+
+
+ms4_params = sorters.get_default_params('mountainsort4')
+ms4_params['filter'] = False
+
+sorting_ms4 = sorters.run_mountainsort4(recording=recording,output_folder='sorting_tmp',
+    verbose=True, **ms4_params,grouping_property='group', parallel=True)
+
 
 print('Saving sorting results')
 with open(soutput.sorter,'wb') as f:
     pickle.dump(sorting_ms4,f)
+
+#%% Compute quality metrics so that we can re-curate the neurons later
+print('Calculating quality metrics...')
+
+start = time.time()
+quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
+    max_spikes_per_unit_for_snr = 200,
+     metric_names=['snr','isi_violation', 'noise_overlap','isolation_distance','firing_rate'],
+  recompute_info=True)
+print(f'Calculate quality metrics took {time.time()-start}')
+ #need to compute metrics before getting the waveforms
     
 #%% compute some property of the sorting
 print('Computing sorting metrics...')
 
-st.postprocessing.get_unit_max_channels(recording, sorting_ms4, save_as_property=True,max_spikes_per_unit=100)
-st.postprocessing.get_unit_waveforms(recording, sorting_ms4,save_as_features=True, max_spikes_per_unit=100)
+start = time.time()
+st.postprocessing.get_unit_max_channels(recording, sorting_ms4, grouping_property='group',
+     save_as_property=True,max_spikes_per_unit=100)
+print(f'get_unit_max_channels took {time.time()-start}')
+
+start = time.time()
+st.postprocessing.get_unit_waveforms(recording, sorting_ms4,save_as_features=True, 
+    max_spikes_per_unit=100, memmap=False) # disable memmap for speed
+print(f'Extracting waveform took {time.time()-start}')
+
 
 for id in sorting_ms4.get_unit_ids():
     number_of_spikes = len(sorting_ms4.get_unit_spike_train(id))
@@ -82,38 +108,59 @@ for id in sorting_ms4.get_unit_ids():
 
 
 #%% save data
-with open(soutput.sorter_curated,'wb') as f:
-    pickle.dump(sorting_ms4,f)
+
+sorting_ms4.dump_to_pickle(soutput.sorter)
 session_id = sinput.recording_to_sort.split('/')[-1]
 sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4,session_id)
 sorter_df.to_pickle(soutput.sorter_df)
 
-#%% Do some simple curation for now
-# less to remove
-print('Doing curation...')
-sorting_ms4_curated = st.curation.threshold_snrs(sorting=sorting_ms4, recording = recording,
-  threshold = 2, threshold_sign='less',
-    max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
-print(sorting_ms4_curated.get_unit_ids())
 
-sorting_ms4_curated=st.curation.threshold_firing_rates(sorting_ms4_curated,
-    duration_in_frames=recording.get_num_frames(),
-    threshold=0.5, threshold_sign='less')
-print(sorting_ms4_curated.get_unit_ids())
 
-sorting_ms4_curated=st.curation.threshold_isi_violations(sorting_ms4_curated, 
-    threshold = 0.9, threshold_sign='greater', 
-    duration_in_frames=recording.get_num_frames())
-print(sorting_ms4_curated.get_unit_ids())
+#%% Curation
+
+'''
+Units that had a firing rate > 0.5 Hz, isolation > 0.9, noise overlap < 0.05, 
+and peak signal to noise ratio > 1 were accepted for further analysis. 
+
+'''
+
+curated_sorter_df = sorter_df[((sorter_df['snr']>2) & 
+    (sorter_df['firing_rate'] > 0.5) &
+    (sorter_df['isolation_distance'] > 0.9) &
+    # (sorter_df['noise_overlap'] <0.05) &
+    (sorter_df['isi_violation'] <0.9))]
+
+print(curated_sorter_df.cluster_id)
+# sorting_ms4_curated = st.curation.threshold_snrs(sorting=sorting_ms4, recording = recording,
+#   threshold = 2, threshold_sign='less',
+#     max_snr_spikes_per_unit=100, apply_filter=False) #remove when less than threshold
+# print(sorting_ms4_curated.get_unit_ids())
+
+
+# sorting_ms4_curated=st.curation.threshold_firing_rates(sorting_ms4_curated,
+#     duration_in_frames=recording.get_num_frames(),
+#     threshold=0.5, threshold_sign='less')
+# print(sorting_ms4_curated.get_unit_ids())
+
+# sorting_ms4_curated=st.curation.threshold_isolation_distances(sorting_ms4_curated, recording,
+#  threshold=0.9, threshold_sign='less')
+# print(sorting_ms4_curated.get_unit_ids())
+
+# sorting_ms4_curated=st.curation.threshold_isi_violations(sorting_ms4_curated, 
+#     duration_in_frames=recording.get_num_frames(),
+#     threshold = 0.9, threshold_sign='greater')
+# print(sorting_ms4_curated.get_unit_ids())
 
 
 #%%
 #save curated data
-curated_sorter_df = spikeinterfaceHelper.sorter2dataframe(sorting_ms4_curated, session_id)
+# sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_curated.get_unit_ids())
+# curated_sorter_df = spikeinterfaceHelper.sorter2dataframe(sorting_ms4_curated, session_id)
+
 curated_sorter_df.to_pickle(soutput.sorter_curated_df)
-sorting_ms4_curated = se.SubSortingExtractor(sorting_ms4,unit_ids=sorting_ms4_curated.get_unit_ids())
-with open(soutput.sorter_curated,'wb') as f:
-    pickle.dump(sorting_ms4_curated, f)
+# sorting_ms4_curated.dump_to_pickle(soutput.sorter_curated)
+# with open(soutput.sorter_curated,'wb') as f:
+#     pickle.dump(sorting_ms4_curated, f)
 
 #%% Plot spike waveforms
 plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure)
