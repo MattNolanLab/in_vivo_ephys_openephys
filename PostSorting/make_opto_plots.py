@@ -31,8 +31,8 @@ def plot_peristimulus_raster(peristimulus_spikes, prm):
         stimulation_end = cluster_rows.shape[1] / 2 + 45
         ax.axvspan(stimulation_start, stimulation_end, 0, cluster_rows.shape[0], alpha=0.5, color='lightblue')
         ax.vlines(x=sample_times, ymin=trial_numbers, ymax=(trial_numbers + 1), color='black', zorder=2, linewidth=3)
-        plt.xlabel('Time (sampling points)')
-        plt.ylabel('Trial (sampling points)')
+        plt.xlabel('Time (sampling points)', fontsize=16)
+        plt.ylabel('Trial (sampling points)', fontsize=16)
         plt.ylim(0, cluster_rows.shape[0])
         plt.savefig(save_path + '/' + cluster + '_peristimulus_raster.png', dpi=300)
         plt.close()
