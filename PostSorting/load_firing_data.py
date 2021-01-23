@@ -58,12 +58,12 @@ def process_firing_times2(session_id, sorted_data_path, session_type):
         #     dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16, np.float, np.float])
 
         for i in range(len(sorted_result)):
-            cluster_firings = sorted_result.spike_train[i]
-            ch = sorted_result.max_channel[i]
+            cluster_firings = sorted_result.iloc[i].spike_train
+            ch = sorted_result.iloc[i].max_channel
             tetrode  = ch//setting.num_tetrodes
-            num_spikes = sorted_result.number_of_spikes[i]
-            mean_rate = sorted_result.mean_firing_rate[i]
-            cluster_id = sorted_result.cluster_id[i]
+            num_spikes = sorted_result.iloc[i].number_of_spikes
+            mean_rate = sorted_result.iloc[i].mean_firing_rate
+            cluster_id = sorted_result.iloc[i].cluster_id
 
             dataframeList.append({
                     "session_id": session_id,

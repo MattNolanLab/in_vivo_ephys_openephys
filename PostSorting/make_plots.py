@@ -183,12 +183,12 @@ def plot_waveforms(sorted_df, tetrodeNum, figure_path):
     tqdm.write('I will plot the waveform shapes for each cluster.')
     for cluster in tqdm(range(len(sorted_df))):
         #extract waveforms from dataframe
-        waveforms = sorted_df.waveforms[cluster]
+        waveforms = sorted_df.waveforms.iloc[cluster]
         waveforms = np.stack([w for w in waveforms if w is not None])
         max_channel = sorted_df.max_channel.values[cluster] # max_channel is w.r.t the original channel number before bad channel removal
         tetrode = max_channel//setting.num_tetrodes
         tetrodeIndices = np.where(tetrodeNum==tetrode)[0]
-        cluster_id = sorted_df.cluster_id[cluster]
+        cluster_id = sorted_df.cluster_id.iloc[cluster]
         
         #plot spike waveform from the same tetrode
         fig = plt.figure()
@@ -205,7 +205,7 @@ def plot_waveforms(sorted_df, tetrodeNum, figure_path):
             low_val = template.min() - (sd*4)
             ax.set_ylim([low_val,high_val])
             
-        plt.savefig(figure_path + '/' + sorted_df.session_id[cluster] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_path + '/' + sorted_df.session_id.iloc[cluster] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 

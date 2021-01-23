@@ -81,7 +81,7 @@ print('Calculating quality metrics...')
 
 start = time.time()
 quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
-    max_spikes_per_unit_for_snr = 200,
+    max_spikes_per_unit_for_snr = 200, memmap= False,
      metric_names=['snr','isi_violation', 'noise_overlap','nn_miss_rate','firing_rate'],
   recompute_info=True)
 print(f'Calculate quality metrics took {time.time()-start}')
@@ -97,7 +97,7 @@ print(f'get_unit_max_channels took {time.time()-start}')
 
 start = time.time()
 st.postprocessing.get_unit_waveforms(recording, sorting_ms4,save_as_features=True, 
-    max_spikes_per_unit=100, memmap=False, seed = 0) # disable memmap for speed
+    max_spikes_per_unit=100, memmap=False, seed = 0,recompute_info=True) # disable memmap for speed
 print(f'Extracting waveform took {time.time()-start}')
 
 
@@ -125,13 +125,18 @@ and peak signal to noise ratio > 1 were accepted for further analysis.
 
 '''
 
-# TODO: implement metrics from mountainsort
-
-curated_sorter_df = sorter_df[((sorter_df['snr']>2) & 
+sorter_df['pass_curation'] = ((sorter_df['snr']>2) & 
     (sorter_df['firing_rate'] > 0.5) &
     ((1-sorter_df['nn_miss_rate']) > 0.9) & # isolation is similar to 1-miss rate
-    (sorter_df['noise_overlap'] <0.05) &
-    (sorter_df['isi_violation'] <0.9))]
+    (sorter_df['noise_overlap'] <0.10) &
+    (sorter_df['isi_violation'] <0.9))
+
+#print the origninal spike metrics
+print(sorter_df.loc[:,['firing_rate','isi_violation','noise_overlap','snr','nn_miss_rate','pass_curation']])
+
+# TODO: implement metrics from mountainsort
+
+curated_sorter_df = sorter_df[sorter_df['pass_curation']]
 
 print(curated_sorter_df.cluster_id)
 
