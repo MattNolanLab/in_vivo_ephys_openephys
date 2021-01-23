@@ -30,11 +30,19 @@ rule sort_spikes:
     output:
         sorter = sorterPrefix +'/sorter.pkl',
         sorter_df = sorterPrefix +'/sorter_df.pkl',
-        sorter_curated = sorterPrefix +'/sorter_curated.pkl',
-        sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl',
-        waveform_figure = directory(sorterPrefix + '/waveform/')
+        recording_info = '{recording}/processed/recording_info.pkl'
     script:
         '01_sorting.py'
+
+
+rule curate_clusters:
+    input:
+        sorter_df = sorterPrefix +'/sorter_df.pkl',
+        recording_info = '{recording}/processed/recording_info.pkl'
+    output:
+        sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl',
+        waveform_figure = directory(sorterPrefix + '/waveform/')
+
 
 
 rule process_position:

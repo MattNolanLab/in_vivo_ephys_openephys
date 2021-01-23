@@ -28,7 +28,7 @@ import time
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_df.pkl'],
     'sort_spikes')
 
 #%% Load data and create recording extractor
@@ -56,7 +56,10 @@ recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6
 recording = st.preprocessing.whiten(recording, seed=0) #must do whitening first, otherwise the waveforms used to calculate cluster metrics will be very noisy
 recording = se.CacheRecordingExtractor(recording, save_path=sinput.recording_to_sort+'/processed_data.dat') # cache recording for speedup
 
-tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
+# tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
+
+recording.dump_to_pickle(soutput.recording_info)
+
 
 #%% perform sorting
 
@@ -116,36 +119,4 @@ sorter_df=spikeinterfaceHelper.sorter2dataframe(sorting_ms4,session_id)
 sorter_df.to_pickle(soutput.sorter_df)
 
 
-
-#%% Curation
-
-'''
-Units that had a firing rate > 0.5 Hz, isolation > 0.9, noise overlap < 0.05, 
-and peak signal to noise ratio > 1 were accepted for further analysis. 
-
-'''
-
-sorter_df['pass_curation'] = ((sorter_df['snr']>2) & 
-    (sorter_df['firing_rate'] > 0.5) &
-    ((1-sorter_df['nn_miss_rate']) > 0.9) & # isolation is similar to 1-miss rate
-    (sorter_df['noise_overlap'] <0.10) &
-    (sorter_df['isi_violation'] <0.9))
-
-#print the origninal spike metrics
-print(sorter_df.loc[:,['firing_rate','isi_violation','noise_overlap','snr','nn_miss_rate','pass_curation']])
-
-# TODO: implement metrics from mountainsort
-
-curated_sorter_df = sorter_df[sorter_df['pass_curation']]
-
-print(curated_sorter_df.cluster_id)
-
-#%% save curated results
-curated_sorter_df.to_pickle(soutput.sorter_curated_df)
-
-#%% Plot spike waveforms
-plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure)
-
 print(f'Elapsed time {time.time()-now}')
-
-# %%

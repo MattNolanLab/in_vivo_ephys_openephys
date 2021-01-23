@@ -20,6 +20,7 @@ opto_ch_suffix = f'ADC3.continuous'
 data_file_prefix = f'_CH' #prefix of data files
 data_file_suffix = '' 
 wave_form_size = 40 
+tetrodeNum = 4 #how many channel in one tetrode
 
 #########
 # sorter configuration
@@ -64,4 +65,4 @@ bonsai_sampling_rate = 30
 # debug_folder ='../testdata/M1_D31_2018-11-01_12-28-25_short'
 # debug_folder = '../testdata//M1_D8_2019-06-26_13-31-11'
 # debug_folder ='/home/ubuntu/to_sort/recordings/M2_D1_2021-01-11_15-53-56'
-debug_folder ='/home/ubuntu/to_sort/recordings/M2_D6_2021-01-18_15-54-39'
+debug_folder ='/home/ubuntu/to_sort/recordings/M2_D7_2021-01-19_15-55-31'
