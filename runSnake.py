@@ -21,6 +21,8 @@ parser.add_argument('--dryrun','-n', action= 'store_true', default=False, help='
 parser.add_argument('--remotefiles','-r', action= 'store_true', default=False, help='Original files are in server. Will copy to local first')
 parser.add_argument('--uploadresults','-u', action= 'store_true', default=False, help='whether to copy results to server')
 parser.add_argument('--clean','-c', action= 'store_true', default=False, help='whether to delete local copy of recordings')
+parser.add_argument('--overwrite','-o', action= 'store_true', default=False, help='whether to overwrite the processed files')
+
 
 def _logPath(path,names):
     print(f'Working in {path}')
@@ -56,6 +58,7 @@ for expt_type, paths in targets.items():
     remote_folders = []
 
     #TODO: copying files should be work on folder and folder basis, to avoid downloading all the files at once
+    # TODO: determine the best way to overwrite remote folder
 
     if args.remotefiles:
         for p in paths:

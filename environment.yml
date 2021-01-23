@@ -110,14 +110,13 @@ dependencies:
     - sphinxcontrib-jsmath==1.0.1
     - sphinxcontrib-qthelp==1.0.3
     - sphinxcontrib-serializinghtml==1.1.4
-    - spikecomparison==0.2.6
-    - spikeextractors==0.8.4
+    - spikecomparison==0.3.1
+    - spikeextractors==0.9.3
     - spikefeatures==0.1.1
-    - spikeinterface==0.9.9
-    - spikemetrics==0.2.0
-    - spikesorters==0.3.3
-    - spiketoolkit==0.6.3
-    - spikewidgets==0.4.3
+    - spikeinterface==0.11.0
+    - spikemetrics==0.2.3
+    - spikesorters==0.4.3
+    - spikewidgets==0.5.1
     - terminado==0.8.3
     - testpath==0.4.4
     - threadpoolctl==2.0.0
@@ -132,5 +131,5 @@ dependencies:
     - widgetsnbextension==3.5.1
     - wrapt==1.12.1
     - zipp==3.1.0
-prefix: /home/ubuntu/miniconda3/envs/ms43
+prefix: /home/ubuntu/miniconda3/envs/ms4
 
