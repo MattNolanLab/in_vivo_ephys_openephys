@@ -47,8 +47,8 @@ else:
 #%% Remove bad channel and filter the recording
 logger.info('Filtering files') #TODO logging not show correctly
 Fs = 30000
-recording = se.NumpyRecordingExtractor(signal[:,:Fs*180],setting.sampling_rate,geom)
-# recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
+# recording = se.NumpyRecordingExtractor(signal[:,:Fs*180],setting.sampling_rate,geom)
+recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
 
 recording = recording.load_probe_file(sinput.probe_file) #load probe definition
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
