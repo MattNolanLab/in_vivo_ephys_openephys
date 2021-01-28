@@ -10,7 +10,13 @@ import scipy.ndimage
 
 
 # do not use this on data from more than one session
-def plot_peristimulus_raster(peristimulus_spikes, output_path):
+def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str):
+    """
+    :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
+    the first two columns the session and cluster ids respectively and the rest of the columns correspond to
+    sampling points before and after the stimulus. 0s mean no spike and 1s mean spike at a given point
+    :param output_path: fist half of the path where the plot is saved
+    """
     assert len(peristimulus_spikes.groupby('session_id')['session_id'].nunique()) == 1
     save_path = output_path + '/Figures/opto_stimulation'
     if os.path.exists(save_path) is False:
@@ -40,7 +46,13 @@ def plot_peristimulus_raster(peristimulus_spikes, output_path):
         # plt.plot((cluster_rows.astype(int)).sum().rolling(100).sum())
 
 
-def plot_peristimulus_histogram(peristimulus_spikes, output_path):
+def plot_peristimulus_histogram(peristimulus_spikes: pd.DataFrame, output_path: str):
+    """
+    :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
+    :param output_path: fist half of the path where the plot is saved
+    the first two columns the session and cluster ids respectively and the rest of the columns correspond to
+    sampling points before and after the stimulus. 0s mean no spike and 1s mean spike at a given point
+    """
     assert len(peristimulus_spikes.groupby('session_id')['session_id'].nunique()) == 1
     save_path = output_path + '/Figures/opto_stimulation'
     if os.path.exists(save_path) is False:
