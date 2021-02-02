@@ -4,6 +4,8 @@ def add_temporal_firing_properties_to_df(spatial_firing, prm):
     mean_firing_rates = []
     for cluster in range(len(spatial_firing)):
         cluster = spatial_firing.cluster_id.values[cluster] - 1
+        print(spatial_firing.firing_times)
+        print(spatial_firing.firing_times[cluster])
         firing_times = spatial_firing.firing_times[cluster]
         total_number_of_spikes = len(firing_times)
         total_length_of_recordings = prm.get_total_length_sampling_points()  # this does not include opto
