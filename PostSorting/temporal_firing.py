@@ -2,7 +2,7 @@
 def add_temporal_firing_properties_to_df(spatial_firing, prm):
     total_number_of_spikes_per_cluster = []
     mean_firing_rates = []
-    for cluster in spatial_firing.iterrows():
+    for cluster_index, cluster in spatial_firing.iterrows():
         print(cluster)
         firing_times = cluster.firing_times
         total_number_of_spikes = len(firing_times)
