@@ -15,7 +15,7 @@ from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
 
 # set this to true if you want to skip the spike sorting step and use ths data from the server
-skip_sorting = True
+skip_sorting = False
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
