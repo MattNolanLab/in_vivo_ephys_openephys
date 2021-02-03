@@ -92,22 +92,36 @@ for expt_type, paths in targets.items():
     # If need to upload results back to server
     if args.uploadresults:
         for i,p in enumerate(paths):
-            local_path = Path(local_recording_folder) / p.name / result_folder
-            print(f'Uploading {local_path} to {p}')
-            if not args.dryrun:
-                # pass
-                try:
-                    shutil.copytree(Path(local_recording_folder) / p.name / result_folder, p/result_folder)
-                    print(f'...done')
-                except FileExistsError:
-                    print('...folder already exist, skipping...')
+            target_file = local_recording_folder / p.name / 'processed' / 'snakemake.done'
+            if target_file.exists():
+                local_path = Path(local_recording_folder) / p.name / result_folder
+                print(f'Uploading {local_path} to {p}')
+                if not args.dryrun:
+                    # pass
+                    try:
+                        shutil.copytree(Path(local_recording_folder) / p.name / result_folder, p/result_folder)
+                        print(f'...done')
+                    except FileExistsError:
+                        print('...folder already exist, skipping...')
+            else:
+                print('Snakemake does not seem to be complete properly. Skipping upload')
     
     # if need to clean up local folder
     if args.clean:
         for p in paths:
+            target_file = local_recording_folder / p.name / 'processed' / 'snakemake.done'
             local_path = Path(local_recording_folder) / p.name
-            print(f'Removing {local_path}')
-            if not args.dryrun:
-                shutil.rmtree(local_path)
-            print('done')
+
+            if target_file.exists():
+                print(f'Removing {local_path}')
+                if not args.dryrun:
+                    shutil.rmtree(local_path)
+                print('done')
+            else:
+                answer = input(f'Snakemake for {target_file} does not seem to complete successfully. Do you still want to remove it? (y/n)')
+                if answer == 'y':
+                    print(f'Removing {local_path}')
+                    if not args.dryrun:
+                        shutil.rmtree(local_path)
+                    print('done')
 
