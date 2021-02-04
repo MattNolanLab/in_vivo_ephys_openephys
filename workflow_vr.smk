@@ -23,7 +23,7 @@ rule sort_spikes:
         probe_file = 'sorting_files/tetrode_16.prb',
         sort_param = 'sorting_files/params.json',
         tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
-        recording_to_sort = directory('{recording}'),
+        recording_to_sort = '{recording}',
         parameter_file = '{recording}/parameters.yaml'
         # dead_channel = '{recording}/dead_channels.txt'
     threads: workflow.cores//2
@@ -42,8 +42,8 @@ rule curate_clusters:
     output:
         sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl',
         waveform_figure = directory(sorterPrefix + '/waveform/')
-
-
+    script:
+            '01b_curation.py'
 
 rule process_position:
     input:

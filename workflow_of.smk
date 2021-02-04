@@ -33,15 +33,25 @@ rule sort_spikes:
         recording_to_sort = '{recording}',
         parameter_file = '{recording}/parameters.yaml'
         # dead_channel = '{recording}/dead_channels.txt'
-    
+    threads: workflow.cores//2
     output:
         sorter = sorterPrefix +'/sorter.pkl',
         sorter_df = sorterPrefix +'/sorter_df.pkl',
-        sorter_curated = sorterPrefix +'/sorter_curated.pkl',
+        recording_info = '{recording}/processed/recording_info.pkl'
+    script:
+        '01_sorting.py'
+
+
+rule curate_clusters:
+    input:
+        sorter_df = sorterPrefix +'/sorter_df.pkl',
+        recording_info = '{recording}/processed/recording_info.pkl'
+    output:
         sorter_curated_df = sorterPrefix +'/sorter_curated_df.pkl',
         waveform_figure = directory(sorterPrefix + '/waveform/')
     script:
-        '01_sorting.py'
+            '01b_curation.py'
+
 
 
 rule process_position:
