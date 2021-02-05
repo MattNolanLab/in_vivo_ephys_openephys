@@ -134,8 +134,9 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, prm)
     peristimulus_spikes = make_peristimulus_df(spatial_firing, window_size_sampling_rate, prm)
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
-    # baseline_trials, test_trials = create_baseline_and_test_epochs(peristimulus_spikes)
-    # latencies, p_values, I_values = PostSorting.SALT.salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
+    # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
+    # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
+
 
 
 def main():
