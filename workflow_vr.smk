@@ -26,7 +26,7 @@ rule sort_spikes:
         recording_to_sort = '{recording}',
         parameter_file = '{recording}/parameters.yaml'
         # dead_channel = '{recording}/dead_channels.txt'
-    threads: workflow.cores//2
+    threads: workflow.cores
     output:
         sorter = sorterPrefix +'/sorter.pkl',
         sorter_df = sorterPrefix +'/sorter_df.pkl',
