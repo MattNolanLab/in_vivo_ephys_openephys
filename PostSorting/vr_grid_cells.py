@@ -10,6 +10,11 @@ import PostSorting.theta_modulation
 from scipy import stats
 from scipy import signal
 from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
+import os
+import traceback
+import warnings
+import sys
+warnings.filterwarnings('ignore')
 
 
 def calculate_grid_field_com(cluster_spike_data, position_data, bin_size, prm):
@@ -27,13 +32,16 @@ def calculate_grid_field_com(cluster_spike_data, position_data, bin_size, prm):
     firing_field_com = []
     firing_field_com_trial_numbers = []
     firing_field_com_trial_types = []
+    firing_rate_maps = []
+
     #firing_field = []
 
     firing_times=cluster_spike_data.firing_times/(prm.get_sampling_rate()/1000) # convert from samples to ms
     if isinstance(firing_times, pd.Series):
         firing_times = firing_times.iloc[0]
     if len(firing_times)==0:
-        return firing_field_com, firing_field_com_trial_numbers, firing_field_com_trial_types
+        firing_rate_maps = np.zeros(prm.track_length)
+        return firing_field_com, firing_field_com_trial_numbers, firing_field_com_trial_types, firing_rate_maps
 
     trial_numbers = np.array(position_data['trial_number'].to_numpy())
     trial_types = np.array(position_data['trial_type'].to_numpy())
@@ -67,8 +75,9 @@ def calculate_grid_field_com(cluster_spike_data, position_data, bin_size, prm):
         for local_maximum_idx in local_maxima_bin_idx:
             neighbouring_local_mins = find_neighbouring_minima(firing_rate_map, local_maximum_idx)
             closest_minimum_bin_idx = neighbouring_local_mins[np.argmin(np.abs(neighbouring_local_mins-local_maximum_idx))]
+            field_size_in_bins = neighbouring_local_mins[1]-neighbouring_local_mins[0]
 
-            if firing_rate_map[local_maximum_idx] - firing_rate_map[closest_minimum_bin_idx] > field_threshold:
+            if firing_rate_map[local_maximum_idx] - firing_rate_map[closest_minimum_bin_idx] > field_threshold and field_size_in_bins>5:
                 #firing_field.append(neighbouring_local_mins)
 
                 field =  firing_rate_map[neighbouring_local_mins[0]:neighbouring_local_mins[1]+1]
@@ -80,7 +89,9 @@ def calculate_grid_field_com(cluster_spike_data, position_data, bin_size, prm):
                 firing_field_com_trial_numbers.append(trial_number)
                 firing_field_com_trial_types.append(trial_type)
 
-    return firing_field_com, firing_field_com_trial_numbers, firing_field_com_trial_types
+        firing_rate_maps.append(firing_rate_map)
+
+    return firing_field_com, firing_field_com_trial_numbers, firing_field_com_trial_types, firing_rate_maps
 
 
 def find_neighbouring_minima(firing_rate_map, local_maximum_idx):
@@ -138,15 +149,16 @@ def extract_instantaneous_firing_rate_for_spike2(cluster_data, prm):
     instantaneous_firing_rate = np.histogram(firing_times, bins=bins, range=(0, max(bins)))[0]
 
     gauss_kernel = Gaussian1DKernel(5) # sigma = 200ms
-    smoothened_instantaneous_firing_rate = convolve(instantaneous_firing_rate, gauss_kernel)
+    instantaneous_firing_rate = convolve(instantaneous_firing_rate, gauss_kernel)
 
-    return smoothened_instantaneous_firing_rate
+    return instantaneous_firing_rate
 
 def process_vr_grid(spike_data, position_data, bin_size, prm):
 
     fields_com_cluster = []
     fields_com_trial_numbers_cluster = []
     fields_com_trial_types_cluster = []
+    firing_rate_maps_cluster = []
 
     minimum_distance_to_field_in_next_trial =[]
     fields_com_next_trial_type = []
@@ -154,7 +166,10 @@ def process_vr_grid(spike_data, position_data, bin_size, prm):
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
 
-        fields_com, field_com_trial_numbers, field_com_trial_types = calculate_grid_field_com(cluster_df, position_data, bin_size, prm)
+        fields_com, field_com_trial_numbers, field_com_trial_types, firing_rate_maps = calculate_grid_field_com(cluster_df, position_data, bin_size, prm)
+
+        if len(firing_rate_maps)==0:
+            print("stop here")
 
         next_trial_type_cluster = []
         minimum_distance_to_field_in_next_trial_cluster=[]
@@ -183,6 +198,7 @@ def process_vr_grid(spike_data, position_data, bin_size, prm):
         fields_com_cluster.append(fields_com)
         fields_com_trial_numbers_cluster.append(field_com_trial_numbers)
         fields_com_trial_types_cluster.append(field_com_trial_types)
+        firing_rate_maps_cluster.append(firing_rate_maps)
 
         minimum_distance_to_field_in_next_trial.append(minimum_distance_to_field_in_next_trial_cluster)
         fields_com_next_trial_type.append(next_trial_type_cluster)
@@ -190,6 +206,7 @@ def process_vr_grid(spike_data, position_data, bin_size, prm):
     spike_data["fields_com"] = fields_com_cluster
     spike_data["fields_com_trial_number"] = fields_com_trial_numbers_cluster
     spike_data["fields_com_trial_type"] = fields_com_trial_types_cluster
+    spike_data["firing_rate_maps"] = firing_rate_maps_cluster
 
     spike_data["minimum_distance_to_field_in_next_trial"] = minimum_distance_to_field_in_next_trial
     spike_data["fields_com_next_trial_type"] = fields_com_next_trial_type
@@ -257,17 +274,58 @@ def process_vr_field_distances(spike_data, processed_position_data, prm):
     return spike_data
 
 
+def process_recordings(recording_path_list, bin_size, params):
+
+    for i in range(len(recording_path_list)):
+        recording = recording_path_list[i]
+
+        try:
+
+            params = PostSorting.parameters.Parameters()
+            params.set_sampling_rate(30000)
+
+            params.set_output_path(recording+"/MountainSort")
+            position_data = pd.read_pickle(recording+"/MountainSort/DataFrames/position_data.pkl")
+            spike_data = pd.read_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
+            processed_position_data = pd.read_pickle(recording+"/MountainSort/DataFrames/processed_position_data.pkl")
+
+            spike_data = process_vr_grid(spike_data, position_data, bin_size, params)
+            PostSorting.vr_make_plots.plot_firing_rate_maps_per_trial(spike_data=spike_data, prm=params)
+            spike_data = process_vr_field_stats(spike_data, processed_position_data, params)
+            spike_data = process_vr_field_distances(spike_data, processed_position_data, params)
+            PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed", "non_beaconed", "probe"])
+            PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["beaconed"])
+            PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["non_beaconed"])
+            PostSorting.vr_make_plots.plot_field_centre_of_mass_on_track(spike_data=spike_data, prm=params, plot_trials=["probe"])
+            PostSorting.vr_make_plots.plot_field_com_histogram(spike_data=spike_data, prm=params)
+            PostSorting.vr_make_plots.plot_inter_field_distance_histogram(spike_data=spike_data, prm=params)
+
+            spike_data.to_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
+
+            print("successfully processed and saved vr_grid analysis on "+recording)
+        except Exception as ex:
+            print('This is what Python says happened:')
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
+            print("couldn't process vr_grid analysis on "+recording)
+
+
+
 #  for testing
 def main():
     print('-------------------------------------------------------------')
 
     params = PostSorting.parameters.Parameters()
     params.set_sampling_rate(30000)
-    bin_size = 20 # cm
+    bin_size = 1 # cm
 
     # ideally want to give a path for a directory of recordings or path of a single recording
+    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()]
 
+    process_recordings(vr_path_list, bin_size, params)
 
+    '''
     params.set_output_path("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort")
     position_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort/DataFrames/position_data.pkl")
     spike_data = pd.read_pickle("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted/M2_D11_2019-07-01_13-50-47/MountainSort/DataFrames/spatial_firing.pkl")
@@ -365,7 +423,7 @@ def main():
 
 
     #PostSorting.vr_make_plots.plot_field_analysis(spike_data, processed_position_data, params)
-
+    '''
     print("look now`")
 
 
