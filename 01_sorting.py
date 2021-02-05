@@ -85,7 +85,9 @@ print('Calculating quality metrics...')
 start = time.time()
 quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
     max_spikes_per_unit_for_snr = 200, memmap= False,
-     metric_names=['snr','isi_violation', 'noise_overlap','nn_miss_rate','firing_rate'],
+    max_spikes_for_nn = 1000,
+    n_jobs = 4,
+    metric_names=['snr','isi_violation', 'd_prime','noise_overlap','nn_miss_rate','firing_rate'],
   recompute_info=True)
 print(f'Calculate quality metrics took {time.time()-start}')
  #need to compute metrics before getting the waveforms

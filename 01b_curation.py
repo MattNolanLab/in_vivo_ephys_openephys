@@ -41,9 +41,10 @@ print(f'Total cells before curation: {len(sorter_df)}')
 
 sorter_df['pass_curation'] = ((sorter_df['snr']>5) & 
     # (sorter_df['firing_rate'] > 0.5) &
-    ((1-sorter_df['nn_miss_rate']) < 0.1) & # isolation is similar to 1-miss rate
+    ((1-sorter_df['nn_miss_rate']) > 0.9) & # isolation is similar to 1-miss rate
     (sorter_df['noise_overlap'] <0.15) &
-    (sorter_df['isi_violation'] <0.1))
+    (sorter_df['isi_violation'] <0.1) &
+    (sorter_df['d_prime'] > 3))
 
 #print the origninal spike metrics
 print(sorter_df.loc[:,['firing_rate','isi_violation','noise_overlap','snr','nn_miss_rate','pass_curation']])
