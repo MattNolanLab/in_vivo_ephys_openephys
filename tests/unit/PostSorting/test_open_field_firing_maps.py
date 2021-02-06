@@ -34,6 +34,7 @@ def test_calculate_firing_rate_for_cluster_parallel():
                                                                      min_dwell_distance_pixels,
                                                                      dt_position_ms)
 
+
     firing_rate_map_new = calculate_firing_rate_for_cluster_parallel(cluster, smooth,
                                                                      firing_data_spatial,
                                                                      positions_x, positions_y,
