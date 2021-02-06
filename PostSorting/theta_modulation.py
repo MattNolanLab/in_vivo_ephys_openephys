@@ -253,7 +253,7 @@ def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
     plt.title("t ="+str(mean_peak_theta_power/mean_baseline_power))
     rn = np.random.randint(1000000, size=1)
 
-    plt.savefig("/mnt/datastore/Harry/test_function_figure_space/fft_signal"+str(rn)+".png")
+    #plt.savefig("/mnt/datastore/Harry/test_function_figure_space/fft_signal"+str(rn)+".png")
     return boccara_theta_mod
 
 
