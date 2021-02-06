@@ -18,6 +18,9 @@ import PostSorting.open_field_grid_cells
 import PostSorting.make_plots
 import PostSorting.make_opto_plots
 import PostSorting.compare_first_and_second_half
+import PostSorting.open_field_border_cells
+import PostSorting.theta_modulation
+import PostSorting.lfp
 
 import numpy as np
 
@@ -38,6 +41,7 @@ def initialize_parameters(recording_to_process):
     else:
         prm.set_sync_channel('105_CH20_0.continuous')
 
+    prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process, prm))
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
     prm.set_file_path(recording_to_process)  # todo clean this
@@ -120,7 +124,7 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Firing_fields')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None):
+def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None, lfp_data=None):
     print('I will save the data frames now.')
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
@@ -130,6 +134,8 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
         snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
     if bad_clusters is not None:
         bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
+    if lfp_data is not None:
+        lfp_data.to_pickle(prm.get_output_path() + "/DataFrames/lfp_data.pkl")
 
 
 def save_data_for_plots(position_heat_map, hd_histogram, prm):
@@ -141,7 +147,7 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     pickle.dump(prm, file_handler)
 
 
-def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
+def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, lfp_data=None):
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
@@ -153,27 +159,41 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False):
                                                                                                   spike_data_spatial,
                                                                                                   prm)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
-    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data,
-                                                                            prm)
+    spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
+    spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
+    spatial_firing = PostSorting.open_field_border_cells.process_corner_data(spatial_firing)
+    spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, prm)
+
     if opto_analysis:
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data)
-    save_data_for_plots(position_heat_map, hd_histogram, prm)
+    spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
+                                                                                               synced_spatial_data,
+                                                                                               spatial_firing)
+
     make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, prm)
+    PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
+
+    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
+    save_data_for_plots(position_heat_map, hd_histogram, prm)
+
     return synced_spatial_data, spatial_firing
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort'):
+                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
         running_parameter_tags)
+    prm.set_stitch_point(stitchpoint)
+    prm.set_paired_order(paired_order)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
     prm.set_delete_two_minutes(delete_first_two_minutes)
+    if total_length is not None:
+        prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
     else:
@@ -182,7 +202,9 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     if run_type == 'default':
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
         # todo implement different opto-tagging protocols here based on tags
+        lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
         opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
+        opto_is_found=False # TODO undo this, quick hack by Harry
         # process spatial data
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
         if position_was_found:
@@ -190,21 +212,19 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             # analyze spike data
             spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
             spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+            spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
             if analysis_type is 'default':
                 spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
                 snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
                 if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                    save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
+                    save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
                     return
 
-            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
+            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found, lfp_data=lfp_data)
 
-            spike_data = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
-                                                                                                   synced_spatial_data,
-                                                                                                   spatial_firing)
-            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
+            #save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 
-
+#
 #  this is here for testing
 def main():
     print('-------------------------------------------------------------')

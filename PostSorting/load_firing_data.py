@@ -6,7 +6,6 @@ import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
 
-
 def get_firing_info(file_path, prm):
     firing_times_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/firings.mda'
     units_list = None
@@ -51,6 +50,8 @@ def process_firing_times(recording_to_process, session_type, prm):
         return firing_data
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
+    if prm.stitchpoint is not None and prm.paired_order == "first":
+        firing_times = firing_times - prm.stitchpoint
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, prm)
     if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
@@ -91,4 +92,18 @@ def create_firing_data_frame(recording_to_process, session_type, prm):
     spike_data = None
     spike_data = process_firing_times(recording_to_process, session_type, prm)
     return spike_data
+
+def available_ephys_channels(recording_to_process, prm):
+    '''
+    :param recording_to_process: absolute path of recroding to sort
+    :param prm: PostSorting parameter class
+    :return: list of named channels for ephys aquisition
+    '''
+
+    shared_ephys_channel_marker = prm.get_shared_ephys_channel_marker()
+    all_files_names = [f for f in os.listdir(recording_to_process) if os.path.isfile(os.path.join(recording_to_process, f))]
+    all_ephys_file_names = [s for s in all_files_names if shared_ephys_channel_marker in s]
+
+    return all_ephys_file_names
+
 

@@ -11,7 +11,11 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
         for dead_ch in range(len(dead_channels[0])):
             to_insert = np.zeros(len(filtered_data[0]))
             filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
-    random_indices = np.ceil(np.random.uniform(16, len(firing_times)-16, number_of_snippets)).astype(int)
+
+    if len(firing_times)<50:
+        random_indices = np.arange(0, len(firing_times))
+    else:
+        random_indices = np.ceil(np.random.uniform(16, len(firing_times)-16, number_of_snippets)).astype(int)
     snippets = np.zeros((4, 30, number_of_snippets))
 
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
@@ -29,7 +33,10 @@ def extract_all_snippets(filtered_data, firing_times, tetrode, prm):
             to_insert = np.zeros(len(filtered_data[0]))
             filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
 
-    all_indices = np.arange(16, len(firing_times)-16)
+    if len(firing_times)<50:
+        all_indices = np.arange(0, len(firing_times))
+    else:
+        all_indices = np.arange(16, len(firing_times)-16)
     snippets = np.zeros((4, 30, len(all_indices)))
 
     channels = [(tetrode-1)*4, (tetrode-1)*4 + 1, (tetrode-1)*4 + 2, (tetrode-1)*4 + 3]
@@ -53,14 +60,17 @@ def get_snippets(firing_data, prm, random_snippets=True):
     snippets_all_clusters = []
     if os.path.exists(filtered_data_path):
         filtered_data = mdaio.readmda(filtered_data_path)
-        for cluster in range(len(firing_data)):
-            cluster = firing_data.cluster_id.values[cluster] - 1
-            firing_times = firing_data.firing_times[cluster]
+        if prm.stitchpoint is not None and prm.paired_order == "first":
+            filtered_data = filtered_data[:, prm.stitchpoint:]
+
+        for cluster, cluster_id in enumerate(firing_data.cluster_id):
+            tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
+            firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id].firing_times)[0]
 
             if random_snippets is True:
-                snippets = extract_random_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], 50, prm)
+                snippets = extract_random_snippets(filtered_data, firing_times, tetrode, 50, prm)
             else:
-                snippets = extract_all_snippets(filtered_data, firing_times, firing_data.tetrode[cluster], prm)
+                snippets = extract_all_snippets(filtered_data, firing_times, tetrode, prm)
             snippets_all_clusters.append(snippets)
 
     if random_snippets is True:

@@ -3,9 +3,11 @@ import pandas as pd
 import PostSorting.parameters
 import gc
 import PostSorting.vr_stop_analysis
+import PostSorting.vr_time_analysis
 import PostSorting.vr_make_plots
+import PostSorting.vr_cued
 from scipy import stats
-
+import PostSorting.vr_speed_analysis
 
 
 def calculate_total_trial_numbers(raw_position_data,processed_position_data):
@@ -64,10 +66,10 @@ outputs:
     position_data : with additional column added for processed data
 """
 
-def bin_data_trial_by_trial(raw_position_data,processed_position_data):
+def bin_data_trial_by_trial(raw_position_data,processed_position_data, prm):
     print('calculate binned data per trial...')
     binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
-    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     trials = np.array(raw_position_data['trial_number'])
     trial_types = np.array(raw_position_data['trial_type'])
@@ -93,10 +95,10 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def bin_data_over_trials(raw_position_data,processed_position_data):
+def bin_data_over_trials(raw_position_data,processed_position_data, prm):
     print('Calculating binned data over trials...')
     binned_data = pd.DataFrame(columns=['dwell_time_ms', 'dwell_time_ms_moving', 'dwell_time_ms_stationary', 'speed_in_bin'])
-    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     locations = np.array(raw_position_data['x_position_cm'])
     dwell_time_per_sample = np.array(raw_position_data['dwell_time_ms'])
@@ -115,10 +117,15 @@ def bin_data_over_trials(raw_position_data,processed_position_data):
 
 
 
-def bin_speed_over_trials(raw_position_data,processed_position_data):
+def bin_speed_over_trials(raw_position_data,processed_position_data, prm):
     print('Calculating binned data over trials...')
     binned_data = pd.DataFrame(columns=['speed_in_bin'])
-    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data)
+
+    binned_data_b = pd.DataFrame(columns=['speed_in_bin_b'])
+    binned_data_nb = pd.DataFrame(columns=['speed_in_bin_nb'])
+    binned_data_p = pd.DataFrame(columns=['speed_in_bin_p'])
+
+    bin_size_cm,number_of_bins,bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     locations = np.array(raw_position_data['x_position_cm'])
     speed_ms = np.array(raw_position_data['speed_per200ms'])
 
@@ -126,7 +133,38 @@ def bin_speed_over_trials(raw_position_data,processed_position_data):
         speed_in_bin = find_speed_in_bin(speed_ms, locations, loc)
         binned_data = binned_data.append({"speed_in_bin": np.float16(speed_in_bin)}, ignore_index=True)
 
+        speed_in_bin_b =  find_speed_in_bin(speed_ms, locations[raw_position_data["trial_type"] == 0], loc)
+        speed_in_bin_nb = find_speed_in_bin(speed_ms, locations[raw_position_data["trial_type"] == 1], loc)
+        speed_in_bin_p =  find_speed_in_bin(speed_ms, locations[raw_position_data["trial_type"] == 2], loc)
+
+        binned_data_b = binned_data_b.append({"speed_in_bin_b": np.float16(speed_in_bin_b)}, ignore_index=True)
+        binned_data_nb = binned_data_nb.append({"speed_in_bin_nb": np.float16(speed_in_bin_nb)}, ignore_index=True)
+        binned_data_p = binned_data_p.append({"speed_in_bin_p": np.float16(speed_in_bin_p)}, ignore_index=True)
+
     processed_position_data['binned_speed_ms'] = binned_data['speed_in_bin']
+
+    processed_position_data['binned_speed_ms_b'] = binned_data_b['speed_in_bin_b']
+    processed_position_data['binned_speed_ms_nb'] = binned_data_nb['speed_in_bin_nb']
+    processed_position_data['binned_speed_ms_p'] = binned_data_p['speed_in_bin_p']
+    return processed_position_data
+
+def trial_average_speed(processed_position_data, prm):
+
+    if len(processed_position_data['speed_trials_beaconed'].dropna())>0:
+        beaconed_speeds = np.stack(processed_position_data['speed_trials_beaconed'].dropna().to_numpy())
+        trial_averaged_beaconed_speeds = np.nanmean(beaconed_speeds, axis=0)
+        processed_position_data['trial_averaged_beaconed_speeds'] = pd.Series(trial_averaged_beaconed_speeds)
+
+    if len(processed_position_data['speed_trials_non_beaconed'].dropna())>0:
+        non_beaconed_speeds = np.stack(processed_position_data['speed_trials_non_beaconed'].dropna().to_numpy())
+        trial_averaged_non_beaconed_speeds = np.nanmean(non_beaconed_speeds, axis=0)
+        processed_position_data['trial_averaged_non_beaconed_speeds'] = pd.Series(trial_averaged_non_beaconed_speeds)
+
+    if len(processed_position_data['speed_trials_probe'].dropna())>0:
+        probe_speeds = np.stack(processed_position_data['speed_trials_probe'].dropna().to_numpy())
+        trial_averaged_probe_speeds = np.nanmean(probe_speeds, axis=0)
+        processed_position_data['trial_averaged_probe_speeds'] = pd.Series(trial_averaged_probe_speeds)
+
     return processed_position_data
 
 
@@ -138,20 +176,33 @@ def drop_columns_from_dataframe(raw_position_data):
 
 def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
-    #processed_position_data = bin_data_over_trials_by_speed(raw_position_data,processed_position_data)
-    processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data)
-    processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data)
+    processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data,prm)
+    processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,prm)
+
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
-    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data,processed_position_data, prm, recording_to_process)
+    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data, processed_position_data, prm, recording_to_process)
+
+    #processed_position_data = bin_data_over_trials_by_speed(raw_position_data,processed_position_data, prm)
+    #processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data, prm)
+    processed_position_data = bin_data_trial_by_trial(raw_position_data,processed_position_data, prm)
+    #processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
+    processed_position_data = PostSorting.vr_cued.add_goal_locations_to_processed(raw_position_data, processed_position_data, prm)
+    #processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data,prm)
+    #processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,prm)
+    #processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data, processed_position_data, prm, recording_to_process)
     gc.collect()
+
+    processed_position_data = trial_average_speed(processed_position_data, prm)
+
+
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
-    processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"]
+    processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"].dropna()
     #raw_position_data = drop_columns_from_dataframe(raw_position_data)
 
     print('-------------------------------------------------------------')
     print('position data processed')
     print('-------------------------------------------------------------')
-    return raw_position_data, processed_position_data
+    return processed_position_data
 
 
 #  for testing

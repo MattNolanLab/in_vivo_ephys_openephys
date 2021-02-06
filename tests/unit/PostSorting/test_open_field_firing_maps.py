@@ -27,12 +27,13 @@ def test_calculate_firing_rate_for_cluster_parallel():
     dt_position_ms = 33
 
     firing_rate_map_old = calculate_firing_rate_for_cluster_parallel_old(cluster, smooth,
-                                                                         firing_data_spatial,
-                                                                         positions_x, positions_y,
-                                                                         number_of_bins_x, number_of_bins_y,
-                                                                         bin_size_pixels, min_dwell,
-                                                                         min_dwell_distance_pixels,
-                                                                         dt_position_ms)
+                                                                     firing_data_spatial,
+                                                                     positions_x, positions_y,
+                                                                     number_of_bins_x, number_of_bins_y,
+                                                                     bin_size_pixels, min_dwell,
+                                                                     min_dwell_distance_pixels,
+                                                                     dt_position_ms)
+
 
     firing_rate_map_new = calculate_firing_rate_for_cluster_parallel(cluster, smooth,
                                                                      firing_data_spatial,
