@@ -1,8 +1,8 @@
 # source: https://github.com/CINPLA/expipe-cinpla-legacy
 # import elephant
-import neo
+#import neo
 import numpy as np
-import quantities as pq
+#import quantities as pq
 # from exana.misc.tools import is_quantities
 
 
