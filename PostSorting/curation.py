@@ -2,6 +2,7 @@ import os
 import json
 import pandas as pd
 
+ignore_curation = False
 
 def load_curation_metrics(spike_data_frame, prm):
     isolations = []
@@ -58,6 +59,11 @@ def curate_data(spike_data_frame, prm):
 
     good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
     noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
+
+    if ignore_curation:
+        good_cluster['Curated']=True
+        noisy_cluster['Curated']=False
+        return pd.concat([good_cluster, noisy_cluster]), pd.DataFrame()
 
     return good_cluster, noisy_cluster
 

@@ -1,6 +1,9 @@
 import PreClustering.dead_channels
 import PreClustering.make_sorting_database
 import PreClustering.parameters
+import numpy as np
+import OpenEphys
+import os
 
 import file_utility
 from PreClustering import convert_open_ephys_to_mda
@@ -21,6 +24,47 @@ def init_params():
     prm.set_is_tetrode_by_tetrode(False)  # set to True if you want the spike sorting to be done tetrode by tetrode
     prm.set_is_all_tetrodes_together(True)  # set to True if you want the spike sorting done on all tetrodes combined
 
+def split_back(recording_to_sort, stitch_point):
+    dir = [f.path for f in os.scandir(recording_to_sort)]
+
+    n_timestamps = 0
+    for filepath in dir:
+        filename = filepath.split("/")[-1]
+
+        if filename.startswith(prm.get_continuous_file_name()):
+            ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
+
+            # this calculates total sample length of recordings a + b
+            if n_timestamps == 0:
+                n_timestamps = len(ch["data"])
+
+            ch['data'] = ch['data'][:stitch_point]
+            ch['timestamps'] = ch['timestamps'][:stitch_point]
+            ch['recordingNumber'] = ch['recordingNumber'][:stitch_point]
+            OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
+
+    return recording_to_sort, n_timestamps
+
+def stitch_recordings(recording_to_sort, paired_recording):
+    init_params()
+    file_utility.set_continuous_data_path(prm)
+
+    dir = [f.path for f in os.scandir(recording_to_sort)]
+
+    for filepath in dir:
+        filename = filepath.split("/")[-1]
+
+        if filename.startswith(prm.get_continuous_file_name()):
+            ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
+            ch_p = OpenEphys.loadContinuous(paired_recording + '/' + filename)
+            stitch_point = len(ch['data'])
+            ch['data'] = np.append(ch['data'], ch_p['data'])
+            ch['timestamps'] = np.append(ch['timestamps'], ch_p['timestamps'])
+            ch['recordingNumber'] = np.append(ch['recordingNumber'], ch_p['recordingNumber'])
+
+            OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
+
+    return recording_to_sort, stitch_point
 
 # Prepares input for running spike sorting for the recording.
 def process_a_dir(dir_name):
@@ -65,8 +109,14 @@ def main():
     print('-------------------------------------------------------------')
 
     init_params()
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
-    pre_process_data(recording_folder)
+    #recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
+    #pre_process_data(recording_folder)
+
+    recording_folder = r"C:\Users\44756\Desktop\test_recordings_waveform_matching\M2_D3_2019-03-06_13-35-15"
+    paired_folder =    r"C:\Users\44756\Desktop\test_recordings_waveform_matching\M2_D3_2019-03-06_15-24-38"
+
+    stitch_recordings(recording_folder, paired_folder)
+
 
 
 if __name__ == '__main__':

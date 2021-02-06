@@ -29,8 +29,6 @@ def get_beginning_of_track_positions(raw_position_data):
     #track_beginnings = keep_first_from_close_series(track_beginnings, 30000)
     #return track_beginnings
 
-    #return track_beginnings
-
     # track beginnings is returned as the start of a new trial surely?
     # so why aren't we using new_trial_indices from raw?
     new_trial_indices = raw_position_data["new_trial_indices"][~np.isnan(raw_position_data["new_trial_indices"])]
@@ -54,7 +52,7 @@ def get_stop_times(raw_position_data, stop_threshold):
     stops = np.array([])
     speed = np.array(raw_position_data["speed_per200ms"])
 
-    threshold = stop_threshold*1000
+    threshold = stop_threshold
     low_speed = np.where(speed < threshold)
     low_speed = np.asanyarray(low_speed)
     low_speed_plus_one = low_speed + 1
@@ -101,16 +99,78 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     return processed_position_data
 
 
-def calculate_stops(raw_position_data,processed_position_data, threshold):
-    all_stops = get_stop_times(raw_position_data,threshold)
-    track_beginnings = get_beginning_of_track_positions(raw_position_data)
-    processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+def calculate_stops(raw_position_data,processed_position_data, prm):
+    #all_stops = get_stop_times(raw_position_data, prm.get_stop_threshold())
+    #track_beginnings = get_beginning_of_track_positions(raw_position_data)
+    #processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
+
+    processed_position_data = get_stops_from_binned_speed(processed_position_data, prm)
+
     return processed_position_data
 
+def get_stops_from_binned_speed(processed_position_data, prm):
+    stop_threshold = prm.get_stop_threshold()
+    cue_conditioned = prm.get_cue_conditioned_goal()
+
+    n_total = int(processed_position_data.beaconed_total_trial_number[0]) + \
+              int(processed_position_data.nonbeaconed_total_trial_number[0]) + \
+              int(processed_position_data.probe_total_trial_number[0])
+
+    speed_trials_binned = list(processed_position_data.speed_trials_binned[:n_total])
+    speed_trial_numbers = list(processed_position_data.speed_trial_numbers[:n_total])
+    speed_trial_types = list(processed_position_data.speed_trial_types[:n_total])
+
+    stop_location_cm = []
+    stop_trial_number = []
+    stop_trial_types = []
+
+    cue_rewarded_positions = []
+    cue_rewarded_trial_number = []
+    cue_rewarded_trial_type = []
+
+    last_was_stop = False
+    for i in range(len(speed_trials_binned)): # number of trials
+        rewarded=False
+        bin_counter = 0.5
+        for speed_in_bin in speed_trials_binned[i]:
+            if speed_in_bin<stop_threshold and last_was_stop is False:
+                if cue_conditioned:
+                    goal_location = processed_position_data.goal_location[i]
+                    stop_location_cm.append(bin_counter-goal_location)
+                else:
+                    stop_location_cm.append(bin_counter)
+                stop_trial_number.append(speed_trial_numbers[i])
+                stop_trial_types.append(speed_trial_types[i])
+                last_was_stop = True
+            elif speed_in_bin>stop_threshold and last_was_stop is True:
+                last_was_stop = False
+
+            if cue_conditioned and speed_in_bin<stop_threshold and rewarded==False \
+                    and (bin_counter-goal_location>=prm.cue_goal_min) and (bin_counter-goal_location<=prm.cue_goal_max):
+                rewarded = True
+                cue_rewarded_positions.append(bin_counter-goal_location)
+                cue_rewarded_trial_number.append(speed_trial_numbers[i])
+                cue_rewarded_trial_type.append(speed_trial_types[i])
+
+            bin_counter+=1
+
+    print('stops extracted')
+
+    df1 = pd.DataFrame({"stop_location_cm": pd.Series(stop_location_cm),
+                        "stop_trial_number": pd.Series(stop_trial_number),
+                        "stop_trial_type": pd.Series(stop_trial_types)})
+    processed_position_data = pd.concat([processed_position_data, df1], axis=1)
+
+    if cue_conditioned:
+        df1 = pd.DataFrame({"cue_rewarded_positions": pd.Series(cue_rewarded_positions),
+                            "cue_rewarded_trial_number": pd.Series(cue_rewarded_trial_number),
+                            "cue_rewarded_trial_type": pd.Series(cue_rewarded_trial_type)})
+        processed_position_data = pd.concat([processed_position_data, df1], axis=1)
+
+    return processed_position_data
 
 def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm):
-    stop_threshold = prm.get_stop_threshold()
-    processed_position_data = calculate_stops(raw_position_data, processed_position_data, stop_threshold)
+    processed_position_data = calculate_stops(raw_position_data, processed_position_data, prm)
     return processed_position_data
 
 
@@ -146,6 +206,33 @@ def find_first_stop_in_series(processed_position_data):
     processed_position_data['first_series_trial_type'] = pd.Series(trial_types)
     return processed_position_data
 
+def find_first_stops_after_cue(processed_position_data):
+
+    trial_numbers = np.array([])
+    trial_stops = np.array([])
+    trial_types = np.array([])
+
+    unique_trial_numbers = np.unique(np.array(processed_position_data['stop_trial_number']))
+    unique_trial_numbers = unique_trial_numbers[~np.isnan(unique_trial_numbers)]  # remove nans
+
+    for trial_number in unique_trial_numbers:
+        stops = np.array(processed_position_data['stop_location_cm'])[
+            np.array(processed_position_data['stop_trial_number']) == trial_number]
+        trial_type = np.array(processed_position_data['stop_trial_type'])[
+            np.array(processed_position_data['stop_trial_number']) == trial_number][0]
+
+        stops[stops < -70] = np.nan # if a stop is before the cue, change it to after the cue as were only taking the first
+        first_trial_stop = np.nanmin(stops)
+
+        if first_trial_stop != np.nan:
+            trial_numbers = np.append(trial_numbers, trial_number)
+            trial_stops = np.append(trial_stops, first_trial_stop)
+            trial_types = np.append(trial_types, trial_type)
+
+    processed_position_data['first_series_location_cm_postcue'] = pd.Series(trial_stops)
+    processed_position_data['first_series_trial_number_postcue'] = pd.Series(trial_numbers)
+    processed_position_data['first_series_trial_type_postcue'] = pd.Series(trial_types)
+    return processed_position_data
 
 def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     locations=[]
@@ -161,7 +248,7 @@ def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     return np.array(locations), np.array(trials)
 
 
-def find_rewarded_positions(raw_position_data,processed_position_data):
+def find_rewarded_positions(raw_position_data, processed_position_data):
     stop_locations = np.array(processed_position_data['first_series_location_cm'])
     stop_trials = np.array(processed_position_data['first_series_trial_number'])
     rewarded_stop_locations = np.take(stop_locations, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
@@ -191,23 +278,24 @@ def find_rewarded_positions_test(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def get_bin_size(spatial_data):
-    #bin_size_cm = 1
-    track_length = spatial_data.x_position_cm.max()
-    start_of_track = spatial_data.x_position_cm.min()
+def get_bin_size(spatial_data, prm):
+    bin_size_cm = 1
+    track_length = prm.get_track_length()
+    start_of_track = 0
     #number_of_bins = (track_length - start_of_track)/bin_size_cm
-    number_of_bins = 200
-    bin_size_cm = (track_length - start_of_track)/number_of_bins
-    bins = np.arange(start_of_track,track_length, 200)
-    return bin_size_cm,number_of_bins, bins
+    number_of_bins = int(track_length/bin_size_cm)
+    #bin_size_cm = (track_length - start_of_track)/number_of_bins
+    bins = np.arange(start_of_track,track_length, number_of_bins)
+    return bin_size_cm, number_of_bins, bins
 
 
-def calculate_average_stops(raw_position_data,processed_position_data):
+def calculate_average_stops(raw_position_data, processed_position_data, prm):
     stop_locations = processed_position_data.stop_location_cm.values
     stop_locations = stop_locations[~np.isnan(stop_locations)] #need to deal with
-    bin_size_cm,number_of_bins, bins = get_bin_size(raw_position_data)
+    bin_size_cm, number_of_bins, bins = get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     stops_in_bins = np.zeros((len(range(int(number_of_bins)))))
+
     for loc in range(int(number_of_bins)-1):
         stops_in_bin = len(stop_locations[np.where(np.logical_and(stop_locations > (loc), stop_locations <= (loc+1)))])/number_of_trials
         stops_in_bins[loc] = stops_in_bin
@@ -219,10 +307,13 @@ def calculate_average_stops(raw_position_data,processed_position_data):
 
 def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
     processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm)
-    processed_position_data = calculate_average_stops(raw_position_data,processed_position_data)
+    #processed_position_data = calculate_average_stops(raw_position_data,processed_position_data, prm)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
     processed_position_data = find_rewarded_positions(raw_position_data,processed_position_data)
+
+    if prm.get_cue_conditioned_goal():
+        processed_position_data = find_first_stops_after_cue(processed_position_data)
     return processed_position_data
 
 
