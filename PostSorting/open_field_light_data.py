@@ -6,7 +6,7 @@ from scipy import stats
 import PostSorting.parameters
 
 import PostSorting.open_field_make_plots
-import PostSorting.SALT
+# import PostSorting.SALT
 
 ignore_opto = True
 
