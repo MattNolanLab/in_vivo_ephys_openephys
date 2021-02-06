@@ -50,7 +50,7 @@ def curate_data(spike_data_frame, prm):
     isolation_threshold = 0.9
     noise_overlap_threshold = 0.05
     peak_snr_threshold = 1
-    firing_rate_threshold = 0.5
+    firing_rate_threshold = 0.1
 
     isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
     low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
