@@ -47,14 +47,18 @@ else:
 #%% Remove bad channel and filter the recording
 logger.info('Filtering files') #TODO logging not show correctly
 Fs = 30000
-# recording = se.NumpyRecordingExtractor(signal[:,:Fs*180],setting.sampling_rate,geom)
+# recording = se.NumpyRecordingExtractor(signal[:,:Fs*60*5],setting.sampling_rate,geom)
 recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
 
 recording = recording.load_probe_file(sinput.probe_file) #load probe definition
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
-recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000, cache_chunks=True) #need to cache, otherwise the extracting waveform will take along time
+# if chunk_size is not specified, then it filter the signal in one chunk according to the start_frame and end_frame
+# CacheRecordingExtractor will break the recording into chunk_mb size
+# so the fastest way is not to specify the chunk_size in filtering, but let CacheRecordingExtractor 
+# determine the filter chunk size
+recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000) #need to cache, otherwise the extracting waveform will take along time
 recording = st.preprocessing.whiten(recording, seed=0) #must do whitening first, otherwise the waveforms used to calculate cluster metrics will be very noisy
-recording = se.CacheRecordingExtractor(recording, save_path=sinput.recording_to_sort+'/processed_data.dat') # cache recording for speedup
+recording = se.CacheRecordingExtractor(recording,verbose=True, chunk_mb=2000, save_path=sinput.recording_to_sort+'/processed_data.dat') # cache recording for speedup
 
 # tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
 
@@ -83,14 +87,18 @@ with open(soutput.sorter,'wb') as f:
 print('Calculating quality metrics...')
 
 start = time.time()
-quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
+%prun quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
     max_spikes_per_unit_for_snr = 200, memmap= False,
     max_spikes_for_nn = 1000,
+    max_spikes_per_unit_for_noise_overlap=500,
     n_jobs = 4,
     metric_names=['snr','isi_violation', 'd_prime','noise_overlap','nn_miss_rate','firing_rate'],
-  recompute_info=True)
+    recompute_info=True)
+
+# %prun -D prun_dump quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording, verbose=True, max_spikes_per_unit_for_noise_overlap=500, max_spikes_per_unit_for_snr = 200, memmap= False, max_spikes_for_nn = 1000, metric_names=['snr','isi_violation', 'd_prime','noise_overlap','nn_miss_rate','firing_rate'], recompute_info=True)
+
 print(f'Calculate quality metrics took {time.time()-start}')
- #need to compute metrics before getting the waveforms
+#need to compute metrics before getting the waveforms
     
 #%% compute some property of the sorting
 print('Computing sorting metrics...')
