@@ -63,6 +63,7 @@ for p in paths:
 
 
 def download_files(paths, dryrun=True):
+    # TODO: add feature to detect remote file has finished processing
     # download files from remote datastore
     remote_folders = []
 

@@ -87,7 +87,7 @@ with open(soutput.sorter,'wb') as f:
 print('Calculating quality metrics...')
 
 start = time.time()
-%prun quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
+quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
     max_spikes_per_unit_for_snr = 200, memmap= False,
     max_spikes_for_nn = 1000,
     max_spikes_per_unit_for_noise_overlap=500,
