@@ -26,6 +26,7 @@ parser.add_argument('--uploadresults','-u', action= 'store_true', default=False,
 parser.add_argument('--clean','-c', action= 'store_true', default=False, help='whether to delete local copy of recordings')
 parser.add_argument('--overwrite','-o', action= 'store_true', default=False, help='whether to overwrite the processed files')
 parser.add_argument('--batch_process','-b', action= 'store_true', default=False, help='whether to download all recordings first and process them together.')
+parser.add_argument('--force', action= 'store_true', default=False, help='whether to force rerun all analysis')
 
 
 def _logPath(path,names):
@@ -100,7 +101,8 @@ def upload_files(paths, local_recording_folder,dryrun=True):
                     shutil.copytree(Path(local_recording_folder) / p.name / result_folder, p/result_folder)
                     print(f'...done')
                 except FileExistsError:
-                    print('...folder already exist, skipping...')
+                    print('...folder already exist, skipping')
+             
         else:
             print('Snakemake does not seem to be complete properly. Skipping upload')
 
@@ -153,9 +155,47 @@ def process_recordings(args, config, expt_type, paths):
     if args.clean:
         clean_up(paths, local_recording_folder,args.dryrun)
 
+def filter_processed_recording(paths, isforce, will_upload, dryrun=True):
+    """
+    Check if the recordig is already processed. Remove remote processed folder if necessary
+    """
+
+    path2process = []
+    for p in paths:
+        if (p / 'processed' / 'snakemake.done').exists():
+            if not isforce:
+                answer = input(f'{p} has already been processed. Do you want to process it again? (y/n) ')
+                if answer =='y':
+                    if will_upload:
+                        answer2 = input('You have indicated you will upload the processed files. This will delete the remote processed folder. Are you sure? (y/n)')
+                        if answer2 == 'y':
+                            print('I will now remove remote processed folder')
+                            if not dryrun:
+                                shutil.rmtree(p/'processed')
+                            remote_path = p/'processed'
+                            print(f'...{remote_path} removed')
+                            path2process.append(p)
+                        else:
+                            print('I will skip this recording.')
+                else:
+                    print('I will skip this recording.')
+            else:
+                if (p/'processed').exists():
+                    if not dryrun:
+                        shutil.rmtree(p/'processed')
+                    remote_path = p/'processed'
+                    print(f'In forced mode, removed {remote_path}')
+                path2process.append(p)
+        else:
+            path2process(p)
+
+    return path2process
+
 for expt_type, paths_all in targets.items():
     print('#######################################################################')
     print(f'############### Running snakemake for file type: {expt_type} #################')
+
+    paths_all = filter_processed_recording(paths_all, args.force, args.uploadresults, args.dryrun)
 
     if args.batch_process:
         # download all files and process all at once (possibly faster but takes more space)
