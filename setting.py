@@ -15,8 +15,8 @@ downtime_lists_path = basefolder+'/to_sort/sort_downtime/'
 # Recording setting
 sampling_rate = 30000
 num_tetrodes = 4
-movement_ch_suffix = f'ADC2.continuous' #channel that contains the movement data
-opto_ch_suffix = f'ADC3.continuous'
+movement_ch_suffix = f'ADC2' #channel that contains the movement data
+opto_ch_suffix = f'ADC3'
 data_file_prefix = f'_CH' #prefix of data files
 data_file_suffix = '' 
 wave_form_size = 40 
@@ -39,8 +39,8 @@ location_ds_rate = 1000 #the sampleing frequency in Hz to downsample the locatio
 ##########
 # VR
 track_length = 200
-first_trial_channel_suffix = f'ADC4.continuous' #channel for the start of trial
-second_trial_channel_suffix = f'ADC5.continuous' #channel for the stp of trial
+first_trial_channel_suffix = f'ADC4' #channel for the start of trial
+second_trial_channel_suffix = f'ADC5' #channel for the stp of trial
 reward_start = 88 #position for the reward
 reward_end = 110 #position for the reward
 
@@ -53,7 +53,7 @@ session_type = 'vr'
 # open field
 opto_tagging_start_index = None
 pixel_ratio = 440
-sync_channel_suffix = 'ADC1.continuous' #channel for the sync pulse
+sync_channel_suffix = 'ADC1' #channel for the sync pulse
 bonsai_sampling_rate = 30
 
 ############

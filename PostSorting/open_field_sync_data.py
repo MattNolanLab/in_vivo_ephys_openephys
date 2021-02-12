@@ -8,19 +8,18 @@ import matplotlib.pylab as plt
 import OpenEphys
 import setting
 import glob
+from file_utility import load_openephys_file
 
 def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_channel_suffix ):
     is_found = False
     sync_data = None
     print('loading sync channel...')
 
-    file = glob.glob(recording_to_process + '/*'+ sync_channel)
-    assert len(file) == 1, f'Error: cannot find the exact file for sync data, possible candidates {file} '
-    file_path = file[0]
-    if os.path.exists(file_path):
-        sync_data = OpenEphys.loadContinuousFast(file_path)['data']
+    # file = glob.glob(recording_to_process + '/*'+ sync_channel)
+    try:
+        sync_data = load_openephys_file(recording_to_process + '/*'+ sync_channel)
         is_found = True
-    else:
+    except:
         print('Sync data was not found, I will check if Axona sync data is present and convert it if it is.')
         events_file = recording_to_process + '/all_channels.events'
         if os.path.exists(events_file):

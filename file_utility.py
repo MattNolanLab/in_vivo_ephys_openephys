@@ -14,8 +14,46 @@ def search4File(fname, expected_num_file=1):
     
     return file[0]
 
+def load_openephys_file(fname,search4match=True, auto_concat=True):
+    '''
+    Load an openephys file, taking into account the possible file split and different suffix e.g. ADC1_2 ADC1_3 etc.
+    '''
+    j = 2
+    x = None
+    try:
+        fn = search4File(fname+'.continuous') #search for the data file
+        x = OpenEphys.loadContinuousFast(fn)['data']
+    except FileNotFoundError:
+        # the default file name not found, see if it is saved as _2 or _3 etc 
+        while j<10:
+            try:
+                fn = search4File(fname+f'_{j}.continuous') #search for the data file
+                x = OpenEphys.loadContinuousFast(fn)['data']
+                j += 1
+                break
+            except:
+                j += 1
+        
+        if j >= 10:
+            raise FileNotFoundError(f'Error, cannot find the data files')
+        
+    if auto_concat:
+        while True:
+            # Also try to search for other files
+            try:
+                fn = search4File(fname+f'_{j}.continuous') #search for the data file
+                x2 = OpenEphys.loadContinuousFast(fn)['data']
+                print('Another data file found. Concatenating')
+                x = np.concatenate([x,x2])
+                j += 1
+            except FileNotFoundError:
+                break
 
-def load_OpenEphysRecording(folder, data_file_suffix = setting.data_file_suffix, auto_concat=True):
+    assert x is not None, f'{fname}'
+    return x
+
+
+def load_OpenEphysRecording(folder, auto_concat=True):
     '''
     auto_concat: automatically concat two consecutive recordings produced by openephys together e.g. 101_ADC1, 101_ADC1_2
     '''
@@ -24,21 +62,8 @@ def load_OpenEphysRecording(folder, data_file_suffix = setting.data_file_suffix,
     for i in range(setting.num_tetrodes*4):
         # Different open ephys setting may lead to different source id for the data file
         # so search for the data file instead of using hard-coded name
-        fname = search4File(folder+'/*_CH'+str(i+1)+data_file_suffix+'.continuous') #search for the data file
-        x = OpenEphys.loadContinuousFast(fname)['data']
 
-        if auto_concat:
-            j=2
-            while True:
-                # Also try to search for other files
-                try:
-                    fname = search4File(folder+'/*_CH'+str(i+1)+data_file_suffix+f'_{j}.continuous') #search for the data file
-                    x2 = OpenEphys.loadContinuousFast(fname)['data']
-                    print('Another data file found. Concatenating')
-                    x = np.concatenate([x,x2])
-                    j += 1
-                except FileNotFoundError:
-                    break
+        x = load_openephys_file(folder+'/*_CH'+str(i+1))
 
         if i==0:
             #preallocate array on first run

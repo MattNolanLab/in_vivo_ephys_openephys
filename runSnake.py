@@ -159,7 +159,7 @@ def filter_processed_recording(paths, isforce, will_upload, dryrun=True):
     """
     Check if the recordig is already processed. Remove remote processed folder if necessary
     """
-
+    # TODO: handle error when the remote has processed folder but no snakemake.done
     path2process = []
     for p in paths:
         if (p / 'processed' / 'snakemake.done').exists():
