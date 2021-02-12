@@ -187,7 +187,7 @@ def filter_processed_recording(paths, isforce, will_upload, dryrun=True):
                     print(f'In forced mode, removed {remote_path}')
                 path2process.append(p)
         else:
-            path2process(p)
+            path2process.append(p)
 
     return path2process
 
