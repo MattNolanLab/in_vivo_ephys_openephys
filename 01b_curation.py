@@ -39,7 +39,7 @@ and peak signal to noise ratio > 1 were accepted for further analysis.
 sorter_df = pd.read_pickle(sinput.sorter_df)
 print(f'Total cells before curation: {len(sorter_df)}')
 
-sorter_df['pass_curation'] = ((sorter_df['snr']>5) & 
+sorter_df['pass_curation'] = ((sorter_df['snr']>3) & 
     # (sorter_df['firing_rate'] > 0.5) &
     ((1-sorter_df['nn_miss_rate']) > 0.9) & # isolation is similar to 1-miss rate
     (sorter_df['noise_overlap'] <0.15) &
@@ -58,6 +58,8 @@ recording = se.load_extractor_from_pickle(sinput.recording_info)
 
 tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
 
-plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure)
+plot_waveforms(sorter_df, tetrodeNum, soutput.waveform_figure_all)
+plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure_curated)
+
 
 # %%
