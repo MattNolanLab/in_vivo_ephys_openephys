@@ -59,8 +59,22 @@ else:
 # Group the recordings according to their experiment type
 targets = defaultdict(list)
 for p in paths:
-    param = yaml.load(open(p / 'parameters.yaml','r'), Loader=yaml.FullLoader)
-    targets[param['expt_type']].append(p)
+    param = None
+
+    if (p / 'parameters.yaml').exists():
+        param = yaml.load(open(p / 'parameters.yaml','r'), Loader=yaml.FullLoader)
+    else:
+        # try searching for the parent directory
+        print('Parameter file not found in recording. Looking for it in the parent directory')
+        if (p.parent / 'parameters.yaml').exists():
+            param = yaml.load(open(p.parent / 'parameters.yaml','r'), Loader=yaml.FullLoader)
+            print('Paramter file found in parent directory. I will use it now')
+    
+    if param is not None:
+        targets[param['expt_type']].append(p)
+    else:
+        raise FileNotFoundError('Parameter file not found')
+
 
 
 def download_files(paths, dryrun=True):
