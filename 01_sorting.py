@@ -15,6 +15,8 @@ import spikeinterface.sorters as sorters
 import spikeinterface.toolkit as st
 import spikeinterface.widgets as sw
 from tqdm import tqdm
+import yaml
+
 
 import file_utility
 import Logger
@@ -22,8 +24,9 @@ import setting
 import SnakeIOHelper
 import spikeinterfaceHelper
 from PostSorting.make_plots import plot_waveforms
-from PreClustering.pre_process_ephys_data import filterRecording
+from PreClustering.pre_process_ephys_data import filterRecording, get_sorting_range
 import time 
+
 
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
@@ -48,7 +51,9 @@ else:
 logger.info('Filtering files') #TODO logging not show correctly
 Fs = 30000
 # recording = se.NumpyRecordingExtractor(signal[:,:Fs*60*5],setting.sampling_rate,geom)
-recording = se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
+
+start,end = get_sorting_range(signal.shape[1], Path(sinput.recording_to_sort) / 'parameter.yaml' )
+recording = se.NumpyRecordingExtractor(signal[:,start:end],setting.sampling_rate,geom)
 
 recording = recording.load_probe_file(sinput.probe_file) #load probe definition
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
