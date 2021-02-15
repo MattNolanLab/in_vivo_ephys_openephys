@@ -1,10 +1,10 @@
 import pandas as pd
+import setting
 
-
-def calculate_corresponding_indices(spike_data, spatial_data):
+def calculate_corresponding_indices(spike_data, spatial_data, Fs=setting.sampling_rate):
     # find the corresponding bonsai data index of each spike
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
-    avg_sampling_rate_open_ephys = 30000  # Hz
+    avg_sampling_rate_open_ephys = Fs  # Hz
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
     spike_data['bonsai_indices'] = spike_data.firing_times/sampling_rate_rate
     return spike_data
