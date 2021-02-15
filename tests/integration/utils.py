@@ -65,6 +65,11 @@ def set_up(raw_output_path: str, raw_base_sorting_path: str, data_url: str, data
         'SINGLE_RUN': 'true',
         'HEATMAP_CONCURRENCY': '1',
     }
+    
+    # After processing, the result files will be uploaded to a local folder specified by $(SERVER_PATH_FIRST_HALF)
+    # contents of the output will be copied to a artifacts folder, which will then be zipped by github action and uploaded
+    # potential interception point: mount the output folder to local folder, then do check on it
+    # the test should be able to run locally as well as through github action
 
     try:
         subprocess.check_call('bash -lc "conda activate env && python3 control_sorting_analysis.py"', env=env,
