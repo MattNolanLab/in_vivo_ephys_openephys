@@ -167,7 +167,7 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, lfp_da
     spatial_firing = PostSorting.open_field_border_cells.process_corner_data(spatial_firing)
     spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, prm)
     if opto_analysis:
-        spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=False)
+        spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=True)
         PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
     spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm,
