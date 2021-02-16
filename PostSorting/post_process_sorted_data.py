@@ -99,7 +99,6 @@ def sync_data(recording_to_process, prm, spatial_data):
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm):
     PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
-    PostSorting.make_plots.plot_waveforms_opto(spatial_firing, prm)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     PostSorting.make_plots.plot_speed_vs_firing_rate(position_data, spatial_firing, prm.get_sampling_rate(), 250, prm)
@@ -113,6 +112,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
     PostSorting.make_opto_plots.make_optogenetics_plots(prm)
+    PostSorting.make_opto_plots.plot_waveforms_opto(spatial_firing, prm)
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
     
 
