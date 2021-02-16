@@ -208,29 +208,6 @@ def plot_waveforms(spike_data, prm):
         plt.close()
 
 
-def plot_waveforms_opto(spike_data, prm):
-    if 'random_snippets_opto' in spike_data:
-        print('I will plot the waveform shapes for each cluster for opto_tagging data.')
-        save_path = prm.get_output_path() + '/Figures/opto_tagging'
-        if os.path.exists(save_path) is False:
-            os.makedirs(save_path)
-
-        for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
-            cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
-
-            max_channel = cluster_df['primary_channel'].iloc[0]
-            highest_value = np.max(cluster_df['random_snippets_opto'].iloc[0][max_channel-1, :, :] * -1)
-            lowest_value = np.min(cluster_df['random_snippets_opto'].iloc[0][max_channel-1, :, :] * -1)
-            fig = plt.figure(figsize=(5, 5))
-            grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
-            for channel in range(4):
-                plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster_id, channel, 'random_snippets_opto')
-
-            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
-            # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.pdf', bbox_inches='tight', pad_inches=0)
-            plt.close()
-
-
 '''
 Calculate median, 25th and 75th percentile of firing rate (y) at given speed (x) values. Speed is binned into 6 cm/s 
 overlapping bins with a 2 cm/s step size.
