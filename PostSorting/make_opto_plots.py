@@ -95,8 +95,8 @@ def plot_waveforms_opto(spike_data, prm):
             cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
 
             max_channel = cluster_df['primary_channel'].iloc[0]
-            highest_value = np.max(cluster_df['random_snippets_opto'].iloc[0][max_channel-1, :, :] * -1)
-            lowest_value = np.min(cluster_df['random_snippets_opto'].iloc[0][max_channel-1, :, :] * -1)
+            highest_value = np.max(cluster_df['opto_snippets'].iloc[0][max_channel-1, :, :] * -1)
+            lowest_value = np.min(cluster_df['opto_snippets'].iloc[0][max_channel-1, :, :] * -1)
             fig = plt.figure(figsize=(5, 5))
             grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
             for channel in range(4):
