@@ -8,7 +8,7 @@ import PostSorting.parameters
 import PostSorting.open_field_make_plots
 # import PostSorting.SALT
 
-ignore_opto = True
+ignore_opto = False  # one cannot simply ignore the opto
 
 def load_opto_data(recording_to_process, prm):
     is_found = False
@@ -45,9 +45,6 @@ def process_opto_data(recording_to_process, prm):
             prm.set_opto_tagging_start_index(first_opto_pulse_index)
 
     else:
-        prm.set_opto_tagging_start_index(None)
-
-    if ignore_opto:
         prm.set_opto_tagging_start_index(None)
 
     return opto_on, opto_off, is_found
