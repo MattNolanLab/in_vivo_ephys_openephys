@@ -105,13 +105,16 @@ def plot_waveforms_opto(spike_data, prm, snippets_column_name='random_snippets_o
             plt.close()
 
 
-def make_optogenetics_plots(prm):
+def make_optogenetics_plots(spatial_firing, prm):
     peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
     if os.path.exists(peristimulus_spikes_path):
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         output_path = prm.get_output_path()
         plot_peristimulus_raster(peristimulus_spikes, output_path)
         plot_peristimulus_histogram(peristimulus_spikes, output_path)
+        plot_waveforms_opto(spatial_firing, prm, snippets_column_name='random_snippets_opto')
+        plot_waveforms_opto(spatial_firing, prm, snippets_column_name='first_spike_snippets_opto')
+
 
 
 def main():
