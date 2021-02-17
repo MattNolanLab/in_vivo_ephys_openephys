@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 import PostSorting.parameters
+import PostSorting.load_snippet_data_opto
 
 import PostSorting.open_field_make_plots
 # import PostSorting.SALT
 
 ignore_opto = False  # one cannot simply ignore the opto
+
 
 def load_opto_data(recording_to_process, prm):
     is_found = False
@@ -130,14 +132,21 @@ def create_baseline_and_test_epochs(peristimulus_spikes):
     pass
 
 
+def add_first_spike_times_after_stimulation(spatial_firing, on_pulses):
+    # todo: identify first spike firing times and make column ('spike_times_after_opto')
+    return spatial_firing
+
+
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     print('I will process opto data.')
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, prm)
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm)
+    #spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses)
+    #spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
     # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
     # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
-
+    return spatial_firing
 
 
 def main():
