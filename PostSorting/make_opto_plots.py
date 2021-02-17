@@ -84,8 +84,8 @@ def plot_peristimulus_histogram(peristimulus_spikes: pd.DataFrame, output_path: 
         plt.close()
 
 
-def plot_waveforms_opto(spike_data, prm):
-    if 'random_snippets_opto' in spike_data:
+def plot_waveforms_opto(spike_data, prm, snippets_column_name='random_snippets_opto'):
+    if snippets_column_name in spike_data:
         print('I will plot the waveform shapes for each cluster for opto_tagging data.')
         save_path = prm.get_output_path() + '/Figures/opto_stimulation'
         if os.path.exists(save_path) is False:
@@ -98,9 +98,9 @@ def plot_waveforms_opto(spike_data, prm):
             fig = plt.figure(figsize=(5, 5))
             grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
             for channel in range(4):
-                PostSorting.make_plots.plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, 'random_snippets_opto')
+                PostSorting.make_plots.plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippets_column_name)
 
-            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms_opto.png', dpi=300, bbox_inches='tight', pad_inches=0)
+            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + snippets_column_name + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
             # plt.savefig(save_path + '/' + spike_data.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms_opto.pdf', bbox_inches='tight', pad_inches=0)
             plt.close()
 

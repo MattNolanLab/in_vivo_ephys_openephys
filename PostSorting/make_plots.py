@@ -172,7 +172,7 @@ def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, clust
     plt.xticks([0, 10, 30], [-10, 0, 20])
 
 
-def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippet_column_name):
+def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippet_column_name, mean_color='red'):
     cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
 
     max_channel = cluster_df['primary_channel'].iloc[0]
@@ -183,7 +183,7 @@ def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snip
     plt.ylim(lowest_value - 10, highest_value + 30)
     plot_utility.style_plot(snippet_plot)
     snippet_plot.plot(cluster_df[snippet_column_name].iloc[0][channel, :, :] * -1, color='lightslategray')
-    snippet_plot.plot(np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1, color='red')
+    snippet_plot.plot(np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1, color=mean_color)
     plt.xticks([0, 30], [0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
