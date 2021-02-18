@@ -137,9 +137,41 @@ def create_baseline_and_test_epochs(peristimulus_spikes):
     pass
 
 
-def add_first_spike_times_after_stimulation(spatial_firing, on_pulses):
-    # todo: identify first spike firing times and make column ('spike_times_after_opto')
+def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, sampling_rate=30000):
+    # Identifies first spike firing times and latencies and makes columns ('spike_times_after_opto' and 'latencies')
     print('I will find the first spikes after the light for each opto stimulation pulse.')
+    first_spikes_times = []
+    latencies = []
+    for cluster_index, cluster in spatial_firing.iterrows():
+        firing_times = cluster.firing_times_opto
+        first_spikes_times_cell = []
+        latencies_cell = []
+        for pulse in on_pulses:
+            first_spike_after_pulse = firing_times[firing_times > pulse][0]
+            latency = first_spike_after_pulse - pulse
+            if latency > sampling_rate / 100:
+                latency = np.nan  # the spike is more than 10 ms after the pulse
+            first_spikes_times_cell.append(first_spike_after_pulse)
+            latencies_cell.append(latency)
+        first_spikes_times.append(first_spikes_times_cell)
+        latencies.append(latencies_cell)
+    spatial_firing['spike_times_after_opto'] = first_spikes_times
+    spatial_firing['opto_latencies'] = latencies
+    return spatial_firing
+
+
+def analyse_latencies(spatial_firing, prm):
+    sampling_rate = prm.get_sampling_rate()
+    latencies_mean_ms = []
+    latencies_sd_ms = []
+
+    for cluster_index, cluster in spatial_firing.iterrows():
+        mean = np.nanmean(cluster.opto_latencies) / sampling_rate * 1000
+        sd = np.nanstd(cluster.opto_latencies) / sampling_rate * 1000
+        latencies_mean_ms.append(mean)
+        latencies_sd_ms.append(sd)
+    spatial_firing['opto_latencies_mean_ms'] = latencies_mean_ms
+    spatial_firing['opto_latencies_sd_ms'] = latencies_sd_ms
     return spatial_firing
 
 
@@ -148,6 +180,7 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, prm)
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm)
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses)
+    spatial_firing = analyse_latencies(spatial_firing, prm)
     #spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
     # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
