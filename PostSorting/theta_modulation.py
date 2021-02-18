@@ -300,9 +300,9 @@ def calculate_theta_index(spike_data,prm):
             theta_powers.append(t_power)
             boccara_thetas.append(boccara_theta)
 
-            print("t_index = "+str(t_index))
-            print("theta_powers = "+str(t_power))
-            print("boccara_thetas = "+str(boccara_theta))
+            #print("t_index = "+str(t_index))
+            #print("theta_powers = "+str(t_power))
+            #print("boccara_thetas = "+str(boccara_theta))
 
             firing_times_cluster = cluster_data.firing_times
             corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 600)
