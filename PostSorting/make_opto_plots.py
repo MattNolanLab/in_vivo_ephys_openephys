@@ -47,8 +47,16 @@ def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str
         # plt.plot((cluster_rows.astype(int)).sum().rolling(100).sum())
 
 
-def plot_peristimulus_histogram(peristimulus_spikes: pd.DataFrame, output_path: str):
+def get_latencies_for_cluster(spatial_firing, cluster_id):
+    cluster = spatial_firing[spatial_firing.cluster_id == int(cluster_id)]
+    latencies_mean = np.round(cluster.opto_latencies_mean_ms, 2)
+    latencies_sd = np.round(cluster.opto_latencies_sd_ms, 2)
+    return latencies_mean, latencies_sd
+
+
+def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spikes: pd.DataFrame, output_path: str):
     """
+    :param spatial_firing: Data frame with firing data for each cluster
     :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
     :param output_path: fist half of the path where the plot is saved
     the first two columns the session and cluster ids respectively and the rest of the columns correspond to
@@ -71,6 +79,7 @@ def plot_peristimulus_histogram(peristimulus_spikes: pd.DataFrame, output_path: 
         number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
         stimulation_start = cluster_rows.shape[1] / 2 - 45  # todo remove magic number
         stimulation_end = cluster_rows.shape[1] / 2 + 45
+        latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
         ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5, color='lightblue')
         # ax.plot(number_of_spikes_per_sampling_point, color='gray', alpha=0.5)
         # convert to indices so we can make histogram
@@ -80,6 +89,7 @@ def plot_peristimulus_histogram(peristimulus_spikes: pd.DataFrame, output_path: 
         plt.ylabel('Number of spikes', fontsize=16)
         #plt.ylim(0, np.max(number_of_spikes_per_sampling_point) + 2)
         plt.xlim(0, len(number_of_spikes_per_sampling_point))
+        plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd))
         plt.savefig(save_path + '/' + cluster + '_peristimulus_histogram.png', dpi=300)
         plt.close()
 
@@ -111,7 +121,7 @@ def make_optogenetics_plots(spatial_firing, prm):
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         output_path = prm.get_output_path()
         plot_peristimulus_raster(peristimulus_spikes, output_path)
-        plot_peristimulus_histogram(peristimulus_spikes, output_path)
+        plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path)
         plot_waveforms_opto(spatial_firing, prm, snippets_column_name='random_snippets_opto')
         plot_waveforms_opto(spatial_firing, prm, snippets_column_name='first_spike_snippets_opto')
 
