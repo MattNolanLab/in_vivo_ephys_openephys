@@ -6,8 +6,8 @@ import matplotlib.pylab as plt
 import PostSorting.load_snippet_data
 
 
-def get_opto_snippets(firing_data, prm, random_snippets=True):
-    if 'opto_snippets' in firing_data:
+def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snippets_opto', firing_times_column='firing_times_opto'):
+    if column_name in firing_data:
         return firing_data
     print('I will get some random snippets from the opto-tagging part now for each cluster.')
     file_path = prm.get_local_recording_folder_path()
@@ -23,7 +23,7 @@ def get_opto_snippets(firing_data, prm, random_snippets=True):
 
         for cluster, cluster_id in enumerate(firing_data.cluster_id):
             tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
-            firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id].firing_times_opto)[0]
+            firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id][firing_times_column])[0]
 
             if random_snippets is True:
                 snippets = PostSorting.load_snippet_data.extract_random_snippets(filtered_data, firing_times, tetrode, 50, prm)
@@ -32,8 +32,9 @@ def get_opto_snippets(firing_data, prm, random_snippets=True):
             snippets_all_clusters.append(snippets)
 
     if random_snippets is True:
-        firing_data['random_snippets_opto'] = snippets_all_clusters
+        random_column_name = 'random_' + column_name
+        firing_data[random_column_name] = snippets_all_clusters
     else:
-        firing_data['opto_snippets'] = snippets_all_clusters
+        firing_data[column_name] = snippets_all_clusters
     # plt.plot(firing_data.random_snippets[4][3,:,:])
     return firing_data
