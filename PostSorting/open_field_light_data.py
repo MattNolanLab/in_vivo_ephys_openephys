@@ -111,6 +111,11 @@ def get_peristumulus_opto_data(window_size_ms, prm):
 
 
 def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm):
+    peristimulus_spikes = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
+    if os.path.exists(peristimulus_spikes):
+        peristimulus_spikes = pd.read_pickle(peristimulus_spikes)
+        return peristimulus_spikes
+
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
     peristimulus_spikes = pd.DataFrame(columns=columns)
 
@@ -124,7 +129,7 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, p
             spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
             df_to_append = make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary, window_size_sampling_rate)
             peristimulus_spikes = peristimulus_spikes.append(df_to_append)
-    peristimulus_spikes.to_pickle(prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl')
+    peristimulus_spikes.to_pickle(peristimulus_spikes)
     return peristimulus_spikes
 
 
@@ -134,6 +139,7 @@ def create_baseline_and_test_epochs(peristimulus_spikes):
 
 def add_first_spike_times_after_stimulation(spatial_firing, on_pulses):
     # todo: identify first spike firing times and make column ('spike_times_after_opto')
+    print('I will find the first spikes after the light for each opto stimulation pulse.')
     return spatial_firing
 
 
@@ -141,17 +147,19 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     print('I will process opto data.')
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, prm)
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm)
-    #spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses)
+    spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses)
     #spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
     # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
     # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
+
     return spatial_firing
 
 
 def main():
     # recording_folder = '/Users/briannavandrey/Documents/recordings'
-    recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
+    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of'
+    # C:\Users\s1466507\Documents\Work\opto\M2_2021-02-17_18-07-42_of\MountainSort\DataFrames
     prm = PostSorting.parameters.Parameters()
     prm.set_output_path(recording_folder + '/MountainSort')
     prm.set_sampling_rate(30000)
