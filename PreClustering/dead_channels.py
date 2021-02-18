@@ -17,6 +17,7 @@ def get_dead_channel_ids(prm):
             print('These channels are dead and will be removed: ' + str(dead_channels))
 
     else:
+        prm.set_dead_channels([])
         print('There are no dead channels in this recording, or dead_channels.txt is missing.')
 
 
