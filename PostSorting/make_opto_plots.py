@@ -51,7 +51,10 @@ def get_latencies_for_cluster(spatial_firing, cluster_id):
     cluster = spatial_firing[spatial_firing.cluster_id == int(cluster_id)]
     latencies_mean = np.round(cluster.opto_latencies_mean_ms, 2)
     latencies_sd = np.round(cluster.opto_latencies_sd_ms, 2)
-    return pd.to_numeric(latencies_mean).iloc[0], pd.to_numeric(latencies_sd).iloc[0]
+    if len(latencies_mean) > 0:
+        return pd.to_numeric(latencies_mean).iloc[0], pd.to_numeric(latencies_sd).iloc[0]
+    else:
+        return pd.to_numeric(latencies_mean), pd.to_numeric(latencies_sd)
 
 
 def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spikes: pd.DataFrame, output_path: str):
