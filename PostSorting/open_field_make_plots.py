@@ -23,14 +23,16 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
     save_path = prm.get_output_path() + '/Figures/firing_scatters'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster_id in range(len(spike_data)):
-        cluster_id = spike_data.cluster_id.values[cluster_id] - 1
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+
         spikes_on_track = plt.figure()
         spikes_on_track.set_size_inches(5, 5, forward=True)
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
         ax.plot(position_data['position_x'], position_data['position_y'], color='black', linewidth=2, zorder=1, alpha=0.7)
-        ax.scatter(spike_data.position_x[cluster_id], spike_data.position_y[cluster_id], color='red', marker='o', s=10, zorder=2)
+        ax.scatter(cluster_df['position_x'].iloc[0], cluster_df['position_y'].iloc[0], color='red', marker='o', s=10, zorder=2)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_visible(False)
@@ -46,7 +48,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, prm):
             labelbottom=False)  # labels along the bottom edge are off
         ax.set_aspect('equal')
         plt.title('Spikes on trajectory', y=1.08, fontsize=24)
-        plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spikes_on_trajectory.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spike_data.session_id[cluster_id] + '_' + str(cluster_id + 1) + '_spikes_on_trajectory.pdf', bbox_inches='tight')
         plt.close()
 
@@ -74,9 +76,10 @@ def plot_firing_rate_maps(spatial_firing, prm):
     save_path = prm.get_output_path() + '/Figures/rate_maps'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        firing_rate_map_original = spatial_firing.firing_maps[cluster]
+
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        firing_rate_map_original = cluster_df['firing_maps'].iloc[0]
         firing_rate_map = np.rot90(firing_rate_map_original)
         firing_rate_map_fig = plt.figure()
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
@@ -84,8 +87,10 @@ def plot_firing_rate_maps(spatial_firing, prm):
         ax = plot_utility.style_open_field_plot(ax)
         rate_map_img = ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         firing_rate_map_fig.colorbar(rate_map_img)
-        plt.title('Firing rate map \n max fr: ' + str(round(spatial_firing.max_firing_rate[cluster], 2)) + ' Hz', y=1.08, fontsize=24)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png', dpi=300)
+        plt.title('Firing rate map \n max fr: ' + str(round(cluster_df['max_firing_rate'].iloc[0], 2)) +
+                  ' Hz \n HS r: ' + str(round(cluster_df['rate_map_correlation_first_vs_second_half'].iloc[0], 2)) +
+                  ', % bins: ' + str(100-round(cluster_df['percent_excluded_bins_rate_map_correlation_first_vs_second_half_p'].iloc[0], 2)), y=1.08, fontsize=15)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_rate_map_' + str(cluster_id) + '.png', dpi=300)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.pdf')
         plt.close()
 
@@ -95,11 +100,11 @@ def plot_hd(spatial_firing, position_data, prm):
     save_path = prm.get_output_path() + '/Figures/head_direction_plots_2d'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        x_positions = spatial_firing.position_x[cluster]
-        y_positions = spatial_firing.position_y[cluster]
-        hd = spatial_firing.hd[cluster]
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        x_positions = cluster_df['position_x'].iloc[0]
+        y_positions = cluster_df['position_y'].iloc[0]
+        hd = cluster_df['hd'].iloc[0]
         hd_map_fig = plt.figure()
         hd_map_fig.set_size_inches(5, 5, forward=True)
         ax = hd_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
@@ -109,7 +114,7 @@ def plot_hd(spatial_firing, position_data, prm):
         hd_plot = ax.scatter(x_positions, y_positions, s=20, c=hd, vmin=-180, vmax=180, marker='o', cmap=cmocean.cm.phase)
         plt.colorbar(hd_plot, fraction=0.046, pad=0.04)
         plt.title('Head direction at spikes', y=1.08, fontsize=24)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_hd_map_' + str(cluster_id) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.pdf', bbox_inches='tight', pad_inches=0)
         plt.close()
 
@@ -119,12 +124,12 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
     save_path = prm.get_output_path() + '/Figures/head_direction_plots_polar'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
         hd_polar_fig = plt.figure()
         hd_polar_fig.set_size_inches(5, 5, forward=True)
         ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        hd_hist_cluster = spatial_firing.hd_spike_histogram[cluster]
+        hd_hist_cluster = cluster_df['hd_spike_histogram'].iloc[0]
         theta = np.linspace(0, 2*np.pi, 361)  # x axis
         ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
@@ -132,8 +137,8 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, prm):
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
         plt.tight_layout()
         #  + '\nKuiper p: ' + str(spatial_firing.hd_p[cluster])
-        plt.title('Head direction \n max fr: ' + str(round(spatial_firing.max_firing_rate_hd[cluster], 2)) + ' Hz' + ', hd score: ' + str(round(spatial_firing.hd_score[cluster], 2)) + '\n', y=1.08, fontsize=24)
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+        plt.title('Head direction \n max fr: ' + str(round(cluster_df['max_firing_rate_hd'].iloc[0], 2)) + ' Hz' + ', hd score: ' + str(round(cluster_df['hd_score'].iloc[0], 2)) + '\n', y=1.08, fontsize=24)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_hd_polar_' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
 
@@ -178,20 +183,22 @@ def plot_rate_map_autocorrelogram(spatial_firing, prm):
     save_path = prm.get_output_path() + '/Figures/rate_map_autocorrelogram'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
         rate_map_autocorr_fig = plt.figure()
         rate_map_autocorr_fig.set_size_inches(5, 5, forward=True)
         ax = rate_map_autocorr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        rate_map_autocorr = spatial_firing.rate_map_autocorrelogram[cluster]
+        rate_map_autocorr = cluster_df['rate_map_autocorrelogram'].iloc[0]
         if rate_map_autocorr.size:
             ax = plt.subplot(1, 1, 1)
             ax = plot_utility.style_open_field_plot(ax)
             autocorr_img = ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
             rate_map_autocorr_fig.colorbar(autocorr_img)
             plt.tight_layout()
-            plt.title('Autocorrelogram \n grid score: ' + str(round(spatial_firing.grid_score[cluster], 2)), fontsize=24)
-            plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+            plt.title('Autocorrelogram \n grid score: ' + str(round(cluster_df['grid_score'].iloc[0], 2)), fontsize=24)
+            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_rate_map_autocorrelogram_' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
             # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.pdf', bbox_inches="tight")
         plt.close()
 
@@ -212,7 +219,9 @@ def generate_colors(number_of_firing_fields):
     return colors
 
 
-def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, name):
+def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster_id, spatial_firing, colors, field_id, name):
+    cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
     field_polar = plt.figure()
     field_polar.set_size_inches(5, 5, forward=True)
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
@@ -223,16 +232,16 @@ def save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, 
     hd_plot_field.plot(theta[:-1], hd_hist_cluster, color=colors[field_id], linewidth=2)
     plt.tight_layout()
     if 'field_max_firing_rate' in spatial_firing:
-        field_max_firing_rate = str(round(spatial_firing.field_max_firing_rate[cluster][field_id], 2))
+        field_max_firing_rate = str(round(cluster_df['field_max_firing_rate'].iloc[0][field_id], 2))
     else:
         field_max_firing_rate = '?'
 
-    plt.title(str(spatial_firing.number_of_spikes_in_fields[cluster][field_id]) + ' spikes'
-              + ' in ' + str(round(spatial_firing.time_spent_in_fields_sampling_points[cluster][field_id]/30, 2))
+    plt.title(str(cluster_df['number_of_spikes_in_fields'].iloc[0][field_id]) + ' spikes'
+              + ' in ' + str(round(cluster_df['time_spent_in_fields_sampling_points'].iloc[0][field_id]/30, 2))
               +' seconds\n max fr: ' + field_max_firing_rate + 'Hz \n',
               y=1.08, fontsize=24)
 
-    plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
+    plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_cluster_' + str(cluster_id) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + name + str(field_id + 1) + '.pdf', bbox_inches="tight")
     plt.close()
 
@@ -242,11 +251,14 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
     save_path = prm.get_output_path() + '/Figures/firing_field_plots'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
-            firing_rate_map = spatial_firing.firing_maps[cluster]
+    #for cluster in range(len(spatial_firing)):
+
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+        if 'firing_fields' in cluster_df:
+            number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
+            firing_rate_map = cluster_df['firing_maps'].iloc[0]
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
@@ -257,42 +269,45 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 firing_rate_map_90 = np.rot90(firing_rate_map)
                 of_plot.imshow(firing_rate_map_90)
 
-                firing_fields_cluster = spatial_firing.firing_fields[cluster]
+                firing_fields_cluster = spatial_firing['firing_fields'].iloc[0]
                 colors = generate_colors(number_of_firing_fields)
 
                 for field_id, field in enumerate(firing_fields_cluster):
                     of_plot = mark_firing_field_with_scatter(field, of_plot, colors, field_id, firing_rate_map_90)
-                    hd_hist_session = spatial_firing.firing_fields_hd_session[cluster][field_id]
+                    hd_hist_session = cluster_df['firing_fields_hd_session'].iloc[0][field_id]
                     hd_hist_session = np.array(hd_hist_session) / prm.get_sampling_rate()
-                    hd_hist_cluster = np.array(spatial_firing.firing_fields_hd_cluster[cluster][field_id])
+                    hd_hist_cluster = np.array(cluster_df['firing_fields_hd_cluster'].iloc[0][field_id])
                     hd_hist_cluster_normalized = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
-                    save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster_normalized, cluster, spatial_firing, colors, field_id, '_firing_field_')
-                    save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster, spatial_firing, colors, field_id, '_firing_field_raw')
+                    save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster_normalized, cluster_id, spatial_firing, colors, field_id, '_firing_field_')
+                    save_field_polar_plot(save_path, hd_hist_session, hd_hist_cluster, cluster_id, spatial_firing, colors, field_id, '_firing_field_raw')
 
-                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_firing_fields_rate_map' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
                 # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
 
-def plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot):
-    all_spikes_in_fields = np.hstack(np.array(spatial_firing.spike_times_in_fields[cluster]))
-    mask_for_spikes_not_in_fields = ~np.in1d(spatial_firing.firing_times[cluster], all_spikes_in_fields)
+def plot_spikes_not_in_fields(spatial_firing, cluster_id, spatial_firing_cluster, of_plot):
+    cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+    all_spikes_in_fields = np.hstack(np.array(cluster_df['spike_times_in_fields'].iloc[0]))
+    mask_for_spikes_not_in_fields = ~np.in1d(cluster_df['firing_times'].iloc[0], all_spikes_in_fields)
     try:
-        spike_times_not_in_fields = spatial_firing.firing_times[cluster][mask_for_spikes_not_in_fields]
+        spike_times_not_in_fields = cluster_df['firing_times'].iloc[0][mask_for_spikes_not_in_fields]
     except:
-        spike_times_not_in_fields = np.array(spatial_firing.firing_times[cluster])[mask_for_spikes_not_in_fields]
+        spike_times_not_in_fields = np.array(cluster_df['firing_times'].iloc[0])[mask_for_spikes_not_in_fields]
     not_in_fields_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_not_in_fields)]
     of_plot.scatter(not_in_fields_df['x'].values, not_in_fields_df['y'].values, color='black', marker='o', s=6)
 
 
-def make_df_for_cluster(spatial_firing, cluster):
-    cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
-    spatial_firing_cluster = pd.DataFrame(cluster_id)
-    spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
-    spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
-    spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
-    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
+def make_df_for_cluster(spatial_firing, cluster_id):
+    cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+    cluster_length = np.arange(len(cluster_df['firing_times'].iloc[0]))
+    spatial_firing_cluster = pd.DataFrame(cluster_length)
+    spatial_firing_cluster['x'] = cluster_df['position_x_pixels'].iloc[0]
+    spatial_firing_cluster['y'] = cluster_df['position_y_pixels'].iloc[0]
+    spatial_firing_cluster['hd'] = cluster_df['hd'].iloc[0]
+    spatial_firing_cluster['firing_times'] = cluster_df['firing_times'].iloc[0]
     return spatial_firing_cluster
 
 '''
@@ -307,10 +322,10 @@ def plot_spikes_on_firing_fields(spatial_firing, prm):
     save_path = prm.get_output_path() + '/Figures/firing_fields_coloured_spikes'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        if 'firing_fields' in cluster_df:
+            number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
             if number_of_firing_fields > 0:
                 plt.clf()
                 of_figure = plt.figure()
@@ -318,17 +333,17 @@ def plot_spikes_on_firing_fields(spatial_firing, prm):
                 of_figure.set_size_inches(5, 5, forward=True)
                 of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
-                firing_fields_cluster = spatial_firing.firing_fields[cluster]
+                firing_fields_cluster = cluster_df['firing_fields'].iloc[0]
                 colors = generate_colors(number_of_firing_fields)
-                spatial_firing_cluster = make_df_for_cluster(spatial_firing, cluster)
+                spatial_firing_cluster = make_df_for_cluster(spatial_firing, cluster_id)
 
                 for field_id, field in enumerate(firing_fields_cluster):
-                    spike_times_field = spatial_firing.spike_times_in_fields[cluster][field_id]
+                    spike_times_field = cluster_df['spike_times_in_fields'].iloc[0][field_id]
                     field_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_field)]
                     of_plot.scatter(field_df['x'].values, field_df['y'].values, color=colors[field_id], marker='o', s=10)
-                plot_spikes_not_in_fields(spatial_firing, cluster, spatial_firing_cluster, of_plot)
+                plot_spikes_not_in_fields(spatial_firing, cluster_id, spatial_firing_cluster, of_plot)
 
-                plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png', dpi=300, bbox_inches="tight")
+                plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_firing_fields_coloured_spikes' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
                 # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
@@ -340,25 +355,27 @@ def make_combined_figure(prm, spatial_firing):
         os.makedirs(save_path)
     plt.close('all')
     figures_path = prm.get_output_path() + '/Figures/'
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
         coverage_path = figures_path + 'session/heatmap.png'
-        spike_scatter_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spikes_on_trajectory.png'
-        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png'
-        head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png'
-        head_direction_map_path = figures_path + 'head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png'
-        firing_fields_rate_map_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png'
-        spike_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.png'
-        speed_histogram_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_histogram.png'
-        firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
-        autocorrelograms = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_autocorrelograms.png'
-        waveforms_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_waveforms.png'
-        rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + spatial_firing.session_id[cluster] + '_rate_map_autocorrelogram_' + str(cluster + 1) + '.png'
-        speed_vs_firing_rate_path = figures_path + 'firing_properties/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_speed_vs_firing_rate.png'
+        spike_scatter_path = figures_path + 'firing_scatters/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spikes_on_trajectory.png'
+        rate_map_path = figures_path + 'rate_maps/' + cluster_df['session_id'].iloc[0] + '_rate_map_' + str(cluster_id) + '.png'
+        head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + cluster_df['session_id'].iloc[0] + '_hd_polar_' + str(cluster_id) + '.png'
+        head_direction_map_path = figures_path + 'head_direction_plots_2d/' + cluster_df['session_id'].iloc[0] + '_hd_map_' + str(cluster_id) + '.png'
+        firing_fields_rate_map_path = figures_path + 'firing_field_plots/' + cluster_df['session_id'].iloc[0] + '_firing_fields_rate_map' + str(cluster_id) + '.png'
+        spike_histogram_path = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spike_histogram.png'
+        speed_histogram_path = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_speed_histogram.png'
+        firing_field_path = figures_path + 'firing_field_plots/' + cluster_df['session_id'].iloc[0] + '_cluster_' + str(cluster_id) + '_firing_field_'
+        autocorrelograms = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_autocorrelograms.png'
+        waveforms_path = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png'
+        rate_map_autocorrelogram_path = figures_path + 'rate_map_autocorrelogram/' + cluster_df['session_id'].iloc[0] + '_rate_map_autocorrelogram_' + str(cluster_id) + '.png'
+        speed_vs_firing_rate_path = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_speed_vs_firing_rate.png'
 
         number_of_firing_fields = 0
         if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+            number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
         number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
 
         grid = plt.GridSpec(number_of_rows, 5, wspace=0.025, hspace=0.05)
@@ -419,14 +436,15 @@ def make_combined_figure(prm, spatial_firing):
             firing_fields_plot.imshow(firing_fields)
         for field in range(number_of_firing_fields):
             path = firing_field_path + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = math.floor((field+1)/5) + 2
-            col = (field+1) % 5
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = math.floor((field+1)/5) + 2
+                col = (field+1) % 5
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf')
         plt.close()
 
@@ -438,21 +456,22 @@ def make_combined_field_analysis_figures(prm, spatial_firing):
         os.makedirs(save_path)
     plt.close('all')
     figures_path = prm.get_output_path() + '/Figures/'
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
-        spike_scatter_path = figures_path + 'firing_scatters/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spikes_on_trajectory.png'
-        rate_map_path = figures_path + 'rate_maps/' + spatial_firing.session_id[cluster] + '_rate_map_' + str(cluster + 1) + '.png'
-        head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + spatial_firing.session_id[cluster] + '_hd_polar_' + str(cluster + 1) + '.png'
-        head_direction_map_path = figures_path + 'head_direction_plots_2d/' + spatial_firing.session_id[cluster] + '_hd_map_' + str(cluster + 1) + '.png'
-        firing_fields_rate_map_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.png'
-        firing_fields_coloured_spikes_path = figures_path + 'firing_fields_coloured_spikes/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.png'
-        firing_field_path = figures_path + 'firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
-        firing_field_path_first = prm.get_output_path() + '/first_half/Figures/firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
-        firing_field_path_second = prm.get_output_path() + '/second_half/Figures/firing_field_plots/' + spatial_firing.session_id[cluster] + '_cluster_' + str(cluster + 1) + '_firing_field_'
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+        spike_scatter_path = figures_path + 'firing_scatters/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spikes_on_trajectory.png'
+        rate_map_path = figures_path + 'rate_maps/' + cluster_df['session_id'].iloc[0] + '_rate_map_' + str(cluster_id) + '.png'
+        head_direction_polar_path = figures_path + 'head_direction_plots_polar/' + cluster_df['session_id'].iloc[0] + '_hd_polar_' + str(cluster_id) + '.png'
+        head_direction_map_path = figures_path + 'head_direction_plots_2d/' + cluster_df['session_id'].iloc[0] + '_hd_map_' + str(cluster_id) + '.png'
+        firing_fields_rate_map_path = figures_path + 'firing_field_plots/' + cluster_df['session_id'].iloc[0] + '_firing_fields_rate_map' + str(cluster_id) + '.png'
+        firing_fields_coloured_spikes_path = figures_path + 'firing_fields_coloured_spikes/' + cluster_df['session_id'].iloc[0] + '_firing_fields_coloured_spikes' + str(cluster_id) + '.png'
+        firing_field_path = figures_path + 'firing_field_plots/' + cluster_df['session_id'].iloc[0] + '_cluster_' + str(cluster_id) + '_firing_field_'
+        firing_field_path_first = prm.get_output_path() + '/first_half/Figures/firing_field_plots/' + cluster_df['session_id'].iloc[0] + '_cluster_' + str(cluster_id) + '_firing_field_'
+        firing_field_path_second = prm.get_output_path() + '/second_half/Figures/firing_field_plots/' + cluster_df['session_id'].iloc[0] + '_cluster_' + str(cluster_id) + '_firing_field_'
 
         number_of_firing_fields = 0
-        if 'firing_fields' in spatial_firing:
-            number_of_firing_fields = len(spatial_firing.firing_fields[cluster])
+        if 'firing_fields' in cluster_df:
+            number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
             if number_of_firing_fields == 0:
                 continue
         number_of_rows = 4
@@ -460,8 +479,8 @@ def make_combined_field_analysis_figures(prm, spatial_firing):
         if number_of_firing_fields > 5:
             number_of_columns = number_of_firing_fields
         grid = plt.GridSpec(number_of_rows, number_of_columns, wspace=0.2, hspace=0.2)
-        rounded_r = [ '%.4f' % elem for elem in spatial_firing.field_corr_r[cluster]]
-        rounded_p = [ '%.4f' % elem for elem in spatial_firing.field_corr_p[cluster]]
+        rounded_r = [ '%.4f' % elem for elem in cluster_df['field_corr_r'].iloc[0]]
+        rounded_p = [ '%.4f' % elem for elem in cluster_df['field_corr_p'].iloc[0]]
         plt.suptitle("r: " + str(rounded_r) + '\np: ' + str(rounded_p))
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
@@ -491,32 +510,35 @@ def make_combined_field_analysis_figures(prm, spatial_firing):
 
         for field in range(number_of_firing_fields):
             path = firing_field_path + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = 1
-            col = field
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = 1
+                col = field
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
         for field in range(number_of_firing_fields):
             path = firing_field_path_first + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = 2
-            col = field
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = 2
+                col = field
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
         for field in range(number_of_firing_fields):
             path = firing_field_path_second + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = 3
-            col = field
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = 3
+                col = field
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
-        plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.png', dpi=1000)
+        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf', dpi=1000)
         plt.close()
 

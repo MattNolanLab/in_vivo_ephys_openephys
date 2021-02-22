@@ -89,6 +89,7 @@ def make_optogenetics_plots(prm):
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         output_path = prm.get_output_path()
         plot_peristimulus_raster(peristimulus_spikes, output_path)
+        plot_peristimulus_histogram(peristimulus_spikes, output_path)
 
 
 def main():

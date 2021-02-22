@@ -2,6 +2,7 @@ import os
 import json
 import pandas as pd
 
+ignore_curation = False
 
 def load_curation_metrics(spike_data_frame, prm):
     isolations = []
@@ -49,7 +50,7 @@ def curate_data(spike_data_frame, prm):
     isolation_threshold = 0.9
     noise_overlap_threshold = 0.05
     peak_snr_threshold = 1
-    firing_rate_threshold = 0.5
+    firing_rate_threshold = 0.1
 
     isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
     low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
@@ -58,6 +59,11 @@ def curate_data(spike_data_frame, prm):
 
     good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
     noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
+
+    if ignore_curation:
+        good_cluster['Curated']=True
+        noisy_cluster['Curated']=False
+        return pd.concat([good_cluster, noisy_cluster]), pd.DataFrame()
 
     return good_cluster, noisy_cluster
 

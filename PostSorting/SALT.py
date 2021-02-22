@@ -1,9 +1,9 @@
 # source: https://github.com/CINPLA/expipe-cinpla-legacy
-import elephant
-import neo
+# import elephant
+#import neo
 import numpy as np
-import quantities as pq
-from exana.misc.tools import is_quantities
+#import quantities as pq
+# from exana.misc.tools import is_quantities
 
 
 def generate_salt_trials(spike_train, epoch):
@@ -229,10 +229,10 @@ def generate_spike_train_and_epoch():
 
 
 def main():
-    spike_train, epoch = generate_spike_train_and_epoch()
-    # spike_train = neo.SpikeTrain(times=list(range(10)), t_stop=10, units='s')
+    # spike_train, epoch = generate_spike_train_and_epoch()
+    spike_train = neo.SpikeTrain(times=list(range(10)), t_stop=10, units='s')
     # epoch = neo.Epoch(times=np.arange(0, 10, 1) * pq.s, durations=[.5] * 10 * pq.s)
-    baseline_trials, test_trials = generate_salt_trials(spike_train, epoch)
+    # baseline_trials, test_trials = generate_salt_trials(spike_train, epoch)
     latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
 
 
