@@ -33,8 +33,8 @@ def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str
         ax = peristimulus_figure.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         sample_times = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 1]
         trial_numbers = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 0]
-        stimulation_start = cluster_rows.shape[1] / 2 - 45  # todo remove magic number
-        stimulation_end = cluster_rows.shape[1] / 2 + 45
+        stimulation_start = cluster_rows.shape[1] / 2   # todo remove magic number
+        stimulation_end = cluster_rows.shape[1] / 2 + 90
         ax.axvspan(stimulation_start, stimulation_end, 0, cluster_rows.shape[0], alpha=0.5, color='lightblue')
         ax.vlines(x=sample_times, ymin=trial_numbers, ymax=(trial_numbers + 1), color='black', zorder=2, linewidth=3)
         plt.xlabel('Time (sampling points)', fontsize=16)
@@ -80,8 +80,8 @@ def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spike
         peristimulus_figure.set_size_inches(5, 5, forward=True)
         ax = peristimulus_figure.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
-        stimulation_start = cluster_rows.shape[1] / 2 - 45  # todo remove magic number
-        stimulation_end = cluster_rows.shape[1] / 2 + 45
+        stimulation_start = cluster_rows.shape[1] / 2   # todo remove magic number
+        stimulation_end = cluster_rows.shape[1] / 2 + 90
         latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
         ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5, color='lightblue')
         # ax.plot(number_of_spikes_per_sampling_point, color='gray', alpha=0.5)
