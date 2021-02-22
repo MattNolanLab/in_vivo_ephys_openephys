@@ -104,7 +104,7 @@ def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary,
 
 def get_peristumulus_opto_data(window_size_ms, prm):
     check_parity_of_window_size(window_size_ms)
-    on_pulses = get_on_pulse_times(prm)
+    on_pulses = get_on_pulse_times(prm)  # these are the start times of the pulses
     sampling_rate = prm.get_sampling_rate()
     window_size_sampling_rate = int(sampling_rate/1000 * window_size_ms)
     return on_pulses, window_size_sampling_rate
