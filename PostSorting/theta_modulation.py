@@ -13,7 +13,6 @@ import warnings
 import sys
 from scipy import fftpack
 import elephant
-
 warnings.filterwarnings('ignore')
 
 test_params = PostSorting.parameters.Parameters()
@@ -481,22 +480,20 @@ def gen_modulated_firing(n_clusters, freq=8):
     spatial_firing["session_id"] = session_ids
     return spatial_firing
 
-def run_for_x(path_to_recording_list):
-    recordings_file_reader = open(path_to_recording_list, 'r')
-    recordings = recordings_file_reader.readlines()
-    list_of_recordings = list([x.strip() for x in recordings])
+def run_for_x(path_to_recording):
+    list_of_recordings = [f.path for f in os.scandir(path_to_recording) if f.is_dir()]
 
     for i in range(len(list_of_recordings)):
         try:
             recording_path = list_of_recordings[i]
             print("processing recording ", recording_path)
             spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
-            spatial_firing = pd.read_pickle('/mnt/datastore/'+spatial_firing_path)
+            spatial_firing = pd.read_pickle(spatial_firing_path)
             spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
-            test_params.set_output_path('/mnt/datastore/'+recording_path+"/MountainSort")
+            test_params.set_output_path(recording_path+"/MountainSort")
             test_params.set_sampling_rate(30000)
             spatial_firing = run_test(spatial_firing)
-            spatial_firing.to_pickle('/mnt/datastore/'+spatial_firing_path)
+            spatial_firing.to_pickle(spatial_firing_path)
             print("successful on recording, ", list_of_recordings[i])
 
         except Exception as ex:
@@ -517,7 +514,7 @@ def main():
     test_params.set_sampling_rate(30000)
     spatial_firing = run_test(spatial_firing)
     spatial_firing.to_pickle(spatial_firing_path)
-    '''
+
 
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/of_list.txt")
     run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/vr_list.txt")
@@ -542,6 +539,12 @@ def main():
     #random_firing = gen_random_firing(n_clusters=3)
     #random_firing = run_test(random_firing)
     print("look now")
+    '''
+
+
+    run_for_x("/mnt/datastore/Harry/Cohort6_july2020/vr/")
+    run_for_x("/mnt/datastore/Harry/Cohort6_july2020/of/")
+
 
 if __name__ == '__main__':
     main()
