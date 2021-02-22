@@ -250,4 +250,8 @@ class Parameters:
     def get_paired_order(self):
         return Parameters.paired_order
 
+    def get_vr_grid_analysis_bin_size(self):
+        return Parameters.vr_grid_analysis_bin_size
 
+    def set_vr_grid_analysis_bin_size(self, vr_grid_analysis_bin_size):
+         Parameters.vr_grid_analysis_bin_size = vr_grid_analysis_bin_size
