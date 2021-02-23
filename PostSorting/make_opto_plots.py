@@ -10,8 +10,36 @@ import PostSorting.make_plots
 import scipy.ndimage
 
 
+def get_first_spikes(cluster_rows, stimulation_start, sampling_rate):
+    events_after_stimulation = cluster_rows[cluster_rows.columns[int(stimulation_start):int(stimulation_start + sampling_rate/100)]]
+    # events_after_stimulation = cluster_rows[cluster_rows.columns[int(stimulation_start):]]
+    spikes = np.array(events_after_stimulation).astype(int) == 1
+    first_spikes = spikes.cumsum(axis=1).cumsum(axis=1) == 1
+    zeros_left = np.zeros((spikes.shape[0], int(stimulation_start-1)))
+    first_spikes = np.hstack((zeros_left, first_spikes))
+    zeros_right = np.zeros((spikes.shape[0], int(cluster_rows.shape[1] - stimulation_start - sampling_rate/100)))
+    first_spikes = np.hstack((first_spikes, zeros_right))
+    sample_times_firsts = np.argwhere(first_spikes)[:, 1]
+    trial_numbers_firsts = np.argwhere(first_spikes)[:, 0]
+    return sample_times_firsts, trial_numbers_firsts
+
+
+def plot_spikes_around_light(ax, cluster_rows, sampling_rate):
+    sample_times = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 1]
+    trial_numbers = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 0]
+    stimulation_start = cluster_rows.shape[1] / 2  # todo remove magic number
+    stimulation_end = cluster_rows.shape[1] / 2 + 90
+
+    ax.axvspan(stimulation_start, stimulation_end, 0, cluster_rows.shape[0], alpha=0.5, color='lightblue')
+    ax.vlines(x=sample_times, ymin=trial_numbers, ymax=(trial_numbers + 1), color='black', zorder=2, linewidth=3)
+    sample_times_firsts, trial_numbers_firsts = get_first_spikes(cluster_rows, stimulation_start, sampling_rate)
+    ax.vlines(x=sample_times_firsts, ymin=trial_numbers_firsts, ymax=(trial_numbers_firsts + 1), color='red', zorder=2, linewidth=3)
+
+    return ax
+
+
 # do not use this on data from more than one session
-def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str):
+def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str, sampling_rate : int):
     """
     :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
     the first two columns the session and cluster ids respectively and the rest of the columns correspond to
@@ -31,12 +59,7 @@ def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str
         peristimulus_figure = plt.figure()
         peristimulus_figure.set_size_inches(5, 5, forward=True)
         ax = peristimulus_figure.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        sample_times = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 1]
-        trial_numbers = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 0]
-        stimulation_start = cluster_rows.shape[1] / 2   # todo remove magic number
-        stimulation_end = cluster_rows.shape[1] / 2 + 90
-        ax.axvspan(stimulation_start, stimulation_end, 0, cluster_rows.shape[0], alpha=0.5, color='lightblue')
-        ax.vlines(x=sample_times, ymin=trial_numbers, ymax=(trial_numbers + 1), color='black', zorder=2, linewidth=3)
+        ax = plot_spikes_around_light(ax, cluster_rows, sampling_rate)
         plt.xlabel('Time (sampling points)', fontsize=16)
         plt.ylabel('Trial (sampling points)', fontsize=16)
         plt.ylim(0, cluster_rows.shape[0])
@@ -120,10 +143,11 @@ def plot_waveforms_opto(spike_data, prm, snippets_column_name='random_snippets_o
 
 def make_optogenetics_plots(spatial_firing, prm):
     peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
+    first_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes_first.pkl'
     if os.path.exists(peristimulus_spikes_path):
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         output_path = prm.get_output_path()
-        plot_peristimulus_raster(peristimulus_spikes, output_path)
+        plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate=prm.get_sampling_rate())
         plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path)
         plot_waveforms_opto(spatial_firing, prm, snippets_column_name='random_snippets_opto')
         plot_waveforms_opto(spatial_firing, prm, snippets_column_name='first_spike_snippets_opto')
@@ -132,12 +156,15 @@ def make_optogenetics_plots(spatial_firing, prm):
 
 def main():
     prm = PostSorting.parameters.Parameters()
-    path = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
     peristimulus_spikes = pd.read_pickle(path)
-    prm.set_output_path('C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of/MountainSort/')
+    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/spatial_firing.pkl'
+    spatial_firing = pd.read_pickle(path)
+    prm.set_output_path('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')
     output_path = prm.get_output_path()
-    plot_peristimulus_histogram(peristimulus_spikes, output_path)
-    plot_peristimulus_raster(peristimulus_spikes, output_path)
+    prm.set_sampling_rate(30000)
+    plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path)
+    plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate=prm.get_sampling_rate())
 
 
 if __name__ == '__main__':
