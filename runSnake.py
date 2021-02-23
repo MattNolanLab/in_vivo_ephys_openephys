@@ -14,6 +14,8 @@ import shutil
 from glob import glob
 # import logging
 
+#TODO: add function to only rerun a particular rule
+
 # Command line argument
 parser = argparse.ArgumentParser(description="Run snakemake workflow on specified folder")
 parser.add_argument('Path', nargs='+', type=str, help='the recording to process')
