@@ -202,8 +202,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         prm.set_pixel_ratio(pixel_ratio)
 
     if run_type == 'default':
-        # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
-        # todo implement different opto-tagging protocols here based on tags
         lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
         opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
         # process spatial data
