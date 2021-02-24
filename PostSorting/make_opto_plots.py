@@ -10,8 +10,18 @@ import PostSorting.make_plots
 import scipy.ndimage
 
 
-def get_first_spikes(cluster_rows, stimulation_start, sampling_rate):
-    events_after_stimulation = cluster_rows[cluster_rows.columns[int(stimulation_start):int(stimulation_start + sampling_rate/100)]]
+def get_first_spikes(cluster_rows, stimulation_start, sampling_rate, latency_window_ms=10):
+    '''
+    Find first spikes after the light pulse in a 10ms window
+    :param cluster_rows: Opto stimulation trials corresponding to cluster (binary array)
+    :param stimulation_start: Index (in samplin rate) where the stimulation starts in the peristimulus array)
+    :param sampling_rate: Sampling rate of electrophysiology data
+    :param latency_window_ms: The time window used to calculate latencies in ms (spikes outside this are not included)
+    :return:
+    '''
+
+    latency_window = latency_window_ms * sampling_rate / 1000  # this is the latency window in sampling points
+    events_after_stimulation = cluster_rows[cluster_rows.columns[int(stimulation_start):int(stimulation_start + latency_window)]]
     # events_after_stimulation = cluster_rows[cluster_rows.columns[int(stimulation_start):]]
     spikes = np.array(events_after_stimulation).astype(int) == 1
     first_spikes = spikes.cumsum(axis=1).cumsum(axis=1) == 1
@@ -24,27 +34,32 @@ def get_first_spikes(cluster_rows, stimulation_start, sampling_rate):
     return sample_times_firsts, trial_numbers_firsts
 
 
-def plot_spikes_around_light(ax, cluster_rows, sampling_rate):
+def plot_spikes_around_light(ax, cluster_rows, sampling_rate, light_pulse_duration, latency_window_ms):
     sample_times = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 1]
     trial_numbers = np.argwhere(np.array(cluster_rows).astype(int) == 1)[:, 0]
-    stimulation_start = cluster_rows.shape[1] / 2  # todo remove magic number
-    stimulation_end = cluster_rows.shape[1] / 2 + 90
+    stimulation_start = cluster_rows.shape[1] / 2  # the peristimulus array is made so the pulse starts in the middle
+    stimulation_end = cluster_rows.shape[1] / 2 + light_pulse_duration
 
     ax.axvspan(stimulation_start, stimulation_end, 0, cluster_rows.shape[0], alpha=0.5, color='lightblue')
     ax.vlines(x=sample_times, ymin=trial_numbers, ymax=(trial_numbers + 1), color='black', zorder=2, linewidth=3)
-    sample_times_firsts, trial_numbers_firsts = get_first_spikes(cluster_rows, stimulation_start, sampling_rate)
+    sample_times_firsts, trial_numbers_firsts = get_first_spikes(cluster_rows, stimulation_start, sampling_rate, latency_window_ms)
     ax.vlines(x=sample_times_firsts, ymin=trial_numbers_firsts, ymax=(trial_numbers_firsts + 1), color='red', zorder=2, linewidth=3)
 
     return ax
 
 
 # do not use this on data from more than one session
-def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str, sampling_rate : int):
+def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str, sampling_rate: int, light_pulse_duration: int, latency_window_ms: int):
     """
+    PLots spike raster from light stimulation trials around the light. The plot assumes that the stimulation
+    starts in the middle of the peristimulus_spikes array.
     :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
     the first two columns the session and cluster ids respectively and the rest of the columns correspond to
     sampling points before and after the stimulus. 0s mean no spike and 1s mean spike at a given point
     :param output_path: fist half of the path where the plot is saved
+    :param sampling_rate: sampling rate of electrophysiology data
+    :param light_pulse_duration: duration of light pulse (ms)
+    :param latency_window_ms: time window where spikes are considered evoked for a given trial
     """
     assert len(peristimulus_spikes.groupby('session_id')['session_id'].nunique()) == 1
     save_path = output_path + '/Figures/opto_stimulation'
@@ -59,7 +74,7 @@ def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str
         peristimulus_figure = plt.figure()
         peristimulus_figure.set_size_inches(5, 5, forward=True)
         ax = peristimulus_figure.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        ax = plot_spikes_around_light(ax, cluster_rows, sampling_rate)
+        ax = plot_spikes_around_light(ax, cluster_rows, sampling_rate, light_pulse_duration, latency_window_ms)
         plt.xlabel('Time (sampling points)', fontsize=16)
         plt.ylabel('Trial (sampling points)', fontsize=16)
         plt.ylim(0, cluster_rows.shape[0])
@@ -80,13 +95,16 @@ def get_latencies_for_cluster(spatial_firing, cluster_id):
         return pd.to_numeric(latencies_mean), pd.to_numeric(latencies_sd)
 
 
-def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spikes: pd.DataFrame, output_path: str):
+def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spikes: pd.DataFrame, output_path: str, light_pulse_duration: int):
     """
+    PLots histogram of spikes from light stimulation trials around the light. The plot assumes that the stimulation
+    starts in the middle of the peristimulus_spikes array.
     :param spatial_firing: Data frame with firing data for each cluster
     :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
     :param output_path: fist half of the path where the plot is saved
     the first two columns the session and cluster ids respectively and the rest of the columns correspond to
     sampling points before and after the stimulus. 0s mean no spike and 1s mean spike at a given point
+    :param light_pulse_duration: duration of light pulse (ms)
     """
     assert len(peristimulus_spikes.groupby('session_id')['session_id'].nunique()) == 1
     save_path = output_path + '/Figures/opto_stimulation'
@@ -103,8 +121,8 @@ def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spike
         peristimulus_figure.set_size_inches(5, 5, forward=True)
         ax = peristimulus_figure.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
-        stimulation_start = cluster_rows.shape[1] / 2   # todo remove magic number
-        stimulation_end = cluster_rows.shape[1] / 2 + 90
+        stimulation_start = cluster_rows.shape[1] / 2
+        stimulation_end = cluster_rows.shape[1] / 2 + light_pulse_duration
         latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
         ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5, color='lightblue')
         # ax.plot(number_of_spikes_per_sampling_point, color='gray', alpha=0.5)
@@ -143,15 +161,14 @@ def plot_waveforms_opto(spike_data, prm, snippets_column_name='random_snippets_o
 
 def make_optogenetics_plots(spatial_firing, prm):
     peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
-    first_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes_first.pkl'
     if os.path.exists(peristimulus_spikes_path):
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         output_path = prm.get_output_path()
-        plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate=prm.get_sampling_rate())
-        plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path)
+        sampling_rate = prm.get_sampling_rate()
+        plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=90, latency_window_ms=10)
+        plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=90)
         plot_waveforms_opto(spatial_firing, prm, snippets_column_name='random_snippets_opto')
         plot_waveforms_opto(spatial_firing, prm, snippets_column_name='first_spike_snippets_opto')
-
 
 
 def main():
