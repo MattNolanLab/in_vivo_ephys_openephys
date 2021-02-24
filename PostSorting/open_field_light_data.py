@@ -147,10 +147,14 @@ def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, sampling_
         first_spikes_times_cell = []
         latencies_cell = []
         for pulse in on_pulses:
-            first_spike_after_pulse = firing_times[firing_times > pulse][0]
-            latency = first_spike_after_pulse - pulse
-            if latency > sampling_rate / 100:
-                latency = np.nan  # the spike is more than 10 ms after the pulse
+            if len(firing_times[firing_times > pulse]) > 0:
+                first_spike_after_pulse = firing_times[firing_times > pulse][0]
+                latency = first_spike_after_pulse - pulse
+                if latency > sampling_rate / 100:
+                    latency = np.nan  # the spike is more than 10 ms after the pulse
+            else:
+                first_spike_after_pulse = np.nan
+                latency = np.nan
             first_spikes_times_cell.append(first_spike_after_pulse)
             latencies_cell.append(latency)
         first_spikes_times.append(first_spikes_times_cell)
