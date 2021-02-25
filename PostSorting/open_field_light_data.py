@@ -185,7 +185,7 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm)
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses)
     spatial_firing = analyse_latencies(spatial_firing, prm)
-    #spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
+    spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, prm, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
     # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
     # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
