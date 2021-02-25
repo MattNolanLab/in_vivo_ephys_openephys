@@ -205,7 +205,7 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
                                  latency_window_ms=10)
         plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=90)
         plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_snippets_opto')
-        plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='first_spike_snippets_opto')
+        plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_first_spike_snippets_opto')
 
 
 def main():
