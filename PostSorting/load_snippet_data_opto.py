@@ -7,12 +7,14 @@ import PostSorting.load_snippet_data
 
 
 def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snippets_opto', firing_times_column='firing_times_opto'):
+    """
+    Get snippets / action potentials from the filtered data from during opto tagging.
+
+    """
     if column_name in firing_data:
         return firing_data
     print('I will get some random snippets from the opto-tagging part now for each cluster.')
     file_path = prm.get_local_recording_folder_path()
-    filtered_data_path = []
-
     filtered_data_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/filt.mda'
 
     snippets_all_clusters = []
@@ -36,5 +38,4 @@ def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snipp
         firing_data[random_column_name] = snippets_all_clusters
     else:
         firing_data[column_name] = snippets_all_clusters
-    # plt.plot(firing_data.random_snippets[4][3,:,:])
     return firing_data
