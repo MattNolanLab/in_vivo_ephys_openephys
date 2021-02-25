@@ -55,9 +55,16 @@ def get_ephys_sync_on_and_off_times(sync_data_ephys, sampling_rate = setting.sam
     return sync_data_ephys
 
 
-def reduce_noise(pulses, threshold):
-    to_replace = np.where(pulses < threshold)
-    np.put(pulses, to_replace, 0)
+def reduce_noise(pulses, threshold, high_level = 5):
+    '''
+    Clean up the signal by assigning value lower than the threshold to 0
+    and those higher than the threshold the high_level. The high_level is set to 5 by default
+    to match with the oe signal. Setting the high_level is necessary because signal drift in the bonsai high level
+    may lead to uneven weighting of the value in the correlation calculation
+    '''
+
+    pulses[pulses<threshold] = 0
+    pulses[pulses>=threshold] = 5
     return pulses
 
 
@@ -73,6 +80,7 @@ def downsample_ephys_data(sync_data_ephys, spatial_data):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'][:50].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     downsample_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
+    print(f'Downsampling ephys sync signal to {avg_sampling_rate_bonsai}')
     length = int(len(sync_data_ephys['time']) / downsample_rate)
     indices = (np.arange(length) * downsample_rate).astype(int)
 
@@ -104,9 +112,14 @@ def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data, skip_time
 
 #  this is needed for finding the rising edge of the pulse to by synced
 def detect_last_zero(signal):
-    first_index_in_signal = np.argmin(signal)
-    first_zero_index_in_signal = np.nonzero(signal)[0][0]
-    first_nonzero_index = first_index_in_signal + first_zero_index_in_signal
+    '''
+    signal is a already thresholded binary signal with 0 and 1
+    return the index of the last 0 before the first 1
+    '''
+    first_index_in_signal = np.argmin(signal) # index of first zero value
+    first_zero_index_in_signal = np.nonzero(signal)[0][0] #index of first non-zero value
+    first_nonzero_index = first_index_in_signal + first_zero_index_in_signal # potential bug here if first_index_in_signal is not 0
+    assert first_nonzero_index == first_zero_index_in_signal, 'Error, sync signal does not start at zero'
     last_zero_index = first_nonzero_index - 1
     return last_zero_index
 
@@ -136,13 +149,12 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     Now the lag is within/around 30ms, so around the frame rate of the camera.
     Eventually, the shifted 'synced' times are added to the spatial dataframe.
 
+    #Note: the syncLED column must have stable sampling frequency/FPS, otherwise there will be error
+
     '''
 
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled,downsample_rate = downsample_ephys_data(sync_data_ephys, spatial_data)
-
-    sync_data_ephys_downsampled.to_pickle('sync_data_ephys_downsampled.pkl')
-    spatial_data.to_pickle('spatial_data.pkl')
 
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
@@ -150,6 +162,9 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     oe = reduce_noise(oe, 0.01)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
+    plt.plot(corr);plt.savefig('corr.png')
+    plt.figure();plt.plot(bonsai);plt.xlim([0,30000]);plt.savefig('bonsai.png');
+    plt.figure();plt.plot(oe);plt.xlim([0,30000]);plt.savefig('oe.png');
 
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
@@ -167,8 +182,16 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     bonsai_rising_edge_index = detect_last_zero(trimmed_bonsai_pulses)
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
 
-    lag2 = oe_rising_edge_time - bonsai_rising_edge_time
-    spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
+    lag2 = oe_rising_edge_time - bonsai_rising_edge_time    
+
+    if abs(lag2) < 1:
+        #after correlation sync, the difference in lag should very small, if not it may indicate error
+        print(f'Rising edge lag is {lag2}')
+        spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
+    else:
+        # time difference between riring edge is too large, potential bug
+        raise ValueError(f'Potential sync error. Lag between bonsai and ephys edge is {lag2}')
+        
 
     #plots for testing
     # plt.plot(spatial_data['synced_time'],spatial_data['syncLED'], color='cyan')
