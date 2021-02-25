@@ -149,7 +149,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     '''
 
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
-    sync_data_ephys_downsampled,downsample_rate = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
+    sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
 
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
