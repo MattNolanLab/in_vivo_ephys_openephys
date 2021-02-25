@@ -5,8 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import math_utility
-
-
+from scipy.interpolate import interp1d
 import PostSorting.parameters
 
 ''' The name of bonsai output files is not standardised in all experiments, so this function checks all csv
@@ -47,7 +46,7 @@ Read raw position data and sync LED intensity from Bonsai file amd convert time 
 
 
 def convert_time_to_seconds(position_data):
-    position_data['hours'], position_data['minutes'], position_data['seconds'] = position_data['time'].str.split(':', 2).str
+    position_data[['hours','minutes','seconds']] = position_data['time'].str.split(':', n=2,expand=True)
     position_data['hours'] = position_data['hours'].astype(int)
     position_data['minutes'] = position_data['minutes'].astype(int)
     position_data['seconds'] = position_data['seconds'].astype(float)
@@ -56,17 +55,36 @@ def convert_time_to_seconds(position_data):
     return position_data
 
 
+def resample_position_data(pos,fs=30):
+    ''' 
+    Resample position data so that they are of exact sampling rate. Sometimes the FPS of the camera is not stable,
+    which may lead to error in syncing. 
+
+    Assume pos has a time_seconds column
+    '''
+    t = pos.time_seconds.values
+    t2 = np.arange(0,len(t))/fs
+    df = {}
+    for col in pos.columns:
+        f = interp1d(t,pos[col].values, fill_value='extrapolate')
+        df[col] = f(t2)
+
+    df['time_seconds'] = t2
+
+    return pd.DataFrame(df)
+
+    return pos
+
 def read_position(path_to_bonsai_file):
     position_data = pd.read_csv(path_to_bonsai_file, sep=' ', header=None)
     if len(list(position_data)) > 6:
         position_data = position_data.drop([6], axis=1)  # remove column of NaNs due to extra space at end of lines
-    position_data['date'], position_data['time'] = position_data[0].str.split('T', 1).str
-
-    position_data['time'], position_data['str_to_remove'] = position_data['time'].str.split('+', 1).str
+    position_data[['date','time']] = position_data[0].str.split('T', n=1,expand=True)
+    position_data[['time','str_to_remove']] = position_data['time'].str.split('+', n=1,expand=True)
     position_data = position_data.drop([0, 'str_to_remove'], axis=1)  # remove first column that got split into date and time
-
     position_data.columns = ['x_left', 'y_left', 'x_right', 'y_right', 'syncLED', 'date', 'time']
     position_data = convert_time_to_seconds(position_data)
+
     return position_data
 
 
@@ -220,11 +238,18 @@ def remove_position_outlier_rows(position_data):
     return position_data
 
 
-def process_position_data(recording_folder, params):
+def process_position_data(recording_folder, params, do_resample=False):
+    '''
+    Read position data from Bonsai or axona
+    '''
     position_of_mouse = None
     path_to_position_file, is_found = find_bonsai_file(recording_folder)
     if is_found:
         position_data = read_position(path_to_position_file)  # raw position data from bonsai output
+        if do_resample:
+            #drop the string columns
+            position_data = position_data.drop(['date', 'time', 'hours', 'minutes', 'seconds'],axis=1)
+            position_data = resample_position_data(position_data)
     if not is_found:
         if os.path.isfile(recording_folder + '/axona_position.pkl'):
             position_data = pd.read_pickle(recording_folder + '/axona_position.pkl')
