@@ -193,6 +193,8 @@ def filter_processed_recording(paths, isforce, will_upload, dryrun=True):
                             path2process.append(p)
                         else:
                             print('I will skip this recording.')
+                    else:
+                        path2process.append(p)
                 else:
                     print('I will skip this recording.')
             else:
