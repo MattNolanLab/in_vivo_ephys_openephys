@@ -91,7 +91,7 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plot_spikes_around_light(ax, cluster_rows, sampling_rate, light_pulse_duration, latency_window_ms)
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
-    plt.savefig(save_path + '/' + session + '_' + str(cluster) + '_peristimulus_raster.png', dpi=300)
+    plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_raster.png', dpi=300)
     plt.close()
 
 
@@ -145,7 +145,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     plt.hist(spike_indices, color='grey', alpha=0.5, bins=50)
     plt.xlim(0, len(number_of_spikes_per_sampling_point))
     plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd))
-    plt.savefig(save_path + '/' + session + '_' + str(cluster) + '_peristimulus_histogram.png', dpi=300)
+    plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_histogram.png', dpi=300)
     plt.close()
 
 
@@ -204,8 +204,8 @@ def make_combined_opto_plot(spatial_firing, output_path):
         waveforms_cell_all = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png'
         waveforms_opto_random = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_random_snippets_opto.png'
         waveforms_first_spikes = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_random_first_spike_snippets_opto.png'
-        peristimulus_raster = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png'
-        peristimulus_histogram = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png'
+        peristimulus_raster = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_peristimulus_raster.png'
+        peristimulus_histogram = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_peristimulus_histogram.png'
 
         number_of_rows = 2
         number_of_columns = 3
