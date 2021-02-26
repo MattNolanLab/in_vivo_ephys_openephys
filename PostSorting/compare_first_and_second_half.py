@@ -261,7 +261,7 @@ def correlate_hd_for_session(first_half, second_half, spike_data):
         cluster_df_second_half = second_half[(second_half.cluster_id == cluster_id)] # dataframe for that cluster
         hd_first_half = cluster_df_first_half['hd_spike_histogram'].iloc[0]
         hd_second_half = cluster_df_second_half['hd_spike_histogram'].iloc[0]
-        hd_first_half, hd_second_half = array_utility.remove_nans_from_both_arrays(hd_first_half, hd_second_half)
+        hd_first_half, hd_second_half = array_utility.remove_nans_and_inf_from_both_arrays(hd_first_half, hd_second_half)
         pearson_r, p = pearsonr(hd_first_half, hd_second_half)
         pearson_rs.append(pearson_r)
         hd_hists_first_half.append(hd_first_half)
