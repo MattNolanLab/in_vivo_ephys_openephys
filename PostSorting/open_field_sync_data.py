@@ -120,7 +120,7 @@ def detect_last_zero(signal):
 
 
 
-def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
     '''
     The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
@@ -210,7 +210,7 @@ def process_sync_data(recording_to_process, prm, spatial_data):
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
+    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data,prm)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
     # remove negative time points
