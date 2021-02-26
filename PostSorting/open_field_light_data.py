@@ -112,10 +112,6 @@ def get_peristumulus_opto_data(window_size_ms, prm):
 
 def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm):
     peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
-    if os.path.exists(peristimulus_spikes_path):
-        peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
-        return peristimulus_spikes
-
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
     peristimulus_spikes = pd.DataFrame(columns=columns)
 
