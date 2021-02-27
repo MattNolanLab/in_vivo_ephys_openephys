@@ -9,8 +9,6 @@ jobs:
       - uses: actions/checkout@v1
       - name: Configure environment
         run: |
-          sudo swapoff /swapfile
-          sudo rm /swapfile
           sudo fallocate -l 3G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
