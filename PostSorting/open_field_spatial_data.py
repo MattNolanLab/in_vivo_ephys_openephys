@@ -7,6 +7,7 @@ import pandas as pd
 import math_utility
 from scipy.interpolate import interp1d
 import PostSorting.parameters
+import pickle
 
 ''' The name of bonsai output files is not standardised in all experiments, so this function checks all csv
 files in the recording folder and reads the first line. Our bonsai output files start with the date and 'T'
@@ -62,18 +63,19 @@ def resample_position_data(pos,fs=30):
 
     Assume pos has a time_seconds column
     '''
+    print('I will now resample the data')
     t = pos.time_seconds.values
-    t2 = np.arange(0,len(t))/fs
+    t2 = np.arange(0,t[-1],1/fs) #set end to t[-1] to avoid extrapolation, which may lead to error
     df = {}
     for col in pos.columns:
-        f = interp1d(t,pos[col].values, fill_value='extrapolate')
+        f = interp1d(t,pos[col].values)
         df[col] = f(t2)
 
     df['time_seconds'] = t2
+    df2return = pd.DataFrame(df)
 
-    return pd.DataFrame(df)
+    return df2return
 
-    return pos
 
 def read_position(path_to_bonsai_file):
     position_data = pd.read_csv(path_to_bonsai_file, sep=' ', header=None)
