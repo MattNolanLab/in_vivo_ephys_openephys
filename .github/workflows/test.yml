@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_IMG:teristam/ephys_ms3
     steps:
       - uses: actions/checkout@v1
       - name: Configure environment
@@ -17,12 +19,11 @@ jobs:
 
           mkdir artifacts
 
-      - name: Build Docker image
-        run: |
-          # export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
-          # docker pull $PREBUILT_IMAGE || true
-          # docker build --cache-from $PREBUILT_IMAGE . -t ephys
-          export DOCKER_IMG=teristam/ephys_ms3
+      # - name: Build Docker image
+      #   run: |
+      #     # export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
+      #     # docker pull $PREBUILT_IMAGE || true
+      #     # docker build --cache-from $PREBUILT_IMAGE . -t ephys
 
       - name: Run unit tests
         run: |
