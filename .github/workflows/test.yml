@@ -19,17 +19,18 @@ jobs:
 
       - name: Build Docker image
         run: |
-          export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
-          docker pull $PREBUILT_IMAGE || true
-          docker build --cache-from $PREBUILT_IMAGE . -t ephys
+          # export PREBUILT_IMAGE=docker.io/4iar/ephys_ms3
+          # docker pull $PREBUILT_IMAGE || true
+          # docker build --cache-from $PREBUILT_IMAGE . -t ephys
+          export DOCKER_IMG=teristam/ephys_ms3
 
       - name: Run unit tests
         run: |
-          docker run -t -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_tests_unit.sh
+          docker run -t -v ${PWD}:/code -w /code $DOCKER_IMG /bin/bash -l ./tests/run_tests_unit.sh
 
       - name: Run integration tests
         run: |
-          docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys ephys /bin/bash -l ./tests/run_tests_integration.sh
+          docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh
 
       - name: Prepare results data for upload
         run: |
@@ -42,4 +43,4 @@ jobs:
 
       - name: Run code coverage
         run: |
-          docker run -v ${PWD}:/code -w /code ephys /bin/bash -l ./tests/run_code_coverage.sh ${{ secrets.CODECOV_TOKEN }} ${{ github.sha }}
+          docker run -v ${PWD}:/code -w /code $DOCKER_IMG /bin/bash -l ./tests/run_code_coverage.sh ${{ secrets.CODECOV_TOKEN }} ${{ github.sha }}
