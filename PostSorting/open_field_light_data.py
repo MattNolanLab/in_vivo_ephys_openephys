@@ -103,6 +103,7 @@ def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary,
 
 
 def get_peristumulus_opto_data(window_size_ms, prm):
+    print('Get data for peristimulus array.')
     check_parity_of_window_size(window_size_ms)
     on_pulses = get_on_pulse_times(prm)  # these are the start times of the pulses
     sampling_rate = prm.get_sampling_rate()
@@ -111,6 +112,7 @@ def get_peristumulus_opto_data(window_size_ms, prm):
 
 
 def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm):
+    print('Make peristimulus data frame.')
     peristimulus_spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
     peristimulus_spikes = pd.DataFrame(columns=columns)
@@ -161,6 +163,7 @@ def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, sampling_
 
 
 def analyse_latencies(spatial_firing, prm):
+    print('Analyse latencies.')
     sampling_rate = prm.get_sampling_rate()
     latencies_mean_ms = []
     latencies_sd_ms = []
