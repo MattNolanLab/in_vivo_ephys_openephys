@@ -26,6 +26,7 @@ def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snipp
         for cluster, cluster_id in enumerate(firing_data.cluster_id):
             tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
             firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id][firing_times_column])[0]
+            firing_times = np.array(firing_times)
             firing_times = firing_times[~np.isnan(firing_times)]  # this can happen in some types of opto data
 
             if len(firing_times) > 0:
