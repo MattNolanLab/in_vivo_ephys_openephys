@@ -173,17 +173,18 @@ def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, clust
 
 
 def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippet_column_name, mean_color='red'):
-    cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
-
-    max_channel = cluster_df['primary_channel'].iloc[0]
-    sd = np.std(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1)
-    highest_value = np.mean(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) + (sd * 4)
-    lowest_value = np.mean(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) - (sd * 4)
-    snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
-    plt.ylim(lowest_value - 10, highest_value + 30)
+    cluster_df = spike_data[(spike_data.cluster_id == cluster_id)]  # dataframe for that cluster
+    snippet_plot = plt.subplot(grid[int(channel / 2), channel % 2])
     plot_utility.style_plot(snippet_plot)
-    snippet_plot.plot(cluster_df[snippet_column_name].iloc[0][channel, :, :] * -1, color='lightslategray')
-    snippet_plot.plot(np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1, color=mean_color)
+    if len(cluster_df[snippet_column_name].iloc[0]) > 0:
+        max_channel = cluster_df['primary_channel'].iloc[0]
+        sd = np.std(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1)
+        highest_value = np.mean(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) + (sd * 4)
+        lowest_value = np.mean(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) - (sd * 4)
+        plt.ylim(lowest_value - 10, highest_value + 30)
+        snippet_plot.plot(cluster_df[snippet_column_name].iloc[0][channel, :, :] * -1, color='lightslategray')
+        snippet_plot.plot(np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1, color=mean_color)
+
     plt.xticks([0, 30], [0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
