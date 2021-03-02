@@ -139,7 +139,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
-    oe = reduce_noise(oe, 0.01)
+    oe = reduce_noise(oe, 1)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
 
