@@ -55,7 +55,7 @@ def get_ephys_sync_on_and_off_times(sync_data_ephys, prm):
     return sync_data_ephys
 
 
-def reduce_noise(pulses, threshold, high_level = 5):
+def reduce_noise(pulses, threshold, high_level=5):
     '''
     Clean up the signal by assigning value lower than the threshold to 0
     and those higher than the threshold the high_level. The high_level is set to 5 by default
@@ -63,8 +63,8 @@ def reduce_noise(pulses, threshold, high_level = 5):
     may lead to uneven weighting of the value in the correlation calculation
     '''
 
-    pulses[pulses<threshold] = 0
-    pulses[pulses>=threshold] = 5
+    pulses[pulses < threshold] = 0
+    pulses[pulses >= threshold] = 5
     return pulses
 
 
@@ -119,6 +119,19 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
+def save_plots_of_pulses(bonsai, oe, prm, name='sync_pulses'):
+    plt.figure()
+    plt.plot(bonsai, color='black')
+    plt.savefig(prm.get_output_path() + '/Figures/' + name + '_bonsai.png')
+    plt.title('bonsai')
+    plt.close()
+
+    plt.figure()
+    plt.plot(oe, color='red')
+    plt.savefig(prm.get_output_path() + '/Figures/' + name + '_oe.png')
+    plt.title('open ephys')
+    plt.close()
+
 
 def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
@@ -150,13 +163,14 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
-
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
+    save_plots_of_pulses(bonsai, oe, prm, name='pulses_before_processing')
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
     oe = reduce_noise(oe, 1)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
+    save_plots_of_pulses(bonsai, oe, prm)
 
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
@@ -183,7 +197,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
         spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
     else:
         # time difference between riring edge is too large, potential bug
-        raise ValueError(f'Potential sync error. Lag between bonsai and ephys edge is {lag2}')
+        raise ValueError('Potential sync error. Lag between bonsai and ephys edge is' + str(lag2))
         
 
     # plots for testing
