@@ -235,7 +235,15 @@ def correct_dead_channel(lfp_df, dead_channel_path):
 
 
 
-def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode=True):
+def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode=True, theta_index="absolute"):
+    '''
+    :param recordings:
+    :param redirect: this is used to redirect the save path if you do not have permission to save where the data is stored
+    :param add_to: a pd data frame to append
+    :param average_over_tetrode: True or False for averaging lfp power over a tetrode
+    :param theta_index: "absolute" or "relative"; if relative the power is calculated as mean 6-10hz power / 0-50hz power
+    :return:
+    '''
 
     recording_ids = [recording.split("/")[-1].split("_")[0] for recording in recordings]
 
@@ -284,7 +292,7 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
                     power_spec_tmp = stack_collumn_into_np(lfp_data_tetrode, collumn="power_spectra")
                     avg_power_spec = np.nanmean(power_spec_tmp, axis=0)
 
-                    frequencies_to_interpolate = np.linspace(0, 20, 21)
+                    frequencies_to_interpolate = np.linspace(0, 50, 51)
                     spec_interp = np.interp(x=frequencies_to_interpolate, xp=frequencies, fp=avg_power_spec)
 
                     cohort_mouse = loc_ramp_analysis.get_cohort_mouse(recording)
@@ -320,14 +328,14 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
 
     for unique_mouse_id in np.unique(lfp_summary_df["mice_id"]):
         mouse_lfp_summary_df = lfp_summary_df[(lfp_summary_df.mice_id == unique_mouse_id)]
-        plot_lfp_summary(mouse_lfp_summary_df)
+        plot_lfp_summary(mouse_lfp_summary_df, theta_index=theta_index)
 
     if add_to is not None:
         return pd.concat([add_to, lfp_summary_df])
     else:
         return lfp_summary_df
 
-def plot_lfp_summary(mouse_lfp_summary_df):
+def plot_lfp_summary(mouse_lfp_summary_df, theta_index="absolute"):
     save_path_tmp1 = mouse_lfp_summary_df.lfp_path.iloc[0].split("/")[-4]
     save_path = mouse_lfp_summary_df.lfp_path.iloc[0].split(save_path_tmp1)[0]
 
@@ -335,19 +343,69 @@ def plot_lfp_summary(mouse_lfp_summary_df):
     # order by time
     mouse_lfp_summary_df = mouse_lfp_summary_df.sort_values(by=["timestamp"], ascending=True)
 
+    if theta_index == "relative":
+        fig = plt.figure(figsize=(10,5))
+        ax = fig.add_subplot(1, 1, 1)
+        plt.xlabel('Recording Session', fontsize=20, labelpad = 10)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+
     spec_per_tetrode = []
     for tetrode in np.unique(mouse_lfp_summary_df.tetrode):
         mouse_tetrode_lfp_summary_df = mouse_lfp_summary_df[(mouse_lfp_summary_df.tetrode == tetrode)]
         freqs = stack_collumn_into_np(mouse_tetrode_lfp_summary_df, collumn="freqs")
         pwr_specs = stack_collumn_into_np(mouse_tetrode_lfp_summary_df, collumn="pwr_specs").T
 
-        max_pwr_shown=max_power
-        pwr_specs = np.clip(pwr_specs, a_min=None, a_max=max_pwr_shown)
+        if theta_index == "relative":
+            plt.ylabel('Relative Theta Index', fontsize=20, labelpad = 10)
+            plt.tight_layout()
+            plt.subplots_adjust(left=0.28, top=0.8, bottom=0.2)
+            avg_0_50 = np.mean(pwr_specs, axis=0)
+            avg_6_10 = np.mean(pwr_specs[6:11,:], axis=0)   # 6 is inclusive 11 is exclusive in this content
+            theta_power = avg_6_10/avg_0_50
+            plt.plot(np.arange(1,len(avg_0_50)+1), theta_power)
+            ax.tick_params(axis='both', which='major', labelsize=20)
+            plt.gca().spines['top'].set_visible(False)
+            plt.gca().spines['right'].set_visible(False)
 
+        elif theta_index == "absolute":
+            fig = plt.figure(figsize=(10,5))
+            ax = fig.add_subplot(1, 1, 1)
+            plt.xlabel('Recording Session', fontsize=20, labelpad = 10)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+            max_pwr_shown=max_power
+            pwr_specs = np.clip(pwr_specs, a_min=None, a_max=max_pwr_shown)
+            cmap = plt.cm.get_cmap("jet")
+            cmap.set_bad(color='white')
+            c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=max_pwr_shown, origin='lower')
+            clb = fig.colorbar(c, ax=ax, shrink=0.8)
+            clb.set_clim(0, max_pwr_shown)
+            clb.set_label(label='Power',size=20)
+            clb.set_ticks([0, max_power])
+            clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
+            clb.ax.tick_params(labelsize=15)
+            plt.ylabel('Frequency (Hz)', fontsize=20, labelpad = 10)
+            plt.yticks(ticks=np.arange(0, len(pwr_specs), 5, dtype=np.int), labels=np.arange(0, len(pwr_specs), 5, dtype=np.int), fontsize=15)
+            plt.xticks(ticks=np.arange(4, len(pwr_specs[0]), 5, dtype=np.int), labels=np.arange(5, len(pwr_specs[0]), 5, dtype=np.int), fontsize=15)
+            plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
+            plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_absolute_lfp_tetrode_' + str(tetrode)+'moving.png', dpi=300)
+            plt.close()
+
+        spec_per_tetrode.append(pwr_specs)
+
+    if theta_index == "relative":
+        plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_relative_lfp_tetrode_' + str(tetrode)+'moving.png', dpi=300)
+
+    if theta_index == "absolute":
+        # plot average across all tetrodes
+        spec_per_tetrode = np.array(spec_per_tetrode)
+        pwr_specs = np.nanmean(spec_per_tetrode, axis=0)
         cmap = plt.cm.get_cmap("jet")
         cmap.set_bad(color='white')
         fig = plt.figure(figsize=(10,5))
         ax = fig.add_subplot(1, 1, 1)
+        #c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=60)
         c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=max_pwr_shown, origin='lower')
         clb = fig.colorbar(c, ax=ax, shrink=0.8)
         clb.set_clim(0, max_pwr_shown)
@@ -366,73 +424,15 @@ def plot_lfp_summary(mouse_lfp_summary_df):
         #plot_utility.style_vr_plot(ax)
         #plt.legend(fontsize=8)
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-        plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_' + str(tetrode)+'moving.png', dpi=300)
+        plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_avg_moving.png', dpi=300)
         plt.close()
-
-        spec_per_tetrode.append(pwr_specs)
-
-    # plot average across all tetrodes
-    spec_per_tetrode = np.array(spec_per_tetrode)
-    pwr_specs = np.nanmean(spec_per_tetrode, axis=0)
-    cmap = plt.cm.get_cmap("jet")
-    cmap.set_bad(color='white')
-    fig = plt.figure(figsize=(10,5))
-    ax = fig.add_subplot(1, 1, 1)
-    #c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=60)
-    c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=max_pwr_shown, origin='lower')
-    clb = fig.colorbar(c, ax=ax, shrink=0.8)
-    clb.set_clim(0, max_pwr_shown)
-    clb.set_label(label='Power',size=20)
-    clb.set_ticks([0, max_power])
-    clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
-    clb.ax.tick_params(labelsize=15)
-
-    plt.ylabel('Frequency (Hz)', fontsize=20, labelpad = 10)
-    plt.xlabel('Recording Session', fontsize=20, labelpad = 10)
-    #plt.xlim(0,20)
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    plt.yticks(ticks=np.arange(0, len(pwr_specs), 5, dtype=np.int), labels=np.arange(0, len(pwr_specs), 5, dtype=np.int), fontsize=15)
-    plt.xticks(ticks=np.arange(4, len(pwr_specs[0]), 5, dtype=np.int), labels=np.arange(5, len(pwr_specs[0]), 5, dtype=np.int), fontsize=15)
-    #plot_utility.style_vr_plot(ax)
-    #plt.legend(fontsize=8)
-    plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_avg_moving.png', dpi=300)
-    plt.close()
 
 
 
 def main():
     print("------------------------")
+
     '''
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    recording_path = "/mnt/datastore/Harry/Cohort6_july2020/vr/M2_D34_2020-09-17_15-26-34"
-    prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process=recording_path, prm=prm))
-    prm.set_output_path(recording_path+"/MountainSort")
-    lfp =pd.read_pickle(recording_path+"/MountainSort/DataFrames/lfp_data.pkl")
-    process_lfp(recording_folder=recording_path, prm=prm)
-    print("look here")
-
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    recording_path= "/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D7_2020-08-11_14-49-23"
-
-    prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process=recording_path, prm=prm))
-    prm.set_output_path(recording_path+"/MountainSort")
-    lfp =pd.read_pickle(recording_path+"/MountainSort/DataFrames/lfp_data.pkl")
-    process_lfp(recording_folder=recording_path, prm=prm)
-    print("look here")
-    
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    recording_path = "/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D1_2020-08-03_16-11-14vr"
-    prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process=recording_path, prm=prm))
-    prm.set_output_path(recording_path+"/MountainSort")
-    lfp =pd.read_pickle(recording_path+"/MountainSort/DataFrames/lfp_data.pkl")
-    process_lfp(recording_folder=recording_path, prm=prm)
-    print("look here")
-
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
     recording_path = "/mnt/datastore/Harry/Cohort6_july2020/vr/M2_D1_2020-08-03_15-38-18vr"
@@ -442,94 +442,14 @@ def main():
     process_lfp(recording_folder=recording_path, prm=prm)
     print("look here")
     '''
-
-    klara_recordings = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Klara/Open_field_opto_tagging_p038")
-    bri_recordings = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Bri/sim1cre_invivo")
-    junji_recordings = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Junji/Data/2019cohort1/openfield")
-    junji_recordings_vr = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Junji/Data/2019cohort1/vr")
-    ian_recordings = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Ian/Ephys/Openfield")
-    ian_recordings_vr = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Ian/Ephys/VR")
-    sarah_recordings_1 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/OpenField")
-    sarah_recordings_1vr_245 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/VirtualReality/245_sorted")
-    sarah_recordings_1vr_1124 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/VirtualReality/1124_sorted")
-    sarah_recordings_2 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild")
-    sarah_recordings_2vr_m1 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/VirtualReality/M1_sorted")
-    sarah_recordings_2vr_m6 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/VirtualReality/M6_sorted")
-    sarah_recordings_3 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild")
-    sarah_recordings_3vr_m2 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/VirtualReality/M2_sorted")
-    sarah_recordings_3vr_m3 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/VirtualReality/M3_sorted")
-    sarah_recordings_4 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField")
-    sarah_recordings_4vr_m1 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M1_sorted")
-    sarah_recordings_4vr_m2 = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/M2_sorted")
     Harry_recordings_1_of = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Cohort6_july2020/of")
     Harry_recordings_2_of = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Cohort7_october2020/of")
     Harry_recordings_1_vr = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Cohort6_july2020/vr")
     Harry_recordings_2_vr = Concatenate_from_server.get_recording_paths([], "/mnt/datastore/Harry/Cohort7_october2020/vr")
 
-    #process_batch_lfp(Harry_recordings_1_vr)
-    #process_batch_lfp(Harry_recordings_2_vr)
-    #process_batch_lfp(Harry_recordings_1_of)
-    #process_batch_lfp(Harry_recordings_2_of)
-
-    #batch_summary_lfp(Harry_recordings_1_of)
-    #batch_summary_lfp(Harry_recordings_2_of)
-
     all_mice_lfp =pd.DataFrame()
-    all_mice_lfp = batch_summary_lfp(Harry_recordings_1_vr, add_to=all_mice_lfp)
-    all_mice_lfp = batch_summary_lfp(Harry_recordings_2_vr, add_to=all_mice_lfp)
-
-    #process_batch_lfp(sarah_recordings_1vr_245, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    #process_batch_lfp(sarah_recordings_1vr_1124, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_1vr_245, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_1vr_1124, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-
-    #process_batch_lfp(sarah_recordings_2vr_m1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    #process_batch_lfp(sarah_recordings_2vr_m6, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_2vr_m1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_2vr_m6, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-
-    #process_batch_lfp(sarah_recordings_3vr_m2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    #process_batch_lfp(sarah_recordings_3vr_m3, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_3vr_m2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_3vr_m3, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-
-    #process_batch_lfp(sarah_recordings_4vr_m1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    #process_batch_lfp(sarah_recordings_4vr_m2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_4vr_m1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-    all_mice_lfp = batch_summary_lfp(sarah_recordings_4vr_m2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-
-    #process_batch_lfp(ian_recordings_vr, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    #process_batch_lfp(junji_recordings_vr, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    all_mice_lfp = batch_summary_lfp(ian_recordings_vr, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-    all_mice_lfp = batch_summary_lfp(junji_recordings_vr, redirect="/mnt/datastore/Harry/Mouse_data_other_users/", add_to=all_mice_lfp)
-
-
-    print("rrr")
-    '''
-    #open field
-    process_batch_lfp(sarah_recordings_3, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(sarah_recordings_4, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_3, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_4, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    process_batch_lfp(sarah_recordings_1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(sarah_recordings_2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    process_batch_lfp(klara_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(bri_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(klara_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(bri_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    process_batch_lfp(ian_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(junji_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(ian_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(junji_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    # todo make a function to fix the lfp_data.pkl and look for the right dead_channels
-    '''
-
+    all_mice_lfp = batch_summary_lfp(Harry_recordings_1_vr, add_to=all_mice_lfp, theta_index="relative")
+    all_mice_lfp = batch_summary_lfp(Harry_recordings_2_vr, add_to=all_mice_lfp, theta_index="relative")
 
 
 if __name__ == '__main__':
