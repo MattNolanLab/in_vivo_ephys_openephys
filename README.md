@@ -1,4 +1,6 @@
 # in_vivo_ephys_openephys
+![master](https://github.com/MattNolanLab/in_vivo_ephys_openephys/actions/workflows/test.yml/badge.svg)
+
 Analysis for in vivo electrophysiology recordings saved in open ephys format. 
 
 The current pipeline runs on a linux computer and uses MountainSort 3 to automatically sort data. The analysis is set up to minimize user interaction as much as possible, and analyses are initiated by copying files to a designated computer.
