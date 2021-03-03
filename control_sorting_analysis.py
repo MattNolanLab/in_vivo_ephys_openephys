@@ -13,6 +13,8 @@ import Logger
 from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
+from PostSorting import post_process_sorted_data_sleep
+from PostSorting import post_process_sorted_data_opto
 
 # set this to true if you want to skip the spike sorting step and use ths data from the server
 skip_sorting = False
@@ -274,6 +276,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
                 post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
             elif session_type == "vr":
                 post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags)
+            elif session_type == "sleep":
+                post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags)
+            elif session_type == "opto":
+                post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags)
 
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
