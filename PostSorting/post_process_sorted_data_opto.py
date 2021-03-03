@@ -101,7 +101,6 @@ def make_plots(position_data, spatial_firing, prm):
     PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
-    PostSorting.make_plots.plot_speed_vs_firing_rate(position_data, spatial_firing, prm.get_sampling_rate(), 250, prm)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
