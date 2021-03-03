@@ -103,7 +103,6 @@ def make_plots(position_data, spatial_firing, prm):
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, prm)
-    PostSorting.open_field_make_plots.plot_firing_rate_maps(spatial_firing, prm)
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
     
