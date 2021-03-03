@@ -54,7 +54,7 @@ def process_firing_times(recording_to_process, session_type, prm):
         firing_times = firing_times - prm.stitchpoint
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, prm)
-    if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
+    if prm.get_opto_tagging_start_index() is not None:
         firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
         for cluster in units_list:
             cluster_firings_all = firing_times[cluster_ids == cluster]
@@ -71,7 +71,7 @@ def process_firing_times(recording_to_process, session_type, prm):
                 "firing_times": cluster_firings,
                 "firing_times_opto": cluster_firings_opto
             }, ignore_index=True)
-    else:
+    elif session_type == 'vr':
         firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'trial_number', 'trial_type'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16])
         for cluster in units_list:
             cluster_firings = firing_times[cluster_ids == cluster]
