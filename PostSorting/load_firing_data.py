@@ -71,7 +71,7 @@ def process_firing_times(recording_to_process, session_type, prm):
                 "firing_times": cluster_firings,
                 "firing_times_opto": cluster_firings_opto
             }, ignore_index=True)
-    elif session_type == 'vr':
+    else:
         firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'trial_number', 'trial_type'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16])
         for cluster in units_list:
             cluster_firings = firing_times[cluster_ids == cluster]
