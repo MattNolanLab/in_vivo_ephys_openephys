@@ -169,7 +169,7 @@ def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spike
                                                 save_path)
 
 
-def plot_waveforms_opto(spike_data, output_path, snippets_column_name='random_snippets_opto'):
+def plot_waveforms_opto(spike_data, output_path, snippets_column_name='random_snippets_opto', title='Random snippets'):
     if snippets_column_name in spike_data:
         print('I will plot the waveform shapes for each cluster for opto_tagging data.')
         save_path = output_path + '/Figures/opto_stimulation'
@@ -185,7 +185,7 @@ def plot_waveforms_opto(spike_data, output_path, snippets_column_name='random_sn
             for channel in range(4):
                 PostSorting.make_plots.plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel,
                                                                         snippets_column_name)
-
+            plt.title(title, fontsize=14)
             plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(
                 cluster_id) + '_' + snippets_column_name + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
             plt.close()
@@ -257,8 +257,8 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
         plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=90,
                                  latency_window_ms=10)
         plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=90)
-        plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_snippets_opto')
-        plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_first_spike_snippets_opto')
+        plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_snippets_opto', title='Random snippets from opto stimulation')
+        plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_first_spike_snippets_opto', title='First spikes after light')
         make_combined_opto_plot(spatial_firing, output_path)
 
 
