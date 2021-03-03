@@ -68,6 +68,7 @@ def check_if_recording_was_copied(recording_to_sort):
 
 # return whether it is vr or openfield
 def get_session_type(recording_directory):
+    session_type = 'undefined'
     parameters_path = recording_directory + '/parameters.txt'
     try:
         param_file_reader = open(parameters_path, 'r')
@@ -76,17 +77,17 @@ def get_session_type(recording_directory):
         session_type = parameters[0]
 
         if session_type == 'vr':
-            is_vr = True
-            is_open_field = False
+            print('This is a VR session.')
         elif session_type == 'openfield':
-            is_vr = False
-            is_open_field = True
+            print('This is an open field session')
+        elif session_type == 'sleep':
+            print('This is a sleep session')
+        elif session_type == 'opto':
+            print('This is an opto-tagging session')
         else:
             print('Session type is not specified. '
-                  'You need to write vr or openfield in the first line of the parameters.txt file. '
+                  'You need to write vr/openfield/sleep/opto in the first line of the parameters.txt file. '
                   'You put {} there.'.format(session_type))
-            is_vr = False
-            is_open_field = False
     except Exception as ex:
         print('There is a problem with the parameter file.')
         print(ex)
