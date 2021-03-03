@@ -119,17 +119,17 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
-def save_plots_of_pulses(bonsai, oe, prm, name='sync_pulses'):
+def save_plots_of_pulses(bonsai, oe, prm, lag, name='sync_pulses'):
+    save_path = prm.get_output_path() + '/Figures/Sync_test/'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     plt.figure()
-    plt.plot(bonsai, color='black')
-    plt.savefig(prm.get_output_path() + '/Figures/' + name + '_bonsai.png')
-    plt.title('bonsai')
-    plt.close()
-
-    plt.figure()
-    plt.plot(oe, color='red')
-    plt.savefig(prm.get_output_path() + '/Figures/' + name + '_oe.png')
-    plt.title('open ephys')
+    bonsai_norm = bonsai / np.linalg.norm(bonsai)
+    plt.plot(oe, color='red', label='open ephys')
+    plt.plot(bonsai_norm * 3.5, color='black', label='bonsai')
+    plt.title('lag=' + str(lag))
+    plt.legend()
+    plt.savefig(save_path + name + '_sync_pulses.png')
     plt.close()
 
 
@@ -165,12 +165,11 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
-    save_plots_of_pulses(bonsai, oe, prm, name='pulses_before_processing')
+    # save_plots_of_pulses(bonsai, oe, prm, name='pulses_before_processing')
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
     oe = reduce_noise(oe, 2)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
-    save_plots_of_pulses(bonsai, oe, prm)
 
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
@@ -189,7 +188,9 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     bonsai_rising_edge_index = detect_last_zero(trimmed_bonsai_pulses)
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
 
-    lag2 = oe_rising_edge_time - bonsai_rising_edge_time    
+    lag2 = oe_rising_edge_time - bonsai_rising_edge_time
+
+    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm, lag2)
 
     if abs(lag2) < 1:
         #after correlation sync, the difference in lag should very small, if not it may indicate error
