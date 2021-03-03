@@ -181,11 +181,12 @@ def plot_waveforms_opto(spike_data, output_path, snippets_column_name='random_sn
 
             max_channel = cluster_df['primary_channel'].iloc[0]
             fig = plt.figure(figsize=(5, 5))
+            plt.suptitle(title, fontsize=24)
             grid = plt.GridSpec(2, 2, wspace=0.5, hspace=0.5)
             for channel in range(4):
                 PostSorting.make_plots.plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel,
                                                                         snippets_column_name)
-            plt.title(title, fontsize=14)
+
             plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(
                 cluster_id) + '_' + snippets_column_name + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
             plt.close()
