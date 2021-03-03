@@ -75,10 +75,8 @@ def process_running_parameter_tag(running_parameter_tags):
 def process_position_data(recording_to_process, session_type, prm):
     spatial_data = None
     is_found = False
-    if session_type == 'openfield':
-        # dataframe contains time, position coordinates: x, y, head-direction (degrees)
-        spatial_data, is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm)
-        # PostSorting.open_field_make_plots.plot_position(spatial_data)
+    # dataframe contains time, position coordinates: x, y, head-direction (degrees)
+    spatial_data, is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm)
     return spatial_data, is_found
 
 
