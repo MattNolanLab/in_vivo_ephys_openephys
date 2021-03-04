@@ -16,7 +16,7 @@ def remove_excess_firing(spike_data, spatial_data,Fs=setting.sampling_rate):
     bonsai_last_time = spatial_data.synced_time.values[-1] - 1 #make sure we cover the last frame
     for i in range(len(spike_data)):
         #firing_times is in samples, while bonsai time is in second
-        spike_data.loc[i,'firing_times'] = spike_data.firing_times[i][spike_data.firing_times[i]< bonsai_last_time*Fs]
+        spike_data.firing_times[i] = spike_data.firing_times[i][spike_data.firing_times[i]< bonsai_last_time*Fs]
 
     return spike_data
 
