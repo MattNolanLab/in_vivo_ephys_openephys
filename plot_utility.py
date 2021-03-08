@@ -108,7 +108,7 @@ def style_vr_plot_offset(ax, x_max):
 
     return ax
 
-def style_vr_plot(ax, x_max):
+def style_vr_plot(ax, x_max=None):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(True)
@@ -127,7 +127,8 @@ def style_vr_plot(ax, x_max):
 
     ax.axvline(0, linewidth=2.5, color='black') # bold line on the y axis
     ax.axhline(0, linewidth=2.5, color='black') # bold line on the x axis
-    plt.ylim(0, x_max)
+    if x_max is not None:
+        plt.ylim(0, x_max)
 
     return ax
 
