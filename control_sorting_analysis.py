@@ -210,7 +210,7 @@ def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
 
 def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
-                                      paired_recording_to_sort, paired_session_type,
+                                      paired_recording_to_sort, paired_session_type, paired_location_on_server,
                                       stitch_point, tags):
 
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
@@ -223,6 +223,12 @@ def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
         post_process_sorted_data_vr.post_process_recording(paired_recording_to_sort, "vr", paired_order="first",
                                                            running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
+    if os.path.exists(paired_recording_to_sort + '/Figures') is True:
+        copy_output_to_server(paired_recording_to_sort, paired_location_on_server)
+        shutil.rmtree(paired_recording_to_sort)
+
+    # possibly add in here a step to copy to server so I don't need to wait a fucking age
+
     if session_type == "openfield":
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order="second",
                                                         running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
@@ -230,6 +236,8 @@ def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
         post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order="second",
                                                            running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
+    # I havent added the copy output to server for the given session because its done immediately after this function,
+    # and is called similarly when not using dual sorting
         
 def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None, paired_session_type=None):
     print('I will analyze ' + recording_to_sort)
@@ -262,11 +270,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if paired_recording is not None:
             run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
-                                              paired_recording_to_sort, paired_session_type,
+                                              paired_recording_to_sort, paired_session_type, paired_location_on_server,
                                               stitch_point, tags)
-            if os.path.exists(paired_recording_to_sort + '/Figures') is True:
-                copy_output_to_server(paired_recording_to_sort, paired_location_on_server)
-                shutil.rmtree(paired_recording_to_sort)
 
         else:
             if session_type == "openfield":

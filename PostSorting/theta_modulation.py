@@ -246,13 +246,7 @@ def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
         boccara_theta_mod = 1 # classified as theta modulated if at least 5 fold larger
     else:
         boccara_theta_mod = 0
-
-    #print(mean_peak_theta_power/mean_baseline_power)
-
-    plt.title("t ="+str(mean_peak_theta_power/mean_baseline_power))
-    rn = np.random.randint(1000000, size=1)
-
-    #plt.savefig("/mnt/datastore/Harry/test_function_figure_space/fft_signal"+str(rn)+".png")
+        
     return boccara_theta_mod
 
 
@@ -503,47 +497,35 @@ def run_for_x(path_to_recording):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_tb(exc_traceback)
 
+def gen_modulated_firing_figure(freq, save_path):
+
+    total_length = 1000000
+    n_spikes = 10000
+    F = freq # desired frequnecy
+    Fs = 30000 # sampling rate
+    T = total_length/Fs # n seconds   30000
+    Ts = 1./Fs
+    N = int(T/Ts)
+    t = np.linspace(0, T, N)
+
+    signal1 = np.cos(2*np.pi*F*t)+1
+    signal1 += np.random.normal(0, 0.3, len(signal1))
+
+    #signal1_normalised = signal1/np.sum(signal1)
+    #signal1_normalised += np.random.normal(0, 0, len(signal1_normalised))
+    #signal2 = np.cos(2*np.pi*1234*t)+1
+    #signal2_normalised = signal2/np.sum(signal2)
+    #signal2_normalised = 0
+
+    #signal_total = signal1_normalised+signal2_normalised
+
+    fig, ax = plt.subplots(figsize=(12,3))
+    ax.plot(signal1[0:32000], color="black")
+    plt.savefig(save_path+"/mod_firing_example.png", dpi=300)
+    print("plotted depth correlation")
+
 def main():
-
-    '''
-    recording_path = '/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/M2_D10_2019-06-28_14-56-06'
-    spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
-    spatial_firing = pd.read_pickle(spatial_firing_path)
-    spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
-    test_params.set_output_path(recording_path+"/MountainSort")
-    test_params.set_sampling_rate(30000)
-    spatial_firing = run_test(spatial_firing)
-    spatial_firing.to_pickle(spatial_firing_path)
-
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/of_list.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/vr_list.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/VirtualReality/vrlist.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m2.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m3.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/VirtualReality/vrlist_cohort3.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M1_of.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M6_of_1.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/VirtualReality/with_of_recordings.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/OpenField/Mouse_info/filelist_all.txt")
-    print("done one")
-
-    # generate a dummy spatial firing dataframe to test if theta index can come out low if made randomly.
-    #random_firing = gen_modulated_firing(n_clusters=3, freq=8)
-    #random_firing = gen_random_firing(n_clusters=3)
-    #random_firing = run_test(random_firing)
-    print("look now")
-    '''
-
-
-    run_for_x("/mnt/datastore/Harry/Cohort6_july2020/vr/")
-    run_for_x("/mnt/datastore/Harry/Cohort6_july2020/of/")
+  print("===============================")
 
 
 if __name__ == '__main__':

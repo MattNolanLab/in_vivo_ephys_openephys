@@ -68,7 +68,7 @@ outputs:
 
 def bin_data_trial_by_trial(raw_position_data,processed_position_data, prm):
     print('calculate binned data per trial...')
-    binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
+    binned_data_all_trials = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
     bin_size_cm,number_of_bins, bins = PostSorting.vr_stop_analysis.get_bin_size(raw_position_data, prm)
     number_of_trials = raw_position_data.trial_number.max() # total number of trials
     trials = np.array(raw_position_data['trial_number'])
@@ -79,19 +79,44 @@ def bin_data_trial_by_trial(raw_position_data,processed_position_data, prm):
     time_per_sample = np.array(raw_position_data['time_seconds'])
 
     for t in range(1,int(number_of_trials+1)):
-        trial_locations = np.take(locations, np.where(trials == t)[0])
+        binned_data = pd.DataFrame(columns=['trial_number_in_bin','bin_count', 'trial_type_in_bin', 'binned_speed_ms_per_trial', 'binned_time_ms_per_trial', 'binned_apsolute_elapsed_time'])
+        #trial_locations = np.take(locations, np.where(trials == t)[0])
+        trial_locations = locations[trials == t]
+        trial_dwell_times = dwell_time_per_sample[trials == t]
+        trial_times = time_per_sample[trials == t]
         trial_type = int(stats.mode(np.take(trial_types, np.where(trials == t)[0]))[0])
+
+        binned_time_ms_per_trial, bin_edges = np.histogram(trial_locations, bins=int(prm.get_track_length()/bin_size_cm), range=(0,prm.get_track_length()), weights=trial_dwell_times)
+        binned_time_ms_per_trial = np.nan_to_num(binned_time_ms_per_trial)
+
+        apsolute_elapsed_time_in_bin_per_trial, bin_edges = np.histogram(trial_locations, bins=int(prm.get_track_length()/bin_size_cm), range=(0,prm.get_track_length()), weights=trial_times)
+        apsolute_elapsed_time_in_bin_per_trial = np.nan_to_num(apsolute_elapsed_time_in_bin_per_trial)
+
         for loc in range(int(number_of_bins)):
             #speed_in_bin = find_speed_in_bin(speed_ms, trial_locations, loc)
-            time_in_bin = find_dwell_time_in_bin(dwell_time_per_sample, trial_locations, loc)
+            #time_in_bin = find_dwell_time_in_bin(dwell_time_per_sample, trial_locations, loc)
             apsolute_elapsed_time_in_bin = find_time_in_bin(time_per_sample, trial_locations, loc)
-            binned_data = binned_data.append({"trial_number_in_bin": int(t), "bin_count": int(loc), "trial_type_in_bin": int(trial_type), "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)), "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),}, ignore_index=True)
+            #binned_data = binned_data.append({"trial_number_in_bin": int(t),
+            #                                  "bin_count": int(loc),
+            #                                  "trial_type_in_bin": int(trial_type),
+            #                                  "binned_time_ms_per_trial":  np.float16(sum(time_in_bin)),
+            #                                  "binned_apsolute_elapsed_time" : np.float16(apsolute_elapsed_time_in_bin),},
+            #                                 ignore_index=True)
+            binned_data = binned_data.append({"trial_number_in_bin": int(t),
+                                              "bin_count": int(loc),
+                                              "trial_type_in_bin": int(trial_type),},ignore_index=True)
+
+        binned_data["binned_time_ms_per_trial"] = pd.Series(binned_time_ms_per_trial)
+        binned_data["binned_apsolute_elapsed_time"] = pd.Series(apsolute_elapsed_time_in_bin_per_trial)
+
+        binned_data_all_trials = pd.concat([binned_data_all_trials, binned_data], axis=0,ignore_index=True)
+
 
     #processed_position_data = pd.concat([processed_position_data, binned_data['binned_speed_ms_per_trial']], axis=1)
-    processed_position_data = pd.concat([processed_position_data, binned_data['binned_time_ms_per_trial']], axis=1)
-    processed_position_data = pd.concat([processed_position_data, binned_data['trial_type_in_bin']], axis=1)
-    processed_position_data = pd.concat([processed_position_data, binned_data['trial_number_in_bin']], axis=1)
-    processed_position_data = pd.concat([processed_position_data, binned_data['binned_apsolute_elapsed_time']], axis=1)
+    processed_position_data = pd.concat([processed_position_data, binned_data_all_trials['binned_time_ms_per_trial']], axis=1)
+    processed_position_data = pd.concat([processed_position_data, binned_data_all_trials['trial_type_in_bin']], axis=1)
+    processed_position_data = pd.concat([processed_position_data, binned_data_all_trials['trial_number_in_bin']], axis=1)
+    processed_position_data = pd.concat([processed_position_data, binned_data_all_trials['binned_apsolute_elapsed_time']], axis=1)
     return processed_position_data
 
 
@@ -152,17 +177,23 @@ def trial_average_speed(processed_position_data, prm):
 
     if len(processed_position_data['speed_trials_beaconed'].dropna())>0:
         beaconed_speeds = np.stack(processed_position_data['speed_trials_beaconed'].dropna().to_numpy())
+        print(np.shape(beaconed_speeds))
         trial_averaged_beaconed_speeds = np.nanmean(beaconed_speeds, axis=0)
+        print(np.shape(trial_averaged_beaconed_speeds))
         processed_position_data['trial_averaged_beaconed_speeds'] = pd.Series(trial_averaged_beaconed_speeds)
 
     if len(processed_position_data['speed_trials_non_beaconed'].dropna())>0:
         non_beaconed_speeds = np.stack(processed_position_data['speed_trials_non_beaconed'].dropna().to_numpy())
+        print(np.shape(non_beaconed_speeds))
         trial_averaged_non_beaconed_speeds = np.nanmean(non_beaconed_speeds, axis=0)
+        print(trial_averaged_non_beaconed_speeds)
         processed_position_data['trial_averaged_non_beaconed_speeds'] = pd.Series(trial_averaged_non_beaconed_speeds)
 
     if len(processed_position_data['speed_trials_probe'].dropna())>0:
         probe_speeds = np.stack(processed_position_data['speed_trials_probe'].dropna().to_numpy())
+        print(np.shape(probe_speeds))
         trial_averaged_probe_speeds = np.nanmean(probe_speeds, axis=0)
+        print(trial_averaged_probe_speeds)
         processed_position_data['trial_averaged_probe_speeds'] = pd.Series(trial_averaged_probe_speeds)
 
     return processed_position_data
@@ -180,7 +211,7 @@ def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,prm)
 
     processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
-    processed_position_data = PostSorting.vr_stop_analysis.process_stops(raw_position_data, processed_position_data, prm, recording_to_process)
+    processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, prm, recording_to_process)
 
     #processed_position_data = bin_data_over_trials_by_speed(raw_position_data,processed_position_data, prm)
     #processed_position_data = bin_speed_over_trials(raw_position_data,processed_position_data, prm)
@@ -210,6 +241,8 @@ def main():
     print('-------------------------------------------------------------')
 
     params = PostSorting.parameters.Parameters()
+    processed_position_data = pd.read_pickle("/mnt/datastore/Harry/Cohort6_july2020/vr/M1_D9_2020-08-13_15-16-48/MountainSort/DataFrames/processed_position_data.pkl")
+    processed_position_data = trial_average_speed(processed_position_data, params)
 
     recording_folder = 'C:/Users/s1466507/Documents/Ephys/test_overall_analysis/M5_2018-03-06_15-34-44_of'
 

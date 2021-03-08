@@ -1,3 +1,5 @@
+import os
+
 class Parameters:
 
     is_ubuntu = True
@@ -34,6 +36,7 @@ class Parameters:
     cue_conditioned_goal = False
     cue_goal_min = -10
     cue_goal_max = 10
+    vr_grid_analysis_bin_size = 20
 
     def __init__(self):
         return
@@ -164,10 +167,24 @@ class Parameters:
 
     def set_dead_channels(d_ch = [], *args):
         dead_ch = []
+        Parameters.dead_channels = dead_ch
+
         for dead_chan in args:
             dead_ch.append(dead_chan)
 
         Parameters.dead_channels = dead_ch
+
+    def set_dead_channel_from_txt_file(self, dead_channel_txt_file_path):
+
+        if os.path.isfile(dead_channel_txt_file_path) is True:
+            if os.stat(dead_channel_txt_file_path).st_size == 0:
+                print("theres a dead channel file but no dead channel is given")
+            else:
+                dead_channel_reader = open(dead_channel_txt_file_path, 'r')
+                dead_channels = dead_channel_reader.readlines()
+                dead_channels = list([x.strip() for x in dead_channels])
+                Parameters.dead_channels = dead_channels
+
 
     def get_dead_channel_path(self):
         return Parameters.dead_channel_path
@@ -250,8 +267,8 @@ class Parameters:
     def get_paired_order(self):
         return Parameters.paired_order
 
+    def set_vr_grid_analysis_bin_size(self, bin_size):
+        Parameters.vr_grid_analysis_bin_size = bin_size
+
     def get_vr_grid_analysis_bin_size(self):
         return Parameters.vr_grid_analysis_bin_size
-
-    def set_vr_grid_analysis_bin_size(self, vr_grid_analysis_bin_size):
-         Parameters.vr_grid_analysis_bin_size = vr_grid_analysis_bin_size

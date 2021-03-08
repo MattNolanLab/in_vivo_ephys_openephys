@@ -129,8 +129,7 @@ def split_spatial_firing_by_trial_type(spike_data):
         trials = np.array(cluster_df['trial_number'].tolist())
         locations = np.array(cluster_df['x_position_cm'].tolist())
         trial_type = np.array(cluster_df['trial_type'].tolist())
-        # index out of range error in following line
-        #try:
+
         beaconed_locations = np.take(locations, np.where(trial_type == 0)[1]) #split location and trial number
         nonbeaconed_locations = np.take(locations,np.where(trial_type == 1)[1])
         probe_locations = np.take(locations, np.where(trial_type == 2)[1])
@@ -144,8 +143,6 @@ def split_spatial_firing_by_trial_type(spike_data):
         spike_data.nonbeaconed_trial_number.iloc[cluster_index] = list(nonbeaconed_trials)
         spike_data.probe_position_cm.iloc[cluster_index] = list(probe_locations)
         spike_data.probe_trial_number.iloc[cluster_index] = list(probe_trials)
-        #except IndexError:
-        #    continue
     return spike_data
 
 def split_spatial_firing_by_trial_type_cued(spike_data, prm):

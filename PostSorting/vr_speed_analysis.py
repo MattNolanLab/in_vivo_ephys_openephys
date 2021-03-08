@@ -34,6 +34,9 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
         bin_means = (np.histogram(trial_x_position_cm, bins, weights = trial_speeds)[0] /
                      np.histogram(trial_x_position_cm, bins)[0])
 
+        bin_means[np.abs(bin_means)>1000] = np.nan
+        #print(np.shape(bin_means))
+
         position_bins = np.histogram(trial_x_position_cm, bins)[1]
 
         speed_trials_binned.append(bin_means)
@@ -50,18 +53,27 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
             speed_trials_probe.append(bin_means)
             speed_trials_probe_trial_number.append(trial_number)
 
-    processed_position_data['position_bins'] = pd.Series(position_bins)
-    processed_position_data['speed_trials_binned'] = pd.Series(speed_trials_binned)
-    processed_position_data['speed_trial_numbers'] = pd.Series(speed_trial_numbers)
-    processed_position_data['speed_trial_types'] = pd.Series(speed_trialtypes)
+    position_bins = pd.DataFrame({"position_bins": position_bins})
+    speed_trials_binned = pd.DataFrame({"speed_trials_binned": speed_trials_binned})
+    speed_trial_numbers = pd.DataFrame({"speed_trial_numbers": speed_trial_numbers})
+    speed_trial_types = pd.DataFrame({"speed_trial_types": speed_trialtypes})
+    speed_trials_beaconed = pd.DataFrame({"speed_trials_beaconed": speed_trials_beaconed})
+    speed_trials_beaconed_trial_number = pd.DataFrame({"speed_trials_beaconed_trial_number": speed_trials_beaconed_trial_number})
+    speed_trials_non_beaconed = pd.DataFrame({"speed_trials_non_beaconed": speed_trials_non_beaconed})
+    speed_trials_non_beaconed_trial_number = pd.DataFrame({"speed_trials_non_beaconed_trial_number": speed_trials_non_beaconed_trial_number})
+    speed_trials_probe = pd.DataFrame({"speed_trials_probe": speed_trials_probe})
+    speed_trials_probe_trial_number = pd.DataFrame({"speed_trials_probe_trial_number": speed_trials_probe_trial_number})
 
-    # trial type specifics speed bins
-    processed_position_data['speed_trials_beaconed'] = pd.Series(speed_trials_beaconed)
-    processed_position_data['speed_trials_beaconed_trial_number'] = pd.Series(speed_trials_beaconed_trial_number)
-    processed_position_data['speed_trials_non_beaconed'] = pd.Series(speed_trials_non_beaconed)
-    processed_position_data['speed_trials_non_beaconed_trial_number'] = pd.Series(speed_trials_non_beaconed_trial_number)
-    processed_position_data['speed_trials_probe'] = pd.Series(speed_trials_probe)
-    processed_position_data['speed_trials_probe_trial_number'] = pd.Series(speed_trials_probe_trial_number)
+    processed_position_data = pd.concat([processed_position_data, position_bins], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_binned], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trial_numbers], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trial_types], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_beaconed], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_beaconed_trial_number], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_non_beaconed], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_non_beaconed_trial_number], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_probe], axis=1)
+    processed_position_data = pd.concat([processed_position_data, speed_trials_probe_trial_number], axis=1)
 
     return processed_position_data
 
