@@ -436,12 +436,13 @@ def make_combined_figure(prm, spatial_firing):
             firing_fields_plot.imshow(firing_fields)
         for field in range(number_of_firing_fields):
             path = firing_field_path + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = math.floor((field+1)/5) + 2
-            col = (field+1) % 5
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = math.floor((field+1)/5) + 2
+                col = (field+1) % 5
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
         plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf')
@@ -509,30 +510,33 @@ def make_combined_field_analysis_figures(prm, spatial_firing):
 
         for field in range(number_of_firing_fields):
             path = firing_field_path + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = 1
-            col = field
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = 1
+                col = field
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
         for field in range(number_of_firing_fields):
             path = firing_field_path_first + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = 2
-            col = field
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = 2
+                col = field
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
         for field in range(number_of_firing_fields):
             path = firing_field_path_second + str(field + 1) + '.png'
-            firing_field_polar = mpimg.imread(path)
-            row = 3
-            col = field
-            firing_fields_polar_plot = plt.subplot(grid[row, col])
-            firing_fields_polar_plot.axis('off')
-            firing_fields_polar_plot.imshow(firing_field_polar)
+            if os.path.exists(path):
+                firing_field_polar = mpimg.imread(path)
+                row = 3
+                col = field
+                firing_fields_polar_plot = plt.subplot(grid[row, col])
+                firing_fields_polar_plot.axis('off')
+                firing_fields_polar_plot.imshow(firing_field_polar)
 
         plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
         # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf', dpi=1000)

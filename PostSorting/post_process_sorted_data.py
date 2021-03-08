@@ -71,22 +71,23 @@ def process_running_parameter_tag(running_parameter_tags):
     return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
 
 
-def process_position_data(recording_to_process, session_type, prm):
+def process_position_data(recording_to_process, session_type, prm, do_resample=False):
     spatial_data = None
     is_found = False
     if session_type == 'openfield':
         # dataframe contains time, position coordinates: x, y, head-direction (degrees)
-        spatial_data, is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm)
+        spatial_data, is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process,prm, do_resample)
         # PostSorting.open_field_make_plots.plot_position(spatial_data)
     return spatial_data, is_found
 
 
 def process_light_stimulation(recording_to_process, prm):
     opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
-    opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
-    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-        os.makedirs(prm.get_output_path() + '/DataFrames')
-    opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
+    if is_found != None:
+        opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
+        if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+            os.makedirs(prm.get_output_path() + '/DataFrames')
+        opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
     return opto_on, opto_off, is_found
 
 
@@ -111,8 +112,9 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
-    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
     PostSorting.make_opto_plots.make_optogenetics_plots(prm)
+    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
+    
 
 
 def create_folders_for_output(recording_to_process):

@@ -13,7 +13,6 @@ import warnings
 import sys
 from scipy import fftpack
 import elephant
-
 warnings.filterwarnings('ignore')
 
 test_params = PostSorting.parameters.Parameters()
@@ -247,12 +246,7 @@ def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
         boccara_theta_mod = 1 # classified as theta modulated if at least 5 fold larger
     else:
         boccara_theta_mod = 0
-
-    #print(mean_peak_theta_power/mean_baseline_power)
-    #plt.title("t ="+str(mean_peak_theta_power/mean_baseline_power))
-    #rn = np.random.randint(1000000, size=1)
-    #plt.savefig("/mnt/datastore/Harry/test_function_figure_space/fft_signal"+str(rn)+".png")
-
+        
     return boccara_theta_mod
 
 
@@ -480,22 +474,20 @@ def gen_modulated_firing(n_clusters, freq=8):
     spatial_firing["session_id"] = session_ids
     return spatial_firing
 
-def run_for_x(path_to_recording_list):
-    recordings_file_reader = open(path_to_recording_list, 'r')
-    recordings = recordings_file_reader.readlines()
-    list_of_recordings = list([x.strip() for x in recordings])
+def run_for_x(path_to_recording):
+    list_of_recordings = [f.path for f in os.scandir(path_to_recording) if f.is_dir()]
 
     for i in range(len(list_of_recordings)):
         try:
             recording_path = list_of_recordings[i]
             print("processing recording ", recording_path)
             spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
-            spatial_firing = pd.read_pickle('/mnt/datastore/'+spatial_firing_path)
+            spatial_firing = pd.read_pickle(spatial_firing_path)
             spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
-            test_params.set_output_path('/mnt/datastore/'+recording_path+"/MountainSort")
+            test_params.set_output_path(recording_path+"/MountainSort")
             test_params.set_sampling_rate(30000)
             spatial_firing = run_test(spatial_firing)
-            spatial_firing.to_pickle('/mnt/datastore/'+spatial_firing_path)
+            spatial_firing.to_pickle(spatial_firing_path)
             print("successful on recording, ", list_of_recordings[i])
 
         except Exception as ex:
@@ -533,44 +525,7 @@ def gen_modulated_firing_figure(freq, save_path):
     print("plotted depth correlation")
 
 def main():
-
-    '''
-    recording_path = '/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/M2_D10_2019-06-28_14-56-06'
-    spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
-    spatial_firing = pd.read_pickle(spatial_firing_path)
-    spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
-    test_params.set_output_path(recording_path+"/MountainSort")
-    test_params.set_sampling_rate(30000)
-    spatial_firing = run_test(spatial_firing)
-    spatial_firing.to_pickle(spatial_firing_path)
-    '''
-    '''
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/of_list.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/vr_list.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/VirtualReality/vrlist.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m2.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m3.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/VirtualReality/vrlist_cohort3.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M1_of.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M6_of_1.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/VirtualReality/with_of_recordings.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/OpenField/Mouse_info/filelist_all.txt")
-    print("done one")
-    '''
-    # generate a dummy spatial firing dataframe to test if theta index can come out low if made randomly.
-    #
-    gen_modulated_firing_figure(freq=8, save_path="/mnt/datastore/Harry/Mouse_data_for_sarah_paper/figs")
-    random_firing = gen_modulated_firing(n_clusters=3, freq=8)
-    random_firing = gen_random_firing(n_clusters=3)
-    random_firing = run_test(random_firing)
-    print("look now")
-
+  print("===============================")
 
 
 if __name__ == '__main__':

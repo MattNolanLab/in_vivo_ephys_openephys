@@ -272,5 +272,3 @@ class Parameters:
 
     def get_vr_grid_analysis_bin_size(self):
         return Parameters.vr_grid_analysis_bin_size
-
-

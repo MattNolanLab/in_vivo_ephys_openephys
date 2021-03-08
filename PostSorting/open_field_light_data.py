@@ -6,6 +6,7 @@ from scipy import stats
 import PostSorting.parameters
 
 import PostSorting.open_field_make_plots
+# import PostSorting.SALT
 
 ignore_opto = True
 
@@ -102,13 +103,15 @@ def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary,
     return df_to_append
 
 
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
-    print('I will process opto data.')
+def get_peristumulus_opto_data(window_size_ms, prm):
     check_parity_of_window_size(window_size_ms)
     on_pulses = get_on_pulse_times(prm)
     sampling_rate = prm.get_sampling_rate()
     window_size_sampling_rate = int(sampling_rate/1000 * window_size_ms)
+    return on_pulses, window_size_sampling_rate
 
+
+def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm):
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
     peristimulus_spikes = pd.DataFrame(columns=columns)
 
@@ -123,7 +126,21 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
             df_to_append = make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary, window_size_sampling_rate)
             peristimulus_spikes = peristimulus_spikes.append(df_to_append)
     peristimulus_spikes.to_pickle(prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl')
+    return peristimulus_spikes
+
+
+def create_baseline_and_test_epochs(peristimulus_spikes):
+    pass
+
+
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=40):
+    print('I will process opto data.')
+    on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, prm)
+    peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, prm)
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
+    # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
+    # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
+
 
 
 def main():
