@@ -211,7 +211,7 @@ def make_combined_opto_plot(spatial_firing, output_path):
         number_of_rows = 2
         number_of_columns = 3
         grid = plt.GridSpec(number_of_rows, number_of_columns, wspace=0.2, hspace=0.2)
-        plt.suptitle('Light responses.')
+        plt.suptitle('Light responses')
 
         if os.path.exists(waveforms_cell_all):
             waves_all = mpimg.imread(waveforms_cell_all)
