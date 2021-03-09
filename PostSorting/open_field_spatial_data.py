@@ -57,7 +57,7 @@ def convert_time_to_seconds(position_data):
     return position_data
 
 
-def resample_position_data(pos,fs=30):
+def resample_position_data(pos,fs):
     ''' 
     Resample position data so that they are of exact sampling rate. Sometimes the FPS of the camera is not stable,
     which may lead to error in syncing. 
@@ -65,7 +65,7 @@ def resample_position_data(pos,fs=30):
     Assume pos has a time_seconds column
     '''
     t = pos.time_seconds.values
-    t2 = np.arange(0,len(t))/fs
+    t2 = np.arange(0,t[-1],1/fs) #set end to t[-1] to avoid extrapolation, which may lead to error
     df = {}
     for col in pos.columns:
         f = interp1d(t,pos[col].values, fill_value='extrapolate')
@@ -249,7 +249,7 @@ def process_position_data(recording_folder, do_resample=False):
         if do_resample:
             #drop the string columns
             position_data = position_data.drop(['date', 'time', 'hours', 'minutes', 'seconds'],axis=1)
-            position_data = resample_position_data(position_data)
+            position_data = resample_position_data(position_data,30)
     if not is_found:
         if os.path.isfile(recording_folder + '/axona_position.pkl'):
             position_data = pd.read_pickle(recording_folder + '/axona_position.pkl')
