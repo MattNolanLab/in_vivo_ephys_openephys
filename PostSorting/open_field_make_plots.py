@@ -269,7 +269,7 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, prm):
                 firing_rate_map_90 = np.rot90(firing_rate_map)
                 of_plot.imshow(firing_rate_map_90)
 
-                firing_fields_cluster = spatial_firing['firing_fields'].iloc[0]
+                firing_fields_cluster = cluster_df['firing_fields'].iloc[0]
                 colors = generate_colors(number_of_firing_fields)
 
                 for field_id, field in enumerate(firing_fields_cluster):
