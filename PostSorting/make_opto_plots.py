@@ -252,12 +252,23 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
     """
 
     peristimulus_spikes_path = output_path + '/DataFrames/peristimulus_spikes.pkl'
+    opto_parameters_path = output_path + '/DataFrames/opto_parameters.pkl'
     if os.path.exists(peristimulus_spikes_path):
+        if os.path.exists(opto_parameters_path):
+            opto_parameters = pd.read_pickle(opto_parameters_path)
+            light_pulse_duration = opto_parameters.duration.iloc[0] * sampling_rate / 1000
+            latency_window_ms = opto_parameters.first_spike_latency_ms.iloc[0]
+        else:
+            print('There is no metadata saved for optical stimulation. I will assume the pulses are 3 ms and that '
+                  'the latencies should be calculated in a 10ms window.')
+            light_pulse_duration = 90
+            latency_window_ms = 10
+
         # binary array containing light stimulation trials in each row (0 means no spike 1 means spike at a sampling point)
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
-        plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=90,
-                                 latency_window_ms=10)
-        plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=90)
+        plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration,
+                                 latency_window_ms=latency_window_ms)
+        plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=light_pulse_duration)
         plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_snippets_opto', title='During opto-tagging')
         plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_first_spike_snippets_opto', title='First spikes after light')
         make_combined_opto_plot(spatial_firing, output_path)
