@@ -40,7 +40,7 @@ def calculate_grid_field_com(cluster_spike_data, position_data, bin_size, prm):
     if isinstance(firing_times, pd.Series):
         firing_times = firing_times.iloc[0]
     if len(firing_times)==0:
-        firing_rate_maps = np.zeros(prm.track_length)
+        firing_rate_maps = np.zeros(int(prm.track_length))
         return firing_field_com, firing_field_com_trial_numbers, firing_field_com_trial_types, firing_rate_maps
 
     trial_numbers = np.array(position_data['trial_number'].to_numpy())
