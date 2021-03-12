@@ -213,12 +213,12 @@ def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
 
 
-def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags=None, recs_length=None):
+def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags=None, recs_length=None, paired_order=None):
     if session_type == "openfield":
-        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order="second",
+        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order=paired_order,
                                                         running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
     elif session_type == "vr":
-        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order="second",
+        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order=paired_order,
                                                            running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
     elif session_type == "sleep":
         post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
@@ -233,8 +233,8 @@ def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
     paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort)
 
-    call_post_sorting_for_session_type(paired_recording_to_sort, paired_session_type, stitch_point, tags, recs_length)
-    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length)
+    call_post_sorting_for_session_type(paired_recording_to_sort, paired_session_type, stitch_point, tags, recs_length, paired_order='second')
+    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order='first')
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None):
