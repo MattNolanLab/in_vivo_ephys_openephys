@@ -199,6 +199,15 @@ def set_recording_length(recording_to_process, prm):
     return continuous_channel_data, is_found
 
 
+def analyze_snippets_and_temporal_firing(recording_to_process, session_type, prm):
+    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+    spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
+    return spike_data, snippet_data, bad_clusters
+
+
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
                            analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
     create_folders_for_output(recording_to_process)
@@ -230,14 +239,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     # analyze spike data
     if not position_was_found:  # this is normally set after syncing the ephys and position data
         set_recording_length(recording_to_process, prm)
-    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
-    spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
-    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
-    run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
+        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, session_type, prm)
+        run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
     if position_was_found:
-        synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
+        synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)  # this will set the recording length
+        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
+                                                                                      session_type, prm)
+        run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
             return
