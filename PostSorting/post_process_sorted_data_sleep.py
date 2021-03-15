@@ -33,6 +33,9 @@ prm = PostSorting.parameters.Parameters()
 
 
 def initialize_parameters(recording_to_process):
+    """
+    Set parameters for the recording using default values and metadata.
+    """
     prm.set_is_ubuntu(True)
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
@@ -51,6 +54,9 @@ def initialize_parameters(recording_to_process):
 
 
 def process_running_parameter_tag(running_parameter_tags):
+    """
+    Process tags from parameters.txt metadata file. These are in the third line of the file.
+    """
     unexpected_tag = False
     interleaved_opto = False
     delete_first_two_minutes = False
@@ -74,6 +80,9 @@ def process_running_parameter_tag(running_parameter_tags):
 
 
 def process_position_data(recording_to_process, session_type, prm):
+    """
+    Process motion tracking data to calculate position of animal.
+    """
     spatial_data = None
     is_found = False
     # dataframe contains time, position coordinates: x, y, head-direction (degrees)
@@ -82,6 +91,9 @@ def process_position_data(recording_to_process, session_type, prm):
 
 
 def process_light_stimulation(recording_to_process, prm):
+    """
+    Process data related to optical stimulation.
+    """
     opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
     if is_found != None:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
@@ -92,12 +104,18 @@ def process_light_stimulation(recording_to_process, prm):
 
 
 def sync_data(recording_to_process, prm, spatial_data):
+    """
+    Synchronize position and electrophysiology data.
+    """
     synced_spatial_data, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
                                                                                        spatial_data)
     return synced_spatial_data
 
 
 def make_plots(position_data, spatial_firing, position_heat_map, prm):
+    """
+    Call functions to plot various spatial and temporal properties for each cell.
+    """
     PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
@@ -110,6 +128,11 @@ def make_plots(position_data, spatial_firing, position_heat_map, prm):
 
 
 def make_plots_with_no_spatial_data(spatial_firing, prm):
+    """
+    Call functions to plot various temporal properties for each cell. This is separate form the functions with spatial
+    data plots in case the position data was not possibly to analyze from the sleep recording. This can happen if the
+    lid on the cage covers too much for motion tracking.
+    """
     PostSorting.make_plots.plot_waveforms(spatial_firing, prm)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, prm)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, prm)
@@ -118,8 +141,9 @@ def make_plots_with_no_spatial_data(spatial_firing, prm):
     
 
 def create_folders_for_output(recording_to_process):
-    if os.path.exists(recording_to_process + '/Figures') is False:
-        os.makedirs(recording_to_process + '/Figures')
+    """
+    Create empty folders for future output files.
+    """
     if os.path.exists(recording_to_process + '/DataFrames') is False:
         os.makedirs(recording_to_process + '/DataFrames')
     if os.path.exists(recording_to_process + '/Firing_fields') is False:
@@ -127,6 +151,9 @@ def create_folders_for_output(recording_to_process):
 
 
 def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None, lfp_data=None):
+    """
+    Save data frames that contain the spike sorted analysis results for each cell.
+    """
     print('I will save the data frames now.')
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
@@ -141,6 +168,9 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
 
 
 def save_data_for_plots(position_heat_map, prm):
+    """
+    Save data frames relevant for making plots.
+    """
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     np.save(prm.get_output_path() + '/DataFrames/position_heat_map.npy', position_heat_map)
@@ -149,6 +179,9 @@ def save_data_for_plots(position_heat_map, prm):
 
 
 def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, lfp_data=None):
+    """
+    Call functions to analyze spike sorted data and snippets.
+    """
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
     spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
@@ -173,6 +206,9 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, lfp_da
 
 
 def run_analyses_without_position_data(spike_data_in, opto_analysis=False, lfp_data=None):
+    """
+    Run analyses on spike sorted data.
+    """
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
 
@@ -185,7 +221,7 @@ def run_analyses_without_position_data(spike_data_in, opto_analysis=False, lfp_d
 
 
 def set_recording_length(recording_to_process, prm):
-    # only use this when there's no position data
+    # only use this when there's no position data. otherwise this is set when syncing the data
     is_found = False
     continuous_channel_data = None
     print('I am loading a channel to find out the length of the recording, because there is no position data available.')
@@ -200,6 +236,9 @@ def set_recording_length(recording_to_process, prm):
 
 
 def analyze_snippets_and_temporal_firing(recording_to_process, session_type, prm):
+    """
+    Run analyses on spike sorted data to analyze snippets and temporal firing properties.
+    """
     spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
@@ -210,6 +249,12 @@ def analyze_snippets_and_temporal_firing(recording_to_process, session_type, prm
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
                            analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
+    """
+    Run analyses on spike sorted data. This file is a modified version of post_process_sorted_data that is adapted
+    to recordings that only contain data during sleep or rest where the animal is in a small box / home cage and does
+    not explore the arena. Functions that are not relevant to this type of data are removed or adapted.
+
+    """
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
