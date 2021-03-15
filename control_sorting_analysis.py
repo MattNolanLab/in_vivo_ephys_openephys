@@ -115,18 +115,16 @@ def get_tags_parameter_file(recording_directory):
         tags = parameters[2]
     return tags
 
+
 def check_for_paired(running_parameter_tags):
     paired_recording = None
-    session_type_paired = None
     if running_parameter_tags is not False:
         tags = [x.strip() for x in running_parameter_tags.split('*')]
         for tag in tags:
             if tag.startswith('paired'):
                 paired_recording = str(tag.split("=")[1])
-            elif tag.startswith('session_type_paired'):
-                session_type_paired = str(tag.split("=")[1])
 
-    return paired_recording, session_type_paired
+    return paired_recording
 
 
 def write_param_file_for_matlab(file_to_sort, path_to_server, is_openfield, is_vr):
@@ -203,14 +201,30 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
               'I could not resolve, but the files are actually copied successfully.')
         pass
 
+
 def copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort):
     shutil.copytree(recording_to_sort+"/Electrophysiology", paired_recording_to_sort+"/Electrophysiology")
     return paired_recording_to_sort
+
 
 def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Figures')
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Firing_fields')
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
+
+
+def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags=None, recs_length=None, paired_order=None):
+    if session_type == "openfield":
+        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order=paired_order,
+                                                        running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+    elif session_type == "vr":
+        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order=paired_order,
+                                                           running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+    elif session_type == "sleep":
+        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+    elif session_type == "opto":
+        post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+
 
 def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
                                       paired_recording_to_sort, paired_session_type,
@@ -219,22 +233,11 @@ def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
     paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort)
 
-    if paired_session_type == "openfield":
-        post_process_sorted_data.post_process_recording(paired_recording_to_sort, "openfield", paired_order="first",
-                                                        running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
-    elif paired_session_type == "vr":
-        post_process_sorted_data_vr.post_process_recording(paired_recording_to_sort, "vr", paired_order="first",
-                                                           running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+    call_post_sorting_for_session_type(paired_recording_to_sort, paired_session_type, stitch_point, tags, recs_length, paired_order='second')
+    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order='first')
 
-    if session_type == "openfield":
-        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order="second",
-                                                        running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
-    elif session_type == "vr":
-        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order="second",
-                                                           running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
-        
-def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None, paired_session_type=None):
+def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None):
     print('I will analyze ' + recording_to_sort)
     print(datetime.datetime.now())
     try:
@@ -244,9 +247,11 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
         if paired_recording is not None:
+            print('Multiple recordings will be sorted together.')
             paired_recording = copy_recording_to_sort_to_local(paired_recording)
             paired_recording_to_sort = sorting_folder + paired_recording.split('/')[-1]
             paired_location_on_server = get_location_on_server(paired_recording_to_sort)
+            paired_session_type = get_session_type(paired_recording_to_sort)
             recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recording_to_sort)
         
         if not skip_sorting:
@@ -272,19 +277,11 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
                 shutil.rmtree(paired_recording_to_sort)
 
         else:
-            if session_type == "openfield":
-                post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
-            elif session_type == "vr":
-                post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags)
-            elif session_type == "sleep":
-                post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags)
-            elif session_type == "opto":
-                post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags)
+            call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point=None, tags=tags)
 
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
 
-        #call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr)
         shutil.rmtree(recording_to_sort)
 
         if not skip_sorting:
@@ -401,11 +398,10 @@ def monitor_to_sort():
         recording_to_sort = check_folder(sorting_folder)
         if recording_to_sort is not False:
             tags = get_tags_parameter_file(recording_to_sort)
-            paired_recording, paired_session_type = check_for_paired(tags)
+            paired_recording = check_for_paired(tags)
             call_spike_sorting_analysis_scripts(recording_to_sort,
                                                 tags,
-                                                paired_recording=paired_recording,
-                                                paired_session_type=paired_session_type)
+                                                paired_recording=paired_recording)
 
         else:
             if os.environ.get('SINGLE_RUN'):
@@ -417,11 +413,10 @@ def monitor_to_sort():
             recording_to_sort = get_next_recording_on_server_to_sort()
             if recording_to_sort is not False:
                 tags = get_tags_parameter_file(recording_to_sort)
-                paired_recording, paired_session_type = check_for_paired(tags)
+                paired_recording = check_for_paired(tags)
                 call_spike_sorting_analysis_scripts(recording_to_sort,
                                                     tags,
-                                                    paired_recording=paired_recording,
-                                                    paired_session_type=paired_session_type)
+                                                    paired_recording=paired_recording)
 
             else:
                 time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
