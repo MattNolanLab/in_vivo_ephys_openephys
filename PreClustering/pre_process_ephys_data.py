@@ -26,6 +26,12 @@ def init_params():
 
 
 def split_back(recording_to_sort, stitch_point):
+    """
+    :param recording_to_sort: Path to recording #1 that is sorted together with other recordings
+    :param stitch_point: time point where the recordings were stitched together
+    :return: the path (same as input parameter) and the total number of time steps in the combined data
+    """
+    print('I will split the data that was sorted together. It might take a while.')
     dir = [f.path for f in os.scandir(recording_to_sort)]
 
     n_timestamps = 0
