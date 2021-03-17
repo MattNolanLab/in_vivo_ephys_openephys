@@ -264,12 +264,13 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         if os.path.exists(recording_to_sort + '/Figures') is True:
             copy_output_to_server(recording_to_sort, location_on_server)
 
-        if not os.environ.get('DEBUG'): # Keep the recording files during debug run
+        if not os.environ.get('DEBUG'):  # Keep the recording files during debug run
             shutil.rmtree(recording_to_sort)
 
             if paired_recording is not None:
-                if os.path.exists(paired_recording_to_sort) is True:
-                    shutil.rmtree(paired_recording_to_sort)
+                for path_to_paired_recording in paired_recordings_to_sort:
+                    if os.path.exists(path_to_paired_recording) is True:
+                        shutil.rmtree(path_to_paired_recording)
 
             if os.path.exists(mountainsort_tmp_folder) is True:
                 shutil.rmtree(mountainsort_tmp_folder)
