@@ -45,26 +45,36 @@ def split_back(recording_to_sort, stitch_point):
 
     return recording_to_sort, n_timestamps
 
-def stitch_recordings(recording_to_sort, paired_recording):
+
+def stitch_recordings(recording_to_sort, paired_recordings):
+    """
+    Load continuous data from multiple recordings, concatenate the arrays and write new continuous files.
+    :param recording_to_sort: path to recording #1
+    :param paired_recordings: path list of recordings to sort together with recording #1
+    :return: combined recording and time points where a new recording started
+    """
+    print('I will stitch these recordings together now so they can be sorted together. It might take a while.')
     init_params()
     file_utility.set_continuous_data_path(prm)
 
-    dir = [f.path for f in os.scandir(recording_to_sort)]
-
-    for filepath in dir:
+    directory_list = [f.path for f in os.scandir(recording_to_sort)]
+    stitch_points = []
+    for filepath in directory_list:
         filename = filepath.split("/")[-1]
 
         if filename.startswith(prm.get_continuous_file_name()):
             ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
-            ch_p = OpenEphys.loadContinuous(paired_recording + '/' + filename)
-            stitch_point = len(ch['data'])
-            ch['data'] = np.append(ch['data'], ch_p['data'])
-            ch['timestamps'] = np.append(ch['timestamps'], ch_p['timestamps'])
-            ch['recordingNumber'] = np.append(ch['recordingNumber'], ch_p['recordingNumber'])
+            for recording in paired_recordings:
+                ch_p = OpenEphys.loadContinuous(recording + '/' + filename)
+                length_of_recording = len(ch['data'])
+                stitch_points.append(length_of_recording)
+                ch['data'] = np.append(ch['data'], ch_p['data'])
+                ch['timestamps'] = np.append(ch['timestamps'], ch_p['timestamps'])
+                ch['recordingNumber'] = np.append(ch['recordingNumber'], ch_p['recordingNumber'])
 
             OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
 
-    return recording_to_sort, stitch_point
+    return recording_to_sort, stitch_points
 
 # Prepares input for running spike sorting for the recording.
 def process_a_dir(dir_name):
