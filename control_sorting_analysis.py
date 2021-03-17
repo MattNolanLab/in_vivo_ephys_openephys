@@ -158,6 +158,11 @@ def copy_ephys_to_paired(recording_to_sort, paired_recordings_to_sort):
         shutil.copytree(recording_to_sort+"/Electrophysiology", recording+"/Electrophysiology")
 
 
+def delete_ephys_to_paired(paired_recordings_to_sort):
+    for recording in paired_recordings_to_sort:
+        shutil.rmtree(recording+"/Electrophysiology")
+
+
 def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Figures')
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Firing_fields')
@@ -182,11 +187,12 @@ def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                       stitch_points, tags):
 
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points[0])
-    copy_ephys_to_paired(recording_to_sort, paired_recordings_to_sort)
 
     call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points[0], tags, recs_length, paired_order='first')
     for index, paired_recording in enumerate(paired_recordings_to_sort):
+        copy_ephys_to_paired(recording_to_sort, [paired_recordings_to_sort[index]])
         call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points[index], tags, recs_length, paired_order='second')
+        delete_ephys_to_paired([paired_recordings_to_sort[index]])
 
 
 def copy_paired_outputs_to_server(paired_recordings_to_sort, paired_locations_on_server):
