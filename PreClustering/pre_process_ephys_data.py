@@ -24,6 +24,7 @@ def init_params():
     prm.set_is_tetrode_by_tetrode(False)  # set to True if you want the spike sorting to be done tetrode by tetrode
     prm.set_is_all_tetrodes_together(True)  # set to True if you want the spike sorting done on all tetrodes combined
 
+
 def split_back(recording_to_sort, stitch_point):
     dir = [f.path for f in os.scandir(recording_to_sort)]
 
@@ -76,6 +77,7 @@ def stitch_recordings(recording_to_sort, paired_recordings):
 
     return recording_to_sort, stitch_points
 
+
 # Prepares input for running spike sorting for the recording.
 def process_a_dir(dir_name):
     print('')
@@ -126,7 +128,6 @@ def main():
     paired_folder =    r"C:\Users\44756\Desktop\test_recordings_waveform_matching\M2_D3_2019-03-06_15-24-38"
 
     stitch_recordings(recording_folder, paired_folder)
-
 
 
 if __name__ == '__main__':
