@@ -117,14 +117,13 @@ def get_tags_parameter_file(recording_directory):
 
 
 def check_for_paired(running_parameter_tags):
-    paired_recording = None
+    paired_recordings = None
     if running_parameter_tags is not False:
         tags = [x.strip() for x in running_parameter_tags.split('*')]
         for tag in tags:
             if tag.startswith('paired'):
-                paired_recording = str(tag.split("=")[1])
-
-    return paired_recording
+                paired_recordings = str(tag.split("=")[1]).split(',')
+    return paired_recordings
 
 
 # write file 'crash_list.txt' in top level dir with list of recordings that could not be sorted
@@ -154,9 +153,9 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
         pass
 
 
-def copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort):
-    shutil.copytree(recording_to_sort+"/Electrophysiology", paired_recording_to_sort+"/Electrophysiology")
-    return paired_recording_to_sort
+def copy_ephys_to_paired(recording_to_sort, paired_recordings_to_sort):
+    for recording in paired_recordings_to_sort:
+        shutil.copytree(recording_to_sort+"/Electrophysiology", recording+"/Electrophysiology")
 
 
 def copy_output_to_server(recording_to_sort, location_on_server):
@@ -178,15 +177,23 @@ def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_p
         post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
 
-def run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
-                                      paired_recording_to_sort, paired_session_type,
-                                      stitch_point, tags):
+def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
+                                      paired_recordings_to_sort, paired_session_types,
+                                      stitch_points, tags):
 
-    recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_point)
-    paired_recording_to_sort = copy_ephys_to_paired(recording_to_sort, paired_recording_to_sort)
+    recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points[0])
+    copy_ephys_to_paired(recording_to_sort, paired_recordings_to_sort)
 
-    call_post_sorting_for_session_type(paired_recording_to_sort, paired_session_type, stitch_point, tags, recs_length, paired_order='second')
-    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order='first')
+    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points[0], tags, recs_length, paired_order='first')
+    for index, paired_recording in enumerate(paired_recordings_to_sort):
+        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points[index], tags, recs_length, paired_order='second')
+
+
+def copy_paired_outputs_to_server(paired_recordings_to_sort, paired_locations_on_server):
+    for index, path in enumerate(paired_recordings_to_sort):
+        if os.path.exists(path + '/Figures') is True:
+            copy_output_to_server(path, paired_locations_on_server[index])
+            shutil.rmtree(path)
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None):
@@ -199,12 +206,21 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
 
         if paired_recording is not None:
-            print('Multiple recordings will be sorted together.')
-            paired_recording = copy_recording_to_sort_to_local(paired_recording)
-            paired_recording_to_sort = sorting_folder + paired_recording.split('/')[-1]
-            paired_location_on_server = get_location_on_server(paired_recording_to_sort)
-            paired_session_type = get_session_type(paired_recording_to_sort)
-            recording_to_sort, stitch_point = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recording_to_sort)
+            print('Multiple recordings will be sorted together: ' + recording_to_sort + ' ' + str(paired_recording))
+            if not isinstance(paired_recording, list):
+                paired_recording = [paired_recording]
+            paired_recordings_to_sort = []
+            paired_session_types = []
+            paired_locations_on_server = []
+            for recording in paired_recording:
+                paired_recording = copy_recording_to_sort_to_local(recording)
+                paired_recording_to_sort = sorting_folder + recording.split('/')[-1]
+                paired_recordings_to_sort.append(paired_recording_to_sort)
+                paired_location_on_server = get_location_on_server(paired_recording_to_sort)
+                paired_locations_on_server.append(paired_location_on_server)
+                paired_session_type = get_session_type(paired_recording_to_sort)
+                paired_session_types.append(paired_session_type)
+            recording_to_sort, stitch_points = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recordings_to_sort)
         
         if not skip_sorting:
             pre_process_ephys_data.pre_process_data(recording_to_sort)
@@ -221,12 +237,10 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         print('Post-sorting analysis (Python version) will run now.')
 
         if paired_recording is not None:
-            run_post_sorting_for_dual_sorting(recording_to_sort, session_type,
-                                              paired_recording_to_sort, paired_session_type,
-                                              stitch_point, tags)
-            if os.path.exists(paired_recording_to_sort + '/Figures') is True:
-                copy_output_to_server(paired_recording_to_sort, paired_location_on_server)
-                shutil.rmtree(paired_recording_to_sort)
+            run_post_sorting_for_all_recordings(recording_to_sort, session_type,
+                                              paired_recordings_to_sort, paired_session_types,
+                                              stitch_points, tags)
+            copy_paired_outputs_to_server(paired_recordings_to_sort, paired_locations_on_server)
 
         else:
             call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point=None, tags=tags)
