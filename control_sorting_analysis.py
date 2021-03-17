@@ -127,41 +127,6 @@ def check_for_paired(running_parameter_tags):
     return paired_recording
 
 
-def write_param_file_for_matlab(file_to_sort, path_to_server, is_openfield, is_vr):
-    if is_openfield:
-        openfield = 1
-    else:
-        openfield = 0
-    opto = 1
-    params_for_matlab_file = open(matlab_params_file_path + "PostClusteringParams.txt", "w")
-    params_for_matlab_file.write(file_to_sort + ',\n')
-    params_for_matlab_file.write(server_path_first_half + path_to_server + ',\n')
-    params_for_matlab_file.write(str(openfield) + ',\n')
-    params_for_matlab_file.write(str(opto))
-    params_for_matlab_file.close()
-
-
-def write_shell_script_to_call_matlab(file_to_sort):
-    script_path = file_to_sort + '/run_matlab.sh'
-    batch_writer = open(script_path, 'w', newline='\n')
-    batch_writer.write('#!/bin/bash\n')
-    batch_writer.write('echo "-----------------------------------------------------------------------------------"\n')
-    batch_writer.write('echo "This is a shell script that will call matlab."\n')
-    batch_writer.write('export MATLABPATH=/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/\n')
-
-    batch_writer.write('matlab -r PostClusteringAuto')
-
-
-def check_if_matlab_was_successful(recording_to_sort):
-    is_successful = True
-    matlab_crash_path = recording_to_sort + '/matlabcrash.txt'
-
-    if os.path.isfile(matlab_crash_path) is True:
-        is_successful = False
-
-    return is_successful
-
-
 # write file 'crash_list.txt' in top level dir with list of recordings that could not be sorted
 def add_to_list_of_failed_sortings(recording_to_sort):
     if os.path.isfile(to_sort_folder + "/crash_list.txt") is False:
@@ -172,19 +137,6 @@ def add_to_list_of_failed_sortings(recording_to_sort):
     crashed_recording = str(recording_to_sort) + '\n'
     crash_writer.write(crashed_recording)
     crash_writer.close()
-
-
-def call_matlab_post_sorting(recording_to_sort, location_on_server, is_open_field, is_vr):
-    write_param_file_for_matlab(recording_to_sort, location_on_server, is_open_field, is_vr)
-    write_shell_script_to_call_matlab(recording_to_sort)
-    gc.collect()
-    os.chmod(recording_to_sort + '/run_matlab.sh', 484)
-    subprocess.call(recording_to_sort + '/run_matlab.sh', shell=True)
-
-    if check_if_matlab_was_successful(recording_to_sort) is not True:
-        raise Exception('Postprocessing failed, matlab crashed.')
-    else:
-        print('Post-processing in Matlab is done.')
 
 
 def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, name):
