@@ -18,7 +18,6 @@ def optionalFile(path):
         return [None]
 
 recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
-sorterPrefix = '{recording}/processed/'+setting.sorterName
 figure_prefix = '{recording}/processed/figures'
 
 

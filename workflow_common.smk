@@ -1,3 +1,5 @@
+sorterPrefix = '{recording}/processed/'+setting.sorterName
+
 rule sort_spikes:
     input:
         probe_file = 'sorting_files/tetrode_16.prb',

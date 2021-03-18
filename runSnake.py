@@ -62,7 +62,6 @@ else:
 targets = defaultdict(list)
 for p in paths:
     param = None
-
     if (p / 'parameters.yaml').exists():
         param = yaml.load(open(p / 'parameters.yaml','r'), Loader=yaml.FullLoader)
     else:
@@ -161,7 +160,7 @@ def process_recordings(args, config, expt_type, paths):
         target_files = [str(p/'processed/snakemake.done') for p in paths]
 
     # to do: enable multiple core processing
-    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'])
+    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=True )
 
 
     if args.uploadresults:

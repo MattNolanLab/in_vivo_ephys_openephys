@@ -264,6 +264,8 @@ def process_position_data(recording_folder, do_resample=False):
         position_data = convert_to_cm(position_data)
         position_data = calculate_central_speed(position_data)
         position_of_mouse = position_data[['time_seconds', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'syncLED', 'speed']].copy()
+    else:
+        print('Cannot find any position file')
     return position_of_mouse, is_found
 
 
