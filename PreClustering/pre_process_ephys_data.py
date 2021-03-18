@@ -7,8 +7,38 @@ import file_utility
 import numpy as np
 from PreClustering import convert_open_ephys_to_mda
 import spikeinterface as si
+import yaml
+from pathlib import Path
+import setting
 
 prm = parameters.Parameters()
+
+
+def get_sorting_range(max_signal_length, param_file_location):
+    '''
+    Get the time range of recording to sort from the parameter file, if no range is specified, then
+    sort the whole recording
+    '''
+
+    start = 0
+    end = max_signal_length
+    try:
+        # see if sorting range is specified
+        with open(param_file_location,'r') as f:
+            param = yaml.load(f, Loader=yaml.FullLoader)
+            if 'sorting_range' in param.keys():
+                if 'start' in param['sorting_range'].keys():
+                    start = param['sorting_range']['start'] * setting.sampling_rate
+                
+                if 'end' in param['sorting_range'].keys():
+                    end = param['sorting_range']['end'] * setting.sampling_rate
+
+                print(f'I will sort from {start/setting.sampling_rate:.2f}s to {end/setting.sampling_rate:.2f}s')
+    except:
+        print('No sorting range specified. I will sort the whole recording')
+
+    
+    return (start,end)
 
 
 def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):

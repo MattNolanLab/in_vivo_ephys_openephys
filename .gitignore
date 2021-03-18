@@ -17,5 +17,4 @@ __pycache__/
 
 testData/
 sorting_tmp/
-tests/regression/output/vr
-tests/regression/output/*
+tests/regression/output

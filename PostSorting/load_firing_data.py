@@ -74,8 +74,13 @@ def process_firing_times2(session_id, sorted_data_path, session_type):
                     'number_of_spikes': num_spikes,
                     'mean_firing_rate': mean_rate
                 })
-
-    return pd.DataFrame(dataframeList)
+        
+        if len(dataframeList) == 0:
+            # can't find any cell, return an empty dataframe
+            return pd.DataFrame(columns=['session_id', 
+                'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'number_of_spikes','mean_firing_rate'])
+        else:
+            return pd.DataFrame(dataframeList)
 
 def process_firing_times(session_id,firing_data_path, session_type):
     #TODO probably easier to use the sorterextractor object directly

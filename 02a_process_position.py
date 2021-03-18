@@ -33,7 +33,7 @@ else:
     df.to_pickle(soutput.opto_pulse)
 
 #%% Process position data
-spatial_data, position_was_found = ppsd.process_position_data(sinput.recording_to_sort, 'openfield')
+spatial_data, position_was_found = ppsd.process_position_data(sinput.recording_to_sort, 'openfield',do_resample=True)
 hd_sampling_analysis.check_if_hd_sampling_was_high_enough(spatial_data,soutput.hd_power_spectrum)
 
 #%% Synchronize with bonsai 
