@@ -247,6 +247,9 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
             run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                               paired_recordings_to_sort, paired_session_types, paired_locations_on_server,
                                               stitch_points, tags)
+            for path_to_paired_recording in paired_recordings_to_sort:
+                if os.path.exists(path_to_paired_recording) is True:
+                    shutil.rmtree(path_to_paired_recording)
 
         else:
             call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point=None, tags=tags)
