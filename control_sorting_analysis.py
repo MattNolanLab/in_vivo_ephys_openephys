@@ -193,16 +193,15 @@ def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
         print('I will run the post-sorting scrpits for: ' + paired_recording)
         copy_ephys_to_paired(recording_to_sort, [paired_recordings_to_sort[index]])
         call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points[index], tags, recs_length, paired_order='second')
-        copy_paired_outputs_to_server(paired_recordings_to_sort[index], paired_locations_on_server[index])
+        copy_paired_outputs_to_server(paired_recordings_to_sort[index])
         delete_ephys_for_paired([paired_recordings_to_sort[index]])
 
 
-def copy_paired_outputs_to_server(paired_recordings_to_sort, paired_locations_on_server):
-    for index, path in enumerate([paired_recordings_to_sort]):
-        if os.path.exists(path + '/Figures') is True:
-            server_loc = get_location_on_server(path)
-            copy_output_to_server(path, server_loc)
-            shutil.rmtree(path)
+def copy_paired_outputs_to_server(paired_recordings_to_sort):
+    if os.path.exists(paired_recordings_to_sort + '/Figures') is True:
+        server_loc = get_location_on_server(paired_recordings_to_sort)
+        copy_output_to_server(paired_recordings_to_sort, server_loc)
+        shutil.rmtree(paired_recordings_to_sort)
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None):
