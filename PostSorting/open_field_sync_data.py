@@ -158,8 +158,8 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
 
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
-    bonsai = reduce_noise(bonsai, np.median(bonsai) + 4 * np.std(bonsai))
-    oe = reduce_noise(oe, 0.01)
+    bonsai = reduce_noise(bonsai, (bonsai.max() - bonsai.min())*2/3)
+    oe = reduce_noise(oe, 2)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
     plt.plot(corr);plt.savefig('corr.png')
@@ -231,6 +231,9 @@ def process_sync_data(recording_to_process, spatial_data, opto_start_index):
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
+    sync_data_ephys.to_pickle('sync_data_ephys.pkl')
+    spatial_data.to_pickle('spatial_data.pkl')
+
     spatial_data,downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
     
     # synced time in seconds, x and y in cm, hd in degrees
