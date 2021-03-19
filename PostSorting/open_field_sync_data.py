@@ -162,10 +162,6 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     oe = reduce_noise(oe, 2)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
-    plt.plot(corr);plt.savefig('corr.png')
-    plt.figure();plt.plot(bonsai);plt.xlim([0,30000]);plt.savefig('bonsai.png');
-    plt.figure();plt.plot(oe);plt.xlim([0,30000]);plt.savefig('oe.png');
-
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
     spatial_data['synced_time_estimate'] = spatial_data.time_seconds - lag  # at this point the lag is about 100 ms
