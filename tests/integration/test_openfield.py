@@ -1,7 +1,8 @@
 import unittest
 import pickle
 from pathlib import Path
-
+import sys
+print(sys.path)
 from tests.integration.utils import set_up, tear_down
 
 
