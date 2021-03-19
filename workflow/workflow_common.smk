@@ -1,3 +1,4 @@
+
 sorterPrefix = '{recording}/processed/'+setting.sorterName
 
 rule sort_spikes:
@@ -14,7 +15,7 @@ rule sort_spikes:
         sorter_df = sorterPrefix +'/sorter_df.pkl',
         recording_info = '{recording}/processed/recording_info.pkl'
     script:
-        '01_sorting.py'
+        '../scripts/01_sorting.py'
 
 
 rule curate_clusters:
@@ -26,4 +27,4 @@ rule curate_clusters:
         waveform_figure_all = directory(sorterPrefix + '/waveform/all/'),
         waveform_figure_curated =directory(sorterPrefix + '/waveform/curated/')
     script:
-        '01b_curation.py'
+        '../scripts/01b_curation.py'

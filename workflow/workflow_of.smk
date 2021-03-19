@@ -37,7 +37,7 @@ rule process_position:
         synced_spatial_data = '{recording}/processed/synced_spatial_data.pkl',
         sync_pulse = '{recording}/processed/sync_pulse.png'
     script:
-        '02a_process_position.py'
+        '../scripts/openfield/02a_process_position.py'
 
 rule process_firings:
     input:
@@ -46,7 +46,7 @@ rule process_firings:
     output:
         spatial_firing = '{recording}/processed/spatial_firing.pkl'
     script:
-        '03a_process_firings.py'
+        '../scripts/openfield/03a_process_firings.py'
 
 rule process_expt:
     input:
@@ -58,7 +58,7 @@ rule process_expt:
         hd_histogram = '{recording}/processed/hd_histogram.pkl',
         hd_csv = directory('{recording}/processed/firing_fields/')
     script:
-        '04a_process_expt_openfield.py'
+        '../scripts/openfield/04a_process_expt_openfield.py'
 
 
 rule plot_figures:
@@ -85,4 +85,4 @@ rule plot_figures:
         combined = directory(figure_prefix+'/combined/'),
         result = touch('{recording}/processed/snakemake.done')
     script:
-        '05a_plot_figure_openfield.py'
+        '../scripts/openfield/05a_plot_figure_openfield.py'

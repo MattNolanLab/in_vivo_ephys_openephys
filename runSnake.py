@@ -12,6 +12,11 @@ from pathlib import Path
 from collections import defaultdict
 import shutil
 from glob import glob
+import subprocess
+
+# Add current directory to path so that the import function can work correct
+subprocess.check_call('export PYTHONPATH=$PYTHONPATH:$PWD',shell=True)
+
 # import logging
 
 #TODO: add function to only rerun a particular rule

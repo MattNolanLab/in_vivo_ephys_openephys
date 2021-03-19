@@ -17,7 +17,6 @@ import spikeinterface.widgets as sw
 from tqdm import tqdm
 import yaml
 
-
 import file_utility
 import Logger
 import setting

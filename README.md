@@ -1,6 +1,12 @@
 
 Snakemake pipeline for processing open-ephys data
 
+
+### Installation
+Normally snakemake workflow should be in the topmost folder, but for better organization, we have put the workflow files in their own folder. For the script to find the analysis package properly, you need to run the following before you run the snake files.
+
+```export PYTHONPATH=$PYTHONPATH:$PWD``` 
+
 ### Package dependencies
 - snakmake, spikeinterface, ml_ms4alg
 - Any package that's required by the original pipeline

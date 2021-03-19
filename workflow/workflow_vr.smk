@@ -34,7 +34,7 @@ rule process_position:
         stop_histogram = '{recording}/processed/figures/behaviour/stop_histogram.png',
         speed_histogram = '{recording}/processed/figures/behaviour/speed_histogram.png'
     script:
-        '02_process_position.py'
+        '../scripts/vr/02_process_position.py'
 
 
 rule process_firings:
@@ -44,7 +44,7 @@ rule process_firings:
     output:
         spike_data ='{recording}/processed/spatial_firing.pkl'
     script:
-        '03_process_firings.py'
+        '../scripts/vr/03_process_firings.py'
 
 rule process_expt:
     input:
@@ -56,7 +56,7 @@ rule process_expt:
         cluster_spike_plot = directory('{recording}/processed/figures/spike_number/'),
         spike_data = directory('{recording}/processed/figures/spike_data/'),
     script:
-        '04_process_expt_vr.py'
+        '../scripts/vr/04_process_expt_vr.py'
 
 
 rule plot_figures:
@@ -73,5 +73,5 @@ rule plot_figures:
         convolved_rate = directory('{recording}/processed/figures/ConvolvedRates_InTime/'),
         result = touch('{recording}/processed/snakemake.done')
     script:
-        '05_plot_figure_vr.py'
+        '../scripts/vr/05_plot_figure_vr.py'
 

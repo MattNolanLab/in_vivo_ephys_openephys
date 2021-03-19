@@ -1,13 +1,15 @@
 #%% Curation
 
 #%%
+import sys
+print(sys.path)
+
 import json
 import logging
 import os
 import pickle
 from collections import namedtuple
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import spikeinterface as si
