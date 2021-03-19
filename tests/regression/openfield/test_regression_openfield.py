@@ -10,7 +10,7 @@ DATA_FOLDER = 'M5_2018-03-06_15-34-44_of'
 
 @fixture
 def old_df_path():
-    return Path('../output/openfield/MountainSort/DataFrames/spatial_firing.pkl')
+    return Path('tests/regression/output/openfield/MountainSort/DataFrames/spatial_firing.pkl')
 
 @fixture
 def new_df_path():
