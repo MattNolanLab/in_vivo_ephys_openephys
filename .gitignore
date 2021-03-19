@@ -19,3 +19,4 @@ testData/
 sorting_tmp/
 tests/regression/output
 ./regression
+.snakemake
