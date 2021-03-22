@@ -14,6 +14,10 @@ from matplotlib.lines import Line2D
 import matplotlib.colorbar as cbar
 import pylab as pl
 from scipy import stats
+import matplotlib.ticker as ticker
+import matplotlib.cm as cm
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib as mpl
 
 '''
 
@@ -35,12 +39,20 @@ def plot_movement_channel(location, prm):
 # plot the trials to check all is good
 def plot_trials(trials, prm):
     plt.plot(trials)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials.png')
+    try:
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials.png')
+    except:
+        print("I could not save the trials plot")
     plt.close()
+
 
 def plot_velocity(velocity, prm):
     plt.plot(velocity)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/velocity.png')
+    try:
+        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/velocity.png')
+    except:
+        print("I could not save the velocity plot")
+    plt.close()
 
 def plot_running_mean_velocity(velocity, prm):
     plt.plot(velocity)
@@ -99,7 +111,7 @@ def plot_stops_on_track(processed_position_data, prm):
     stops_on_track = plt.figure(figsize=(6,6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
-    beaconed,nonbeaconed,probe = split_stop_data_by_trial_type(processed_position_data)
+    beaconed, nonbeaconed, probe = split_stop_data_by_trial_type(processed_position_data)
     reward_locs = np.array(processed_position_data.rewarded_stop_locations)
     reward_trials = np.array(processed_position_data.rewarded_trials)
 
@@ -121,6 +133,79 @@ def plot_stops_on_track(processed_position_data, prm):
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
+
+def min_max_normalize(x):
+    """
+        argument
+            - x: input image data in numpy array [32, 32, 3]
+        return
+            - normalized x
+    """
+    min_val = np.min(x)
+    max_val = np.max(x)
+    x = (x-min_val) / (max_val-min_val)
+    return x
+
+
+def plot_firing_rate_maps_per_trial(spike_data, prm):
+
+
+    print('plotting trial firing rate maps...')
+    save_path = prm.get_output_path() + '/Figures/firing_rate_maps_trials'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        firing_times_cluster = spike_data.firing_times.iloc[cluster_index]
+        if len(firing_times_cluster)>1:
+
+            x_max = max(np.array(spike_data.beaconed_trial_number.iloc[cluster_index])) + 1
+            if x_max>100:
+                spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
+            else:
+                spikes_on_track = plt.figure(figsize=(4,(x_max/20)))
+
+            ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+            cluster_firing_maps = np.array(spike_data["firing_rate_maps"].iloc[cluster_index])
+            where_are_NaNs = np.isnan(cluster_firing_maps)
+            cluster_firing_maps[where_are_NaNs] = 0
+
+            if len(cluster_firing_maps) == 0:
+                print("stop here")
+
+            cluster_firing_maps = min_max_normalize(cluster_firing_maps)
+
+            cmap = plt.cm.get_cmap("jet")
+            cmap.set_bad(color='white')
+            c = ax.imshow(cluster_firing_maps, interpolation='none', cmap=cmap, vmin=0, vmax=np.max(cluster_firing_maps), origin='lower')
+            #clb = fig.colorbar(c, ax=ax, shrink=0.8)
+            #clb.set_clim(0, max_pwr_shown)
+            #clb.set_label(label='Power',size=20)
+            #clb.set_ticks([0, max_power])
+            #clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
+            #clb.ax.tick_params(labelsize=15)
+
+            #for i in range(len(cluster_firing_maps)):
+            #    for j in range(len(cluster_firing_maps[0])):
+            #        ax.scatter(j+0.5,i+0.5, marker="s", s=1, c=cluster_firing_maps[i,j], cmap=cm.jet)
+
+            plt.ylabel('Trial Number', fontsize=12, labelpad = 10)
+            plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+            plt.xlim(0,200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+
+            #plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis = 'y', nbins  = 4)
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_firing_rate_map_trials_' + str(cluster_id) + '.png', dpi=200)
+            plt.close()
 
 
 def plot_stop_histogram(processed_position_data, prm):
@@ -171,12 +256,59 @@ def plot_stop_histogram(processed_position_data, prm):
     plt.close()
 
 def smoothen_speed(speed_array, speed_threshold_cm_per_second=10):
-    for i in range(1, len(speed_array)):
-        if (np.abs(speed_array[i] - speed_array[i-1])) > speed_threshold_cm_per_second:
-            speed_array[i] = speed_array[i-2]
-            speed_array[i+1] = speed_array[i-2]
-            speed_array[i+2] = speed_array[i-3]
+    #for i in range(1, len(speed_array)):
+    #    if (np.abs(speed_array[i] - speed_array[i-1])) > speed_threshold_cm_per_second:
+    #        speed_array[i] = speed_array[i-2]
+    #        speed_array[i+1] = speed_array[i-2]
+    #        speed_array[i+2] = speed_array[i-3]
     return speed_array
+
+def plot_speed_per_trial(processed_position_data, prm):
+
+    print('plotting speed heatmap...')
+    save_path = prm.get_output_path() + '/Figures/behaviour'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    rewarded_locations = np.array(processed_position_data['rewarded_stop_locations'].dropna(axis=0)) #
+    rewarded_trials = np.array(processed_position_data['rewarded_trials'].dropna(axis=0))
+
+    if len(processed_position_data['speed_trials_binned'].dropna())>0:
+        trial_numbers = processed_position_data["speed_trial_numbers"].to_numpy()
+        speeds = np.stack(processed_position_data['speed_trials_binned'].dropna().to_numpy())
+        bins = processed_position_data['position_bins'].to_numpy()
+
+        cmap = plt.cm.get_cmap("jet")
+        cmap.set_bad(color='white')
+
+        x_max = max(trial_numbers)
+        if x_max>100:
+            fig = plt.figure(figsize=(4,(x_max/32)))
+        else:
+            fig = plt.figure(figsize=(4,(x_max/20)))
+
+        ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+        #ax.imshow(speeds, cmap=cmap)
+
+        speeds = np.clip(speeds, a_min=0, a_max=60)
+
+        c = ax.imshow(speeds, interpolation='none', cmap=cmap, vmin=0, vmax=60)
+        clb = fig.colorbar(c, ax=ax, shrink=0.5)
+        clb.set_clim(0, 60)
+
+
+    plt.ylabel('Trial Number', fontsize=12, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    plt.xlim(0,prm.get_track_length())
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    #plot_utility.style_track_plot(ax, prm.get_track_length())
+    #x_max = max(processed_position_data.binned_speed_ms)+0.5
+    plot_utility.style_vr_plot(ax, x_max)
+    plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.2, right = 0.87, top = 0.92)
+    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_heat_map' + '.png', dpi=200)
+    plt.close()
 
 def plot_speed_histogram(processed_position_data, prm):
     print('plotting speed histogram...')
@@ -187,9 +319,11 @@ def plot_speed_histogram(processed_position_data, prm):
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     position_bins = np.array(processed_position_data["position_bins"].dropna(axis=0))
     bin_centres = 0.5*(position_bins[1:]+position_bins[:-1])
+    print(np.shape(bin_centres))
 
     if "trial_averaged_beaconed_speeds" in list(processed_position_data):
         average_speed_b = smoothen_speed(np.array(processed_position_data["trial_averaged_beaconed_speeds"].dropna(axis=0)))
+        print(np.shape(average_speed_b))
         ax.plot(bin_centres, average_speed_b, '-', color='Black')
 
     if "trial_averaged_non_beaconed_speeds" in list(processed_position_data):
@@ -401,6 +535,8 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
         plot_stops_on_track(processed_position_data, prm)
         plot_stop_histogram(processed_position_data, prm)
         plot_speed_histogram(processed_position_data, prm)
+        plot_speed_per_trial(processed_position_data, prm)
+
         if spike_data is not None:
             PostSorting.make_plots.plot_waveforms(spike_data, prm)
             PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
@@ -452,6 +588,154 @@ def plot_field_centre_of_mass_on_track(spike_data, prm, plot_trials=["beaconed",
 
             plot_utility.style_track_plot(ax, 200)
             plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis = 'y', nbins  = 4)
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            if len(plot_trials)<3:
+                plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_Cluster_' + str(cluster_id) + "_" + str("_".join(plot_trials)) + '.png', dpi=200)
+            else:
+                plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_Cluster_' + str(cluster_id) + '.png', dpi=200)
+            plt.close()
+
+def plot_number_of_fields(cluster_df, processed_position_data, prm):
+    print('plotting field rastas...')
+    save_path = prm.get_output_path() + '/Figures/field_analysis'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    cluster_id = cluster_df["cluster_id"].iloc[0]
+
+    cluster_firing_com = np.array(cluster_df["fields_com"].iloc[0])
+    cluster_firing_com_trial_numbers = np.array(cluster_df["fields_com_trial_number"].iloc[0])
+    cluster_firing_com_trial_types = np.array(cluster_df["fields_com_trial_type"].iloc[0])
+
+    beaconed_firing_com = cluster_firing_com[cluster_firing_com_trial_types == 0]
+    non_beaconed_firing_com = cluster_firing_com[cluster_firing_com_trial_types == 1]
+    probe_firing_com = cluster_firing_com[cluster_firing_com_trial_types == 2]
+
+    n_beaconed_trials = processed_position_data.beaconed_total_trial_number.iloc[0]
+    n_nonbeaconed_trials = processed_position_data.nonbeaconed_total_trial_number.iloc[0]
+    n_probe_trials = processed_position_data.probe_total_trial_number.iloc[0]
+
+def plot_inter_field_distance_histogram(spike_data, prm):
+    print('plotting field com histogram...')
+    bin_size=5
+    tick_spacing = 50
+    save_path = prm.get_output_path() + '/Figures/field_trajectories'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        firing_times_cluster = spike_data.firing_times.iloc[cluster_index]
+
+        if len(firing_times_cluster)>1:
+            fig = plt.figure(figsize=(4,4))
+            ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+            cluster_firing_com_distances = np.array(spike_data["distance_between_fields"].iloc[cluster_index])
+
+            field_hist, bin_edges = np.histogram(cluster_firing_com_distances, bins=int(prm.get_track_length()/bin_size), range=[0, prm.get_track_length()], density=True)
+
+            ax.bar(bin_edges[:-1], field_hist, width=np.diff(bin_edges), edgecolor="black", align="edge")
+            plt.ylabel('Field Density', fontsize=12, labelpad = 10)
+            plt.xlabel('Field to Field Distance (cm)', fontsize=12, labelpad = 10)
+            plt.xlim(0,200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+
+            x_max = max(field_hist)
+            #plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis = 'y', nbins  = 4)
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_distance_hist_Cluster_' + str(cluster_id) + '.png', dpi=200)
+            plt.close()
+
+
+def plot_field_com_histogram(spike_data, prm):
+    bin_size = 5
+    tick_spacing = 50
+
+    print('plotting field com histogram...')
+    save_path = prm.get_output_path() + '/Figures/field_trajectories'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        firing_times_cluster = spike_data.firing_times.iloc[cluster_index]
+
+        if len(firing_times_cluster)>1:
+            fig = plt.figure(figsize=(4,4))
+            ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+            cluster_firing_com = np.array(spike_data["fields_com"].iloc[cluster_index])
+
+            field_hist, bin_edges = np.histogram(cluster_firing_com, bins=int(prm.get_track_length()/bin_size), range=[0, prm.get_track_length()], density=True)
+
+            ax.bar(bin_edges[:-1], field_hist, width=np.diff(bin_edges), edgecolor="black", align="edge")
+            plt.ylabel('Field Density', fontsize=12, labelpad = 10)
+            plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+            plt.xlim(0,200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+            field_hist = np.nan_to_num(field_hist)
+
+            x_max = max(field_hist)
+            plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_vr_plot(ax, x_max)
+            plt.locator_params(axis = 'y', nbins  = 4)
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+            try:
+                plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+            except ValueError:
+                continue
+            plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_hist_Cluster_' + str(cluster_id) + '.png', dpi=200)
+            plt.close()
+
+
+def plot_field_analysis(spike_data, processed_position_data, prm):
+
+    print('plotting field rastas...')
+    save_path = prm.get_output_path() + '/Figures/field_analysis'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+        firing_times_cluster = cluster_df.firing_times.iloc[0]
+
+        if len(firing_times_cluster)>1:
+            plot_number_of_fields(cluster_df, processed_position_data, prm)
+
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+            cluster_firing_com = np.array(spike_data["fields_com"].iloc[cluster_index])
+            cluster_firing_com_trial_numbers = np.array(spike_data["fields_com_trial_number"].iloc[cluster_index])
+            cluster_firing_com_trial_types = np.array(spike_data["fields_com_trial_type"].iloc[cluster_index])
+
+
+            beaconed_firing_com = cluster_firing_com[cluster_firing_com_trial_types == 0]
+            non_beaconed_firing_com = cluster_firing_com[cluster_firing_com_trial_types == 0]
+            probe_firing_com = cluster_firing_com[cluster_firing_com_trial_types == 0]
+
+
+
+
+
+            plt.ylabel('Field COM on trials', fontsize=12, labelpad = 10)
+            plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+            plt.xlim(0,200)
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
             plt.locator_params(axis = 'y', nbins  = 4)
             try:
                 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)

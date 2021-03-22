@@ -6,6 +6,7 @@ import PostSorting.parameters
 import math
 import gc
 from scipy import stats
+import scipy
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
 import PostSorting.vr_cued
@@ -14,7 +15,14 @@ from scipy import signal
 
 
 def correct_for_restart(location):
-    location[location <0.55] = 0.56 # deals with if the VR is switched off during recording - location value drops to 0 - min is usually 0.56 approx
+    cummulative_minimums = np.minimum.accumulate(location)
+    cummulative_maximums = np.maximum.accumulate(location)
+
+    local_min_median = np.median(cummulative_minimums)
+    local_max_median = np.median(cummulative_maximums)
+
+    #location [location >local_max_median] = local_max_median
+    location [location <local_min_median] = local_min_median # deals with if the VR is switched off during recording - location value drops to 0 - min is usually 0.56 approx
     return location
 
 
@@ -118,7 +126,7 @@ def check_for_trial_restarts(trial_indices):
 
 def get_new_trial_indices(position_data):
     location_diff = position_data['x_position_cm'].diff()  # Get the raw location from the movement channel
-    trial_indices = np.where(location_diff < -40)[0]# return indices where is new trial
+    trial_indices = np.where(location_diff < -20)[0]# return indices where is new trial
     trial_indices = check_for_trial_restarts(trial_indices)# check if trial_indices values are within 1500 of eachother, if so, delete
     new_trial_indices=np.hstack((0,trial_indices,len(location_diff))) # add start and end indicies so fills in whole arrays
     return new_trial_indices
@@ -186,9 +194,9 @@ def calculate_trial_types(position_data, recording_folder, prm):
         if second < 2 and first < 2: # if beaconed
             trial_type[new_trial_index:next_trial_index] = int(0)
         if second > 2 and first < 2: # if non beaconed
-            trial_type[new_trial_index:next_trial_index] = int(2)
-        if second > 2 and first > 2: # if probe
             trial_type[new_trial_index:next_trial_index] = int(1)
+        if second > 2 and first > 2: # if probe
+            trial_type[new_trial_index:next_trial_index] = int(2)
     position_data['trial_type'] = np.asarray(trial_type, dtype=np.uint8)
     return position_data
 
@@ -269,18 +277,17 @@ def calculate_instant_velocity(position_data, prm):
 
     instant_location_differences = np.append(0, np.diff(location))
 
-    '''
-    new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
 
+    new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
+    '''
     # another try
     for new_trial_indice in new_trial_indices:
 
         if new_trial_indice>0:
-            for i in range(int(new_trial_indice)-2000, int(new_trial_indice)+2000):
+            for i in range(int(new_trial_indice)-3000, int(new_trial_indice)+3000):
                 if i<len(instant_location_differences):
-                    instant_location_differences[i] = np.mean(instant_location_differences[i-30:i])
-
-    '''
+                    instant_location_differences[i] = np.nan
+    
     # one attempt
     look_for_jumps = False
     for i in range(len(instant_location_differences)):
@@ -297,26 +304,44 @@ def calculate_instant_velocity(position_data, prm):
             jump_sign = np.sign(instant_location_differences[i])
             instant_location_differences[i] = np.mean(instant_location_differences[i-20:i]) #replaces with average
             look_for_jumps = True
-
-    #print(new_trial_indices)
-
+    
     velocity = instant_location_differences*prm.get_sampling_rate()
+
+    ok = ~np.isnan(velocity)
+    xp = ok.ravel().nonzero()[0]
+    fp = velocity[~np.isnan(velocity)]
+    x  = np.isnan(velocity).ravel().nonzero()[0]
+    velocity[np.isnan(velocity)] = np.interp(x, xp, fp)
+
+    #now interpolate where these nan values are
+    position_data['velocity'] = velocity
+
+    '''
+
+    # another attempt
+    sampling_points_per200ms = int(prm.get_sampling_rate()/5)
+    end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
+    location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
+    velocity = location - location_to_subtract_from
+
+    # use new trial indices to fix velocity around teleports
+    new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
+    for new_trial_indice in new_trial_indices:
+        if new_trial_indice>6000: # ignores first trial index
+            velocity[int(new_trial_indice-6100):int(new_trial_indice+6100)] = np.nan
+
+    #now interpolate where these nan values are
+    ok = ~np.isnan(velocity)
+    xp = ok.ravel().nonzero()[0]
+    fp = velocity[~np.isnan(velocity)]
+    x  = np.isnan(velocity).ravel().nonzero()[0]
+    velocity[np.isnan(velocity)] = np.interp(x, xp, fp)
+    velocity = velocity*5
+
     position_data['velocity'] = velocity
     PostSorting.vr_make_plots.plot_velocity(velocity, prm)
 
-
-    #for i in np.where(np.diff(location) < -10)[0]:
-    #    diff = abs(np.diff(location[i:i+2]))
-    #    location[i+1:] = np.add(location[i+1:], diff)
-
-    #sampling_points_per200ms = int(prm.get_sampling_rate()/5)
-    #end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
-    #beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
-    #location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
-    #velocity = location - location_to_subtract_from
-
-    #position_data['velocity'] = velocity*5
-    #PostSorting.vr_make_plots.plot_velocity(velocity*5, prm)
     return position_data
 
 

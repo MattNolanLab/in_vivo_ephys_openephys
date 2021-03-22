@@ -16,4 +16,4 @@ def plot_power_spectrum_for_hd(freqs, idx, ps, prm):
 
 def check_if_hd_sampling_was_high_enough(spatial_data, params):
     freqs, idx, ps = power_spectra.power_spectrum(spatial_data.hd, params)
-    plot_power_spectrum_for_hd(freqs, idx, ps, params)
+    #plot_power_spectrum_for_hd(freqs, idx, ps, params)
