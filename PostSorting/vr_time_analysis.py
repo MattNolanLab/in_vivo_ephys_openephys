@@ -26,16 +26,10 @@ def calculate_binned_time(raw_position_data,processed_position_data, prm):
 
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_times = np.array(raw_position_data['dwell_time_ms'][np.array(raw_position_data['trial_number']) == trial_number])
-        #plt.plot(trial_times)
-        #plt.close()
 
         bins = np.arange(0, prm.get_track_length(), bin_size_cm)
 
-        # this summates all the dwell time in all bins
         bin_times = np.histogram(trial_x_position_cm, bins, weights=trial_times)[0]
-
-        #plt.plot(bin_means)
-        #plt.close()
 
         time_trials_binned.append(bin_times)
         time_trial_numbers.append(trial_number)

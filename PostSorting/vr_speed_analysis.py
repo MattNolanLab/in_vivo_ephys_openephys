@@ -26,8 +26,6 @@ def calculate_binned_speed(raw_position_data,processed_position_data, prm):
 
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
-        #plt.plot(trial_speeds)
-        #plt.close()
 
         bins = np.arange(0, prm.get_track_length(), bin_size_cm)
 
