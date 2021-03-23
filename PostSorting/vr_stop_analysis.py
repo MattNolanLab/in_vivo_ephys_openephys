@@ -99,7 +99,7 @@ def get_stops_on_trials_find_stops(raw_position_data, processed_position_data, a
     return processed_position_data
 
 
-def calculate_stops(raw_position_data,processed_position_data, prm):
+def calculate_stops(processed_position_data, prm):
     #all_stops = get_stop_times(raw_position_data, prm.get_stop_threshold())
     #track_beginnings = get_beginning_of_track_positions(raw_position_data)
     #processed_position_data = get_stops_on_trials_find_stops(raw_position_data, processed_position_data, all_stops, track_beginnings)
@@ -169,8 +169,8 @@ def get_stops_from_binned_speed(processed_position_data, prm):
 
     return processed_position_data
 
-def calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm):
-    processed_position_data = calculate_stops(raw_position_data, processed_position_data, prm)
+def calculate_stop_data_from_parameters(processed_position_data, recording_directory, prm):
+    processed_position_data = calculate_stops(processed_position_data, prm)
     return processed_position_data
 
 
@@ -248,7 +248,7 @@ def take_first_reward_on_trial(rewarded_stop_locations,rewarded_trials):
     return np.array(locations), np.array(trials)
 
 
-def find_rewarded_positions(raw_position_data, processed_position_data):
+def find_rewarded_positions(processed_position_data):
     stop_locations = np.array(processed_position_data['first_series_location_cm'])
     stop_trials = np.array(processed_position_data['first_series_trial_number'])
     rewarded_stop_locations = np.take(stop_locations, np.where(np.logical_and(stop_locations >= 88, stop_locations < 110))[0])
@@ -305,12 +305,12 @@ def calculate_average_stops(raw_position_data, processed_position_data, prm):
     return processed_position_data
 
 
-def process_stops(raw_position_data,processed_position_data, prm, recording_directory):
-    processed_position_data = calculate_stop_data_from_parameters(raw_position_data, processed_position_data, recording_directory, prm)
+def process_stops(processed_position_data, prm, recording_directory):
+    processed_position_data = calculate_stop_data_from_parameters(processed_position_data, recording_directory, prm)
     #processed_position_data = calculate_average_stops(raw_position_data,processed_position_data, prm)
     gc.collect()
     processed_position_data = find_first_stop_in_series(processed_position_data)
-    processed_position_data = find_rewarded_positions(raw_position_data,processed_position_data)
+    processed_position_data = find_rewarded_positions(processed_position_data)
 
     if prm.get_cue_conditioned_goal():
         processed_position_data = find_first_stops_after_cue(processed_position_data)

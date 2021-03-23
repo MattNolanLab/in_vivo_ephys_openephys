@@ -118,6 +118,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_stitch_point(stitchpoint)
     prm.set_stop_threshold(stop_threshold)
     prm.set_track_length(track_length)
+    prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
@@ -125,7 +126,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
+    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, session_type=session_type, prm=prm)
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm)
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
@@ -156,7 +157,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
-    #spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, processed_position_data, prm)
+    spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, position_data, prm.get_vr_grid_analysis_bin_size(), prm)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
     spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
@@ -181,11 +182,11 @@ def main():
     print('-------------------------------------------------------------')
 
     params = PostSorting.parameters.Parameters()
-    params.stop_threshold = 7.0
-    params.cue_conditioned_goal = True
-    params.track_length = 300
+    params.stop_threshold = 4.7
+    params.cue_conditioned_goal = False
+    params.track_length = 200
 
-    recording_folder = '/home/nolanlab/to_sort/recordings/M2_D17_2019-09-25_12-39-02'
+    recording_folder = "/mnt/datastore/Harry/Cohort7_october2020/vr/M3_D9_2020-11-08_14-37-47"
 
     print('Processing ' + str(recording_folder))
 

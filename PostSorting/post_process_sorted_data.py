@@ -204,8 +204,9 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     if run_type == 'default':
         # process opto data -this has to be done before splitting the session into recording and opto-tagging parts
         # todo implement different opto-tagging protocols here based on tags
-        lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
-        opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
+        lfp_data = PostSorting.lfp.process_lfp(recording_to_process, session_type=session_type, prm=prm)
+        #opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
+        opto_is_found=False # TODO undo this, quick hack by Harry
         # process spatial data
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
         if position_was_found:
