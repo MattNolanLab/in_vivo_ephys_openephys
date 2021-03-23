@@ -118,7 +118,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_stitch_point(stitchpoint)
     prm.set_stop_threshold(stop_threshold)
     prm.set_track_length(track_length)
-    prm.set_vr_grid_analysis_bin_size(1)
+    prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
@@ -158,7 +158,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
     spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, prm)
     spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, position_data, prm.get_vr_grid_analysis_bin_size(), prm)
-    #spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, processed_position_data, prm)
     spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps_all(spike_data, raw_position_data, processed_position_data, prm)
     spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
     spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
