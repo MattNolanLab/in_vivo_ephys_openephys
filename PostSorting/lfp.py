@@ -9,13 +9,11 @@ from scipy import signal
 import plot_utility
 import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
-from Edmond import Concatenate_from_server
 import re
 from PostSorting import open_field_spatial_data
 from PostSorting import post_process_sorted_data
 from PostSorting import vr_sync_spatial_data
 import PreClustering.dead_channels
-from Edmond import loc_ramp_analysis
 
 def load_ephys_channel(recording_folder, ephys_channel, prm):
     print('Extracting ephys data')
@@ -230,10 +228,106 @@ def correct_dead_channel(lfp_df, dead_channel_path):
         lfp_df["dead_channel"] = dead_channel
     return lfp_df
 
+def get_mouse(session_id):
+    return session_id.split("_")[0]
 
+def get_cohort_mouse(full_session_id):
+    session_id = full_session_id.split("/")[-1]
+    mouse = get_mouse(session_id)
+    cohort_tmp = get_cohort(full_session_id)
+    cohort = get_tidy_title(cohort_tmp)
+    return cohort+"_"+mouse
 
+def get_cohort(full_session_id):
+    if "Klara" in full_session_id:
+        return "K"
+    if "Bri" in full_session_id:
+        return "B"
+    if "Junji" in full_session_id:
+        return "J"
+    if "Ian" in full_session_id:
+        return "I"
+    if "Cohort6_july2020" in full_session_id:
+        return "H2"
+    if "Cohort7_october2020" in full_session_id:
+        return "H3"
+    if "Cue_conditioned_cohort1_190902" in full_session_id:
+        return "H1"
 
-
+def get_tidy_title(collumn):
+    if collumn == "speed_score":
+        return "Speed Score"
+    elif collumn == "grid_score":
+        return "Grid Score"
+    elif collumn == "border_score":
+        return "Border Score"
+    elif collumn == "corner_score":
+        return "Corner Score"
+    elif collumn == "hd_score":
+        return "HD Score"
+    elif collumn == "ramp_score_out":
+        return "Ramp Score Outbound"
+    elif collumn == "ramp_score_home":
+        return "Ramp Score Homebound"
+    elif collumn == "ramp_score":
+        return "Ramp Score"
+    elif collumn == "abs_ramp_score":
+        return "Abs Ramp Score"
+    elif collumn == "max_ramp_score":
+        return "Max Ramp Score"
+    elif collumn == 'rayleigh_score':
+        return 'Rayleigh Score'
+    elif collumn == "rate_map_correlation_first_vs_second_half":
+        return "Spatial Stability"
+    elif collumn == "lm_result_b_outbound":
+        return "LM Outbound fit"
+    elif collumn == "lm_result_b_homebound":
+        return "LM Homebound fit"
+    elif collumn == "lmer_result_b_outbound":
+        return "LMER Outbound fit"
+    elif collumn == "lmer_result_b_homebound":
+        return "LMER Homebound fit"
+    elif collumn == "beaconed":
+        return "Beaconed"
+    elif collumn == "non-beaconed":
+        return "Non Beaconed"
+    elif collumn == "probe":
+        return "Probe"
+    elif collumn == "all":
+        return "All Trial Types"
+    elif collumn == "spike_ratio":
+        return "Spike Ratio"
+    elif collumn == "_cohort5":
+        return "C5"
+    elif collumn == "_cohort4":
+        return "C4"
+    elif collumn == "_cohort3":
+        return "C3"
+    elif collumn == "_cohort2":
+        return "C2"
+    elif collumn == "ThetaIndex_vr":
+        return "Theta Index VR"
+    elif collumn == "ThetaPower_vr":
+        return "Theta Power VR"
+    elif collumn == "ThetaIndex":
+        return "Theta Index"
+    elif collumn == "ThetaPower":
+        return "Theta Power"
+    elif collumn == 'best_theta_idx_vr':
+        return "Max Theta Index VR"
+    elif collumn == 'best_theta_idx_of':
+        return "Max Theta Index OF"
+    elif collumn == 'best_theta_idx_combined':
+        return "Max Theta Index VR+OF"
+    elif collumn == 'best_theta_pwr_vr':
+        return "Max Theta Power VR"
+    elif collumn == 'best_theta_pwr_of':
+        return "Max Theta Power OF"
+    elif collumn == 'best_theta_pwr_combined':
+        return "Max Theta Power VR+OF"
+    else:
+        print("collumn title not found!")
+        return collumn
 
 def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode=True):
 
@@ -287,7 +381,7 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
                     frequencies_to_interpolate = np.linspace(0, 20, 21)
                     spec_interp = np.interp(x=frequencies_to_interpolate, xp=frequencies, fp=avg_power_spec)
 
-                    cohort_mouse = loc_ramp_analysis.get_cohort_mouse(recording)
+                    cohort_mouse = get_cohort_mouse(recording)
                     mouse_id = recording.split("/")[-1].split("_")[0]
                     timestamp_year = recording.split("/")[-1].split("-")[0].split("_")[-1]
                     time_stamp_month = recording.split(timestamp_year)[-1][0:15]
