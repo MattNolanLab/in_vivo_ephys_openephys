@@ -140,6 +140,7 @@ def get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_laten
         latency = first_spike_after_pulse - pulse
         if latency > first_spike_latency:
             latency = np.nan  # the spike is more than 10 ms after the pulse
+            first_spike_after_pulse = np.nan
     else:
         first_spike_after_pulse = np.nan
         latency = np.nan
