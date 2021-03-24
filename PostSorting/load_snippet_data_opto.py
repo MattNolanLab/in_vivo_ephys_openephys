@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import PostSorting.load_snippet_data
 
 
-def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snippets_opto', firing_times_column='firing_times_opto'):
+def get_opto_snippets(firing_data, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True, column_name='snippets_opto', firing_times_column='firing_times_opto'):
     """
     Get snippets / action potentials from the filtered data from during opto tagging.
 
@@ -14,14 +14,14 @@ def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snipp
     if column_name in firing_data:
         return firing_data
     print('I will get some random snippets from the opto-tagging part now for each cluster for this column: ' + column_name)
-    file_path = prm.get_local_recording_folder_path()
-    filtered_data_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/filt.mda'
+
+    filtered_data_path = local_recording_folder + '/Electrophysiology' + sorter_name + '/filt.mda'
 
     snippets_all_clusters = []
     if os.path.exists(filtered_data_path):
         filtered_data = mdaio.readmda(filtered_data_path)
-        if prm.stitchpoint is not None and prm.paired_order == "first":
-            filtered_data = filtered_data[:, prm.stitchpoint:]
+        if stitchpoint is not None and paired_order == "first":
+            filtered_data = filtered_data[:, stitchpoint:]
 
         for cluster, cluster_id in enumerate(firing_data.cluster_id):
             tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
@@ -31,9 +31,9 @@ def get_opto_snippets(firing_data, prm, random_snippets=True, column_name='snipp
 
             if len(firing_times) > 0:
                 if random_snippets is True:
-                    snippets = PostSorting.load_snippet_data.extract_random_snippets(filtered_data, firing_times, tetrode, 50, prm)
+                    snippets = PostSorting.load_snippet_data.extract_random_snippets(filtered_data, firing_times, tetrode, 50, dead_channels)
                 else:
-                    snippets = PostSorting.load_snippet_data.extract_all_snippets(filtered_data, firing_times, tetrode, prm)
+                    snippets = PostSorting.load_snippet_data.extract_all_snippets(filtered_data, firing_times, tetrode, dead_channels)
                 snippets_all_clusters.append(snippets)
             else:
                 snippets_all_clusters.append([])

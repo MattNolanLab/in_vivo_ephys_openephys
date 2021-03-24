@@ -5,8 +5,7 @@ import PreClustering.dead_channels
 import matplotlib.pylab as plt
 
 
-def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, prm):
-    dead_channels = prm.get_dead_channels()
+def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, dead_channels):
     if len(dead_channels) != 0:
         for dead_ch in range(len(dead_channels[0])):
             to_insert = np.zeros(len(filtered_data[0]))
@@ -26,8 +25,7 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
     # plt.plot(snippets[3,:,:]) # example ch plot
     return snippets
 
-def extract_all_snippets(filtered_data, firing_times, tetrode, prm):
-    dead_channels = prm.get_dead_channels()
+def extract_all_snippets(filtered_data, firing_times, tetrode, dead_channels):
     if len(dead_channels) != 0:
         for dead_ch in range(len(dead_channels[0])):
             to_insert = np.zeros(len(filtered_data[0]))
@@ -66,11 +64,12 @@ def get_snippets(firing_data, prm, random_snippets=True):
         for cluster, cluster_id in enumerate(firing_data.cluster_id):
             tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
             firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id].firing_times)[0]
-
+            dead_channels = prm.get_dead_channels()
             if random_snippets is True:
-                snippets = extract_random_snippets(filtered_data, firing_times, tetrode, 50, prm)
+
+                snippets = extract_random_snippets(filtered_data, firing_times, tetrode, 50, dead_channels)
             else:
-                snippets = extract_all_snippets(filtered_data, firing_times, tetrode, prm)
+                snippets = extract_all_snippets(filtered_data, firing_times, tetrode, dead_channels)
             snippets_all_clusters.append(snippets)
 
     if random_snippets is True:
