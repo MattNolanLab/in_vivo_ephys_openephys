@@ -51,7 +51,25 @@ def test_make_opto_data_frame():
     assert assert_frame_equal(desired_df, result_df, check_dtype=False) is None
 
 
+def test_get_first_spike_and_latency_for_pulse():
+    firing_times = np.array([5, 200, 350, 444, 666])
+    pulse = 443
+    first_spike_latency = 5
+    expected_result = (444, 1)
+    result = PostSorting.open_field_light_data.get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_latency)
+    assert np.allclose(result, expected_result, rtol=1e-05, atol=1e-08, equal_nan=True)
+
+    firing_times = np.array([5, 200, 350, 444, 666])
+    pulse = 667
+    first_spike_latency = 5
+    expected_result = (np.nan, np.nan)
+    result = PostSorting.open_field_light_data.get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_latency)
+    assert np.allclose(result, expected_result, rtol=1e-05, atol=1e-08, equal_nan=True)
+
+
 def main():
+
+    test_get_first_spike_and_latency_for_pulse()
     test_make_opto_data_frame()
 
 

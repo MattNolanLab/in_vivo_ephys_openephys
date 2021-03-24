@@ -128,8 +128,30 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, o
     return peristimulus_spikes
 
 
-def create_baseline_and_test_epochs(peristimulus_spikes):
-    pass
+def get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_latency):
+    """
+    :param firing_times: array of firing times corresponding to a cell (sampling points)
+    :param pulse: time point when the light turned on
+    :param first_spike_latency: latency window to include spikes from (default is 10ms)
+    :return: time points corresponding to the first spike after stimulation and their latencies relative to the pulse
+    """
+    if len(firing_times[firing_times > pulse]) > 0:  # make sure there are spikes after the pulse
+        first_spike_after_pulse = firing_times[firing_times > pulse][0]
+        latency = first_spike_after_pulse - pulse
+        if latency > first_spike_latency:
+            latency = np.nan  # the spike is more than 10 ms after the pulse
+    else:
+        first_spike_after_pulse = np.nan
+        latency = np.nan
+    return first_spike_after_pulse, latency
+
+
+def check_if_firing_times_is_sorted(firing_times):
+    try:
+        assert np.all(np.diff(firing_times) >= 0)
+    except AssertionError as error:
+        error.args += ('The firing times array is not sorted. It has to be sorted for this function to work.', firing_times)
+        raise
 
 
 def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=300):
@@ -139,17 +161,11 @@ def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spi
     latencies = []
     for cluster_index, cluster in spatial_firing.iterrows():
         firing_times = cluster.firing_times_opto
+        check_if_firing_times_is_sorted(firing_times)
         first_spikes_times_cell = []
         latencies_cell = []
         for pulse in on_pulses:
-            if len(firing_times[firing_times > pulse]) > 0:
-                first_spike_after_pulse = firing_times[firing_times > pulse][0]
-                latency = first_spike_after_pulse - pulse
-                if latency > first_spike_latency:
-                    latency = np.nan  # the spike is more than 10 ms after the pulse
-            else:
-                first_spike_after_pulse = np.nan
-                latency = np.nan
+            first_spike_after_pulse, latency = get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_latency)
             first_spikes_times_cell.append(first_spike_after_pulse)
             latencies_cell.append(latency)
         first_spikes_times.append(first_spikes_times_cell)
@@ -211,7 +227,6 @@ def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, windo
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=40, first_spike_latency_ms=10):
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
     print('I will process opto data.')
-    # load opto metadata
     opto_parameters, opto_params_is_found = get_opto_parameters(output_path)
     save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms)
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate)
