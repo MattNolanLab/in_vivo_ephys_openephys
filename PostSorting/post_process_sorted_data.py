@@ -182,14 +182,11 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                            stitchpoint=None, paired_order=None, total_length=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
-        running_parameter_tags)
+    unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
     prm.set_stitch_point(stitchpoint)
     prm.set_paired_order(paired_order)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
-    prm.set_interleaved_opto(interleaved_opto)
-    prm.set_delete_two_minutes(delete_first_two_minutes)
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
     if pixel_ratio is False:
