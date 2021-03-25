@@ -50,26 +50,23 @@ def initialize_parameters(recording_to_process):
 
 
 def process_running_parameter_tag(running_parameter_tags):
+    """
+    Process tags from parameters.txt metadata file. These are in the third line of the file.
+    """
     unexpected_tag = False
-    interleaved_opto = False
-    delete_first_two_minutes = False
     pixel_ratio = False
 
     if not running_parameter_tags:
-        return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
+        return unexpected_tag, pixel_ratio
 
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
-        if tag == 'interleaved_opto':
-            interleaved_opto = True
-        elif tag == 'delete_first_two_minutes':
-            delete_first_two_minutes = True
-        elif tag.startswith('pixel_ratio'):
+        if tag.startswith('pixel_ratio'):
             pixel_ratio = int(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
-    return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
+    return unexpected_tag, pixel_ratio
 
 
 def process_position_data(recording_to_process, session_type, prm, do_resample=False):
@@ -181,8 +178,8 @@ def run_analyses(spike_data_in, synced_spatial_data, opto_analysis=False, lfp_da
     return synced_spatial_data, spatial_firing
 
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort',
+                           stitchpoint=None, paired_order=None, total_length=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
@@ -200,54 +197,22 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     else:
         prm.set_pixel_ratio(pixel_ratio)
 
-    if run_type == 'default':
-        lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
-        opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
-        # process spatial data
-        spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
-        if position_was_found:
-            synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
-            # analyze spike data
-            spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
-            spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
-            spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
-            if analysis_type is 'default':
-                spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
-                snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
-                if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-                    save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
-                    return
+    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
+    opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
+    # process spatial data
+    spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
+    if position_was_found:
+        synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
+        # analyze spike data
+        spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
+        spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
+        spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
+        snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
+        if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
+            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
 
+        else:
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found, lfp_data=lfp_data)
 
-            #save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data)
 
-#
-#  this is here for testing
-def main():
-    print('-------------------------------------------------------------')
-    print('-------------------------------------------------------------')
-
-    prm = PostSorting.parameters.Parameters()
-    prm.set_pixel_ratio(440)
-    prm.set_sampling_rate(30000)
-    path_to_recordings = '/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-    path_to_recordings = 'C:/Users/s1466507/Documents/Ephys/recordings/test_figures'
-    prm.set_output_path(path_to_recordings + '/MountainSort/')
-
-    position_data = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/position.pkl')
-    spatial_firing = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/spatial_firing.pkl')
-    position_heat_map = np.load(path_to_recordings + '/MountainSort/DataFrames/position_heat_map.npy')
-    hd_histogram = np.load(path_to_recordings + '/MountainSort/DataFrames/hd_histogram.npy')
-
-    # filehandler = open('/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/prm', 'rb')
-    # prm = pickle.load(filehandler)
-
-    make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
-
-    # recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-    # post_process_recording(recording_folder, 'openfield')
-
-
-if __name__ == '__main__':
-    main()

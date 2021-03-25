@@ -58,25 +58,19 @@ def process_running_parameter_tag(running_parameter_tags):
     Process tags from parameters.txt metadata file. These are in the third line of the file.
     """
     unexpected_tag = False
-    interleaved_opto = False
-    delete_first_two_minutes = False
     pixel_ratio = False
 
     if not running_parameter_tags:
-        return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
+        return unexpected_tag, pixel_ratio
 
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
-        if tag == 'interleaved_opto':
-            interleaved_opto = True
-        elif tag == 'delete_first_two_minutes':
-            delete_first_two_minutes = True
-        elif tag.startswith('pixel_ratio'):
+        if tag.startswith('pixel_ratio'):
             pixel_ratio = int(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
         else:
             print('Unexpected / incorrect tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
-    return unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio
+    return unexpected_tag, pixel_ratio
 
 
 def process_position_data(recording_to_process, session_type, prm):
@@ -246,8 +240,8 @@ def analyze_snippets_and_temporal_firing(recording_to_process, session_type, prm
     return spike_data, snippet_data, bad_clusters
 
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, run_type='default',
-                           analysis_type='default', sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort',
+                           stitchpoint=None, paired_order=None, total_length=None):
     """
     Run analyses on spike sorted data. This file is a modified version of post_process_sorted_data that is adapted
     to recordings that only contain data during sleep or rest where the animal is in a small box / home cage and does
@@ -256,14 +250,11 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     """
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = process_running_parameter_tag(
-        running_parameter_tags)
+    unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
     prm.set_stitch_point(stitchpoint)
     prm.set_paired_order(paired_order)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
-    prm.set_interleaved_opto(interleaved_opto)
-    prm.set_delete_two_minutes(delete_first_two_minutes)
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
     if pixel_ratio is False:
@@ -289,40 +280,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)  # this will set the recording length
         spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
                                                                                       session_type, prm)
-        run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
-            return
-
-        synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found, lfp_data=lfp_data)
-
-
-
-#  this is here for testing
-def main():
-    print('-------------------------------------------------------------')
-    print('-------------------------------------------------------------')
-
-    prm = PostSorting.parameters.Parameters()
-    prm.set_pixel_ratio(440)
-    prm.set_sampling_rate(30000)
-    path_to_recordings = '/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-    path_to_recordings = 'C:/Users/s1466507/Documents/Ephys/recordings/test_figures'
-    prm.set_output_path(path_to_recordings + '/MountainSort/')
-
-    position_data = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/position.pkl')
-    spatial_firing = pd.read_pickle(path_to_recordings + '/MountainSort/DataFrames/spatial_firing.pkl')
-    position_heat_map = np.load(path_to_recordings + '/MountainSort/DataFrames/position_heat_map.npy')
-    hd_histogram = np.load(path_to_recordings + '/MountainSort/DataFrames/hd_histogram.npy')
-
-    # filehandler = open('/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of/MountainSort/DataFrames/prm', 'rb')
-    # prm = pickle.load(filehandler)
-
-    make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, prm)
-
-    # recording_folder = '/home/nolanlab/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-    # post_process_recording(recording_folder, 'openfield')
+        else:
+            run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
+            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found, lfp_data=lfp_data)
 
 
-if __name__ == '__main__':
-    main()
