@@ -170,8 +170,8 @@ def KLdist(P, Q):
 
 
 def run_salt_test_on_test_data():
-    baseline_trials = [[0, 0.001], [0.002, 0.003, 0.005]]  # list of list of firing times from baseline trials
-    test_trials = [[0.19], [0.18]]  # list of times from test trials
+    baseline_trials = [[0, 0.001], [0.002, 0.003, 0.005]]  # list of firing times for each trial (baseline)
+    test_trials = [[0.19], [0.18]]  # list of times from test trials (after light)
     latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                          test_trials=test_trials,
                                          window_size=0.005, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
@@ -179,5 +179,51 @@ def run_salt_test_on_test_data():
     print(p_values)
 
 
+def convert_peristimulus_data_to_baseline_and_test(peristimulus_data):
+
+    test = []
+    baseline = []
+
+    return baseline, test
+
+
+def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
+    all_latencies = []
+    all_p_values = []
+    all_i_values = []
+    for cluster_index, cluster in spatial_firing.iterrows():
+        # get relevant part of peristimulus data here
+        baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristimulus_data)
+        latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
+                                             test_trials=test_trials,
+                                             window_size=0.005, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
+
+        print(latencies)
+        print(p_values)
+        print(I_values)
+        all_latencies.append(latencies)
+        all_p_values.appens(p_values)
+        all_i_values.append(I_values)
+    spatial_firing['SALT_p'] = all_p_values
+    spatial_firing['SALT_I'] = all_i_values
+    spatial_firing['SALT_latencies'] = all_latencies
+
+
+def main():
+    # run_salt_test_on_test_data()
+    import pandas as pd
+    import PostSorting.parameters
+    # recording_folder = '/Users/briannavandrey/Documents/recordings'
+    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of'
+    prm = PostSorting.parameters.Parameters()
+    prm.set_output_path(recording_folder + '/MountainSort')
+    prm.set_sampling_rate(30000)
+    spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
+    spikes = pd.read_pickle(spikes_path)
+    spikes_path = prm.get_output_path() + '/DataFrames/spatial_firing.pkl'
+    spatial_firing = pd.read_pickle(spikes_path)
+    run_salt_test_on_peristimulus_data(spatial_firing, spikes)
+
+
 if __name__ == '__main__':
-    run_salt_test_on_test_data()
+    main()
