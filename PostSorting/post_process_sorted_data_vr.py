@@ -129,7 +129,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, session_type=session_type, prm=prm)
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm)
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         save_data_frames(prm,
@@ -137,7 +136,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                          raw_position_data=raw_position_data,
                          processed_position_data=processed_position_data,
                          position_data=position_data,
-                         snippet_data=snippet_data,
+                         snippet_data=None,
                          bad_clusters=bad_clusters,
                          lfp_data=lfp_data)
         PostSorting.vr_make_plots.make_plots(raw_position_data, processed_position_data, spike_data=None, prm=prm)
