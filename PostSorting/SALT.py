@@ -179,11 +179,25 @@ def run_salt_test_on_test_data():
     print(p_values)
 
 
+def turn_binary_array_to_time_series(binary_array, sampling_rate=30000):
+    firing_times_list = []
+    number_of_trials = binary_array.shape[0]
+    for trial in range(number_of_trials):
+        times_trial = []
+        trial_data = binary_array[trial, :]
+        spike_indices = np.where(trial_data == 1)
+        for spike_index in spike_indices[0]:
+            firing_time = (spike_index / sampling_rate)
+            times_trial.append(firing_time)
+        firing_times_list.append(times_trial)
+    return firing_times_list
+
+
 def convert_peristimulus_data_to_baseline_and_test(peristimulus_data):
-
-    test = []
-    baseline = []
-
+    baseline_binary = peristimulus_data.values[:, 2:602].astype(float)
+    test_binary = peristimulus_data.values[:, 602:].astype(float)
+    baseline = turn_binary_array_to_time_series(baseline_binary)
+    test = turn_binary_array_to_time_series(test_binary)
     return baseline, test
 
 
@@ -192,8 +206,10 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
     all_p_values = []
     all_i_values = []
     for cluster_index, cluster in spatial_firing.iterrows():
+        print(cluster.cluster_id)
         # get relevant part of peristimulus data here
-        baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristimulus_data)
+        peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == cluster.cluster_id]
+        baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristim_cluster)
         latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                              test_trials=test_trials,
                                              window_size=0.005, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
@@ -202,7 +218,7 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
         print(p_values)
         print(I_values)
         all_latencies.append(latencies)
-        all_p_values.appens(p_values)
+        all_p_values.append(p_values)
         all_i_values.append(I_values)
     spatial_firing['SALT_p'] = all_p_values
     spatial_firing['SALT_I'] = all_i_values
