@@ -56,19 +56,6 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    test_df = pd.DataFrame()
-    speeds_on_trial=[]
-    for i in range(10):
-        speeds_on_trial.append([0,0,0])
-    test_df["speeds_on_trial"] = speeds_on_trial
-
-    print("stop here")
-
-    b = np.array([3,3,3,2,1,1])
-    c = int(stats.mode(b, axis=None)[0])
-    print("hi")
-
-
 
 if __name__ == '__main__':
     main()
