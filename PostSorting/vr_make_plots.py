@@ -194,9 +194,9 @@ def plot_stop_histogram(processed_position_data, prm):
     non_beaconed_trials = processed_position_data[processed_position_data["trial_type"] == 1]
     probe_trials = processed_position_data[processed_position_data["trial_type"] == 2]
 
-    beaconed_stops = pandas_collumn_to_numpy_array(beaconed_trials["stop_location_cm"])
-    non_beaconed_stops = pandas_collumn_to_numpy_array(non_beaconed_trials["stop_location_cm"])
-    probe_stops = pandas_collumn_to_numpy_array(probe_trials["stop_location_cm"])
+    beaconed_stops = plot_utility.pandas_collumn_to_numpy_array(beaconed_trials["stop_location_cm"])
+    non_beaconed_stops = plot_utility.pandas_collumn_to_numpy_array(non_beaconed_trials["stop_location_cm"])
+    probe_stops = plot_utility.pandas_collumn_to_numpy_array(probe_trials["stop_location_cm"])
 
     beaconed_stop_hist, bin_edges = np.histogram(beaconed_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
     non_beaconed_stop_hist, bin_edges = np.histogram(non_beaconed_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
@@ -644,18 +644,6 @@ def plot_field_analysis(spike_data, processed_position_data, prm):
                 plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_track_fields_Cluster_' + str(cluster_id) + '.png', dpi=200)
             plt.close()
 
-
-def pandas_collumn_to_numpy_array(pandas_series):
-    new_array = []
-    for i in range(len(pandas_series)):
-        element = pandas_series.iloc[i]
-
-        if len(np.shape(element)) == 0:
-            new_array.append(element)
-        else:
-            new_array.extend(element)
-
-    return np.array(new_array)
 
 #  this is here for testing
 def main():
