@@ -1,45 +1,42 @@
 import numpy as np
 import pandas as pd
 import PostSorting.parameters
+from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def calculate_binned_speed(raw_position_data,processed_position_data, prm):
+def calculate_binned_speed(raw_position_data, processed_position_data, prm):
     numbers_of_bins = get_number_of_bins(prm)
     bin_size_cm = get_bin_size(prm, numbers_of_bins)
 
-    speed_trials_binned = []
-    speed_trial_numbers = []
-    speed_trialtypes = []
+    speeds_binned = []
+    trial_numbers = []
+    trial_types = []
+    position_bin_centres = []
 
     for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
-        trial_type = np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number])[0]
+        trial_type = int(stats.mode(np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number]), axis=None)[0])
 
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
 
         bins = np.arange(0, prm.get_track_length(), bin_size_cm)
+        bin_centres = 0.5*(bins[1:]+bins[:-1])
 
+        # this calculates the average speed within the bin i.e. all speeds in bin summated and then divided by the number of datapoints within the bin
         bin_means = (np.histogram(trial_x_position_cm, bins, weights = trial_speeds)[0] /
                      np.histogram(trial_x_position_cm, bins)[0])
-
         bin_means[np.abs(bin_means)>1000] = np.nan
-        position_bins = np.histogram(trial_x_position_cm, bins)[1]
 
-        speed_trials_binned.append(bin_means)
-        speed_trial_numbers.append(trial_number)
-        speed_trialtypes.append(trial_type)
+        speeds_binned.append(bin_means)
+        trial_numbers.append(trial_number)
+        trial_types.append(trial_type)
+        position_bin_centres.append(bin_centres)
 
-    position_bins = pd.DataFrame({"position_bins": position_bins})
-    speed_trials_binned = pd.DataFrame({"speed_trials_binned": speed_trials_binned})
-    speed_trial_numbers = pd.DataFrame({"speed_trial_numbers": speed_trial_numbers})
-    speed_trial_types = pd.DataFrame({"speed_trial_types": speed_trialtypes})
-
-    processed_position_data = pd.concat([processed_position_data, position_bins], axis=1)
-    processed_position_data = pd.concat([processed_position_data, speed_trials_binned], axis=1)
-    processed_position_data = pd.concat([processed_position_data, speed_trial_numbers], axis=1)
-    processed_position_data = pd.concat([processed_position_data, speed_trial_types], axis=1)
-
+    processed_position_data["speeds_binned"] = speeds_binned
+    processed_position_data["trial_number"] = trial_numbers
+    processed_position_data["trial_type"] = trial_types
+    processed_position_data["position_bin_centres"] = position_bin_centres
     return processed_position_data
 
 def get_bin_size(prm, numbers_of_bins):
@@ -58,6 +55,19 @@ def process_speed(raw_position_data,processed_position_data, prm):
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
+
+    test_df = pd.DataFrame()
+    speeds_on_trial=[]
+    for i in range(10):
+        speeds_on_trial.append([0,0,0])
+    test_df["speeds_on_trial"] = speeds_on_trial
+
+    print("stop here")
+
+    b = np.array([3,3,3,2,1,1])
+    c = int(stats.mode(b, axis=None)[0])
+    print("hi")
+
 
 
 if __name__ == '__main__':
