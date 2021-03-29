@@ -8,7 +8,7 @@ import PostSorting.vr_make_plots
 import PostSorting.vr_cued
 from scipy import stats
 import PostSorting.vr_speed_analysis
-
+import plot_utility
 
 def calculate_total_trial_numbers(raw_position_data,processed_position_data):
     print('calculating total trial numbers for trial types')
@@ -29,24 +29,29 @@ def calculate_total_trial_numbers(raw_position_data,processed_position_data):
 
 def trial_average_speed(processed_position_data):
     # split binned speed data by trial type
-    beaconed = processed_position_data[processed_position_data["speed_trial_types"] == 0]
-    non_beaconed = processed_position_data[processed_position_data["speed_trial_types"] == 1]
-    probe = processed_position_data[processed_position_data["speed_trial_types"] == 2]
+    beaconed = processed_position_data[processed_position_data["trial_type"] == 0]
+    non_beaconed = processed_position_data[processed_position_data["trial_type"] == 1]
+    probe = processed_position_data[processed_position_data["trial_type"] == 2]
 
     if len(beaconed)>0:
-        beaconed_speeds = np.stack(beaconed["speed_trials_binned"].to_numpy())
+        beaconed_speeds = plot_utility.pandas_collumn_to_2d_numpy_array(beaconed["speeds_binned"])
         trial_averaged_beaconed_speeds = np.nanmean(beaconed_speeds, axis=0)
-        processed_position_data['trial_averaged_beaconed_speeds'] = pd.Series(trial_averaged_beaconed_speeds)
-    if len(non_beaconed)>0:
-        non_beaconed_speeds = np.stack(non_beaconed["speed_trials_binned"].to_numpy())
-        trial_averaged_non_beaconed_speeds = np.nanmean(non_beaconed_speeds, axis=0)
-        processed_position_data['trial_averaged_non_beaconed_speeds'] = pd.Series(trial_averaged_non_beaconed_speeds)
-    if len(probe)>0:
-        probe_speeds = np.stack(probe["speed_trials_binned"].to_numpy())
-        trial_averaged_probe_speeds = np.nanmean(probe_speeds, axis=0)
-        processed_position_data['trial_averaged_probe_speeds'] = pd.Series(trial_averaged_probe_speeds)
+    else:
+        trial_averaged_beaconed_speeds = np.array([])
 
-    return processed_position_data
+    if len(non_beaconed)>0:
+        non_beaconed_speeds = plot_utility.pandas_collumn_to_2d_numpy_array(non_beaconed["speeds_binned"])
+        trial_averaged_non_beaconed_speeds = np.nanmean(non_beaconed_speeds, axis=0)
+    else:
+        trial_averaged_non_beaconed_speeds = np.array([])
+
+    if len(probe)>0:
+        probe_speeds = plot_utility.pandas_collumn_to_2d_numpy_array(probe["speeds_binned"])
+        trial_averaged_probe_speeds = np.nanmean(probe_speeds, axis=0)
+    else:
+        trial_averaged_probe_speeds = np.array([])
+
+    return trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds
 
 
 def process_position(raw_position_data, prm, recording_to_process):
@@ -54,12 +59,10 @@ def process_position(raw_position_data, prm, recording_to_process):
     processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data,prm)
     processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,prm)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, prm, recording_to_process)
-    processed_position_data = calculate_total_trial_numbers(raw_position_data, processed_position_data)
-    processed_position_data = PostSorting.vr_cued.add_goal_locations_to_processed(raw_position_data, processed_position_data, prm)
     gc.collect()
 
-    processed_position_data = trial_average_speed(processed_position_data)
     prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
+
     processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"].dropna()
 
     print('-------------------------------------------------------------')
