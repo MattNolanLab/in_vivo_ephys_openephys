@@ -662,19 +662,6 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    a = pd.read_pickle("/mnt/datastore/Harry/Cohort7_october2020/vr/"
-                       "M3_D23_2020-11-28_15-13-28/MountainSort/DataFrames/spatial_firing.pkl")
-    b = pd.read_pickle("/mnt/datastore/Harry/Cohort7_october2020/vr/"
-                       "M3_D23_2020-11-28_15-13-28/MountainSort/DataFrames/processed_position_data.pkl")
-
-    a = pd.DataFrame()
-    a["x"] = [[1,1,1,1], [2,2,2,2], [3,3,3,3], [4,4,4,4]]
-    a["y"] = [1,2,3,4]
-
-
-    array = pandas_collumn_to_numpy_array(a["x"])
-
-    print("here")
 
 if __name__ == '__main__':
     main()
