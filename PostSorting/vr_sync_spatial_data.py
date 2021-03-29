@@ -239,7 +239,6 @@ def syncronise_position_data(recording_folder, prm):
     raw_position_data = calculate_instant_dwell_time(raw_position_data)
     raw_position_data = calculate_instant_velocity(raw_position_data, prm)
     raw_position_data = get_avg_speed_200ms(raw_position_data, prm)
-    raw_position_data = PostSorting.vr_cued.add_goal_location(recording_folder, raw_position_data, prm)
     position_data = downsampled_position_data(raw_position_data, prm)
 
     gc.collect()
