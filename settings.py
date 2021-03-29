@@ -3,13 +3,12 @@
 
 ##########
 # Folder locations
-basefolder = '/Users/teristam/Documents/Data'
-mountainsort_tmp_folder = basefolder+'/tmp/mountainlab/'
-sorting_folder = basefolder+'/to_sort/recordings/'
-to_sort_folder = basefolder+'/to_sort/'
-output_folder = basefolder +'/output'
-server_path_first_half = basefolder+'/log/'
-downtime_lists_path = basefolder+'/to_sort/sort_downtime/'
+mountainsort_tmp_folder ='/tmp/mountainlab/'
+sorting_folder = '/home/ubuntu/to_sort/recordings/'
+to_sort_folder = '/home/ubuntu/to_sort/'
+server_path_first_half = '/mnt/datastore/'
+downtime_lists_path = '/home/ubuntu/to_sort/sort_downtime/'
+param_file = '/parameters.txt'
 
 ##########
 # Recording setting
