@@ -129,6 +129,8 @@ def upload_files(paths, local_recording_folder,dryrun=True):
             print('Snakemake does not seem to be complete properly. Skipping upload')
 
 def clean_up(paths, local_recording_folder, dryrun=True):
+    # Delete the recording file after processing
+
     for p in paths:
         target_file = local_recording_folder / p.name / 'processed' / 'snakemake.done'
         local_path = Path(local_recording_folder) / p.name
@@ -148,7 +150,6 @@ def clean_up(paths, local_recording_folder, dryrun=True):
             else:
                 print('In dryrun mode. Skipping upload')
 
-# Aggregate and execute files of of the same type together
 
 def process_recordings(args, config, expt_type, paths):
     # processing the recording
@@ -173,9 +174,12 @@ def process_recordings(args, config, expt_type, paths):
     if args.uploadresults:
         upload_files(paths,local_recording_folder,args.dryrun)
 
-    # if need to clean up local folder
-    if args.clean:
-        clean_up(paths, local_recording_folder,args.dryrun)
+        # if needed to clean up local folder
+        if args.clean and args.remotefiles:
+            # safe-guarding: only delete local files when it is uploaded and the original recordings is in remote server
+            # by default, it will delete files in the local_recording_folder only, it shouldn't delete
+            # file in the remote server
+            clean_up(paths, local_recording_folder,args.dryrun)
 
 def filter_processed_recording(paths, isforce, will_upload, is_skip, dryrun=True):
     """
