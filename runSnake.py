@@ -35,6 +35,7 @@ parser.add_argument('--overwrite','-o', action= 'store_true', default=False, hel
 parser.add_argument('--batch_process','-b', action= 'store_true', default=False, help='whether to download all recordings first and process them together.')
 parser.add_argument('--force', action= 'store_true', default=False, help='whether to force rerun all analysis')
 parser.add_argument('--skip','-s', action= 'store_true', default=False, help='whether skip processed recordings')
+parser.add_argument('--unlock',action= 'store_true', default=False, help='whether skip processed recordings')
 
 
 def _logPath(path,names):
@@ -166,7 +167,7 @@ def process_recordings(args, config, expt_type, paths):
         target_files = [str(p/'processed/snakemake.done') for p in paths]
 
     # to do: enable multiple core processing
-    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=True )
+    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=True,unlock=args.unlock)
 
 
     if args.uploadresults:
