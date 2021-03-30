@@ -15,3 +15,4 @@ scikit-image
 cmocean
 pyyaml
 tqdm
+spikeforest
