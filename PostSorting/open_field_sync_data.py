@@ -9,6 +9,7 @@ import OpenEphys
 import setting
 import glob
 from file_utility import load_openephys_file
+import pickle
 
 def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_channel_suffix ):
     is_found = False
@@ -110,11 +111,16 @@ def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data, skip_time
     return ephys_start_index, bonsai_start_index
 
 
+def get_first_rising_edge(signal):
+    # get the first rising edge
+    rising_edges = np.where(np.diff(signal)>0)[0]
+    return rising_edges[0]
+
 #  this is needed for finding the rising edge of the pulse to by synced
 def detect_last_zero(signal):
     '''
     signal is a already thresholded binary signal with 0 and 1
-    return the index of the last 0 before the first 1
+    return the index of the last 0 before the first 1 (i.e. the first rising edge)
     '''
     first_index_in_signal = np.argmin(signal) # index of first zero value
     first_zero_index_in_signal = np.nonzero(signal)[0][0] #index of first non-zero value
@@ -172,10 +178,10 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     trimmed_ephys_pulses = oe[ephys_start:len(trimmed_ephys_time)]
     trimmed_bonsai_time = spatial_data['synced_time_estimate'].values[bonsai_start:]
     trimmed_bonsai_pulses = bonsai[bonsai_start:]
-    oe_rising_edge_index = detect_last_zero(trimmed_ephys_pulses)
+    oe_rising_edge_index = get_first_rising_edge(trimmed_ephys_pulses)
     oe_rising_edge_time = trimmed_ephys_time[oe_rising_edge_index]
 
-    bonsai_rising_edge_index = detect_last_zero(trimmed_bonsai_pulses)
+    bonsai_rising_edge_index = get_first_rising_edge(trimmed_bonsai_pulses)
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
 
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time    
