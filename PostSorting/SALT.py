@@ -212,10 +212,13 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
         baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristim_cluster)
         latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                              test_trials=test_trials,
-                                             window_size=0.005, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
+                                             window_size=0.01, latency_step=0.001, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
 
+        print('latencies')
         print(latencies)
+        print('p values')
         print(p_values)
+        print('i values')
         print(I_values)
         all_latencies.append(latencies)
         all_p_values.append(p_values)
