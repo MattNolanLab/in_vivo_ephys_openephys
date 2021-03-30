@@ -5,7 +5,7 @@
 import argparse
 import sys
 from snakemake import snakemake
-from file_utility import parse_parameter_file
+from file_utility import parse_parameter_file, set_continuous_data_path
 import os
 import yaml
 from pathlib import Path
@@ -34,6 +34,7 @@ parser.add_argument('--clean','-c', action= 'store_true', default=False, help='w
 parser.add_argument('--overwrite','-o', action= 'store_true', default=False, help='whether to overwrite the processed files')
 parser.add_argument('--batch_process','-b', action= 'store_true', default=False, help='whether to download all recordings first and process them together.')
 parser.add_argument('--force', action= 'store_true', default=False, help='whether to force rerun all analysis')
+parser.add_argument('--skip','-s', action= 'store_true', default=False, help='whether skip processed recordings')
 
 
 def _logPath(path,names):
@@ -175,7 +176,7 @@ def process_recordings(args, config, expt_type, paths):
     if args.clean:
         clean_up(paths, local_recording_folder,args.dryrun)
 
-def filter_processed_recording(paths, isforce, will_upload, dryrun=True):
+def filter_processed_recording(paths, isforce, will_upload, is_skip, dryrun=True):
     """
     Check if the recordig is already processed. Remove remote processed folder if necessary
     """
@@ -183,6 +184,11 @@ def filter_processed_recording(paths, isforce, will_upload, dryrun=True):
     path2process = []
     for p in paths:
         if (p / 'processed' / 'snakemake.done').exists():
+
+            if is_skip:
+                print(f'I will skip {p} because it is already processed.')
+                continue
+
             if not isforce:
                 answer = input(f'{p} has already been processed. Do you want to process it again? (y/n) ')
                 if answer =='y':
@@ -217,7 +223,7 @@ for expt_type, paths_all in targets.items():
     print('#######################################################################')
     print(f'############### Running snakemake for file type: {expt_type} #################')
 
-    paths_all = filter_processed_recording(paths_all, args.force, args.uploadresults, args.dryrun)
+    paths_all = filter_processed_recording(paths_all, args.force, args.uploadresults, args.skip, args.dryrun)
 
     if args.batch_process:
         # download all files and process all at once (possibly faster but takes more space)
