@@ -49,7 +49,7 @@ def getDeadChannel(deadChannelFile):
         deadChannels = [int(s) for s in f.readlines()]
     return deadChannels
 
-def plot_pca_waveforms(spatial_firing, recording, output_folder, sampling_rate=30000):
+def plot_pca_waveforms(spatial_firing, recording, output_folder, remove_outliers=False, sampling_rate=30000):
     fig_combos = [(0,0), (0,1), (0,2), (1,0), (1,1), (1,2)]
     channel_combos =  [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)]
 
@@ -102,7 +102,8 @@ def plot_pca_waveforms(spatial_firing, recording, output_folder, sampling_rate=3
             for i in range(len(pca_scores)):
                 pc1 = pca_scores[i][:, channel_combo[0], 0]
                 pc2 = pca_scores[i][:, channel_combo[1], 1]
-                pc1, pc2 = remove_outliers(pc1, pc2)
+                if remove_outliers:
+                    pc1, pc2 = reject_outliers(pc1, pc2)
 
                 axs[fig_combo[0], fig_combo[1]].plot(pc1, pc2, '.', label=str(unit_list[i]),
                                                      alpha=0.3, color=unique_colors[i], markersize=1)
@@ -123,7 +124,7 @@ def plot_pca_waveforms(spatial_firing, recording, output_folder, sampling_rate=3
         plt.close()
     return
 
-def remove_outliers(pc1, pc2):
+def reject_outliers(pc1, pc2):
     # remove and mask based on pc1
     filtered_pc1_by_pc1 = pc1[~is_outlier(pc1)]
     filtered_pc2_by_pc1 = pc2[~is_outlier(pc1)]
@@ -186,14 +187,14 @@ def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
                                     copy_binary=False, ms_before=0.5, ms_after=0.5)
     print("I have created the phy output for ", recording)
 
-def process_waveform_pca(recording):
+def process_waveform_pca(recording, remove_outliers):
     spatial_firing_path = recording+"/MountainSort/DataFrames/spatial_firing.pkl"
     output_folder = recording+"/MountainSort/Figures/firing_properties/waveform_pca/"
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
-        plot_pca_waveforms(spatial_firing, recording, output_folder=output_folder)
+        plot_pca_waveforms(spatial_firing, recording, output_folder=output_folder, remove_outliers=remove_outliers)
     else:
         print("could not process waveform pca")
         print("spatial_firing.pkl does not exist for ", recording)
@@ -203,7 +204,7 @@ def main():
     print('-------------------------------------------------------------')
 
     recording = "/mnt/datastore/Harry/Cohort7_october2020/vr/M3_D23_2020-11-28_15-13-28"
-    process_waveform_pca(recording)
+    process_waveform_pca(recording, remove_outliers=True)
 
     #create_phy(recording, spatial_firing_1, output_folder, sampling_rate=30000)
 
