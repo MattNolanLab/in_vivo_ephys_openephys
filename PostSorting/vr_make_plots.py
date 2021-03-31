@@ -81,9 +81,9 @@ def get_trial_color(trial_type):
     else:
         print("invalid trial-type passed to get_trial_color()")
 
-def plot_stops_on_track(processed_position_data, prm):
+def plot_stops_on_track(processed_position_data, output_path, track_length=200):
     print('I am plotting stop rasta...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
+    save_path = output_path+'/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stops_on_track = plt.figure(figsize=(6,6))
@@ -99,15 +99,15 @@ def plot_stops_on_track(processed_position_data, prm):
 
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,prm.get_track_length())
+    plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, 200)
+    plot_utility.style_track_plot(ax, track_length)
     n_trials = len(processed_position_data)
     x_max = n_trials+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
+    plt.savefig(output_path + '/Figures/behaviour/stop_raster' + '.png', dpi=200)
     plt.close()
 
 def min_max_normalize(x):
@@ -181,9 +181,9 @@ def plot_firing_rate_maps_per_trial(spike_data, prm):
             plt.close()
 
 
-def plot_stop_histogram(processed_position_data, prm):
+def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     print('plotting stop histogram...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
+    save_path = output_path + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     stop_histogram = plt.figure(figsize=(6,4))
@@ -198,9 +198,9 @@ def plot_stop_histogram(processed_position_data, prm):
     non_beaconed_stops = plot_utility.pandas_collumn_to_numpy_array(non_beaconed_trials["stop_location_cm"])
     probe_stops = plot_utility.pandas_collumn_to_numpy_array(probe_trials["stop_location_cm"])
 
-    beaconed_stop_hist, bin_edges = np.histogram(beaconed_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
-    non_beaconed_stop_hist, bin_edges = np.histogram(non_beaconed_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
-    probe_stop_hist, bin_edges = np.histogram(probe_stops, bins=int(prm.get_track_length()/bin_size), range=(0, prm.get_track_length()))
+    beaconed_stop_hist, bin_edges = np.histogram(beaconed_stops, bins=int(track_length/bin_size), range=(0, track_length))
+    non_beaconed_stop_hist, bin_edges = np.histogram(non_beaconed_stops, bins=int(track_length/bin_size), range=(0, track_length))
+    probe_stop_hist, bin_edges = np.histogram(probe_stops, bins=int(track_length/bin_size), range=(0, track_length))
     bin_centres = 0.5*(bin_edges[1:]+bin_edges[:-1])
 
     ax.plot(bin_centres, beaconed_stop_hist/len(beaconed_trials), '-', color='Black')
@@ -210,21 +210,21 @@ def plot_stop_histogram(processed_position_data, prm):
 
     plt.ylabel('Stops/Trial', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,prm.get_track_length())
+    plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, prm.get_track_length())
+    plot_utility.style_track_plot(ax, track_length)
 
     maxes = [max(beaconed_stop_hist/len(beaconed_trials)), max(non_beaconed_stop_hist/len(non_beaconed_trials))]
     x_max = max(maxes)+(0.1*max(maxes))
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
+    plt.savefig(output_path + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
-def plot_speed_per_trial(processed_position_data, prm):
+def plot_speed_per_trial(processed_position_data, output_path, track_length=200):
     print('plotting speed heatmap...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
+    save_path = output_path + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     x_max = len(processed_position_data)
@@ -243,20 +243,20 @@ def plot_speed_per_trial(processed_position_data, prm):
     clb.set_clim(0, 60)
     plt.ylabel('Trial Number', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,prm.get_track_length())
+    plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.2, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_heat_map' + '.png', dpi=200)
+    plt.savefig(output_path + '/Figures/behaviour/speed_heat_map' + '.png', dpi=200)
     plt.close()
 
-def plot_speed_histogram(processed_position_data, prm):
+def plot_speed_histogram(processed_position_data, output_path, track_length=200):
     trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds = \
         PostSorting.vr_spatial_data.trial_average_speed(processed_position_data)
 
     print('plotting speed histogram...')
-    save_path = prm.get_output_path() + '/Figures/behaviour'
+    save_path = output_path + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
@@ -274,10 +274,10 @@ def plot_speed_histogram(processed_position_data, prm):
 
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-    plt.xlim(0,prm.get_track_length())
+    plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plot_utility.style_track_plot(ax, prm.get_track_length())
+    plot_utility.style_track_plot(ax, track_length)
 
     max_b = max(trial_averaged_beaconed_speeds)
     max_nb = max(trial_averaged_non_beaconed_speeds)
@@ -289,13 +289,14 @@ def plot_speed_histogram(processed_position_data, prm):
 
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
+    plt.savefig(output_path + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
 
 
-def plot_spikes_on_track(spike_data, processed_position_data, prm, plot_trials=["beaconed", "non_beaconed", "probe"]):
+def plot_spikes_on_track(spike_data, processed_position_data, output_path, track_length=200,
+                         plot_trials=["beaconed", "non_beaconed", "probe"]):
     print('plotting spike rastas...')
-    save_path = prm.get_output_path() + '/Figures/spike_trajectories'
+    save_path = output_path + '/Figures/spike_trajectories'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
@@ -321,11 +322,11 @@ def plot_spikes_on_track(spike_data, processed_position_data, prm, plot_trials=[
 
             plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
             plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
-            plt.xlim(0,200)
+            plt.xlim(0,track_length)
             ax.yaxis.set_ticks_position('left')
             ax.xaxis.set_ticks_position('bottom')
 
-            plot_utility.style_track_plot(ax, 200)
+            plot_utility.style_track_plot(ax, track_length)
             plot_utility.style_vr_plot(ax, x_max)
             plt.locator_params(axis = 'y', nbins  = 4)
             try:
@@ -339,9 +340,9 @@ def plot_spikes_on_track(spike_data, processed_position_data, prm, plot_trials=[
             plt.close()
 
 
-def plot_firing_rate_maps(spike_data, processed_position_data, prm):
+def plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=200):
     print('I am plotting firing rate maps...')
-    save_path = prm.get_output_path() + '/Figures/spike_rate'
+    save_path = output_path + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
@@ -365,18 +366,19 @@ def plot_firing_rate_maps(spike_data, processed_position_data, prm):
         ax.plot(bin_centres, avg_nonbeaconed_spike_rate, '-', color='Red')
         if len(avg_probe_spike_rate)>0:
             ax.plot(bin_centres, avg_probe_spike_rate, '-', color='Blue')
-        ax.locator_params(axis = 'x', nbins=3)
-        ax.set_xticklabels(['0', '100', '200'])
+        if track_length == 200:
+            ax.locator_params(axis = 'x', nbins=3)
+            ax.set_xticklabels(['0', '100', '200'])
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
-        plt.xlim(0,200)
+        plt.xlim(0,track_length)
         nb_x_max = np.nanmax(avg_beaconed_spike_rate)
         b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
         if b_x_max > nb_x_max:
             plot_utility.style_vr_plot(ax, b_x_max)
         elif b_x_max < nb_x_max:
             plot_utility.style_vr_plot(ax, nb_x_max)
-        plot_utility.style_track_plot(ax, 200)
+        plot_utility.style_track_plot(ax, track_length)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
         plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_rate_map_Cluster_' + str(cluster_id) + '.png', dpi=200)
@@ -434,20 +436,21 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
-def make_plots(processed_position_data, spike_data=None, prm=None):
+def make_plots(processed_position_data, spike_data=None, output_path=None, prm=None, track_length=200):
 
-    plot_stops_on_track(processed_position_data, prm)
-    plot_stop_histogram(processed_position_data, prm)
-    plot_speed_histogram(processed_position_data, prm)
-    plot_speed_per_trial(processed_position_data, prm)
+    plot_stops_on_track(processed_position_data, output_path, track_length=track_length)
+    plot_stop_histogram(processed_position_data, output_path, track_length=track_length)
+    plot_speed_histogram(processed_position_data, output_path, track_length=track_length)
+    plot_speed_per_trial(processed_position_data, output_path, track_length=track_length)
 
     if spike_data is not None:
         PostSorting.make_plots.plot_waveforms(spike_data, prm)
         PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
         PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
         gc.collect()
-        plot_firing_rate_maps(spike_data, processed_position_data, prm)
-        plot_spikes_on_track(spike_data, processed_position_data, prm, plot_trials=["beaconed", "non_beaconed", "probe"])
+        plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=track_length)
+        plot_spikes_on_track(spike_data, processed_position_data, output_path, track_length=track_length,
+                             plot_trials=["beaconed", "non_beaconed", "probe"])
         #plot_convolved_rates_in_time(spike_data, prm)
 
 
