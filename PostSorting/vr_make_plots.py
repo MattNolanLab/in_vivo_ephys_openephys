@@ -439,7 +439,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
-def make_plots(processed_position_data, spike_data=None, output_path=None, prm=None, track_length=200):
+def make_plots(processed_position_data, spike_data=None, output_path=None, track_length=200, prm=None):
 
     plot_stops_on_track(processed_position_data, output_path, track_length=track_length)
     plot_stop_histogram(processed_position_data, output_path, track_length=track_length)
