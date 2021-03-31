@@ -13,6 +13,7 @@ param_file = '/parameters.txt'
 ##########
 # Recording setting
 sampling_rate = 30000
+down_sampled_rate = 1000
 num_tetrodes = 4
 movement_ch_suffix = f'ADC2' #channel that contains the movement data
 opto_ch_suffix = f'ADC3'
@@ -23,7 +24,7 @@ tetrodeNum = 4 #how many channel in one tetrode
 
 #########
 # sorter configuration
-sorterName = 'mountainsort4'
+sorterName = 'MountainSort'
 is_tetrode_by_tetrode = False #set to True if you want the spike sorting to be done tetrode by tetrode
 all_tetrode_together = True #set to True if you want the spike sorting done on all tetrodes combined
 
@@ -42,6 +43,11 @@ first_trial_channel_suffix = f'ADC4' #channel for the start of trial
 second_trial_channel_suffix = f'ADC5' #channel for the stp of trial
 reward_start = 88 #position for the reward
 reward_end = 110 #position for the reward
+movement_threshold = 2.5
+movement_channel='100_ADC2.continuous'
+first_trial_channel='100_ADC4.continuous'
+second_trial_channel='100_ADC5.continuous'
+goal_location_chennl='100_ADC7.continuous'
 
 ##########
 # Experiment
