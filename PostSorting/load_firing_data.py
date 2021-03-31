@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
+import settings
 
 def get_firing_info(file_path, prm):
     firing_times_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/firings.mda'
