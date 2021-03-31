@@ -17,6 +17,7 @@ import PostSorting.vr_cued
 import PostSorting.theta_modulation
 import PostSorting.vr_grid_cells
 import PostSorting.lfp
+import settings
 
 prm = PostSorting.parameters.Parameters()
 
@@ -38,8 +39,8 @@ def initialize_parameters(recording_to_process):
     prm.set_ms_tmp_path('/tmp/mountainlab/')
 
 
-def process_position_data(recording_to_process, prm):
-    raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, prm)
+def process_position_data(recording_to_process, prm, output_path, track_length):
+    raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, output_path, track_length)
     processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
     return raw_position_data, processed_position_data, position_data
 
@@ -52,30 +53,30 @@ def process_firing_properties(recording_to_process, session_type, prm):
     return spike_data, bad_clusters
 
 
-def save_data_frames(prm, spatial_firing_movement=None, spatial_firing_stationary=None, spatial_firing=None,
+def save_data_frames(output_path, spatial_firing_movement=None, spatial_firing_stationary=None, spatial_firing=None,
                      raw_position_data=None, processed_position_data=None, position_data=None, snippet_data=None, bad_clusters=None,
                      lfp_data=None):
-    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-        os.makedirs(prm.get_output_path() + '/DataFrames')
+    if os.path.exists(output_path + '/DataFrames') is False:
+        os.makedirs(output_path + '/DataFrames')
     if spatial_firing_movement is not None:
-        spatial_firing_movement.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_movement.pkl')
+        spatial_firing_movement.to_pickle(output_path + '/DataFrames/spatial_firing_movement.pkl')
     if spatial_firing_stationary is not None:
-        spatial_firing_stationary.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_stationary.pkl')
+        spatial_firing_stationary.to_pickle(output_path + '/DataFrames/spatial_firing_stationary.pkl')
     if spatial_firing is not None:
-        spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
+        spatial_firing.to_pickle(output_path + '/DataFrames/spatial_firing.pkl')
     if raw_position_data is not None:
         print(" I am not saving the raw positional pickle at the moment")
-        #raw_position_data.to_pickle(prm.get_output_path() + '/DataFrames/raw_position_data.pkl')
+        #raw_position_data.to_pickle(output_path + '/DataFrames/raw_position_data.pkl')
     if processed_position_data is not None:
-        processed_position_data.to_pickle(prm.get_output_path() + '/DataFrames/processed_position_data.pkl')
+        processed_position_data.to_pickle(output_path + '/DataFrames/processed_position_data.pkl')
     if position_data is not None:
-        position_data.to_pickle(prm.get_output_path() + '/DataFrames/position_data.pkl')
+        position_data.to_pickle(output_path+ '/DataFrames/position_data.pkl')
     if bad_clusters is not None:
-        bad_clusters.to_pickle(prm.get_output_path() + '/DataFrames/noisy_clusters.pkl')
+        bad_clusters.to_pickle(output_path+ '/DataFrames/noisy_clusters.pkl')
     if snippet_data is not None:
-        snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
+        snippet_data.to_pickle(output_path + '/DataFrames/snippet_data.pkl')
     if lfp_data is not None:
-        lfp_data.to_pickle(prm.get_output_path() + "/DataFrames/lfp_data.pkl")
+        lfp_data.to_pickle(output_path + "/DataFrames/lfp_data.pkl")
 
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/Figures') is False:
@@ -113,6 +114,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
+    output_path = recording_to_process+'/'+settings.sorterName
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
     prm.set_paired_order(paired_order)
     prm.set_stitch_point(stitchpoint)
@@ -127,12 +129,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, session_type=session_type, prm=prm)
-    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm)
+    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm, output_path, track_length)
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-        PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=None, prm=prm)
+        PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=None,
+                                             output_path=output_path, track_length=track_length)
 
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
@@ -155,9 +158,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         #spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
 
-        PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=spike_data, prm=prm)
+        PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=spike_data,
+                                             output_path=output_path, track_length=track_length)
 
-    save_data_frames(prm,
+    save_data_frames(output_path,
                      spatial_firing=spike_data,
                      raw_position_data=raw_position_data,
                      processed_position_data=processed_position_data,
