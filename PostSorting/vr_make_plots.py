@@ -21,8 +21,8 @@ from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
 '''
 
 # plot the raw movement channel to check all is good
-def plot_movement_channel(location, prm):
-    save_path = prm.get_output_path() + '/Figures'
+def plot_movement_channel(location, output_path):
+    save_path = output_path + '/Figures'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.plot(location)
@@ -30,34 +30,37 @@ def plot_movement_channel(location, prm):
     plt.close()
 
 # plot the trials to check all is good
-def plot_trials(trials, prm):
+def plot_trials(trials, output_path):
+    save_path = output_path + '/Figures'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     plt.plot(trials)
-    try:
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trials.png')
-    except:
-        print("I could not save the trials plot")
+    plt.savefig(save_path + '/trials' + '.png')
     plt.close()
 
-
-def plot_velocity(velocity, prm):
+def plot_velocity(velocity, output_path):
+    save_path = output_path + '/Figures'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     plt.plot(velocity)
-    try:
-        plt.savefig(prm.get_local_recording_folder_path() + '/Figures/velocity.png')
-    except:
-        print("I could not save the velocity plot")
+    plt.savefig(save_path + '/velocity' + '.png')
     plt.close()
 
-def plot_running_mean_velocity(velocity, prm):
+def plot_running_mean_velocity(velocity, output_path):
+    save_path = output_path + '/Figures'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
     plt.plot(velocity)
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/running_mean_velocity.png')
+    plt.savefig(save_path + '/running_mean_velocity' + '.png')
+    plt.close()
 
 # plot the raw trial channels to check all is good
-def plot_trial_channels(trial1, trial2, prm):
+def plot_trial_channels(trial1, trial2, output_path):
     plt.plot(trial1[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type1.png')
+    plt.savefig(output_path + '/Figures/trial_type1.png')
     plt.close()
     plt.plot(trial2[0,:])
-    plt.savefig(prm.get_local_recording_folder_path() + '/Figures/trial_type2.png')
+    plt.savefig(output_path + '/Figures/trial_type2.png')
     plt.close()
 
 
