@@ -16,7 +16,7 @@ def load_opto_data(recording_to_process, prm):
     print('loading opto channel...')
     file_path = recording_to_process + '/' + prm.get_opto_channel()
     if os.path.exists(file_path):
-        opto_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        opto_data = open_ephys_IO.get_data_continuous(file_path)
         is_found = True
     else:
         print('Opto data was not found.')
