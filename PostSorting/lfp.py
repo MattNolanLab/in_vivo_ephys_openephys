@@ -15,11 +15,11 @@ from PostSorting import post_process_sorted_data
 from PostSorting import vr_sync_spatial_data
 import PreClustering.dead_channels
 
-def load_ephys_channel(recording_folder, ephys_channel, prm):
+def load_ephys_channel(recording_folder, ephys_channel):
     print('Extracting ephys data')
     file_path = recording_folder + '/' + ephys_channel
     if os.path.exists(file_path):
-        channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        channel_data = open_ephys_IO.get_data_continuous(file_path)
     else:
         print('Movement data was not found.')
     return channel_data
@@ -40,7 +40,7 @@ def process_lfp(recording_folder, session_type, prm):
         spatial_data, position_was_found = post_process_sorted_data.process_position_data(recording_folder, session_type, prm)
         if position_was_found:
             synced_spatial_data = post_process_sorted_data.sync_data(recording_folder, prm, spatial_data)
-            ch_len = len(load_ephys_channel(recording_folder, ephys_channels_list[0], prm))
+            ch_len = len(load_ephys_channel(recording_folder, ephys_channels_list[0]))
             ch_time = np.arange(0, ch_len/prm.get_sampling_rate(), 1/prm.get_sampling_rate())
             velocity = np.interp(ch_time, synced_spatial_data["synced_time"].values, synced_spatial_data["speed"].values)
             # now interpolate up to same dimensions as ephys channels
@@ -73,7 +73,7 @@ def process_lfp(recording_folder, session_type, prm):
         if ephys_channel_number in dead_channels:
             dead_channel_bool = True
 
-        ephys_channel_data = load_ephys_channel(recording_folder, ephys_channel, prm)
+        ephys_channel_data = load_ephys_channel(recording_folder, ephys_channel)
         #f, power_spectrum_channel = signal.welch(ephys_channel_data[velocity_mask], fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
         f, power_spectrum_channel = signal.welch(ephys_channel_data[velocity_mask], fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
 
