@@ -1,6 +1,5 @@
 import matplotlib.pylab as plt
 import numpy as np
-from scipy.stats.stats import pearsonr
 import PostSorting.open_field_firing_maps
 import pandas as pd
 import open_ephys_IO
@@ -10,10 +9,6 @@ import plot_utility
 import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
 import re
-from PostSorting import open_field_spatial_data
-from PostSorting import post_process_sorted_data
-from PostSorting import vr_sync_spatial_data
-import PreClustering.dead_channels
 
 def load_ephys_channel(recording_folder, ephys_channel):
     print('Extracting ephys data')
@@ -24,38 +19,9 @@ def load_ephys_channel(recording_folder, ephys_channel):
         print('Movement data was not found.')
     return channel_data
 
-def extract_velocity_vr(recording_folder, prm):
-    raw_position_data = pd.DataFrame()
-    raw_position_data = vr_sync_spatial_data.calculate_track_location(raw_position_data, recording_folder, prm)
-    raw_position_data = vr_sync_spatial_data.calculate_trial_numbers(raw_position_data, prm)
-    raw_position_data = vr_sync_spatial_data.calculate_instant_velocity(raw_position_data, prm)
-    return raw_position_data["velocity"].values
-
-def process_lfp(recording_folder, session_type, prm):
-
+def process_lfp(recording_folder, prm):
     print("I am now processing the lfp")
     ephys_channels_list = prm.get_ephys_channels()
-
-    if session_type == "openfield":
-        spatial_data, position_was_found = post_process_sorted_data.process_position_data(recording_folder, session_type, prm)
-        if position_was_found:
-            synced_spatial_data = post_process_sorted_data.sync_data(recording_folder, prm, spatial_data)
-            ch_len = len(load_ephys_channel(recording_folder, ephys_channels_list[0]))
-            ch_time = np.arange(0, ch_len/prm.get_sampling_rate(), 1/prm.get_sampling_rate())
-            velocity = np.interp(ch_time, synced_spatial_data["synced_time"].values, synced_spatial_data["speed"].values)
-            # now interpolate up to same dimensions as ephys channels
-        else:
-            print("position data wasn't found for "+ recording_folder)
-
-    elif session_type == "vr":
-        velocity = extract_velocity_vr(recording_folder, prm) # same dimensions as ephys channels
-
-    # create a mask for points when the mouse is over 2.5cm/s
-    velocity_mask = velocity>3
-    print("The mouse was over 3cm/s "+str(np.sum(velocity_mask)/len(velocity)*100)+"% of the time. " \
-                                                                                      "Only this signal will be" \
-                                                                                      " used to calculate power")
-
     lfp_df = pd.DataFrame()
 
     frequencies = []
@@ -74,8 +40,7 @@ def process_lfp(recording_folder, session_type, prm):
             dead_channel_bool = True
 
         ephys_channel_data = load_ephys_channel(recording_folder, ephys_channel)
-        #f, power_spectrum_channel = signal.welch(ephys_channel_data[velocity_mask], fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
-        f, power_spectrum_channel = signal.welch(ephys_channel_data[velocity_mask], fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
+        f, power_spectrum_channel = signal.welch(ephys_channel_data, fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
 
         frequencies.append(f)
         power_spectra.append(power_spectrum_channel)
@@ -88,7 +53,6 @@ def process_lfp(recording_folder, session_type, prm):
     lfp_df["dead_channel"] = dead_channels_bool
 
     plot_lfp(lfp_df, prm)
-
     return lfp_df
 
 
@@ -123,17 +87,6 @@ def plot_lfp(lfp_df, prm):
     plt.savefig(prm.get_output_path() + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
     plt.close()
 
-def get_session_type_from_recording(recording):
-
-    # if bonzai file is found then its open field if not its vr
-    path_to_position_file, is_found = open_field_spatial_data.find_bonsai_file(recording)
-
-    if is_found:
-        session_type = "openfield"
-    else:
-        session_type = "vr"
-    return session_type
-
 def process_batch_lfp(recordings, redirect=""):
 
     prm = PostSorting.parameters.Parameters()
@@ -161,8 +114,7 @@ def process_batch_lfp(recordings, redirect=""):
 
         if os.path.exists(empty_df_path) is False:
             try:
-                session_type = get_session_type_from_recording(recording)
-                lfp_df = process_lfp(recording_folder=recording, session_type=session_type, prm=prm)
+                lfp_df = process_lfp(recording_folder=recording, prm=prm)
 
                 if os.path.exists(directed_path+"/MountainSort/DataFrames") is False:
                     os.makedirs(directed_path+"/MountainSort/DataFrames")
