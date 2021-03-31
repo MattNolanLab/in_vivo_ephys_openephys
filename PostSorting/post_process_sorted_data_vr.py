@@ -128,7 +128,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, session_type=session_type, prm=prm)
+    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm=prm)
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm, output_path, track_length)
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
