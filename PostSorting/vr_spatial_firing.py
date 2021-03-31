@@ -1,6 +1,7 @@
 import PostSorting.parameters
 import numpy as np
 import pandas as pd
+import settings
 prm = PostSorting.parameters.Parameters()
 
 def add_speed(spike_data, raw_position_data):
@@ -75,7 +76,7 @@ def split_and_add_trial_type(cluster_index, spike_data_movement, spike_data_stat
 
 
 def split_spatial_firing_by_speed(spike_data, spike_data_movement, spike_data_stationary):
-    movement_threshold=2.5 # 5 cm / second
+    movement_threshold=settings.movement_threshold # 2.5 cm / second
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
