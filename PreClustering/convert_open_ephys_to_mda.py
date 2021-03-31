@@ -36,7 +36,7 @@ def convert_continuous_to_mda(prm):
                     if (channel + 1) in live_channels:
                         number_of_live_ch_in_tetrode += 1
                         file_path = folder_path + continuous_file_name + str(tetrode*4 + channel + 1) + continuous_file_name_end + '.continuous'
-                        channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+                        channel_data = open_ephys_IO.get_data_continuous(file_path)
                         channel_data_all.append(channel_data)
 
                 recording_length = len(channel_data_all[0])
@@ -79,10 +79,10 @@ def convert_all_tetrodes_to_mda(prm):
             if (channel + 1) in live_channels:
                 file_path = folder_path + continuous_file_name + str(channel + 1) + continuous_file_name_end + '.continuous'
                 if os.path.exists(file_path):
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.int16)
+                    channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)
                 else:
                     file_path = try_to_figure_out_non_default_file_names(folder_path, channel + 1)
-                    channel_data = open_ephys_IO.get_data_continuous(prm, file_path).astype(np.int16)  # down cast it to float 32
+                    channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)  # down cast it to float 32
 
                 if is_first_channel:
                     all_channel = np.zeros((len(live_channels),channel_data.size),np.int16)
