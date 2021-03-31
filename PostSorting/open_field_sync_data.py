@@ -14,7 +14,7 @@ def load_sync_data_ephys(recording_to_process, prm):
     print('loading sync channel...')
     file_path = recording_to_process + '/' + prm.get_sync_channel()
     if os.path.exists(file_path):
-        sync_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        sync_data = open_ephys_IO.get_data_continuous(file_path)
         is_found = True
     else:
         print('Sync data was not found, I will check if Axona sync data is present and convert it if it is.')
@@ -31,7 +31,7 @@ def load_sync_data_ephys(recording_to_process, prm):
             for name in glob.glob(recording_to_process + '/*.continuous'):
                 if os.path.exists(name):
                     print(name)
-                    ch = open_ephys_IO.get_data_continuous(prm, name)
+                    ch = open_ephys_IO.get_data_continuous(name)
                     length = len(ch)
                     sync_data = np.zeros(length)
                     sync_data[np.take(pulse_indices, np.where(pulse_indices < len(ch))).astype(int)] = 1
