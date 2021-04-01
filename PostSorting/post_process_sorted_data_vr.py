@@ -41,16 +41,16 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, output_path, track_length, stop_threshold):
     raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, output_path, track_length)
-    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold)
+    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold,track_length)
     return raw_position_data, processed_position_data, position_data
 
 
-def process_firing_properties(recording_to_process, session_type):
-    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
-    spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
-    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
-    return spike_data, bad_clusters
+def process_firing_properties(recording_to_process, session_type, sorter_name, dead_channels, paired_order, stitchpoint, total_length_sampling_points, opto_tagging_start_index=None):
+    # TODO: add the doc for paired_order and stitchpoint here
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, session_type, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length_sampling_points)
+    spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint) #TODO: check should really be done before calling a function, function should not do nothing
+    return spike_data
 
 
 def save_data_frames(output_path, spatial_firing_movement=None, spatial_firing_stationary=None, spatial_firing=None,
@@ -127,19 +127,33 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
 
+    dead_channels = prm.get_dead_channels()
+    ephys_channels = prm.get_ephys_channels()
+
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
 
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process +  prm.get_sorter_name())
 
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm.get_ephys_channels(), prm.get_output_path)
-    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm, output_path, track_length)
-    prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
+    # Process LPF
+    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
+    # Process position
+    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
+    total_length_sample_point = raw_position_data.time_seconds.values[-1]
 
-    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
 
+    # Process firing
+    spike_data = process_firing_properties(recording_to_process, session_type, 
+        sorter_name, dead_channels, paired_order, stitchpoint, total_length_sample_point)
+
+    # Curation
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
+
+    # Get snippet of spike waveforms
+    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
+
+    # Perform experiment related analysis
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=None,
                                              output_path=output_path, track_length=track_length, prm=prm)
@@ -157,12 +171,12 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
 
-        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
+        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
         spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
         #spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, position_data, prm.get_vr_grid_analysis_bin_size(), prm)
-        spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_data, processed_position_data, prm)
+        spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_data, processed_position_data, settings.vr_bin_size_cm, track_length)
         #spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
-        spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
+        spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, output_path, settings.sampling_rate)
 
         PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=spike_data,
                                              output_path=output_path, track_length=track_length)
@@ -188,7 +202,8 @@ def main():
     params.cue_conditioned_goal = False
     params.track_length = 200
 
-    recording_folder = "/mnt/datastore/Harry/Cohort7_october2020/vr/M3_D9_2020-11-08_14-37-47"
+    # recording_folder = "/mnt/datastore/Harry/Cohort7_october2020/vr/M3_D9_2020-11-08_14-37-47"
+    recording_folder = "/home/ubuntu/testdata/M1_D31_2018-11-01_12-28-25_short"
 
     print('Processing ' + str(recording_folder))
 

@@ -54,10 +54,10 @@ def trial_average_speed(processed_position_data):
     return trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds
 
 
-def process_position(raw_position_data, stop_threshold):
+def process_position(raw_position_data, stop_threshold,track_length):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
-    processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data)
-    processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data)
+    processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data, track_length)
+    processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,track_length)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, stop_threshold)
     gc.collect()
 

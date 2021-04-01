@@ -20,7 +20,7 @@ def load_ephys_channel(recording_folder, ephys_channel):
         print('Movement data was not found.')
     return channel_data
 
-def process_lfp(recording_folder, ephys_channels_list, output_path, sampling_rate=settings.sampling_rate):
+def process_lfp(recording_folder, ephys_channels_list, output_path, dead_channels,sampling_rate=settings.sampling_rate):
     print("I am now processing the lfp")
     lfp_df = pd.DataFrame()
 
@@ -28,7 +28,6 @@ def process_lfp(recording_folder, ephys_channels_list, output_path, sampling_rat
     power_spectra = []
     channels = []
     dead_channels_bool = []
-    dead_channels = prm.dead_channels
 
     for i in range(len(ephys_channels_list)):
         dead_channel_bool = False
@@ -84,7 +83,7 @@ def plot_lfp(lfp_df, output_path):
 
     plt.legend(fontsize=8)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
+    plt.savefig(output_path + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
     plt.close()
 
 def process_batch_lfp(recordings, redirect=""):

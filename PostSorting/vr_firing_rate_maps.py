@@ -35,15 +35,13 @@ def get_total_bin_times(binned_times_collumn):
     return total_bin_times
 
 
-def make_firing_field_maps(spike_data, processed_position_data, prm):
+def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, track_length):
 
     beaconed_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 0]
     non_beaconed_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 1]
     probe_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 2]
 
-    numbers_of_bins = get_number_of_bins(prm)
-    bin_size_cm = get_bin_size(prm, numbers_of_bins)
-    bins = np.arange(0, prm.get_track_length(), bin_size_cm)
+    bins = np.arange(0, track_length, bin_size_cm)
 
     beaconed_firing_rate_map = []
     non_beaconed_firing_rate_map = []

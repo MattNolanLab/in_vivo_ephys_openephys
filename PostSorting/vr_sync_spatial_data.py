@@ -34,7 +34,7 @@ def get_raw_location(recording_folder, output_path):
     if os.path.exists(file_path):
         location = open_ephys_IO.get_data_continuous(file_path)
     else:
-        print('Movement data was not found.')
+        raise FileNotFoundError('Movement data was not found.')
     location=correct_for_restart(location)
     PostSorting.vr_make_plots.plot_movement_channel(location, output_path)
     return np.asarray(location, dtype=np.float16)
