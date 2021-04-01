@@ -39,6 +39,7 @@ location_ds_rate = 1000 #the sampleing frequency in Hz to downsample the locatio
 ##########
 # VR
 track_length = 200
+vr_bin_size_cm = 1
 first_trial_channel_suffix = f'ADC4' #channel for the start of trial
 second_trial_channel_suffix = f'ADC5' #channel for the stp of trial
 reward_start = 88 #position for the reward
