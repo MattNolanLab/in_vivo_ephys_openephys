@@ -39,9 +39,9 @@ def initialize_parameters(recording_to_process):
     prm.set_ms_tmp_path('/tmp/mountainlab/')
 
 
-def process_position_data(recording_to_process, prm, output_path, track_length):
+def process_position_data(recording_to_process, output_path, track_length, stop_threshold, prm):
     raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, output_path, track_length)
-    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, prm, recording_to_process)
+    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, track_length, stop_threshold, prm)
     return raw_position_data, processed_position_data, position_data
 
 
@@ -129,7 +129,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm=prm)
-    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm, output_path, track_length)
+    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold, prm)
     spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
 
