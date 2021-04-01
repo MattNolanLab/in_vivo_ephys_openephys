@@ -9,6 +9,7 @@ import plot_utility
 import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
 import re
+import settings
 
 def load_ephys_channel(recording_folder, ephys_channel):
     print('Extracting ephys data')
@@ -19,9 +20,8 @@ def load_ephys_channel(recording_folder, ephys_channel):
         print('Movement data was not found.')
     return channel_data
 
-def process_lfp(recording_folder, prm):
+def process_lfp(recording_folder, ephys_channels_list, output_path, sampling_rate=settings.sampling_rate):
     print("I am now processing the lfp")
-    ephys_channels_list = prm.get_ephys_channels()
     lfp_df = pd.DataFrame()
 
     frequencies = []
@@ -40,7 +40,7 @@ def process_lfp(recording_folder, prm):
             dead_channel_bool = True
 
         ephys_channel_data = load_ephys_channel(recording_folder, ephys_channel)
-        f, power_spectrum_channel = signal.welch(ephys_channel_data, fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
+        f, power_spectrum_channel = signal.welch(ephys_channel_data, fs=sampling_rate, nperseg=50000, scaling='spectrum')
 
         frequencies.append(f)
         power_spectra.append(power_spectrum_channel)
@@ -52,13 +52,13 @@ def process_lfp(recording_folder, prm):
     lfp_df["power_spectra"] = power_spectra
     lfp_df["dead_channel"] = dead_channels_bool
 
-    plot_lfp(lfp_df, prm)
+    plot_lfp(lfp_df, output_path)
     return lfp_df
 
 
-def plot_lfp(lfp_df, prm):
+def plot_lfp(lfp_df, output_path):
 
-    save_path = prm.get_output_path() + '/Figures/lfp'
+    save_path = output_path + '/Figures/lfp'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 

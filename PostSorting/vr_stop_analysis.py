@@ -6,7 +6,7 @@ import gc
 import PostSorting.parameters
 import settings
 
-def calculate_stops(processed_position_data, stop_threshold):
+def get_stops_from_binned_speed(processed_position_data, stop_threshold):
     stop_location_cm = []
 
     for index, trial_row in processed_position_data.iterrows():
@@ -76,8 +76,8 @@ def calculate_rewarded_trials(processed_position_data):
     processed_position_data["rewarded"] = rewarded_trials
     return processed_position_data
 
-def process_stops(processed_position_data, stop_threshold):
-    processed_position_data = calculate_stops(processed_position_data, stop_threshold)
+def process_stops(processed_position_data,stop_threshold):
+    processed_position_data = get_stops_from_binned_speed(processed_position_data, stop_threshold)
     processed_position_data = calculate_average_stops(processed_position_data)
     processed_position_data = calculate_first_stops(processed_position_data)
     processed_position_data = calculate_rewarded_stops(processed_position_data)

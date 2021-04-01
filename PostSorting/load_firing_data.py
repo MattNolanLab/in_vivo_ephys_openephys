@@ -7,8 +7,8 @@ import PreClustering.dead_channels
 import data_frame_utility
 import settings
 
-def get_firing_info(file_path, prm):
-    firing_times_path = file_path + '/Electrophysiology' + prm.get_sorter_name() + '/firings.mda'
+def get_firing_info(file_path, sorter_name):
+    firing_times_path = file_path + '/Electrophysiology/' + sorter_name + '/firings.mda' # sorter name shouldn't contain path slash
     units_list = None
     firing_info = None
     if os.path.exists(firing_times_path):
@@ -43,9 +43,9 @@ def correct_for_dead_channels(primary_channels, prm):
     return primary_channels
 
 
-def process_firing_times(recording_to_process, session_type, prm):
+def process_firing_times(recording_to_process, session_type, paired_order, opto_tagging_start_index):
     session_id = recording_to_process.split('/')[-1]
-    units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, prm)
+    units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
         firing_data = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto', 'isolation', 'noise_overlap', 'peak_snr', 'mean_firing_rate', 'random_snippets', 'position_x', 'position_y', 'hd', 'position_x_pixels', 'position_y_pixels', 'speed']].copy()
         return firing_data
@@ -89,9 +89,9 @@ def process_firing_times(recording_to_process, session_type, prm):
     return firing_data
 
 
-def create_firing_data_frame(recording_to_process, session_type, prm):
+def create_firing_data_frame(recording_to_process, session_type):
     spike_data = None
-    spike_data = process_firing_times(recording_to_process, session_type, prm)
+    spike_data = process_firing_times(recording_to_process, session_type)
     return spike_data
 
 def available_ephys_channels(recording_to_process, prm):

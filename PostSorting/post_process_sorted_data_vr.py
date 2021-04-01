@@ -39,14 +39,14 @@ def initialize_parameters(recording_to_process):
     prm.set_ms_tmp_path('/tmp/mountainlab/')
 
 
-def process_position_data(recording_to_process, output_path, track_length, stop_threshold, prm):
+def process_position_data(recording_to_process, output_path, track_length, stop_threshold):
     raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, output_path, track_length)
-    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, track_length, stop_threshold, prm)
+    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold)
     return raw_position_data, processed_position_data, position_data
 
 
-def process_firing_properties(recording_to_process, session_type, prm):
-    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+def process_firing_properties(recording_to_process, session_type):
+    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)
@@ -110,11 +110,15 @@ def process_running_parameter_tag(running_parameter_tags):
     return stop_threshold, track_length, cue_conditioned_goal
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False,
-                           sorter_name='MountainSort', stitchpoint=None, paired_order=None, total_length=None):
+                           sorter_name=settings.sorterName, stitchpoint=None, paired_order=None, total_length=None):
 
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     output_path = recording_to_process+'/'+settings.sorterName
+
+
+    # Keep all parameter object reference at this level, do not pass them beyond this level
+    # keep the configuration of the prm object at a single location only for easily tracking
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
     prm.set_paired_order(paired_order)
     prm.set_stitch_point(stitchpoint)
@@ -122,15 +126,18 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_track_length(track_length)
     prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
+
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
 
     prm.set_sorter_name('/' + sorter_name)
-    prm.set_output_path(recording_to_process + prm.get_sorter_name())
+    prm.set_output_path(recording_to_process +  prm.get_sorter_name())
 
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm=prm)
-    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold, prm)
-    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type, prm)
+    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm.get_ephys_channels(), prm.get_output_path)
+    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, prm, output_path, track_length)
+    prm.set_total_length_sampling_points(raw_position_data.time_seconds.values[-1])  # seconds
+
+    spike_data, bad_clusters = process_firing_properties(recording_to_process, session_type)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
 
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
@@ -158,7 +165,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
 
         PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=spike_data,
-                                             output_path=output_path, track_length=track_length, prm=prm)
+                                             output_path=output_path, track_length=track_length)
 
     save_data_frames(output_path,
                      spatial_firing=spike_data,

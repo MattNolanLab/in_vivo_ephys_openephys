@@ -11,7 +11,7 @@ import gc
 import matplotlib.ticker as ticker
 import pandas as pd
 from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
-
+import settings
 '''
 
 # Plot basic info to check recording is good:
@@ -439,22 +439,22 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
-def make_plots(processed_position_data, spike_data=None, output_path=None, track_length=200, prm=None):
-
+def make_plots(processed_position_data, spike_data=None, output_path=None, track_length=settings.track_length):
+    # Create plots for the VR experiments
+    
     plot_stops_on_track(processed_position_data, output_path, track_length=track_length)
     plot_stop_histogram(processed_position_data, output_path, track_length=track_length)
     plot_speed_histogram(processed_position_data, output_path, track_length=track_length)
     plot_speed_per_trial(processed_position_data, output_path, track_length=track_length)
 
     if spike_data is not None:
-        PostSorting.make_plots.plot_waveforms(spike_data, prm)
-        PostSorting.make_plots.plot_spike_histogram(spike_data, prm)
-        PostSorting.make_plots.plot_autocorrelograms(spike_data, prm)
+        PostSorting.make_plots.plot_waveforms(spike_data)
+        PostSorting.make_plots.plot_spike_histogram(spike_data)
+        PostSorting.make_plots.plot_autocorrelograms(spike_data)
         gc.collect()
         plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=track_length)
         plot_spikes_on_track(spike_data, processed_position_data, output_path, track_length=track_length,
                              plot_trials=["beaconed", "non_beaconed", "probe"])
-        #plot_convolved_rates_in_time(spike_data, prm)
 
 
 def plot_field_centre_of_mass_on_track(spike_data, prm, plot_trials=["beaconed", "non_beaconed", "probe"]):
