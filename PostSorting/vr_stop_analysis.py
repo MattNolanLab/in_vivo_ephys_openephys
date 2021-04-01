@@ -6,14 +6,14 @@ import gc
 import PostSorting.parameters
 import settings
 
-def get_stops_from_binned_speed(processed_position_data, prm):
+def calculate_stops(processed_position_data, stop_threshold):
     stop_location_cm = []
 
     for index, trial_row in processed_position_data.iterrows():
         trial_row = trial_row.to_frame().T.reset_index(drop=True)
         speeds_binned = np.array(trial_row["speeds_binned"].iloc[0])
         position_bin_centres = np.array(trial_row["position_bin_centres"].iloc[0])
-        stop_locations_on_trial = position_bin_centres[speeds_binned < prm.get_stop_threshold()]
+        stop_locations_on_trial = position_bin_centres[speeds_binned < stop_threshold]
         stop_location_cm.append(stop_locations_on_trial)
 
     processed_position_data["stop_location_cm"] = stop_location_cm
@@ -76,16 +76,8 @@ def calculate_rewarded_trials(processed_position_data):
     processed_position_data["rewarded"] = rewarded_trials
     return processed_position_data
 
-def calculate_stops(processed_position_data, prm):
-    processed_position_data = get_stops_from_binned_speed(processed_position_data, prm)
-    return processed_position_data
-
-def calculate_stop_data_from_parameters(processed_position_data, recording_directory, prm):
-    processed_position_data = calculate_stops(processed_position_data, prm)
-    return processed_position_data
-
-def process_stops(processed_position_data, prm, recording_directory):
-    processed_position_data = calculate_stop_data_from_parameters(processed_position_data, recording_directory, prm)
+def process_stops(processed_position_data, stop_threshold):
+    processed_position_data = calculate_stops(processed_position_data, stop_threshold)
     processed_position_data = calculate_average_stops(processed_position_data)
     processed_position_data = calculate_first_stops(processed_position_data)
     processed_position_data = calculate_rewarded_stops(processed_position_data)

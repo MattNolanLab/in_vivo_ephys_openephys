@@ -3,11 +3,10 @@ import pandas as pd
 import PostSorting.parameters
 from scipy import stats
 import matplotlib.pyplot as plt
+import settings
 
-
-def calculate_binned_speed(raw_position_data, processed_position_data, prm):
-    numbers_of_bins = get_number_of_bins(prm)
-    bin_size_cm = get_bin_size(prm, numbers_of_bins)
+def calculate_binned_speed(raw_position_data, processed_position_data, track_length):
+    bin_size_cm = settings.vr_bin_size_cm
 
     speeds_binned = []
     trial_numbers = []
@@ -20,7 +19,7 @@ def calculate_binned_speed(raw_position_data, processed_position_data, prm):
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
 
-        bins = np.arange(0, prm.get_track_length(), bin_size_cm)
+        bins = np.arange(0, track_length, bin_size_cm)
         bin_centres = 0.5*(bins[1:]+bins[:-1])
 
         # this calculates the average speed within the bin i.e. all speeds in bin summated and then divided by the number of datapoints within the bin
@@ -39,17 +38,8 @@ def calculate_binned_speed(raw_position_data, processed_position_data, prm):
     processed_position_data["position_bin_centres"] = position_bin_centres
     return processed_position_data
 
-def get_bin_size(prm, numbers_of_bins):
-    bin_size = prm.track_length/numbers_of_bins
-    return bin_size
-
-def get_number_of_bins(prm):
-    # bin number is equal to the track length, such that theres one bin per cm
-    number_of_bins = prm.track_length
-    return number_of_bins
-
-def process_speed(raw_position_data,processed_position_data, prm):
-    processed_position_data = calculate_binned_speed(raw_position_data,processed_position_data, prm)
+def process_speed(raw_position_data,processed_position_data, track_length):
+    processed_position_data = calculate_binned_speed(raw_position_data,processed_position_data, track_length)
     return processed_position_data
 
 def main():
