@@ -131,7 +131,7 @@ def extract_goal_locations(recording_folder, prm):
     goal_file_path = recording_folder + '/' + prm.get_goal_location_channel()
 
     if os.path.exists(goal_file_path):
-        goal_location = open_ephys_IO.get_data_continuous(prm, goal_file_path)
+        goal_location = open_ephys_IO.get_data_continuous(goal_file_path)
     else:
         print('Movement or goal location data was not found.')
     if goal_location.shape[0] > 90000000:

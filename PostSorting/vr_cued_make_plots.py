@@ -137,7 +137,7 @@ def fill_blackbox(blackbox_centres, ax, plot_only_if_not_shifted=False):
 
     return ax
 
-def plot_stop_histogram(raw_position_data, processed_position_data, prm):
+def plot_stop_histogram(processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -179,7 +179,7 @@ def plot_stop_histogram(raw_position_data, processed_position_data, prm):
     plt.close()
 
 
-def plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm):
+def plot_stop_cumulative_histogram(processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -221,7 +221,7 @@ def plot_stop_cumulative_histogram(raw_position_data, processed_position_data, p
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_cummulative_histogram' + '.png', dpi=200)
     plt.close()
 
-def plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm):
+def plot_stop_cumulative_histogram_postcue(processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -263,7 +263,7 @@ def plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_cummulative_histogram_post_cue' + '.png', dpi=200)
     plt.close()
 
-def plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm):
+def plot_stop_cumulative_histogram_first_stop(processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -305,7 +305,7 @@ def plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_posit
     plt.savefig(prm.get_output_path() + '/Figures/behaviour/stop_cummulative_histogram_first_stop' + '.png', dpi=200)
     plt.close()
 
-def plot_stop_cumulative_histogram_first_stop_postcue(raw_position_data, processed_position_data, prm):
+def plot_stop_cumulative_histogram_first_stop_postcue(processed_position_data, prm):
     print('plotting stop histogram...')
     save_path = prm.get_output_path() + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
@@ -647,17 +647,11 @@ def make_plots(raw_position_data, processed_position_data, spike_data=None, prm=
     plot_stops_on_track_offset(raw_position_data, processed_position_data, prm)
     criteria_plot_offset(processed_position_data, prm)
     plot_stops_on_track_offset_order(raw_position_data, processed_position_data, prm)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=True, ordered=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=False, plot_non_beaconed=True, ordered=True)
-    #plot_binned_velocity(raw_position_data, processed_position_data, prm, plot_beaconed=True, plot_non_beaconed=False, ordered=True)
-    plot_stop_histogram(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram_first_stop(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram_postcue(raw_position_data, processed_position_data, prm)
-    plot_stop_cumulative_histogram_first_stop_postcue(raw_position_data, processed_position_data, prm)
+    plot_stop_histogram(processed_position_data, prm)
+    plot_stop_cumulative_histogram(processed_position_data, prm)
+    plot_stop_cumulative_histogram_first_stop(processed_position_data, prm)
+    plot_stop_cumulative_histogram_postcue(processed_position_data, prm)
+    plot_stop_cumulative_histogram_first_stop_postcue(processed_position_data, prm)
 
     #plot_speed_histogram(raw_position_data, processed_position_data, prm)
 

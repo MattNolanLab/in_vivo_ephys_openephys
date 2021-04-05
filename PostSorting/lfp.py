@@ -1,6 +1,5 @@
 import matplotlib.pylab as plt
 import numpy as np
-from scipy.stats.stats import pearsonr
 import PostSorting.open_field_firing_maps
 import pandas as pd
 import open_ephys_IO
@@ -9,62 +8,26 @@ from scipy import signal
 import plot_utility
 import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
-from Edmond import Concatenate_from_server
 import re
-from PostSorting import open_field_spatial_data
-from PostSorting import post_process_sorted_data
-from PostSorting import vr_sync_spatial_data
-import PreClustering.dead_channels
-from Edmond import loc_ramp_analysis
+import settings
 
-def load_ephys_channel(recording_folder, ephys_channel, prm):
+def load_ephys_channel(recording_folder, ephys_channel):
     print('Extracting ephys data')
     file_path = recording_folder + '/' + ephys_channel
     if os.path.exists(file_path):
-        channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        channel_data = open_ephys_IO.get_data_continuous(file_path)
     else:
         print('Movement data was not found.')
     return channel_data
 
-def extract_velocity_vr(recording_folder, prm):
-    raw_position_data = pd.DataFrame()
-    raw_position_data = vr_sync_spatial_data.calculate_track_location(raw_position_data, recording_folder, prm)
-    raw_position_data = vr_sync_spatial_data.calculate_trial_numbers(raw_position_data, prm)
-    raw_position_data = vr_sync_spatial_data.calculate_instant_velocity(raw_position_data, prm)
-    return raw_position_data["velocity"].values
-
-def process_lfp(recording_folder, session_type, prm):
-
+def process_lfp(recording_folder, ephys_channels_list, output_path, dead_channels,sampling_rate=settings.sampling_rate):
     print("I am now processing the lfp")
-    ephys_channels_list = prm.get_ephys_channels()
-
-    if session_type == "openfield":
-        spatial_data, position_was_found = post_process_sorted_data.process_position_data(recording_folder, session_type, prm)
-        if position_was_found:
-            synced_spatial_data = post_process_sorted_data.sync_data(recording_folder, prm, spatial_data)
-            ch_len = len(load_ephys_channel(recording_folder, ephys_channels_list[0], prm))
-            ch_time = np.arange(0, ch_len/prm.get_sampling_rate(), 1/prm.get_sampling_rate())
-            velocity = np.interp(ch_time, synced_spatial_data["synced_time"].values, synced_spatial_data["speed"].values)
-            # now interpolate up to same dimensions as ephys channels
-        else:
-            print("position data wasn't found for "+ recording_folder)
-
-    elif session_type == "vr":
-        velocity = extract_velocity_vr(recording_folder, prm) # same dimensions as ephys channels
-
-    # create a mask for points when the mouse is over 2.5cm/s
-    velocity_mask = velocity>3
-    print("The mouse was over 3cm/s "+str(np.sum(velocity_mask)/len(velocity)*100)+"% of the time. " \
-                                                                                      "Only this signal will be" \
-                                                                                      " used to calculate power")
-
     lfp_df = pd.DataFrame()
 
     frequencies = []
     power_spectra = []
     channels = []
     dead_channels_bool = []
-    dead_channels = prm.dead_channels
 
     for i in range(len(ephys_channels_list)):
         dead_channel_bool = False
@@ -75,9 +38,8 @@ def process_lfp(recording_folder, session_type, prm):
         if ephys_channel_number in dead_channels:
             dead_channel_bool = True
 
-        ephys_channel_data = load_ephys_channel(recording_folder, ephys_channel, prm)
-        #f, power_spectrum_channel = signal.welch(ephys_channel_data[velocity_mask], fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
-        f, power_spectrum_channel = signal.welch(ephys_channel_data[velocity_mask], fs=prm.get_sampling_rate(), nperseg=50000, scaling='spectrum')
+        ephys_channel_data = load_ephys_channel(recording_folder, ephys_channel)
+        f, power_spectrum_channel = signal.welch(ephys_channel_data, fs=sampling_rate, nperseg=50000, scaling='spectrum')
 
         frequencies.append(f)
         power_spectra.append(power_spectrum_channel)
@@ -89,14 +51,13 @@ def process_lfp(recording_folder, session_type, prm):
     lfp_df["power_spectra"] = power_spectra
     lfp_df["dead_channel"] = dead_channels_bool
 
-    plot_lfp(lfp_df, prm)
-
+    plot_lfp(lfp_df, output_path)
     return lfp_df
 
 
-def plot_lfp(lfp_df, prm):
+def plot_lfp(lfp_df, output_path):
 
-    save_path = prm.get_output_path() + '/Figures/lfp'
+    save_path = output_path + '/Figures/lfp'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
 
@@ -122,19 +83,8 @@ def plot_lfp(lfp_df, prm):
 
     plt.legend(fontsize=8)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(prm.get_output_path() + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
+    plt.savefig(output_path + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
     plt.close()
-
-def get_session_type_from_recording(recording):
-
-    # if bonzai file is found then its open field if not its vr
-    path_to_position_file, is_found = open_field_spatial_data.find_bonsai_file(recording)
-
-    if is_found:
-        session_type = "openfield"
-    else:
-        session_type = "vr"
-    return session_type
 
 def process_batch_lfp(recordings, redirect=""):
 
@@ -163,8 +113,7 @@ def process_batch_lfp(recordings, redirect=""):
 
         if os.path.exists(empty_df_path) is False:
             try:
-                session_type = get_session_type_from_recording(recording)
-                lfp_df = process_lfp(recording_folder=recording, session_type=session_type, prm=prm)
+                lfp_df = process_lfp(recording_folder=recording, prm=prm)
 
                 if os.path.exists(directed_path+"/MountainSort/DataFrames") is False:
                     os.makedirs(directed_path+"/MountainSort/DataFrames")
@@ -230,18 +179,10 @@ def correct_dead_channel(lfp_df, dead_channel_path):
         lfp_df["dead_channel"] = dead_channel
     return lfp_df
 
-
-
-
-
-
 def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode=True):
-
-    recording_ids = [recording.split("/")[-1].split("_")[0] for recording in recordings]
 
     lfp_summary_df = pd.DataFrame()
     mice_ids = []
-    cohort_mouses=[]
     timestamps = []
     freqs = []
     pwr_specs = []
@@ -287,7 +228,6 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
                     frequencies_to_interpolate = np.linspace(0, 20, 21)
                     spec_interp = np.interp(x=frequencies_to_interpolate, xp=frequencies, fp=avg_power_spec)
 
-                    cohort_mouse = loc_ramp_analysis.get_cohort_mouse(recording)
                     mouse_id = recording.split("/")[-1].split("_")[0]
                     timestamp_year = recording.split("/")[-1].split("-")[0].split("_")[-1]
                     time_stamp_month = recording.split(timestamp_year)[-1][0:15]
@@ -303,13 +243,11 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
                         pwr_specs.append(spec_interp)
                         lfp_data_paths.append(lfp_data_path)
                         tetrodes.append(tetrode)
-                        cohort_mouses.append(cohort_mouse)
 
             else:
                 print("no lfp_data.pkl was found at "+lfp_data_path)
 
     lfp_summary_df["mice_id"] = mice_ids
-    lfp_summary_df["cohort_mouse"] = cohort_mouses
     lfp_summary_df["timestamp"] = timestamps
     lfp_summary_df["freqs"] = freqs
     lfp_summary_df["pwr_specs"] = pwr_specs
@@ -363,8 +301,6 @@ def plot_lfp_summary(mouse_lfp_summary_df):
         ax.xaxis.set_ticks_position('bottom')
         plt.yticks(ticks=np.arange(0, len(pwr_specs), 5, dtype=np.int), labels=np.arange(0, len(pwr_specs), 5, dtype=np.int), fontsize=15)
         plt.xticks(ticks=np.arange(4, len(pwr_specs[0]), 5, dtype=np.int), labels=np.arange(5, len(pwr_specs[0]), 5, dtype=np.int), fontsize=15)
-        #plot_utility.style_vr_plot(ax)
-        #plt.legend(fontsize=8)
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
         plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_' + str(tetrode)+'moving.png', dpi=300)
         plt.close()
@@ -389,47 +325,16 @@ def plot_lfp_summary(mouse_lfp_summary_df):
 
     plt.ylabel('Frequency (Hz)', fontsize=20, labelpad = 10)
     plt.xlabel('Recording Session', fontsize=20, labelpad = 10)
-    #plt.xlim(0,20)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plt.yticks(ticks=np.arange(0, len(pwr_specs), 5, dtype=np.int), labels=np.arange(0, len(pwr_specs), 5, dtype=np.int), fontsize=15)
     plt.xticks(ticks=np.arange(4, len(pwr_specs[0]), 5, dtype=np.int), labels=np.arange(5, len(pwr_specs[0]), 5, dtype=np.int), fontsize=15)
-    #plot_utility.style_vr_plot(ax)
-    #plt.legend(fontsize=8)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_avg_moving.png', dpi=300)
     plt.close()
 
-
-
 def main():
     print("------------------------")
-    '''
-    #open field
-    process_batch_lfp(sarah_recordings_3, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(sarah_recordings_4, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_3, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_4, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    process_batch_lfp(sarah_recordings_1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(sarah_recordings_2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_1, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(sarah_recordings_2, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    process_batch_lfp(klara_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(bri_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(klara_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(bri_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    process_batch_lfp(ian_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    process_batch_lfp(junji_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(ian_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-    batch_summary_lfp(junji_recordings, redirect="/mnt/datastore/Harry/Mouse_data_other_users/")
-
-    # todo make a function to fix the lfp_data.pkl and look for the right dead_channels
-    '''
-
-
 
 if __name__ == '__main__':
     main()
