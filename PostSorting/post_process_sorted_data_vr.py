@@ -142,7 +142,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
     total_length_sample_point = raw_position_data.time_seconds.values[-1]
 
-
     # Process firing
     spike_data = process_firing_properties(recording_to_process, session_type, 
         sorter_name, dead_channels, paired_order, stitchpoint, total_length_sample_point)
@@ -156,15 +155,15 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     # Perform experiment related analysis
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=None,
-                                             output_path=output_path, track_length=track_length, prm=prm)
-
+                                             output_path=output_path, track_length=track_length)
+        
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         print('No curated clusters found. Saving dataframe for noisy clusters...')
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
     else:
-
+      
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         print(str(len(spike_data)), ' curated clusters found. Processing spatial firing...')
@@ -190,7 +189,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      bad_clusters=bad_clusters,
                      lfp_data=lfp_data)
     gc.collect()
-
 
 #  this is here for testing
 def main():
