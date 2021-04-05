@@ -9,7 +9,17 @@ prm = PostSorting.parameters.Parameters()
 '''
 colour functions are from https://gist.github.com/adewes/5884820
 '''
+def pandas_collumn_to_numpy_array(pandas_series):
+    new_array = []
+    for i in range(len(pandas_series)):
+        element = pandas_series.iloc[i]
 
+        if len(np.shape(element)) == 0:
+            new_array.append(element)
+        else:
+            new_array.extend(element)
+
+    return np.array(new_array)
 
 def draw_reward_zone():
     for stripe in range(8):
@@ -131,6 +141,18 @@ def style_vr_plot(ax, x_max=None):
         plt.ylim(0, x_max)
 
     return ax
+
+def pandas_collumn_to_2d_numpy_array(pandas_series):
+    new_array = []
+    for i in range(len(pandas_series)):
+        element = pandas_series.iloc[i]
+
+        if len(np.shape(element)) == 0:
+            new_array.append([element])
+        else:
+            new_array.append(element)
+
+    return np.array(new_array)
 
 
 def style_track_plot(ax, bins):

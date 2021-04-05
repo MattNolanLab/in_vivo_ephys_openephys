@@ -99,7 +99,7 @@ fivefold greater than the mean spectral power between 0 and 125 Hz
 This is calculated and called Boccara_theta_class either 1=modulated, 0=not modulated
 """
 
-def calculate_spectral_density(firing_rate, prm, cluster_data, save_path):
+def calculate_spectral_density(firing_rate, cluster_data, save_path):
     f, Pxx_den = signal.welch(firing_rate, fs=1000, nperseg=10000, scaling='spectrum')
     Pxx_den = Pxx_den*f
     #print(cluster)
@@ -182,10 +182,10 @@ def calculate_boccara_theta(Pxx_den, f):
     #print(mean_peak_theta_power/mean_baseline_power)
     return boccara_theta_mod
 
-def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
+def calculate_boccara_theta_2(firing_rate, sampling_rate, cluster_data):
 
     firing_times_cluster = cluster_data.firing_times
-    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 2000)
+    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/sampling_rate, 1, 2000)
 
     #corr, time = calculate_autocorrelogram_hist2(np.array(firing_times_cluster), 1, prm.get_sampling_rate())
     #time = time/prm.get_sampling_rate()
@@ -257,9 +257,9 @@ def calculate_theta_peak(Pxx_den,f):
     theta_peak = theta_frequencies[0, np.argmax(theta_powers)]
     return theta_peak
 
-def calculate_theta_index(spike_data,prm):
+def calculate_theta_index(spike_data, output_path, sampling_rate):
     print('I am calculating theta index...')
-    save_path = prm.get_output_path() + '/Figures/firing_properties/autocorrelograms'
+    save_path = output_path + '/Figures/firing_properties/autocorrelograms'
     try:
         if os.path.exists(save_path) is False:
             os.makedirs(save_path)
@@ -283,10 +283,9 @@ def calculate_theta_index(spike_data,prm):
         else:
             instantaneous_firing_rate = extract_instantaneous_firing_rate(cluster_data)
             firing_rate = calculate_firing_probability(instantaneous_firing_rate)
-            f, Pxx_den = calculate_spectral_density(firing_rate, prm, cluster_data, save_path)
-
+            f, Pxx_den = calculate_spectral_density(firing_rate, cluster_data, save_path)
             #boccara_theta = calculate_boccara_theta(Pxx_den, f)
-            boccara_theta = calculate_boccara_theta_2(firing_rate, prm, cluster_data)
+            boccara_theta = calculate_boccara_theta_2(firing_rate, sampling_rate, cluster_data)
             t_index, t_power = calculate_theta_power(Pxx_den, f)
 
             theta_indices.append(t_index)
@@ -298,7 +297,7 @@ def calculate_theta_index(spike_data,prm):
             #print("boccara_thetas = "+str(boccara_theta))
 
             firing_times_cluster = cluster_data.firing_times
-            corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 600)
+            corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/sampling_rate, 1, 600)
 
             fig = plt.figure(figsize=(7,4)) # width, height?
             ax = fig.add_subplot(1, 2, 1)  # specify (nrows, ncols, axnum)
