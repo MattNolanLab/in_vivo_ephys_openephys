@@ -142,7 +142,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
     total_length_sample_point = raw_position_data.time_seconds.values[-1]
 
-
     # Process firing
     spike_data = process_firing_properties(recording_to_process, session_type, 
         sorter_name, dead_channels, paired_order, stitchpoint, total_length_sample_point)
@@ -164,7 +163,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
     else:
-
+      
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         print(str(len(spike_data)), ' curated clusters found. Processing spatial firing...')
@@ -190,7 +189,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      bad_clusters=bad_clusters,
                      lfp_data=lfp_data)
     gc.collect()
-
 
 #  this is here for testing
 def main():

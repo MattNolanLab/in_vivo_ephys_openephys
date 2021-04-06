@@ -9,3 +9,4 @@ cmocean
 scikit-image 
 pytest
 elephant
+spikeinterface
