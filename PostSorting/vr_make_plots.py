@@ -273,7 +273,7 @@ def plot_speed_histogram(processed_position_data, output_path, track_length=200)
         ax.plot(bin_centres, trial_averaged_non_beaconed_speeds, '-', color='Red')
 
     if len(trial_averaged_probe_speeds)>0:
-        ax.plot(bin_centres, trial_averaged_probe_speeds, '-', color='Red')
+        ax.plot(bin_centres, trial_averaged_probe_speeds, '-', color='Blue')
 
     plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
