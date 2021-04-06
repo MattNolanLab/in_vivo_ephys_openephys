@@ -194,8 +194,9 @@ def turn_binary_array_to_time_series(binary_array, sampling_rate=30000):
 
 
 def convert_peristimulus_data_to_baseline_and_test(peristimulus_data):
-    baseline_binary = peristimulus_data.values[:, 2:602].astype(float)
-    test_binary = peristimulus_data.values[:, 602:].astype(float)
+    middle_of_window = int((peristimulus_data.shape[1] - 2) / 2)
+    baseline_binary = peristimulus_data.values[:, 2:middle_of_window].astype(float)
+    test_binary = peristimulus_data.values[:, middle_of_window:].astype(float)
     baseline = turn_binary_array_to_time_series(baseline_binary)
     test = turn_binary_array_to_time_series(test_binary)
     return baseline, test
@@ -212,7 +213,7 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
         baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristim_cluster)
         latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                              test_trials=test_trials,
-                                             window_size=0.01, latency_step=0.01, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
+                                             window_size=0.01, latency_step=0.01, baseline_start=0, baseline_end=0.05, test_start=0, test_end=0.05)
 
         print('latencies')
         print(latencies)
@@ -233,7 +234,7 @@ def main():
     import pandas as pd
     import PostSorting.parameters
     # recording_folder = '/Users/briannavandrey/Documents/recordings'
-    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of'
+    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-03-01_16-18-17_opto'
     prm = PostSorting.parameters.Parameters()
     prm.set_output_path(recording_folder + '/MountainSort')
     prm.set_sampling_rate(30000)
