@@ -344,6 +344,7 @@ def plot_spikes_on_track(spike_data, processed_position_data, output_path, track
 
 
 def plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=200):
+    gauss_kernel = Gaussian1DKernel(2)
     print('I am plotting firing rate maps...')
     save_path = output_path + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
@@ -354,21 +355,40 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
         avg_beaconed_spike_rate = np.array(cluster_spike_data["beaconed_firing_rate_map"].to_list()[0])
         avg_nonbeaconed_spike_rate = np.array(cluster_spike_data["non_beaconed_firing_rate_map"].to_list()[0])
         avg_probe_spike_rate = np.array(cluster_spike_data["probe_firing_rate_map"].to_list()[0])
-        bin_centres = np.array(processed_position_data["position_bin_centres"].iloc[0])
 
-        gauss_kernel = Gaussian1DKernel(2)
-        avg_beaconed_spike_rate = convolve(avg_beaconed_spike_rate, gauss_kernel)
-        avg_nonbeaconed_spike_rate = convolve(avg_nonbeaconed_spike_rate, gauss_kernel)
+        beaconed_firing_rate_map_sem = np.array(cluster_spike_data["beaconed_firing_rate_map_sem"].to_list()[0])
+        non_beaconed_firing_rate_map_sem = np.array(cluster_spike_data["non_beaconed_firing_rate_map_sem"].to_list()[0])
+        probe_firing_rate_map_sem = np.array(cluster_spike_data["probe_firing_rate_map_sem"].to_list()[0])
+
+        avg_beaconed_spike_rate = convolve(avg_beaconed_spike_rate, gauss_kernel) # convolve and smooth beaconed
+        beaconed_firing_rate_map_sem = convolve(beaconed_firing_rate_map_sem, gauss_kernel)
+
+        avg_nonbeaconed_spike_rate = convolve(avg_nonbeaconed_spike_rate, gauss_kernel) # convolve and smooth non beaconed
+        non_beaconed_firing_rate_map_sem = convolve(non_beaconed_firing_rate_map_sem, gauss_kernel)
+
         if len(avg_probe_spike_rate)>0:
-            avg_probe_spike_rate = convolve(avg_probe_spike_rate, gauss_kernel)
+            avg_probe_spike_rate = convolve(avg_probe_spike_rate, gauss_kernel) # convolve and smooth probe
+            probe_firing_rate_map_sem = convolve(probe_firing_rate_map_sem, gauss_kernel)
 
         avg_spikes_on_track = plt.figure(figsize=(6,4))
         ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        bin_centres = np.array(processed_position_data["position_bin_centres"].iloc[0])
 
+        #plotting the rates are filling with the standard error around the mean
         ax.plot(bin_centres, avg_beaconed_spike_rate, '-', color='Black')
+        ax.fill_between(bin_centres, avg_beaconed_spike_rate-beaconed_firing_rate_map_sem,
+                                     avg_beaconed_spike_rate+beaconed_firing_rate_map_sem, color="Black", alpha=0.5)
+
         ax.plot(bin_centres, avg_nonbeaconed_spike_rate, '-', color='Red')
+        ax.fill_between(bin_centres, avg_nonbeaconed_spike_rate-non_beaconed_firing_rate_map_sem,
+                                     avg_nonbeaconed_spike_rate+non_beaconed_firing_rate_map_sem, color="Red", alpha=0.5)
+
         if len(avg_probe_spike_rate)>0:
             ax.plot(bin_centres, avg_probe_spike_rate, '-', color='Blue')
+            ax.fill_between(bin_centres, avg_probe_spike_rate-probe_firing_rate_map_sem,
+                                         avg_probe_spike_rate+probe_firing_rate_map_sem, color="Blue", alpha=0.5)
+
+        #plotting jargon
         if track_length == 200:
             ax.locator_params(axis = 'x', nbins=3)
             ax.set_xticklabels(['0', '100', '200'])
@@ -439,7 +459,7 @@ def plot_convolved_rates_in_time(spike_data, prm):
         plt.savefig(save_path + '/' + spike_data.session_id[cluster_index] + '_rate_versus_POSITION_' + str(cluster_index +1) + '.png', dpi=200)
         plt.close()
 
-def make_plots(processed_position_data, output_path, spike_data=None, track_length=settings.track_length):
+def make_plots(processed_position_data, spike_data, output_path, track_length=settings.track_length):
     # Create plots for the VR experiments
     
     plot_stops_on_track(processed_position_data, output_path, track_length=track_length)

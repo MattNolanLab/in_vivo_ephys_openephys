@@ -156,7 +156,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
         PostSorting.vr_make_plots.make_plots(processed_position_data, spike_data=None,
                                              output_path=output_path, track_length=track_length)
-        
+
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
         print('No curated clusters found. Saving dataframe for noisy clusters...')
