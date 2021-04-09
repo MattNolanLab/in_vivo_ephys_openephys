@@ -57,7 +57,7 @@ def get_raw_location(recording_folder, output_path, movement_ch_suffix = setting
     return np.asarray(location, dtype=np.float16)
 
 
-def calculate_track_location(position_data, recorded_location, track_length, downsample_ratio):
+def calculate_track_location(position_data, recorded_location, track_length):
     # recorded_location = get_raw_location(recording_folder, output_path) # get raw location from DAQ pin
     print('Converting raw location input to cm...')
     recorded_startpoint = min(recorded_location)
