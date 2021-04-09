@@ -5,10 +5,10 @@ from pathlib import Path
 import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
-import pickle
-import setting
+import settings
 
-def get_firing_info(firing_times_path):
+def get_firing_info(file_path, sorter_name):
+    firing_times_path = file_path + '/Electrophysiology/' + sorter_name + '/firings.mda' # sorter name shouldn't contain path slash
     units_list = None
     firing_info = None
     if os.path.exists(firing_times_path):
@@ -16,7 +16,7 @@ def get_firing_info(firing_times_path):
         units_list = np.unique(firing_info[2])
     else:
         print('I could not find the MountainSort output [firing.mda] file. I will check if the data was sorted earlier.')
-        spatial_firing_path = firing_times_path
+        spatial_firing_path = file_path + '/MountainSort/DataFrames/spatial_firing.pkl'
         if os.path.exists(spatial_firing_path):
             spatial_firing = pd.read_pickle(spatial_firing_path)
             os.mknod(file_path + '/sorted_data_exists.txt')

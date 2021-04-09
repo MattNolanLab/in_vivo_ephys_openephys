@@ -14,6 +14,7 @@ downtime_lists_path = basefolder+'/to_sort/sort_downtime/'
 ##########
 # Recording setting
 sampling_rate = 30000
+down_sampled_rate = 1000 # for position downsampling
 num_tetrodes = 4
 movement_ch_suffix = f'ADC2' #channel that contains the movement data
 opto_ch_suffix = f'ADC3'
@@ -63,6 +64,8 @@ bonsai_sampling_rate = 30
 # debug_folder ='/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
 # debug_folder = '../testdata/M1_D31_2018-11-01_12-28-25'
 # debug_folder ='../testdata/M1_D31_2018-11-01_12-28-25_short'
-debug_folder = '../testdata//M5_2018-03-06_15-34-44_of'
+# debug_folder = '../testdata//M5_2018-03-06_15-34-44_of'
 # debug_folder ='/home/ubuntu/to_sort/recordings/M2_D1_2021-01-11_15-53-56'
-# debug_folder ='/home/ubuntu/to_sort/recordings/M2_D26_2021-02-15_16-47-18'
+debug_folder ='/home/ubuntu/to_sort/recordings/M2_D9_2021-01-21_16-42-58'
+# openfield/M2_D28 missing location files
+# problematic trials:

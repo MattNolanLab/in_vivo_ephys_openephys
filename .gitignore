@@ -6,7 +6,6 @@
 /.idea
 *.mda
 .DS_Store
-.github
 /.ipynb_checkpoints
 
 __pycache__/
