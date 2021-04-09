@@ -1,8 +1,6 @@
 #%% Curation
 
-#%%
 import sys
-print(sys.path)
 
 import json
 import logging
@@ -22,13 +20,13 @@ from tqdm import tqdm
 
 import setting
 import SnakeIOHelper
-from PostSorting.make_plots import plot_waveforms
+from PostSorting.make_plots import plot_waveforms, plot_waveforms_concat
 from PreClustering.pre_process_ephys_data import filterRecording
 import time 
 
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
     'curate_clusters')
 #%%
 
@@ -43,6 +41,7 @@ print(f'Total cells before curation: {len(sorter_df)}')
 
 sorter_df['pass_curation'] = ((sorter_df['snr']>3) & 
     # (sorter_df['firing_rate'] > 0.5) &
+    (sorter_df['isi_violation'] < 0.5) &
     ((1-sorter_df['nn_miss_rate']) > 0.9) & # isolation is similar to 1-miss rate
     (sorter_df['noise_overlap'] <0.2) )
 
@@ -58,8 +57,8 @@ recording = se.load_extractor_from_pickle(sinput.recording_info)
 
 tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
 
-plot_waveforms(sorter_df, tetrodeNum, soutput.waveform_figure_all)
-plot_waveforms(curated_sorter_df, tetrodeNum, soutput.waveform_figure_curated)
+plot_waveforms_concat(sorter_df, soutput.waveform_figure_all, tetrodeNum)
+plot_waveforms_concat(curated_sorter_df, soutput.waveform_figure_curated, tetrodeNum)
 
 
 # %%

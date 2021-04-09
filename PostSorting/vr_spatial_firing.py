@@ -4,7 +4,11 @@ import pandas as pd
 import settings
 prm = PostSorting.parameters.Parameters()
 
+
+
+
 def add_speed(spike_data, raw_position_data):
+    # Add corresponding speed to spike time
     speed_per200ms = []
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
@@ -48,12 +52,22 @@ def add_trial_type(spike_data, raw_position_data):
     return spike_data
 
 
-def add_location_and_task_variables(spike_data, raw_position_data):
+def add_location_and_task_variables(spike_data, raw_position_data, downsample_ratio):
+    # add the corresponding col in the position dataframe to the spike dataframe
+    # downsample_ratio: ratio Fs of spike data to that of position data
+
     print('I am extracting firing locations for each cluster...')
-    spike_data = add_speed(spike_data, raw_position_data)
-    spike_data = add_position_x(spike_data, raw_position_data)
-    spike_data = add_trial_number(spike_data, raw_position_data)
-    spike_data = add_trial_type(spike_data, raw_position_data)
+    col_names = ['speed_per200ms', 'x_position_cm', 'trial_number', 'trial_type']
+        
+
+    for col in col_names:
+        data_list = []
+        for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+            cluster_firing_indices = spike_data.iloc[cluster_index].firing_times // downsample_ratio
+            cluster_firing_indices = cluster_firing_indices.astype(int)
+            data_list.append(raw_position_data[col].values[cluster_firing_indices].tolist())
+
+        spike_data[col] = data_list
     return spike_data
 
 
@@ -122,11 +136,11 @@ def split_spatial_firing_by_trial_type(spike_data):
     return spike_data
 
 
-def process_spatial_firing(spike_data, raw_position_data):
+def process_spatial_firing(spike_data, raw_position_data, downsample_ratio):
     spike_data_movement = spike_data.copy()
     spike_data_stationary = spike_data.copy()
 
-    spike_data = add_location_and_task_variables(spike_data, raw_position_data)
+    spike_data = add_location_and_task_variables(spike_data, raw_position_data,downsample_ratio)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
     print('-------------------------------------------------------------')
     print('spatial firing processed')

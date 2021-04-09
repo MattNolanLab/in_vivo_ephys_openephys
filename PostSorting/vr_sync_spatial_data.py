@@ -12,6 +12,24 @@ import PostSorting.vr_cued
 import setting
 from file_utility import load_openephys_file
 
+from scipy import signal
+
+def downsample(x,downsample_factor):
+    """downsample data
+    
+    Arguments:
+        x {np.narray} -- data to be downsample
+        downsample_ratio {int} -- downsampling factor
+    """
+    minx = x.min()
+    maxx = x.max()
+    pad = downsample_factor*20
+    xpad = np.pad(x,pad,'edge') # padding the signal to avoid filter artifact
+    xs = signal.decimate(xpad,downsample_factor,ftype='fir')
+    xs[xs<minx] = minx #remove the filtering artifact at the sharp transition
+    xs[xs>maxx] = maxx
+    return xs[20:-20] #remove the padding
+
 def correct_for_restart(location):
     cummulative_minimums = np.minimum.accumulate(location)
     cummulative_maximums = np.maximum.accumulate(location)
@@ -39,8 +57,8 @@ def get_raw_location(recording_folder, output_path, movement_ch_suffix = setting
     return np.asarray(location, dtype=np.float16)
 
 
-def calculate_track_location(position_data, recording_folder, output_path, track_length):
-    recorded_location = get_raw_location(recording_folder, output_path) # get raw location from DAQ pin
+def calculate_track_location(position_data, recorded_location, track_length, downsample_ratio):
+    # recorded_location = get_raw_location(recording_folder, output_path) # get raw location from DAQ pin
     print('Converting raw location input to cm...')
     recorded_startpoint = min(recorded_location)
     recorded_endpoint = max(recorded_location)
@@ -48,11 +66,12 @@ def calculate_track_location(position_data, recording_folder, output_path, track
     distance_unit = recorded_track_length/track_length  # Obtain distance unit (cm) by dividing recorded track length to actual track length
     location_in_cm = (recorded_location - recorded_startpoint) / distance_unit
     position_data['x_position_cm'] = np.asarray(location_in_cm, dtype=np.float16) # fill in dataframe
+
     return position_data
 
 
 # calculate time from start of recording in seconds for each sampling point
-def calculate_time(position_data, sampling_rate = setting.sampling_rate):
+def calculate_time(position_data, sampling_rate):
     print('Calculating time...')
     position_data['time_seconds'] = position_data['trial_number'].index/sampling_rate # convert sampling rate to time (seconds) by dividing by 30
     return position_data
@@ -65,12 +84,13 @@ def calculate_instant_dwell_time(position_data):
     return position_data
 
 
-def check_for_trial_restarts(trial_indices):
+def check_for_trial_restarts(trial_indices, loc_sampling_rate, min_time):
     #TODO: vectorizing this function should imporove performance
+    skip = min_time*loc_sampling_rate
     new_trial_indices=[]
     for icount,i in enumerate(range(len(trial_indices)-1)):
         index_difference = trial_indices[icount] - trial_indices[icount+1]
-        if index_difference > - 15000: #ignore those points, teleporting to the start of track
+        if index_difference > - skip: #ignore those points, teleporting to the start of track
             continue
         else:
             index = trial_indices[icount]
@@ -78,10 +98,10 @@ def check_for_trial_restarts(trial_indices):
     return new_trial_indices
 
 
-def get_new_trial_indices(position_data):
+def get_new_trial_indices(position_data,loc_sampling_freq = setting.sampling_rate/setting.location_ds_rate):
     location_diff = position_data['x_position_cm'].diff()  # Get the raw location from the movement channel
     trial_indices = np.where(location_diff < -20)[0]# return indices where is new trial
-    trial_indices = check_for_trial_restarts(trial_indices)# check if trial_indices values are within 1500 of eachother, if so, delete
+    trial_indices = check_for_trial_restarts(trial_indices, loc_sampling_freq, 0.5)# check if trial_indices values are within 1500 of eachother, if so, delete
     new_trial_indices=np.hstack((0,trial_indices,len(location_diff))) # add start and end indicies so fills in whole arrays
     return new_trial_indices
 
@@ -131,12 +151,12 @@ def load_second_trial_channel(recording_folder, second_trial_channel = setting.s
     return np.asarray(second, dtype=np.uint8).ravel()
 
 
-def calculate_trial_types(position_data, recording_folder, output_path):
+def calculate_trial_types(position_data, first_ch, second_ch, output_path):
     print('Loading trial types from continuous...')
-    first_ch = load_first_trial_channel(recording_folder)
-    second_ch = load_second_trial_channel(recording_folder)
     PostSorting.vr_make_plots.plot_trial_channels(first_ch, second_ch, output_path)
-    trial_type = np.zeros((second_ch.shape[1]));trial_type[:]=np.nan
+    trial_type = np.zeros_like(second_ch); 
+    trial_type[:]=np.nan
+    
     new_trial_indices = position_data['new_trial_indices'].values
     new_trial_indices = new_trial_indices[~np.isnan(new_trial_indices)]
 
@@ -155,7 +175,7 @@ def calculate_trial_types(position_data, recording_folder, output_path):
     position_data['trial_type'] = np.asarray(trial_type, dtype=np.uint8)
     return (position_data,first_ch,second_ch)
 
-def calculate_instant_velocity(position_data, output_path, sampling_rate = setting.sampling_rate):
+def calculate_instant_velocity(position_data, output_path, sampling_rate, lowpass=False):
     print('Calculating velocity...')
     location = np.array(position_data['x_position_cm'], dtype=np.float32)
 
@@ -178,6 +198,14 @@ def calculate_instant_velocity(position_data, output_path, sampling_rate = setti
     x  = np.isnan(velocity).ravel().nonzero()[0]
     velocity[np.isnan(velocity)] = np.interp(x, xp, fp)
     velocity = velocity*5
+
+    # remove negative velocity
+    velocity[velocity<0] = 0
+
+    # do a low pass filter
+    if lowpass:
+        b, a = signal.butter(5,5/(sampling_rate/2))
+        velocity = signal.filtfilt(b,a,velocity)
 
     position_data['velocity'] = velocity
     PostSorting.vr_make_plots.plot_velocity(velocity, output_path)
@@ -214,15 +242,15 @@ def get_rolling_sum(array_in, window):
     array_out = np.hstack((beginning, inner_part_result, end))
     return array_out
 
-def get_avg_speed_200ms(position_data, output_path, sampling_rate = setting.sampling_rate):
+def get_avg_speed_200ms(position_data, output_path, loc_sampling_rate):
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
-    sampling_points_per200ms = int(sampling_rate/5)
+    sampling_points_per200ms = int(loc_sampling_rate/5)
     position_data['speed_per200ms'] = running_mean(velocity, sampling_points_per200ms)  # Calculate average speed at each point by averaging instant velocities
     PostSorting.vr_make_plots.plot_running_mean_velocity(position_data['speed_per200ms'], output_path)
     return position_data
 
-def downsampled_position_data(raw_position_data, sampling_rate = setting.sampling_rate, down_sampled_rate = setting.down_sampled_rate):
+def downsampled_position_data(raw_position_data, sampling_rate = setting.sampling_rate, down_sampled_rate = setting.location_ds_rate):
     position_data = pd.DataFrame()
     downsample_factor = int(sampling_rate/ down_sampled_rate)
     position_data["x_position_cm"] = raw_position_data["x_position_cm"][::downsample_factor]

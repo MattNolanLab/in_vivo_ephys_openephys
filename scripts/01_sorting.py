@@ -3,34 +3,35 @@ import json
 import logging
 import os
 import pickle
+import time
 from collections import namedtuple
 from pathlib import Path
 
+import file_utility
+import Logger
 import numpy as np
 import pandas as pd
+import setting
+import SnakeIOHelper
 import spikeinterface as si
 import spikeinterface.comparison as sc
 import spikeinterface.extractors as se
 import spikeinterface.sorters as sorters
 import spikeinterface.toolkit as st
 import spikeinterface.widgets as sw
-from tqdm import tqdm
-import yaml
-
-import file_utility
-import Logger
-import setting
-import SnakeIOHelper
 import spikeinterfaceHelper
+import yaml
 from PostSorting.make_plots import plot_waveforms
-from PreClustering.pre_process_ephys_data import filterRecording, get_sorting_range
-import time 
-
+from PreClustering.pre_process_ephys_data import (filterRecording,
+                                                  get_sorting_range)
+from tqdm import tqdm
 
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_df.pkl'],
+# note: need to run this in the root folder of project
+
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_df.pkl'],
     'sort_spikes')
 
 #%% Load data and create recording extractor
@@ -114,7 +115,7 @@ print(f'get_unit_max_channels took {time.time()-start}')
 
 start = time.time()
 st.postprocessing.get_unit_waveforms(recording, sorting_ms4,save_as_features=True, 
-    max_spikes_per_unit=100, memmap=False, seed = 0,recompute_info=True) # disable memmap for speed
+    max_spikes_per_unit=100, memmap=False, seed = 0,recompute_info=True, ms_before = 1, ms_after=1) # disable memmap for speed
 print(f'Extracting waveform took {time.time()-start}')
 
 
@@ -123,7 +124,6 @@ for id in sorting_ms4.get_unit_ids():
     mean_firing_rate = number_of_spikes/(recording.get_traces().shape[1]/setting.sampling_rate)
     sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
-
 
 #%% save data
 
@@ -134,3 +134,5 @@ sorter_df.to_pickle(soutput.sorter_df)
 
 
 print(f'Elapsed time {time.time()-now}')
+
+# %%

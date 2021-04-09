@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
-import settings
+import setting as settings
 
 def get_firing_info(file_path, sorter_name):
     firing_times_path = file_path + '/Electrophysiology/' + sorter_name + '/firings.mda' # sorter name shouldn't contain path slash
@@ -41,7 +41,7 @@ def correct_for_dead_channels(primary_channels, dead_channels):
         primary_channels = correct_detected_ch_for_dead_channels(dead_channels, primary_channels)
     return primary_channels
 
-def process_firing_times2(session_id, sorted_data_path, session_type):
+def process_firing_times2(session_id, sorted_data_path, session_type, num_tetrode=settings.num_tetrodes):
     #Read from sorter and create a dataframe to store the experiments values
 
     sorted_result = pd.read_pickle(sorted_data_path)
@@ -58,7 +58,7 @@ def process_firing_times2(session_id, sorted_data_path, session_type):
         for i in range(len(sorted_result)):
             cluster_firings = sorted_result.iloc[i].spike_train
             ch = sorted_result.iloc[i].max_channel
-            tetrode  = ch//setting.num_tetrodes
+            tetrode  = ch//num_tetrode
             num_spikes = sorted_result.iloc[i].number_of_spikes
             mean_rate = sorted_result.iloc[i].mean_firing_rate
             cluster_id = sorted_result.iloc[i].cluster_id

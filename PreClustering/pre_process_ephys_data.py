@@ -13,8 +13,6 @@ import yaml
 from pathlib import Path
 import setting
 
-prm = parameters.Parameters()
-
 
 def get_sorting_range(max_signal_length, param_file_location):
     '''

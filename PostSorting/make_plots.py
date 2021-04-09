@@ -154,7 +154,7 @@ def plot_autocorrelograms(spike_data: pd.DataFrame, output_path: str, sampling_r
         if len(firing_times_cluster)>1: # only calculate autocorr if there are any spikes
             corr_10, time_10 = get_10ms_autocorr(firing_times_cluster, sampling_rate)
             corr_250, time_250 = get_250ms_autocorr(firing_times_cluster, sampling_rate)
-            make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, output_path, cluster_index, cluster_id)
+            make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, output_path, cluster_index)
 
 
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster_id, channel, snippet_column_name):
@@ -170,10 +170,10 @@ def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, clust
 def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippet_column_name):
     cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
 
-    max_channel = cluster_df['primary_channel'].iloc[0]
-    sd = np.std(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1)
-    highest_value = np.median(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) + (sd * 4)
-    lowest_value = np.median(cluster_df['random_snippets'].iloc[0][max_channel - 1, :, :] * -1) - (sd * 4)
+    max_channel = cluster_df['max_channel'].iloc[0]
+    sd = np.std(cluster_df[snippet_column_name].iloc[0][max_channel - 1, :, :] * -1)
+    highest_value = np.median(cluster_df[snippet_column_name].iloc[0][max_channel - 1, :, :] * -1) + (sd * 4)
+    lowest_value = np.median(cluster_df[snippet_column_name].iloc[0][max_channel - 1, :, :] * -1) - (sd * 4)
     snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
     plt.ylim(lowest_value - 10, highest_value + 30)
     plot_utility.style_plot(snippet_plot)
@@ -186,7 +186,8 @@ def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snip
     plt.ylabel('Voltage (µV)', fontsize=14)
 
 
-def plot_waveforms(spike_data, output_path):
+def plot_waveforms(spike_data, output_path, snippet_column_name='random_snippets'):
+
     print('I will plot the waveform shapes for each cluster.')
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
@@ -196,7 +197,7 @@ def plot_waveforms(spike_data, output_path):
         plt.suptitle("Spike waveforms", fontsize=24)
         grid = plt.GridSpec(2, 2, wspace=1, hspace=0.5)
         for channel in range(4):
-            plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, 'random_snippets')
+            plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snippet_column_name)
 
         plt.savefig(output_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
@@ -221,6 +222,39 @@ def plot_waveforms_opto(spike_data, figure_folder):
             plt.close()
 
 
+def plot_waveforms_concat(sorted_df, figure_path, tetrodeNum):
+    # plot waveforms in the new df format
+    # tetrodeNum:list - a list indicating which channel correspond to which tetrode
+
+    tqdm.write('I will plot the waveform shapes for each cluster.')
+
+    for cluster in tqdm(range(len(sorted_df))):
+        #extract waveforms from dataframe
+        waveforms = sorted_df.waveforms.iloc[cluster]
+        max_channel = sorted_df.max_channel.values[cluster] # max_channel is w.r.t the original channel number before bad channel removal
+        tetrode = max_channel//setting.num_tetrodes
+        channels = np.where(tetrodeNum==tetrode)[0] # which channel belong to the same tetrode
+        cluster_id = sorted_df.cluster_id.iloc[cluster]
+
+        # determine the ylim of plot
+        tetrodeWaveforms = waveforms[:,channels,:].reshape(waveforms.shape[0],-1) # concat the channels together
+        sd = np.std(tetrodeWaveforms)
+        high_val = np.median(tetrodeWaveforms) + (sd * 6)
+        low_val = np.median(tetrodeWaveforms) - (sd * 6)
+        
+        #plot spike waveform from the same tetrode
+        fig = plt.figure()
+        for i,channel in enumerate(channels):
+            ax = fig.add_subplot(2,2,i+1)
+            channelWaveform = waveforms[:,channel,:]
+
+            ax.plot(channelWaveform.T,color='lightslategray')
+            template =channelWaveform.mean(0) #mean from all spike in the channel
+            ax.plot(template, color='red')
+            ax.set_ylim([low_val,high_val])
+            
+        plt.savefig(figure_path + '/' + sorted_df.session_id.iloc[cluster] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
 
 
 def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]':

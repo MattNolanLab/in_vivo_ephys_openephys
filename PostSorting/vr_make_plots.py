@@ -39,10 +39,10 @@ def plot_running_mean_velocity(velocity, figure_path):
 
 # plot the raw trial channels to check all is good
 def plot_trial_channels(trial1, trial2, output_path):
-    plt.plot(trial1[0,:])
+    plt.plot(trial1)
     plt.savefig(output_path + '/'+ 'trial_type1.png')
     plt.close()
-    plt.plot(trial2[0,:])
+    plt.plot(trial2)
     plt.savefig(output_path + '/'+ 'trial_type2.png')
     plt.close()
 
@@ -90,7 +90,7 @@ def plot_stops_on_track(processed_position_data, output_path, track_length=200):
     x_max = n_trials+0.5
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(output_path + '/'+ 'stop_raster' + '.png', dpi=200)
+    plt.savefig(output_path, dpi=200)
     plt.close()
 
 def min_max_normalize(x):
@@ -187,7 +187,7 @@ def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     x_max = max(maxes)+(0.1*max(maxes))
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(output_path +'/'+ 'stop_histogram' + '.png', dpi=200)
+    plt.savefig(output_path, dpi=200)
     plt.close()
 
 def plot_speed_per_trial(processed_position_data, output_path, track_length=200):
@@ -214,7 +214,7 @@ def plot_speed_per_trial(processed_position_data, output_path, track_length=200)
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.2, right = 0.87, top = 0.92)
-    plt.savefig(output_path +'/'+ 'speed_heat_map' + '.png', dpi=200)
+    plt.savefig(output_path, dpi=200)
     plt.close()
 
 def plot_speed_histogram(processed_position_data, output_path, track_length=200):
@@ -222,9 +222,6 @@ def plot_speed_histogram(processed_position_data, output_path, track_length=200)
         PostSorting.vr_spatial_data.trial_average_speed(processed_position_data)
 
     print('plotting speed histogram...')
-    save_path = output_path + '/Figures/behaviour'
-    if os.path.exists(save_path) is False:
-        os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
     bin_centres = np.array(processed_position_data["position_bin_centres"].iloc[0])
@@ -255,7 +252,7 @@ def plot_speed_histogram(processed_position_data, output_path, track_length=200)
 
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(output_path + '/'+ 'speed_histogram' + '.png', dpi=200)
+    plt.savefig(output_path, dpi=200)
     plt.close()
 
 
@@ -303,7 +300,7 @@ def plot_spikes_on_track(spike_data, processed_position_data, output_path, track
             plt.close()
 
 
-def plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=200):
+def plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=200, plot_sem=True):
     gauss_kernel = Gaussian1DKernel(2)
     print('I am plotting firing rate maps...')
    
@@ -334,16 +331,19 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
 
         #plotting the rates are filling with the standard error around the mean
         ax.plot(bin_centres, avg_beaconed_spike_rate, '-', color='Black')
-        ax.fill_between(bin_centres, avg_beaconed_spike_rate-beaconed_firing_rate_map_sem,
-                                     avg_beaconed_spike_rate+beaconed_firing_rate_map_sem, color="Black", alpha=0.5)
+        if plot_sem:
+            ax.fill_between(bin_centres, avg_beaconed_spike_rate-beaconed_firing_rate_map_sem,
+                                        avg_beaconed_spike_rate+beaconed_firing_rate_map_sem, color="Black", alpha=0.5)
 
         ax.plot(bin_centres, avg_nonbeaconed_spike_rate, '-', color='Red')
-        ax.fill_between(bin_centres, avg_nonbeaconed_spike_rate-non_beaconed_firing_rate_map_sem,
+        if plot_sem:
+            ax.fill_between(bin_centres, avg_nonbeaconed_spike_rate-non_beaconed_firing_rate_map_sem,
                                      avg_nonbeaconed_spike_rate+non_beaconed_firing_rate_map_sem, color="Red", alpha=0.5)
 
         if len(avg_probe_spike_rate)>0:
             ax.plot(bin_centres, avg_probe_spike_rate, '-', color='Blue')
-            ax.fill_between(bin_centres, avg_probe_spike_rate-probe_firing_rate_map_sem,
+            if plot_sem:
+                ax.fill_between(bin_centres, avg_probe_spike_rate-probe_firing_rate_map_sem,
                                          avg_probe_spike_rate+probe_firing_rate_map_sem, color="Blue", alpha=0.5)
 
         #plotting jargon

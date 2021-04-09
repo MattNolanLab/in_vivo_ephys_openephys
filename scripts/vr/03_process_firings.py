@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import SnakeIOHelper 
 
 #%%
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_vr.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
     'process_firings')
 
 #%% process firing times
@@ -16,3 +16,5 @@ spike_data = process_firing_times2(session_id, sinput.sorted_data_path, setting.
 #%% save data
 spike_data.to_pickle(soutput.spike_data)
 
+
+# %%

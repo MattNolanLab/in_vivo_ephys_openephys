@@ -26,13 +26,16 @@ rule process_position:
     
     output:
         trial_figure = '{recording}/processed/figures/trials.png',
-        first_trial_ch = '{recording}/processed/figures/trials_type1.png',
-        second_trial_ch = '{recording}/processed/figures/trials_type2.png',
         raw_position_data = '{recording}/processed/raw_position.pkl',
         processed_position_data = '{recording}/processed/processed_position.pkl',
         stop_raster = '{recording}/processed/figures/behaviour/stop_raster.png',
+        trial_type_plot_folder = directory('{recording}/processed/figures/trials'),
         stop_histogram = '{recording}/processed/figures/behaviour/stop_histogram.png',
-        speed_histogram = '{recording}/processed/figures/behaviour/speed_histogram.png'
+        speed_histogram = '{recording}/processed/figures/behaviour/speed_histogram.png',
+        speed_plot = '{recording}/processed/figures/behaviour/speed.png',
+        mean_speed_plot = '{recording}/processed/figures/behaviour/speed_mean.png',
+        raw_position_plot = '{recording}/processed/figures/position.png',
+        speed_heat_map = '{recording}/processed/figures/behaviour/speed_heat_map.png'
     script:
         '../scripts/vr/02_process_position.py'
 
