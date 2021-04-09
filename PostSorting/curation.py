@@ -2,21 +2,22 @@ import os
 import json
 import pandas as pd
 
+ignore_curation = False
 
-def load_curation_metrics(spike_data_frame, prm):
+def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
     isolations = []
     noise_overlaps = []
     signal_to_noise_ratios = []
     peak_amplitudes = []
-    sorter_name = prm.get_sorter_name()
-    path_to_metrics = prm.get_local_recording_folder_path() + '/Electrophysiology' + sorter_name + '/cluster_metrics.json'
+    sorter_name = sorter_name
+    path_to_metrics = local_recording_folder_path + '/Electrophysiology/' + sorter_name + '/cluster_metrics.json'
     if not os.path.exists(path_to_metrics):
         print('I did not find the curation results.')
 
-        for filename in os.listdir(prm.get_ms_tmp_path() + 'prvbucket/_mountainprocess/'):
+        for filename in os.listdir(ms_tmp_path + 'prvbucket/_mountainprocess/'):
             if filename.startswith('output_metrics_out'):
                 print(filename)
-                path_to_metrics = prm.get_ms_tmp_path() + '/prvbucket/_mountainprocess/' + filename
+                path_to_metrics = ms_tmp_path + '/prvbucket/_mountainprocess/' + filename
 
     if os.path.exists(path_to_metrics):
         with open(path_to_metrics) as metrics_file:
@@ -40,16 +41,16 @@ def load_curation_metrics(spike_data_frame, prm):
     return spike_data_frame
 
 
-def curate_data(spike_data_frame, prm):
+def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
     if 'isolation' in spike_data_frame:
         noisy_cluster = pd.DataFrame()
         noisy_cluster['this is empty'] = 'Noisy clusters were not reloaded. Sort again if you need them.'
         return spike_data_frame, noisy_cluster
-    spike_data_frame = load_curation_metrics(spike_data_frame, prm)
+    spike_data_frame = load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path)
     isolation_threshold = 0.9
     noise_overlap_threshold = 0.05
     peak_snr_threshold = 1
-    firing_rate_threshold = 0.5
+    firing_rate_threshold = 0.1
 
     isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
     low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
@@ -58,6 +59,11 @@ def curate_data(spike_data_frame, prm):
 
     good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
     noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
+
+    if ignore_curation:
+        good_cluster['Curated']=True
+        noisy_cluster['Curated']=False
+        return pd.concat([good_cluster, noisy_cluster]), pd.DataFrame()
 
     return good_cluster, noisy_cluster
 

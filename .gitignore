@@ -20,3 +20,4 @@ sorting_tmp/
 tests/regression/output
 ./regression
 .snakemake
+artifacts/

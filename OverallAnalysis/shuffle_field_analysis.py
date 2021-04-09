@@ -247,9 +247,10 @@ def plot_bar_chart_for_fields(field_data, sampling_rate_video, path, shuffle_typ
         ax.bar(x_pos, mean, yerr=std*2, align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
+        plt.title(str(field.number_of_spikes_in_field))
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='red', s=40)
-        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['cluster_id']) + '_field_' + str(index) + '_SD.png')
+        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['session_id']) + str(field['cluster_id']) + str(field['field_id']) + '_SD.png')
         plt.close()
 
 
@@ -268,9 +269,10 @@ def plot_bar_chart_for_fields_percentile_error_bar(field_data, sampling_rate_vid
         # ax.bar(x_pos, mean, yerr=[percentile_5, percentile_95], align='center', alpha=0.7, color='black', ecolor='grey', capsize=10)
         x_labels = ["0", "", "", "", "", "90", "", "", "", "", "180", "", "", "", "", "270", "", "", "", ""]
         plt.xticks(x_pos, x_labels)
+        plt.title(str(field.number_of_spikes_in_field))
         real_data_hz = np.histogram(field_spikes_hd, bins=20)[0] * sampling_rate_video / time_spent_in_bins
         plt.scatter(x_pos, real_data_hz, marker='o', color='navy', s=40)
-        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['cluster_id']) + '_field_' + str(index) + '_percentile.png')
+        plt.savefig(path + 'shuffle_analysis' + shuffle_type + '/' + str(field['session_id']) + str(field['cluster_id']) + str(field['field_id'])  + '_percentile.png')
         plt.close()
 
 
@@ -376,7 +378,8 @@ def add_rate_map_values_to_field_df_session(spatial_firing, fields):
         spike_data_field['rate_map_y'] = (field.position_y_session // bin_size_pixels).astype(int)
         rates = []
         cluster = spatial_firing.cluster_id == field.cluster_id
-        rate_map = spatial_firing.firing_maps[cluster].iloc[0]
+        session = spatial_firing.session_id == field.session_id
+        rate_map = spatial_firing.firing_maps[cluster & session].iloc[0]
         for sample in range(len(spike_data_field)):
             rate = rate_map[spike_data_field.rate_map_x.iloc[sample], spike_data_field.rate_map_y.iloc[sample]]
             rates.append(rate)

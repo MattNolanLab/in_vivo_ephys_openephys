@@ -8,7 +8,17 @@ import setting
 '''
 colour functions are from https://gist.github.com/adewes/5884820
 '''
+def pandas_collumn_to_numpy_array(pandas_series):
+    new_array = []
+    for i in range(len(pandas_series)):
+        element = pandas_series.iloc[i]
 
+        if len(np.shape(element)) == 0:
+            new_array.append(element)
+        else:
+            new_array.extend(element)
+
+    return np.array(new_array)
 
 def draw_reward_zone():
     for stripe in range(8):
@@ -107,7 +117,7 @@ def style_vr_plot_offset(ax, x_max):
 
     return ax
 
-def style_vr_plot(ax, x_max):
+def style_vr_plot(ax, x_max=None):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(True)
@@ -126,9 +136,22 @@ def style_vr_plot(ax, x_max):
 
     ax.axvline(0, linewidth=2.5, color='black') # bold line on the y axis
     ax.axhline(0, linewidth=2.5, color='black') # bold line on the x axis
-    plt.ylim(0, x_max)
+    if x_max is not None:
+        plt.ylim(0, x_max)
 
     return ax
+
+def pandas_collumn_to_2d_numpy_array(pandas_series):
+    new_array = []
+    for i in range(len(pandas_series)):
+        element = pandas_series.iloc[i]
+
+        if len(np.shape(element)) == 0:
+            new_array.append([element])
+        else:
+            new_array.append(element)
+
+    return np.array(new_array)
 
 
 def style_track_plot(ax, bins):
@@ -200,13 +223,13 @@ def format_bar_chart(ax, x_label, y_label):
     return ax
 
 
-def plot_cumulative_histogram(corr_values, ax, color='black'):
+def plot_cumulative_histogram(corr_values, ax, color='black', number_of_bins=40):
     plt.xlim(-1, 1)
     plt.yticks([0, 1])
     ax = format_bar_chart(ax, 'r', 'Cumulative probability')
-    values, base = np.histogram(corr_values, bins=40)
+    values, base = np.histogram(corr_values, bins=number_of_bins, range=(-1, 1))
     # evaluate the cumulative
     cumulative = np.cumsum(values / len(corr_values))
     # plot the cumulative function
-    plt.plot(base[:-1], cumulative, c=color, linewidth=5)
+    plt.plot(base[:-1], cumulative, c=color, linewidth=5, alpha=0.6)
     return ax

@@ -16,3 +16,7 @@ cmocean
 pyyaml
 tqdm
 spikeforest
+pandas      
+pytest
+elephant
+spikeinterface

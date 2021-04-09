@@ -800,7 +800,7 @@ def get_server_path_and_load_accepted_fields(animal, tag):
     return field_data, accepted_fields
 
 
-def process_circular_data(animal, tag=''):
+def process_circular_data(animal, tag='', number_of_spikes_cutoff=400):
     print('*************************' + animal + tag + '***************************')
     field_data, accepted_fields = get_server_path_and_load_accepted_fields(animal, tag)
     if animal == 'mouse':
@@ -812,15 +812,16 @@ def process_circular_data(animal, tag=''):
 
     field_data = add_cell_types_to_data_frame(field_data)
     field_data = tag_border_and_middle_fields(field_data)
+    enough_spikes = field_data.number_of_spikes_in_field > number_of_spikes_cutoff
 
-    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')]
+    all_accepted_grid_cells_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & enough_spikes]
     save_amount_of_time_and_number_of_spikes_in_fields_csv(all_accepted_grid_cells_df, animal + '_' + tag)
     grid_cell_pearson = compare_hd_histograms(all_accepted_grid_cells_df, type='grid cells ' + animal)
     save_hd_histograms_csv(all_accepted_grid_cells_df, animal + '_all_grid_cells')
-    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False)]
+    centre_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == False) & enough_spikes]
     grid_pearson_centre = compare_hd_histograms(centre_fields_only_df, type='grid cells, centre ' + animal)
     save_hd_histograms_csv(centre_fields_only_df, animal + '_centre_fields_only')
-    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True)]
+    border_fields_only_df = field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid') & (field_data.border_field == True) & enough_spikes]
     grid_pearson_border = compare_hd_histograms(border_fields_only_df, type='grid cells, border ' + animal)
     save_hd_histograms_csv(border_fields_only_df, animal + '_border_fields_only')
 
@@ -836,7 +837,7 @@ def process_circular_data(animal, tag=''):
     plot_pearson_coefs_of_field_hist(grid_cell_pearson, conjunctive_cell_pearson, animal + tag)
     plot_pearson_coefs_of_field_hist(grid_pearson_centre, conjunctive_pearson_centre, animal, tag='_centre')
 
-    compare_within_field_with_other_fields_stat(field_data[(field_data.accepted_field == True) & (field_data['cell type'] == 'grid')], 'grid_' + animal + tag)
+    compare_within_field_with_other_fields_stat(all_accepted_grid_cells_df, 'grid_' + animal + tag)
     plot_pearson_coefs_of_field_hist_centre_border(grid_pearson_centre, grid_pearson_border, 'animal', tag='_centre_vs_border')
     # plot_correlation_matrix(field_data, animal)
     # plot_correlation_matrix_individual_cells(field_data, animal)
@@ -892,7 +893,7 @@ def save_amount_of_time_and_number_of_spikes_in_fields_csv(field_data, tag):
 
 def main():
     process_circular_data('mouse')
-    # process_circular_data('rat')
+    process_circular_data('rat')
     process_circular_data('simulated', 'ventral_narrow')
     process_circular_data('simulated', 'control_narrow')
     compare_correlations_from_different_experiments()

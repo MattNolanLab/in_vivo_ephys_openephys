@@ -11,10 +11,9 @@ class TestGetSessionType:
         with open(tmp_path / 'parameters.txt', 'w') as f:
             f.write(parameters)
 
-        is_vr, is_open_field = control_sorting_analysis.get_session_type(str(tmp_path))
+        session_type = control_sorting_analysis.get_session_type(str(tmp_path))
 
-        assert is_vr == False
-        assert is_open_field == True
+        assert session_type == 'openfield'        
 
     def test_vr_type(self, tmp_path):
         parameters = '''vr
@@ -23,10 +22,9 @@ class TestGetSessionType:
         with open(tmp_path / 'parameters.txt', 'w') as f:
             f.write(parameters)
 
-        is_vr, is_open_field = control_sorting_analysis.get_session_type(str(tmp_path))
+        session_type = control_sorting_analysis.get_session_type(str(tmp_path))
 
-        assert is_vr == True
-        assert is_open_field == False
+        assert session_type == 'vr'
 
     def test_invalid_type(self, tmp_path):
             parameters = '''openvr
@@ -35,11 +33,10 @@ class TestGetSessionType:
             with open(tmp_path / 'parameters.txt', 'w') as f:
                 f.write(parameters)
 
-            is_vr, is_open_field = control_sorting_analysis.get_session_type(str(tmp_path))
+            session_type = control_sorting_analysis.get_session_type(str(tmp_path))
 
-            assert is_vr == False
-            assert is_open_field == False
-
+            assert session_type == 'openvr'
+            
     def test_file_is_dir(self, tmp_path):
         with pytest.raises(Exception):
             is_vr, is_open_field = control_sorting_analysis.get_session_type(str(tmp_path))

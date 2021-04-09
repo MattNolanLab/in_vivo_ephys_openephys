@@ -346,7 +346,7 @@ def analyze_data(animal, server_path, shuffle_type='occupancy'):
 
     shuffled_field_data = load_data_frame_field_data(local_path_to_field_data, server_path, spike_sorter, df_path=df_path, shuffle_type=shuffle_type)
     if animal == 'mouse':
-        tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
+        shuffled_field_data = tag_accepted_fields_mouse(shuffled_field_data, accepted_fields)
     elif animal == 'rat':
         shuffled_field_data = tag_accepted_fields_rat(shuffled_field_data, accepted_fields)
     else:

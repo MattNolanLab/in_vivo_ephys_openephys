@@ -32,7 +32,7 @@ def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_chann
             for name in glob.glob(recording_to_process + '/*.continuous'):
                 if os.path.exists(name):
                     print(name)
-                    ch = OpenEphys.loadContinuousFast(name)['data']
+                    ch = open_ephys_IO.get_data_continuous(name)
                     length = len(ch)
                     sync_data = np.zeros(length)
                     sync_data[np.take(pulse_indices, np.where(pulse_indices < len(ch))).astype(int)] = 1
@@ -56,16 +56,15 @@ def get_ephys_sync_on_and_off_times(sync_data_ephys, sampling_rate = setting.sam
     return sync_data_ephys
 
 
-def reduce_noise(pulses, threshold, high_level = 5):
+def reduce_noise(pulses, threshold, high_level=5):
     '''
     Clean up the signal by assigning value lower than the threshold to 0
     and those higher than the threshold the high_level. The high_level is set to 5 by default
     to match with the oe signal. Setting the high_level is necessary because signal drift in the bonsai high level
     may lead to uneven weighting of the value in the correlation calculation
     '''
-
-    pulses[pulses<threshold] = 0
-    pulses[pulses>=threshold] = 5
+    pulses[pulses < threshold] = 0
+    pulses[pulses >= threshold] = 5
     return pulses
 
 
@@ -120,7 +119,7 @@ def get_first_rising_edge(signal):
 def detect_last_zero(signal):
     '''
     signal is a already thresholded binary signal with 0 and 1
-    return the index of the last 0 before the first 1 (i.e. the first rising edge)
+    return the index of the last 0 before the first 1
     '''
     first_index_in_signal = np.argmin(signal) # index of first zero value
     first_zero_index_in_signal = np.nonzero(signal)[0][0] #index of first non-zero value
@@ -130,8 +129,18 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
+def save_plots_of_pulses(bonsai, oe, figure_folder, lag, name='sync_pulses'):
+    plt.figure()
+    bonsai_norm = bonsai / np.linalg.norm(bonsai)
+    plt.plot(oe, color='red', label='open ephys')
+    plt.plot(bonsai_norm * 3.5, color='black', label='bonsai')
+    plt.title('lag=' + str(lag))
+    plt.legend()
+    plt.savefig(figure_folder + name + '_sync_pulses.png')
+    plt.close()
 
-def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
+
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_folder):
 
     '''
     The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
@@ -184,7 +193,18 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data):
     bonsai_rising_edge_index = get_first_rising_edge(trimmed_bonsai_pulses)
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
 
-    lag2 = oe_rising_edge_time - bonsai_rising_edge_time    
+    lag2 = oe_rising_edge_time - bonsai_rising_edge_time
+
+    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, sync_figure_folder, lag2)
+
+    if abs(lag2) < 1:
+        #after correlation sync, the difference in lag should very small, if not it may indicate error
+        print(f'Rising edge lag is {lag2}')
+        spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
+    else:
+        # time difference between riring edge is too large, potential bug
+        raise ValueError('Potential sync error. Lag between bonsai and ephys edge is' + str(lag2))
+        
 
     if abs(lag2) < 1:
         #after correlation sync, the difference in lag should very small, if not it may indicate error
@@ -227,17 +247,13 @@ def plot_sync_pulse(synced_spatial_data, sync_data_ephys, figure_path):
     plt.plot(esync_ds/5*0.5)
     plt.savefig(figure_path)
 
-def process_sync_data(recording_to_process, spatial_data, opto_start_index):
+def process_sync_data(recording_to_process, spatial_data, opto_start_index, sync_figure_folder):
     sync_data, is_found = load_sync_data_ephys(recording_to_process)
     sync_data_ephys = pd.DataFrame(sync_data)
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    sync_data_ephys.to_pickle('sync_data_ephys.pkl')
-    spatial_data.to_pickle('spatial_data.pkl')
-
-    spatial_data,downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data)
-    
+    spatial_data, downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_folder)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed', 'syncLED']].copy()
     

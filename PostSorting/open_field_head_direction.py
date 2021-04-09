@@ -87,8 +87,9 @@ def get_rayleigh_score_for_cluster(hd_hist: np.ndarray) -> float:
 def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.DataFrame:
     print('I will do the Rayleigh test to check if head-direction tuning is uniform.')
     rayleigh_ps = []
-    for cluster in range(len(spatial_firing)):
-        hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        hd_hist = cluster_df.hd_spike_histogram.iloc[0].copy()
         p = get_rayleigh_score_for_cluster(hd_hist)
         rayleigh_ps.append(p)
     spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
@@ -97,8 +98,9 @@ def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.Data
 
 def calculate_hd_score(spatial_firing):
     hd_scores = []
-    for cluster in range(len(spatial_firing)):
-        hd_hist = spatial_firing.hd_spike_histogram[cluster].copy()
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        hd_hist = cluster_df.hd_spike_histogram.iloc[0].copy()
         r = get_hd_score_for_cluster(hd_hist)
         hd_scores.append(r)
     spatial_firing['hd_score'] = np.array(hd_scores)
@@ -138,10 +140,9 @@ def analyze_hd_r(prm, cluster):
 
 def put_stat_results_in_spatial_df(spatial_firing, prm):
     df_stats = pd.DataFrame([])
-    for cluster in range(len(spatial_firing)):
-        cluster = spatial_firing.cluster_id.values[cluster] - 1
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
         fields_path = prm.get_filepath() + '/Firing_fields/'
-        circular_statistics_path = fields_path + str(int(cluster + 1)) + '_whole_field/circular_out.csv'
+        circular_statistics_path = fields_path + str(int(cluster_id)) + '_whole_field/circular_out.csv'
         if os.path.isfile(circular_statistics_path) is True:
             path_to_hd_stats = circular_statistics_path
             hd_stats_cluster_df = pd.read_csv(path_to_hd_stats)
@@ -231,23 +232,28 @@ def get_hd_in_field(rate_map_indices, spatial_data):
 
 
 # return array of HD in subfield when cell fired for cluster
-def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster):
-    cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
-    spatial_firing_cluster = pd.DataFrame(cluster_id)
-    if type(spatial_firing.position_x_pixels[cluster]) is np.ndarray:
-        spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
-        spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
-        spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
-    elif type(spatial_firing.position_x_pixels[cluster]) is list:
-        spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster]
-        spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster]
-        spatial_firing_cluster['hd'] = spatial_firing.hd[cluster]
-    else:
-        spatial_firing_cluster['x'] = spatial_firing.position_x_pixels[cluster].values
-        spatial_firing_cluster['y'] = spatial_firing.position_y_pixels[cluster].values
-        spatial_firing_cluster['hd'] = spatial_firing.hd[cluster].values
+def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster_id):
+    #cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
+    cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
 
-    spatial_firing_cluster['firing_times'] = spatial_firing.firing_times[cluster]
+
+    # TODO rename spatial_firing_cluster more appropriately, doe not have same structure as spatial firing
+    spatial_firing_cluster = pd.DataFrame(np.arange(len(cluster_df['firing_times'].iloc[0])))
+
+    if type(cluster_df['position_x_pixels'].iloc[0]) is np.ndarray:
+        spatial_firing_cluster['x'] = cluster_df['position_x_pixels'].iloc[0]
+        spatial_firing_cluster['y'] = cluster_df['position_y_pixels'].iloc[0]
+        spatial_firing_cluster['hd'] = cluster_df['hd'].iloc[0]
+    elif type(cluster_df['position_x_pixels'].iloc[0]) is list:
+        spatial_firing_cluster['x'] = cluster_df['position_x_pixels'].iloc[0]
+        spatial_firing_cluster['y'] = cluster_df['position_y_pixels'].iloc[0]
+        spatial_firing_cluster['hd'] = cluster_df['hd'].iloc[0]
+    else:
+        spatial_firing_cluster['x'] = cluster_df['position_x_pixels'].iloc[0].values
+        spatial_firing_cluster['y'] = cluster_df['position_y_pixels'].iloc[0].values
+        spatial_firing_cluster['hd'] = cluster_df['hd'].iloc[0].values
+
+    spatial_firing_cluster['firing_times'] = cluster_df['firing_times'].iloc[0]
     hd_in_field, spike_times = get_hd_in_field_spikes(rate_map_indices, spatial_firing_cluster)
     hd_in_field = (np.array(hd_in_field) + 180) * np.pi / 180
     return hd_in_field, spike_times
