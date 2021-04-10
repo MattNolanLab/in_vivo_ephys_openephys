@@ -39,12 +39,12 @@ def plot_spike_histogram(spatial_firing, save_path, sampling_rate = setting.samp
             plt.xticks(fontsize=20)
             plt.yticks(fontsize=20)
 
-            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spike_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+            plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_spike_histogram_' + str(cluster_id) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
             # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '_spike_histogram.pdf', bbox_inches='tight', pad_inches=0)
             plt.close()
 
 
-def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  figure_folder_path):
+def plot_speed_histogram(spatial_firing, spatial_data,  figure_folder_path):
     sampling_rate = 30
     speed = spatial_data.speed[~np.isnan(spatial_data.speed)]
     number_of_bins = math.ceil(max(speed)) - math.floor(min(speed))
@@ -73,7 +73,7 @@ def plot_firing_rate_vs_speed(spatial_firing, spatial_data,  figure_folder_path)
         plt.ylabel('firing rate [Hz]')
         plt.xlim(0, 30)
 
-        plt.savefig(figure_folder_path + spatial_firing.session_id[cluster_index] + '_' + str(cluster_id) + '_speed_histogram.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_folder_path + spatial_firing.session_id[cluster_index] + '_speed_histogram_' + str(cluster_id) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -138,7 +138,7 @@ def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data
     plt.ylabel('Probability', fontsize=14)
     plt.xticks([-250, 0, 250], [-250, 0, 250])
     plt.bar(time_250, corr_250, align='center', width=1, color='black')
-    plt.savefig(figure_folder_path + '/' + spike_data.session_id[clusterIdx] + '_' + str(cluster_id) + '_autocorrelograms.png',
+    plt.savefig(figure_folder_path + '/' + spike_data.session_id[clusterIdx] + '_autocorrelograms_' + str(cluster_id) + '.png',
                 dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
 
@@ -253,7 +253,7 @@ def plot_waveforms_concat(sorted_df, figure_path, tetrodeNum):
             ax.plot(template, color='red')
             ax.set_ylim([low_val,high_val])
             
-        plt.savefig(figure_path + '/' + sorted_df.session_id.iloc[cluster] + '_' + str(cluster_id) + '_waveforms.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_path + '/' + sorted_df.session_id.iloc[cluster] + '_waveforms_' + str(cluster_id) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -289,7 +289,7 @@ def calculate_median_for_scatter_binned(x: np.ndarray, y: np.ndarray) -> 'Tuple[
 
 
 
-def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, figure_folder_path: str) -> None:    
+def plot_firing_rate_vs_speed(position: pd.DataFrame, spatial_firing: pd.DataFrame, sampling_rate_conversion: int, gauss_sd: float, figure_folder_path: str) -> None:    
     '''
     Make scatter plot of speed vs firing rate and mark the median and the 25th and 75th percentiles.
 
@@ -324,6 +324,6 @@ def plot_speed_vs_firing_rate(position: pd.DataFrame, spatial_firing: pd.DataFra
         plt.title('Speed score: ' + str(np.round(cell.speed_score, 4)), fontsize=24)
         plt.xlim(0, 50)
         plt.ylim(0, None)
-        plt.savefig(figure_folder_path +  cell.session_id + '_' + str(cell.cluster_id) + '_speed_vs_firing_rate.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_folder_path +  cell.session_id + '_firing_rate_vs_speed_' + str(cell.cluster_id) + '.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 

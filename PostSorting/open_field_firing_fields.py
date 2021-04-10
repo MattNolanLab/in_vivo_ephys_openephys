@@ -239,11 +239,11 @@ def analyze_fields_r(fields_path, cluster):
     subprocess.call(path + '/run_r.sh', shell=True)
 
 
-def analyze_hd_in_field(spatial_data, field, spatial_firing, cluster, field_id, hd_csv_path, 
+def analyze_hd_in_field(spatial_data, field, spatial_firing, cluster_id, field_id, hd_csv_path, 
             sample_rate = setting.sampling_rate):
     hd_in_field_session, times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field)
-    hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster)
-    save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, cluster, field_id,hd_csv_path)
+    hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster_id)
+    save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, field_id,hd_csv_path)
     hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
     hd_hist_session /= sample_rate
     hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
@@ -286,7 +286,10 @@ def analyze_hd_in_firing_fields(spatial_firing, spatial_data, hd_csv_path):
         times_in_field_sessions = []
         if number_of_firing_fields > 0:
             for field_id, field in enumerate(firing_fields_cluster):
-                hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, hd_score_cluster, preferred_direction, hd_in_field_cluster, hd_in_field_session, spike_times_in_field, times_in_field = analyze_hd_in_field(spatial_data, field, spatial_firing, cluster, field_id, hd_csv_path)
+                (hd_hist_session, hd_hist_cluster, max_firing_rate_cluster, 
+                    hd_score_cluster, preferred_direction, hd_in_field_cluster, 
+                        hd_in_field_session, spike_times_in_field, times_in_field) = analyze_hd_in_field(spatial_data, field, spatial_firing, cluster_id, field_id, hd_csv_path)
+                
                 hd_session.append(list(hd_hist_session))
                 hd_cluster.append(list(hd_hist_cluster))
                 max_firing_rate.append(max_firing_rate_cluster/1000)

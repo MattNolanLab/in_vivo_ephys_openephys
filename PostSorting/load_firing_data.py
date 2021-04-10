@@ -41,12 +41,12 @@ def correct_for_dead_channels(primary_channels, dead_channels):
         primary_channels = correct_detected_ch_for_dead_channels(dead_channels, primary_channels)
     return primary_channels
 
-def process_firing_times2(session_id, sorted_data_path, session_type, num_tetrode=settings.num_tetrodes):
+def process_firing_times2(session_id, sorted_data_path, session_type, opto_tagging_start_index=None, num_tetrode=settings.num_tetrodes):
     #Read from sorter and create a dataframe to store the experiments values
 
     sorted_result = pd.read_pickle(sorted_data_path)
     
-    if session_type == 'openfield' and prm.get_opto_tagging_start_index() is not None:
+    if session_type == 'openfield' and opto_tagging_start_index is not None:
         #TODO implement the openfield processing
         pass
     else:

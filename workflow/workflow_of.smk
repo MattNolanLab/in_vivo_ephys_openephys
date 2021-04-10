@@ -19,6 +19,7 @@ def optionalFile(path):
 
 recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
 figure_prefix = '{recording}/processed/figures'
+sorterPrefix = '{recording}/processed/'+setting.sorterName
 
 
 rule all:
@@ -66,21 +67,23 @@ rule plot_figures:
         spatial_firing = '{recording}/processed/spatial_firing_of.pkl',
         position = '{recording}/processed/synced_spatial_data.pkl',
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
-        hd_histogram = '{recording}/processed/hd_histogram.pkl'
+        hd_histogram = '{recording}/processed/hd_histogram.pkl',
+        waveform_figure_curated = sorterPrefix + '/waveform/curated/',
+        coverage_map = figure_prefix+'/session/heatmap.png',
     output:
         spike_histogram = directory(figure_prefix+'/spike_histogram/'),
         autocorrelogram = directory(figure_prefix+'/autocorrelogram/'),
-        # spike_trajectories = directory(figure_prefix+'/spike_trajectories/'),
-        # spike_rate =   directory(figure_prefix+'/spike_rate/'),
         convolved_rate = directory(figure_prefix+'/ConvolvedRates_InTime/'),
-        firing_properties = directory(figure_prefix+'/firing_properties/'),
+        speed_histogram = directory(figure_prefix+'/speed_histogram/'),
+        firing_rate_vs_speed = directory(figure_prefix+'/firing_rate_vs_speed/'),
         firing_scatter = directory(figure_prefix+'/firing_scatters/'),
-        session = directory(figure_prefix+'/session/'),
         rate_maps = directory(figure_prefix+'/rate_maps/'),
         rate_map_autocorrelogram = directory(figure_prefix+'/rate_map_autocorrelogram/'),
         head_direction_plots_2d = directory(figure_prefix+'/head_direction_plots_2d/'),
         head_direction_plots_polar = directory(figure_prefix+'/head_direction_plots_polar/'),
         firing_field_plots =  directory(figure_prefix+'/firing_field_plots/'),
+        firing_field_head_direction = directory(figure_prefix+'/firing_field_head_direction/'),
+        firing_field_head_direction_raw = directory(figure_prefix+'/firing_field_head_direction_raw/'),
         firing_fields_coloured_spikes = directory(figure_prefix+'/firing_fields_coloured_spikes/'),
         combined = directory(figure_prefix+'/combined/'),
         result = touch('{recording}/processed/snakemake.done')

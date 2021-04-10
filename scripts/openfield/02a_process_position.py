@@ -2,7 +2,8 @@
 
 #%%
 import pandas as pd
-import PostSorting.post_process_sorted_data as ppsd
+import PostSorting.open_field_spatial_data as ppsd
+import PostSorting.post_process_sorted_data as post_process_sorted_data
 import PostSorting.open_field_sync_data as open_field_sync_data
 from collections import namedtuple
 import setting
@@ -14,12 +15,12 @@ import PostSorting.open_field_light_data as open_field_light_data
 from file_utility import get_tags_parameter_file
 
 #%% define input and outpu
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), '../../workflow/workflow_of.smk', [setting.debug_folder+'/processed/opto_pulse.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/opto_pulse.pkl'],
     'process_position')
 
 #%% Read tags from folder
 tags = get_tags_parameter_file(sinput.recording_to_sort)
-unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = ppsd.process_running_parameter_tag(
+unexpected_tag, interleaved_opto, delete_first_two_minutes, pixel_ratio = post_process_sorted_data.process_running_parameter_tag(
     tags)
     
 #%% Process opto channel
@@ -33,15 +34,12 @@ else:
     df.to_pickle(soutput.opto_pulse)
 
 #%% Process position data
-spatial_data, position_was_found = ppsd.process_position_data(sinput.recording_to_sort, 'openfield',do_resample=True)
-hd_sampling_analysis.check_if_hd_sampling_was_high_enough(spatial_data,soutput.hd_power_spectrum)
+spatial_data, position_was_found = ppsd.process_position_data(sinput.recording_to_sort,do_resample=True)
 
 #%% Synchronize with bonsai 
 synced_spatial_data, total_length_sample_point, ephys_sync_data, is_found = open_field_sync_data.process_sync_data(sinput.recording_to_sort, 
-    spatial_data,opto_tagging_start_index)
+    spatial_data,opto_tagging_start_index, soutput.sync_pulse)
 
-#%% plot sync pulse to check
-open_field_sync_data.plot_sync_pulse(synced_spatial_data, ephys_sync_data, soutput.sync_pulse)
 
 #%% Save
 

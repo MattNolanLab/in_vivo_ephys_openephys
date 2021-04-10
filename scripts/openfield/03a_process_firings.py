@@ -8,15 +8,14 @@ from types import SimpleNamespace
 import SnakeIOHelper
 
 #%%
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_of.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
     'process_firings')
 
 #%% process firing times
 session_id = sinput.recording_to_sort.split('/')[-1]
-spike_data = process_firing_times2(session_id, sinput.sorted_data_path, setting.session_type)
+spike_data = process_firing_times2(session_id, sinput.sorted_data_path, 'openfield')
 
 #%% save
 spike_data.to_pickle(soutput.spatial_firing)
-
 
 #%%

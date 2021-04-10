@@ -129,18 +129,18 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
-def save_plots_of_pulses(bonsai, oe, figure_folder, lag, name='sync_pulses'):
+def save_plots_of_pulses(bonsai, oe, sync_figure_path, lag):
     plt.figure()
     bonsai_norm = bonsai / np.linalg.norm(bonsai)
     plt.plot(oe, color='red', label='open ephys')
     plt.plot(bonsai_norm * 3.5, color='black', label='bonsai')
     plt.title('lag=' + str(lag))
     plt.legend()
-    plt.savefig(figure_folder + name + '_sync_pulses.png')
+    plt.savefig(sync_figure_path)
     plt.close()
 
 
-def get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_folder):
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_path):
 
     '''
     The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
@@ -195,7 +195,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_fol
 
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time
 
-    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, sync_figure_folder, lag2)
+    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, sync_figure_path, lag2)
 
     if abs(lag2) < 1:
         #after correlation sync, the difference in lag should very small, if not it may indicate error
@@ -247,13 +247,13 @@ def plot_sync_pulse(synced_spatial_data, sync_data_ephys, figure_path):
     plt.plot(esync_ds/5*0.5)
     plt.savefig(figure_path)
 
-def process_sync_data(recording_to_process, spatial_data, opto_start_index, sync_figure_folder):
+def process_sync_data(recording_to_process, spatial_data, opto_start_index, sync_figure_path):
     sync_data, is_found = load_sync_data_ephys(recording_to_process)
     sync_data_ephys = pd.DataFrame(sync_data)
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    spatial_data, downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_folder)
+    spatial_data, downsample_rate = get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_path)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed', 'syncLED']].copy()
     

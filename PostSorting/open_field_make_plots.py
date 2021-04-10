@@ -16,6 +16,7 @@ import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
 import PostSorting.parameters
 import setting
+import glob
 
 #resetting the style to default first
 mpl.rcParams.update(mpl.rcParamsDefault)
@@ -55,7 +56,7 @@ def plot_spikes_on_trajectory(position_data, spike_data, figure_folder_path):
             labelbottom=False)  # labels along the bottom edge are off
         ax.set_aspect('equal')
         plt.title('Spikes on trajectory', y=1.08, fontsize=24)
-        plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_spikes_on_trajectory.png', dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_spikes_on_trajectory_'+ str(cluster_id)+'.png', dpi=300, bbox_inches='tight', pad_inches=0)
         plt.close()
 
 
@@ -84,9 +85,14 @@ def plot_firing_rate_maps(spatial_firing, figure_folder_path):
         ax = plot_utility.style_open_field_plot(ax)
         rate_map_img = ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
         firing_rate_map_fig.colorbar(rate_map_img)
-        plt.title('Firing rate map \n max fr: ' + str(round(cluster_df['max_firing_rate'].iloc[0], 2)) +
+
+        if 'rate_map_correlation_first_vs_second_half' in spatial_firing.columns:
+            plt.title('Firing rate map \n max fr: ' + str(round(cluster_df['max_firing_rate'].iloc[0], 2)) +
                   ' Hz \n HS r: ' + str(round(cluster_df['rate_map_correlation_first_vs_second_half'].iloc[0], 2)) +
                   ', % bins: ' + str(100-round(cluster_df['percent_excluded_bins_rate_map_correlation_first_vs_second_half_p'].iloc[0], 2)), y=1.08, fontsize=15)
+        else:
+            plt.title('Firing rate map \n max fr: ' + str(round(cluster_df['max_firing_rate'].iloc[0], 2)))
+
         plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_rate_map_' + str(cluster_id) + '.png', dpi=300)
         plt.close()
 
@@ -227,11 +233,36 @@ def save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster, 
               +' seconds\n max fr: ' + field_max_firing_rate + 'Hz \n',
               y=1.08, fontsize=24)
 
-    plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_cluster_' + str(cluster_id) + name + str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
+    plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + name + '_cluster_' + str(cluster_id) + '-'+ str(field_id + 1) + '.png', dpi=300, bbox_inches="tight")
     plt.close()
 
 
-def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, sampling_rate = setting.sampling_rate):
+def plot_firing_fields(spatial_firing, spatial_data, figure_folder_path, sampling_rate = setting.sampling_rate):
+    print('I will plot the firing fields')
+
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+        if 'firing_fields' in cluster_df:
+            number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
+            firing_rate_map = cluster_df['firing_maps'].iloc[0]
+            if number_of_firing_fields > 0:
+                plt.clf()
+                of_figure = plt.figure()
+                plt.title('HD in detected fields', fontsize=24)
+                of_figure.set_size_inches(5, 5, forward=True)
+                of_plot = of_figure.add_subplot(1, 1, 1)
+                of_plot.axis('off')
+                firing_rate_map_90 = np.rot90(firing_rate_map)
+                of_plot.imshow(firing_rate_map_90)
+
+                firing_fields_cluster = cluster_df['firing_fields'].iloc[0]
+                colors = generate_colors(number_of_firing_fields)
+
+                plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_firing_fields_rate_map_' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
+                plt.close()
+
+def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, is_normalized, sampling_rate = setting.sampling_rate):
     print('I will make the polar HD plots for individual firing fields now.')
 
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
@@ -260,11 +291,10 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, 
                     hd_hist_cluster = np.array(cluster_df['firing_fields_hd_cluster'].iloc[0][field_id])
                     hd_hist_cluster_normalized = np.divide(hd_hist_cluster, hd_hist_session, out=np.zeros_like(hd_hist_cluster), where=hd_hist_session != 0)
 
-                    save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster_normalized, cluster_id, spatial_firing, colors, field_id, '_firing_field_')
-                    save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster, cluster_id, spatial_firing, colors, field_id, '_firing_field_raw')
-
-                plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_firing_fields_rate_map' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
-                # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_rate_map' + str(cluster + 1) + '.pdf', bbox_inches="tight")
+                    if is_normalized:
+                        save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster_normalized, cluster_id, spatial_firing, colors, field_id, '_firing_field_')
+                    else:
+                        save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster, cluster_id, spatial_firing, colors, field_id, '_firing_field_raw')
                 plt.close()
 
 
@@ -321,10 +351,67 @@ def plot_spikes_on_firing_fields(spatial_firing, figure_folder_path):
                     field_df = spatial_firing_cluster.loc[spatial_firing_cluster['firing_times'].isin(spike_times_field)]
                     of_plot.scatter(field_df['x'].values, field_df['y'].values, color=colors[field_id], marker='o', s=10)
                 plot_spikes_not_in_fields(spatial_firing, cluster_id, spatial_firing_cluster, of_plot)
-                plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_firing_fields_coloured_spikes' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
+                plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_firing_fields_coloured_spikes_' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
                 # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_firing_fields_coloured_spikes' + str(cluster + 1) + '.pdf', bbox_inches="tight")
                 plt.close()
 
+def loadImg2Figure(path, grid, figure_idx):
+    fig_img = mpimg.imread(path)
+    grid_loc = np.unravel_index(figure_idx, (grid.nrows, grid.ncols))
+    fig = plt.subplot(grid[grid_loc])
+    fig.axis('off')
+    fig.imshow(fig_img)
+
+
+def make_combined_figures_auto(folder_list, common_figures, var_folders, combined_figure_path, spatial_firing, sorter_name=setting.sorterName,ext='png'):
+    # automatically combine figures in specified folder
+    # the figure name for each figure should be in the form of xxx_<cluster_id>.png
+    # variable length figure should be in the form of xxx_<cluster_id>-<figure_id>.png
+
+    plt.close('all')
+    for cluster_index, cluster_id in enumerate(tqdm(spatial_firing.cluster_id)):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+        # determine the number of firing field
+        number_of_firing_fields = 0
+        if 'firing_fields' in spatial_firing:
+            number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
+        
+        # determine the number of plots
+        # TODO: dynamically determine the number of row to plot
+        number_of_rows = math.ceil((number_of_firing_fields + 1)/6) + 2
+        grid = plt.GridSpec(number_of_rows, 5, wspace=0.025, hspace=0.05)
+        
+        figure_idx = 0
+
+        # Go into each folder, extract the figure and combine them
+        for folder in folder_list:
+            # search for the figure file 
+            search_str = f'{folder}/*_{cluster_id}.{ext}'
+            figure_path = glob.glob(search_str)
+            assert len(figure_path) <= 1, f'Non-unique figure found {search_str} {figure_path}'
+
+            if len(figure_path) ==1:
+                # add the figure to the combined plot
+                loadImg2Figure(figure_path[0], grid, figure_idx)
+
+            figure_idx += 1
+
+        # add the figures common to all clusters
+        for figure_path in common_figures:
+            loadImg2Figure(figure_path, grid, figure_idx)
+            figure_idx +=1
+
+        # add the figure with multiple plot per cluster
+        for folder in var_folders:
+            search_str = f'{folder}/*_{cluster_id}-*.{ext}'
+            figure_path = glob.glob(search_str)
+            for f in figure_path:
+                loadImg2Figure(f, grid, figure_idx)
+                figure_idx += 1
+
+        plt.savefig(combined_figure_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
+        plt.close()
 
 def make_combined_figure(figures_path, spatial_firing, sorter_name = setting.sorterName):
     plt.close('all')

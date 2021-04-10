@@ -11,7 +11,7 @@ import logging
 
 #%% define input and output
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow_of.smk', [setting.debug_folder+'/processed/snakemake.done'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/snakemake.done'],
 'plot_figures')
 
 logger = logging.Logger(__file__)
@@ -27,13 +27,15 @@ logger.info('I will plot spikes vs time for the whole session excluding opto tag
 PostSorting.make_plots.plot_spike_histogram(spatial_firing, soutput.spike_histogram)
 
 #%%
-logger.info('I will plot spikes vs speed for the whole session excluding opto tagging.')
-PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, soutput.firing_properties)
-
 logger.info('I will plot the speed vs firing rate')
-PostSorting.make_plots.plot_speed_vs_firing_rate(position_data, spatial_firing, setting.sampling_rate, 250, 
-    soutput.firing_properties)
+PostSorting.make_plots.plot_firing_rate_vs_speed(position_data, spatial_firing, setting.sampling_rate, 250, 
+    soutput.firing_rate_vs_speed)
 
+#%%
+logger.info('I will plot the speed histogram')
+PostSorting.make_plots.plot_speed_histogram(spatial_firing,position_data, soutput.speed_histogram)
+
+#%%
 logger.info('I will plot autocorrelograms for each cluster.')
 PostSorting.make_plots.plot_autocorrelograms(spatial_firing, soutput.autocorrelogram)
 
@@ -63,12 +65,40 @@ open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_
 
 #%% Plot head direction for firing fields
 logger.info('I will make the polar HD plots for individual firing fields now.')
-open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, soutput.firing_field_plots)
+open_field_make_plots.plot_firing_fields(spatial_firing, position_data, soutput.firing_field_plots)
+
+open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, soutput.firing_field_head_direction, is_normalized=True)
+open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, soutput.firing_field_head_direction_raw, is_normalized=False)
 
 #%% Plot spike on firing fields
 logger.info('I will plot detected spikes colour coded in fields.')
 open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, soutput.firing_fields_coloured_spikes)
 
-#%% Combine all figures
+# %%
 logger.info('I will make the combined images now.')
-open_field_make_plots.make_combined_figure(soutput.combined, spatial_firing)
+
+# the following folder contains one figure for each cluster
+folder_list = [
+            sinput.waveform_figure_curated,
+            soutput.autocorrelogram,
+            soutput.spike_histogram,
+            soutput.speed_histogram,
+            soutput.firing_scatter,
+            soutput.rate_maps,
+            soutput.rate_map_autocorrelogram,
+            soutput.head_direction_plots_polar,
+            soutput.head_direction_plots_2d,
+            soutput.firing_field_plots]
+
+# figures below are the same for all cluster
+common_figures =[
+    sinput.coverage_map
+]
+
+# figures in these folder has more than one plot for each cluster
+var_folder_list = [soutput.firing_field_head_direction]
+
+open_field_make_plots.make_combined_figures_auto(folder_list, common_figures, var_folder_list, 
+    soutput.combined, spatial_firing)
+
+# %%
