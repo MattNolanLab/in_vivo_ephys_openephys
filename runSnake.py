@@ -36,6 +36,8 @@ parser.add_argument('--batch_process','-b', action= 'store_true', default=False,
 parser.add_argument('--force', action= 'store_true', default=False, help='whether to force rerun all analysis')
 parser.add_argument('--skip','-s', action= 'store_true', default=False, help='whether skip processed recordings')
 parser.add_argument('--unlock',action= 'store_true', default=False, help='whether skip processed recordings')
+parser.add_argument('--forcerun', '-R', nargs='*', help='whether to force run a certain rule')
+parser.add_argument('--omit', '-O', nargs='*', help='whether to skip certain rule')
 
 
 def _logPath(path,names):
@@ -168,7 +170,7 @@ def process_recordings(args, config, expt_type, paths):
         target_files = [str(p/'processed/snakemake.done') for p in paths]
 
     # to do: enable multiple core processing
-    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=True,unlock=args.unlock)
+    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=True, unlock=args.unlock, forcerun=args.forcerun, omit_from=args.omit)
 
 
     if args.uploadresults:
@@ -181,7 +183,7 @@ def process_recordings(args, config, expt_type, paths):
             # file in the remote server
             clean_up(paths, local_recording_folder,args.dryrun)
 
-def filter_processed_recording(paths, isforce, will_upload, is_skip, dryrun=True):
+def filter_processed_recording(paths, isforce, will_upload, is_skip, isremote, dryrun=True):
     """
     Check if the recordig is already processed. Remove remote processed folder if necessary
     """
@@ -213,11 +215,13 @@ def filter_processed_recording(paths, isforce, will_upload, is_skip, dryrun=True
                 else:
                     print('I will skip this recording.')
             else:
-                if (p/'processed').exists():
+                # only remove file in forced mode when working with remote fle
+                if (p/'processed').exists() and isremote:
                     if not dryrun:
                         shutil.rmtree(p/'processed')
-                    remote_path = p/'processed'
+                    
                     print(f'In forced mode, removed {remote_path}')
+                    remote_path = p/'processed'
                 path2process.append(p)
         else:
             path2process.append(p)
@@ -228,7 +232,8 @@ for expt_type, paths_all in targets.items():
     print('#######################################################################')
     print(f'############### Running snakemake for file type: {expt_type} #################')
 
-    paths_all = filter_processed_recording(paths_all, args.force, args.uploadresults, args.skip, args.dryrun)
+    paths_all = filter_processed_recording(paths_all, args.force, args.uploadresults, args.skip, 
+        args.remotefiles, args.dryrun)
 
     if args.batch_process:
         # download all files and process all at once (possibly faster but takes more space)
