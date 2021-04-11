@@ -5,7 +5,13 @@ import OpenEphys
 import numpy as np
 import setting
 import glob
+import pickle
 
+def load_recording_info(recording_info):
+    with open(recording_info,'rb') as f:
+        d = pickle.load(f)
+
+    return d['serialized_dict']['kwargs']
 
 def search4File(fname, expected_num_file=1):
     file = glob.glob(fname)
