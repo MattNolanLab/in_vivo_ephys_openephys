@@ -66,14 +66,17 @@ rule plot_figures:
     input:
         raw_position = '{recording}/processed/raw_position.pkl',
         processed_position_data =  '{recording}/processed/processed_position.pkl',
-        spatial_firing_vr = '{recording}/processed/spatial_firing_vr.pkl'
-    
+        spatial_firing_vr = '{recording}/processed/spatial_firing_vr.pkl',
+        waveform_figure_curated = sorterPrefix + '/waveform/curated/',
+        stop_histogram = '{recording}/processed/figures/behaviour/stop_histogram.png',
+        speed_histogram = '{recording}/processed/figures/behaviour/speed_histogram.png',
+        stop_raster = '{recording}/processed/figures/behaviour/stop_raster.png'
     output:
         spike_histogram = directory('{recording}/processed/figures/spike_histogram/'),
         autocorrelogram = directory('{recording}/processed/figures/autocorrelogram/'),
         spike_trajectories = directory('{recording}/processed/figures/spike_trajectories/'),
         spike_rate =  directory('{recording}/processed/figures/spike_rate/'),
-        convolved_rate = directory('{recording}/processed/figures/ConvolvedRates_InTime/'),
+        combined = directory('{recording}/processed/figures/combined/'),
         result = touch('{recording}/processed/snakemake.done')
     script:
         '../scripts/vr/05_plot_figure_vr.py'
