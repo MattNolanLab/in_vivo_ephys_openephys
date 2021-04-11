@@ -363,7 +363,8 @@ def loadImg2Figure(path, grid, figure_idx):
     fig.imshow(fig_img)
 
 
-def make_combined_figures_auto(folder_list, common_figures, var_folders, combined_figure_path, spatial_firing, sorter_name=setting.sorterName,ext='png'):
+def make_combined_figures_auto(folder_list, common_figures, var_folders, 
+    combined_figure_path, spatial_firing, sorter_name=setting.sorterName,ext='png', dpi=500):
     # automatically combine figures in specified folder
     # the figure name for each figure should be in the form of xxx_<cluster_id>.png
     # variable length figure should be in the form of xxx_<cluster_id>-<figure_id>.png
@@ -410,7 +411,7 @@ def make_combined_figures_auto(folder_list, common_figures, var_folders, combine
                 loadImg2Figure(f, grid, figure_idx)
                 figure_idx += 1
 
-        plt.savefig(combined_figure_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=300)
+        plt.savefig(combined_figure_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=dpi)
         plt.close()
 
 def make_combined_figure(figures_path, spatial_firing, sorter_name = setting.sorterName):
