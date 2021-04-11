@@ -82,7 +82,7 @@ folder_list = [
             sinput.waveform_figure_curated,
             soutput.autocorrelogram,
             soutput.spike_histogram,
-            soutput.speed_histogram,
+            soutput.firing_rate_vs_speed,
             soutput.firing_scatter,
             soutput.rate_maps,
             soutput.rate_map_autocorrelogram,

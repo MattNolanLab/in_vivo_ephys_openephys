@@ -410,7 +410,7 @@ def make_combined_figures_auto(folder_list, common_figures, var_folders, combine
                 loadImg2Figure(f, grid, figure_idx)
                 figure_idx += 1
 
-        plt.savefig(combined_figure_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
+        plt.savefig(combined_figure_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=300)
         plt.close()
 
 def make_combined_figure(figures_path, spatial_firing, sorter_name = setting.sorterName):
