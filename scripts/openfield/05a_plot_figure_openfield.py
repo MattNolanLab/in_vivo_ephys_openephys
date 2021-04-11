@@ -45,7 +45,7 @@ open_field_make_plots.plot_spikes_on_trajectory(position_data, spatial_firing, s
 
 #%% Plot coverage of spatial map
 logger.info('I will plot a heat map of the position of the animal to show coverage.')
-open_field_make_plots.plot_coverage(position_heat_map, soutput.session)
+open_field_make_plots.plot_coverage(position_heat_map, soutput.coverage_map)
 
 #%% Plot firing rate map
 logger.info('I will make rate map plots.')
@@ -92,7 +92,7 @@ folder_list = [
 
 # figures below are the same for all cluster
 common_figures =[
-    sinput.coverage_map
+    soutput.coverage_map
 ]
 
 # figures in these folder has more than one plot for each cluster

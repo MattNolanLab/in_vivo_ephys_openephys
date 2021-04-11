@@ -34,7 +34,6 @@ rule process_position:
         recording_to_sort = '{recording}'
     output:    
         opto_pulse = '{recording}/processed/opto_pulse.pkl',
-        hd_power_spectrum = '{recording}/processed/hd_power_spectrum.png',
         synced_spatial_data = '{recording}/processed/synced_spatial_data.pkl',
         sync_pulse = '{recording}/processed/sync_pulse.png'
     script:
@@ -69,7 +68,6 @@ rule plot_figures:
         position_heat_map = '{recording}/processed/position_heat_map.pkl',
         hd_histogram = '{recording}/processed/hd_histogram.pkl',
         waveform_figure_curated = sorterPrefix + '/waveform/curated/',
-        coverage_map = figure_prefix+'/session/heatmap.png',
     output:
         spike_histogram = directory(figure_prefix+'/spike_histogram/'),
         autocorrelogram = directory(figure_prefix+'/autocorrelogram/'),
@@ -86,6 +84,7 @@ rule plot_figures:
         firing_field_head_direction_raw = directory(figure_prefix+'/firing_field_head_direction_raw/'),
         firing_fields_coloured_spikes = directory(figure_prefix+'/firing_fields_coloured_spikes/'),
         combined = directory(figure_prefix+'/combined/'),
+        coverage_map = figure_prefix+'/session/heatmap.png',
         result = touch('{recording}/processed/snakemake.done')
     script:
         '../scripts/openfield/05a_plot_figure_openfield.py'
