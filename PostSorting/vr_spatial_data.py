@@ -9,6 +9,9 @@ import PostSorting.vr_cued
 from scipy import stats
 import PostSorting.vr_speed_analysis
 import plot_utility
+import settings
+from astropy.convolution import convolve, Gaussian1DKernel
+
 
 def calculate_total_trial_numbers(raw_position_data,processed_position_data):
     print('calculating total trial numbers for trial types')
@@ -54,8 +57,50 @@ def trial_average_speed(processed_position_data):
     return trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds
 
 
+def bin_in_time(raw_position_data, processed_position_data):
+    gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_time_seconds/settings.time_bin_size)
+
+    speeds_binned_in_time = []
+    pos_binned_in_time = []
+    acc_binned_in_time = []
+
+    for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
+        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
+        trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
+        trial_times = np.array(raw_position_data['time_seconds'][np.array(raw_position_data['trial_number']) == trial_number])
+
+        time_bins = np.arange(0, max(trial_times), settings.time_bin_size)# 100ms time bins
+
+        # calculate the average speed and position in each 100ms time bin
+        speed_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_speeds)[0] /
+                                np.histogram(trial_times, time_bins)[0])
+        pos_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_x_position_cm)[0] /
+                              np.histogram(trial_times, time_bins)[0])
+
+        # and smooth
+        speed_time_bin_means = convolve(speed_time_bin_means, gauss_kernel)
+        pos_time_bin_means = convolve(pos_time_bin_means, gauss_kernel)
+
+        # calculate the acceleration from the smoothed speed
+        acceleration_time_bin_means = np.diff(np.array(speed_time_bin_means))
+        acceleration_time_bin_means = np.hstack((0, acceleration_time_bin_means))
+
+        speeds_binned_in_time.append(speed_time_bin_means)
+        pos_binned_in_time.append(pos_time_bin_means)
+        acc_binned_in_time.append(acceleration_time_bin_means)
+
+    processed_position_data["speeds_binned_in_time"] = speeds_binned_in_time
+    processed_position_data["pos_binned_in_time"] = pos_binned_in_time
+    processed_position_data["acc_binned_in_time"] = acc_binned_in_time
+
+    return processed_position_data
+
+
+
 def process_position(raw_position_data, stop_threshold,track_length):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
+    processed_position_data = bin_in_time(raw_position_data, processed_position_data)
+
     processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data, track_length)
     processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,track_length)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, stop_threshold)
