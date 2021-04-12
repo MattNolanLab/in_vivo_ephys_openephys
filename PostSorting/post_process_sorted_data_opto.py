@@ -270,7 +270,12 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                                                                                       session_type, prm)
         run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
     if position_was_found:
-        synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)  # this will set the recording length
+        try:
+            synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)  # this will set the recording length
+        except AssertionError as error:
+            print(error)
+            print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
+                  'I will run the rest of the analyses')
         spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
                                                                                       session_type, prm)
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
