@@ -18,6 +18,7 @@ import PostSorting.theta_modulation
 import PostSorting.vr_grid_cells
 import PostSorting.lfp
 import settings
+import file_utility
 
 prm = PostSorting.parameters.Parameters()
 
@@ -116,7 +117,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     initialize_parameters(recording_to_process)
     output_path = recording_to_process+'/'+settings.sorterName
 
-
     # Keep all parameter object reference at this level, do not pass them beyond this level
     # keep the configuration of the prm object at a single location only for easily tracking
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
@@ -126,9 +126,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_track_length(track_length)
     prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
-
-    dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
+
+    dead_channel_txt_file_path = recording_to_process+settings.dead_channel_file_name
+    dead_channels = file_utility.dead_channels_from_txt_file(dead_channel_txt_file_path)
 
     if total_length is not None:
         prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
@@ -138,6 +139,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     # Process LPF
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
+
     # Process position
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
     total_length_sample_point = raw_position_data.time_seconds.values[-1]
