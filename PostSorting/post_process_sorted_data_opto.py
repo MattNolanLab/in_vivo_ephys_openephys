@@ -217,12 +217,15 @@ def make_plots_with_no_spatial_data(spatial_firing, prm):
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
-def run_analyses_without_position_data(spike_data_in, opto_analysis=False, lfp_data=None):
+def run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=False, lfp_data=None):
     """
     Run analyses on spike sorted data.
     """
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=False)
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data_in, prm, random_snippets=True)
+    set_recording_length(recording_to_process, prm)
+    spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
+                                                                                  session_type, prm)
+    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=False)
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, prm, random_snippets=True)
 
     spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm)
     if opto_analysis:
@@ -261,29 +264,28 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     try:
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     except:
-        print('I cannot analyze the position data for this sleep recording.')
+        print('I cannot analyze the position data for this opto recording.')
 
     # analyze spike data
     if not position_was_found:  # this is normally set after syncing the ephys and position data
-        set_recording_length(recording_to_process, prm)
-        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
-                                                                                      session_type, prm)
-        run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
+        run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=False, lfp_data=None)
     if position_was_found:
         try:
             synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)  # this will set the recording length
+            spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
+                                                                                          session_type, prm)
         except AssertionError as error:
             print(error)
             print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
                   'I will run the rest of the analyses')
-        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
-                                                                                      session_type, prm)
+
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,
                              lfp_data=lfp_data)
         else:
-            run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
+            run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=False, lfp_data=None)
             synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data,
                                                                opto_analysis=opto_is_found, lfp_data=lfp_data)
+
 
 
