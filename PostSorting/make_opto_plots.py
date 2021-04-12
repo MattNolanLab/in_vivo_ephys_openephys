@@ -131,7 +131,7 @@ def get_latencies_for_cluster(spatial_firing, cluster_id):
 
 def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes, cluster, session, light_pulse_duration,
                                             save_path):
-    number_of_histogram_bins = int(peristimulus_spikes.shape[1] - 2)
+    number_of_histogram_bins = 100
     cluster_rows = get_binary_peristimulus_data_for_cluster(peristimulus_spikes, cluster)
     cluster_rows = cluster_rows.astype(int).to_numpy()
     peristimulus_figure, ax = format_peristimulus_plot()
