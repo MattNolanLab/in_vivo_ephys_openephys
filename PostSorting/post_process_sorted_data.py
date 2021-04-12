@@ -26,6 +26,7 @@ import PostSorting.parameters
 import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
+import file_utility
 
 prm = PostSorting.parameters.Parameters()
 
@@ -197,12 +198,11 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     prm.set_interleaved_opto(interleaved_opto)
     prm.set_delete_two_minutes(delete_first_two_minutes)
-
-
-    dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
 
+    dead_channel_txt_file_path= recording_to_process+settings.dead_channel_file_name
+    dead_channels = file_utility.dead_channels_from_txt_file(dead_channel_txt_file_path)
 
     if total_length is not None:
         total_length_sampling_points = total_length/prm.get_sampling_rate()

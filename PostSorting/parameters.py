@@ -185,7 +185,6 @@ class Parameters:
                 dead_channels = list([x.strip() for x in dead_channels])
                 Parameters.dead_channels = dead_channels
 
-
     def get_dead_channel_path(self):
         return Parameters.dead_channel_path
 

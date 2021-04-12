@@ -9,6 +9,7 @@ to_sort_folder = '/home/ubuntu/to_sort/'
 server_path_first_half = '/mnt/datastore/'
 downtime_lists_path = '/home/ubuntu/to_sort/sort_downtime/'
 param_file = '/parameters.txt'
+dead_channel_file_name = "/dead_channels.txt"
 
 ##########
 # Recording setting
