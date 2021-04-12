@@ -225,7 +225,7 @@ def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, windo
         opto_parameters.to_pickle(output_path + '/DataFrames/opto_parameters.pkl')
 
 
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=1000, first_spike_latency_ms=10):
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=100, first_spike_latency_ms=10):
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
     print('I will process opto data.')
     opto_parameters, opto_params_is_found = get_opto_parameters(output_path)
