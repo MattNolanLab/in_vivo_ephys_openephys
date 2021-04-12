@@ -69,7 +69,7 @@ def bin_in_time(raw_position_data, processed_position_data):
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_times = np.array(raw_position_data['time_seconds'][np.array(raw_position_data['trial_number']) == trial_number])
 
-        time_bins = np.arange(0, max(trial_times), settings.time_bin_size)# 100ms time bins
+        time_bins = np.arange(min(trial_times), max(trial_times), settings.time_bin_size)# 100ms time bins
 
         # calculate the average speed and position in each 100ms time bin
         speed_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_speeds)[0] /

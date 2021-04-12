@@ -39,13 +39,15 @@ location_ds_rate = 1000 #the sampleing frequency in Hz to downsample the locatio
 
 ##########
 # VR
-track_length = 200
+track_length = 200 # cm
 vr_bin_size_cm = 1
 first_trial_channel_suffix = f'ADC4' #channel for the start of trial
 second_trial_channel_suffix = f'ADC5' #channel for the stp of trial
 reward_start = 88 #position for the reward
 reward_end = 110 #position for the reward
-movement_threshold = 2.5
+movement_threshold = 3
+time_bin_size = 0.1 #seconds
+guassian_std_for_smoothing_in_time_seconds = 0.2
 movement_channel='100_ADC2.continuous'
 first_trial_channel='100_ADC4.continuous'
 second_trial_channel='100_ADC5.continuous'
