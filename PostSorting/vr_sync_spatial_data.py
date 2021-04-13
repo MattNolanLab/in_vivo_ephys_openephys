@@ -98,7 +98,7 @@ def check_for_trial_restarts(trial_indices, loc_sampling_rate, min_time):
     return new_trial_indices
 
 
-def get_new_trial_indices(position_data,loc_sampling_freq = setting.sampling_rate/setting.location_ds_rate):
+def get_new_trial_indices(position_data,loc_sampling_freq = setting.location_ds_rate):
     location_diff = position_data['x_position_cm'].diff()  # Get the raw location from the movement channel
     trial_indices = np.where(location_diff < -20)[0]# return indices where is new trial
     trial_indices = check_for_trial_restarts(trial_indices, loc_sampling_freq, 0.5)# check if trial_indices values are within 1500 of eachother, if so, delete
