@@ -113,17 +113,21 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, o
     peristimulus_spikes_path = output_path + '/DataFrames/peristimulus_spikes.pkl'
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
     peristimulus_spikes = pd.DataFrame(columns=columns)
+    peristimulus_spikes.session_id = spatial_firing.session_id.repeat(len(on_pulses))
+    peristimulus_spikes.cluster_id = spatial_firing.cluster_id.repeat(len(on_pulses))
+    number_of_rows = len(on_pulses) * len(spatial_firing.cluster_id.unique())
+    peristimulus_spikes_binary = np.empty([number_of_rows, window_size_sampling_rate])
 
-    for index, cell in spatial_firing.iterrows():
-        session_id = cell.session_id
-        cluster_id = cell.cluster_id
-        if len(on_pulses) >= 500:
-            on_pulses = on_pulses[-500:]  # only look at last 500 to make sure it's just the opto tagging
+    row_number_in_peristim = 0
+    for cell_index, cell in spatial_firing.iterrows():
+        if len(on_pulses) >= 600:
+            on_pulses = on_pulses[-600:]  # only look at last 500 to make sure it's just the opto tagging
         for pulse in on_pulses:
             firing_times = get_firing_times(cell)
             spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
-            df_to_append = make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary, window_size_sampling_rate)
-            peristimulus_spikes = peristimulus_spikes.append(df_to_append)
+            peristimulus_spikes_binary[row_number_in_peristim] = spikes_in_window_binary
+            row_number_in_peristim += 1
+    peristimulus_spikes.iloc[:, 2:] = peristimulus_spikes_binary
     peristimulus_spikes.to_pickle(peristimulus_spikes_path)
     return peristimulus_spikes
 
@@ -231,17 +235,32 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=100, first_s
     opto_parameters, opto_params_is_found = get_opto_parameters(output_path)
     save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms)
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate)
+    peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)
     first_spike_latency_sampling_points = sampling_rate / 1000 * first_spike_latency_ms
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency_sampling_points)
     spatial_firing = analyse_latencies(spatial_firing, sampling_rate)
     spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True)
     spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
-    peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)
     # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
     # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
     # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
 
     return spatial_firing
 
+def main():
+    import PostSorting.parameters
+    prm = PostSorting.parameters.Parameters()
+    prm.set_output_path('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')
+    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
+    peristimulus_spikes = pd.read_pickle(path)
+    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/spatial_firing.pkl'
+    spatial_firing = pd.read_pickle(path)
+    sampling_rate = 30000
+    prm.set_sampling_rate(30000)
+    output_path = ('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')
+    process_spikes_around_light(spatial_firing, prm, window_size_ms=100, first_spike_latency_ms=10)
 
+
+if __name__ == '__main__':
+    main()
 
