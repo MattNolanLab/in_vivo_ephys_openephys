@@ -117,16 +117,13 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, o
     peristimulus_spikes.cluster_id = spatial_firing.cluster_id.repeat(len(on_pulses))
     number_of_rows = len(on_pulses) * len(spatial_firing.cluster_id.unique())
     peristimulus_spikes_binary = np.empty([number_of_rows, window_size_sampling_rate])
-
-    row_number_in_peristim = 0
+    row_number_in_binary_array = 0
     for cell_index, cell in spatial_firing.iterrows():
-        if len(on_pulses) >= 600:
-            on_pulses = on_pulses[-600:]  # only look at last 500 to make sure it's just the opto tagging
         for pulse in on_pulses:
             firing_times = get_firing_times(cell)
             spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
-            peristimulus_spikes_binary[row_number_in_peristim] = spikes_in_window_binary
-            row_number_in_peristim += 1
+            peristimulus_spikes_binary[row_number_in_binary_array] = spikes_in_window_binary
+            row_number_in_binary_array += 1
     peristimulus_spikes.iloc[:, 2:] = peristimulus_spikes_binary
     peristimulus_spikes.to_pickle(peristimulus_spikes_path)
     return peristimulus_spikes
