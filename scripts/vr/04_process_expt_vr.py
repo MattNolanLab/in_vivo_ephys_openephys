@@ -26,6 +26,6 @@ spike_data_vr = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_dat
     setting.track_length/setting.location_bin_num, setting.track_length)
 
 #%% save data
-spike_data.to_pickle(soutput.spatial_firing_vr)
+spike_data_vr.to_pickle(soutput.spatial_firing_vr)
 
 #%%
