@@ -71,19 +71,25 @@ def bin_in_time(raw_position_data, processed_position_data):
 
         time_bins = np.arange(min(trial_times), max(trial_times), settings.time_bin_size)# 100ms time bins
 
-        # calculate the average speed and position in each 100ms time bin
-        speed_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_speeds)[0] /
-                                np.histogram(trial_times, time_bins)[0])
-        pos_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_x_position_cm)[0] /
-                              np.histogram(trial_times, time_bins)[0])
+        if len(time_bins)>1:
+            # calculate the average speed and position in each 100ms time bin
+            speed_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_speeds)[0] /
+                                    np.histogram(trial_times, time_bins)[0])
+            pos_time_bin_means = (np.histogram(trial_times, time_bins, weights = trial_x_position_cm)[0] /
+                                  np.histogram(trial_times, time_bins)[0])
 
-        # and smooth
-        speed_time_bin_means = convolve(speed_time_bin_means, gauss_kernel)
-        pos_time_bin_means = convolve(pos_time_bin_means, gauss_kernel)
+            # and smooth
+            speed_time_bin_means = convolve(speed_time_bin_means, gauss_kernel)
+            pos_time_bin_means = convolve(pos_time_bin_means, gauss_kernel)
 
-        # calculate the acceleration from the smoothed speed
-        acceleration_time_bin_means = np.diff(np.array(speed_time_bin_means))
-        acceleration_time_bin_means = np.hstack((0, acceleration_time_bin_means))
+            # calculate the acceleration from the smoothed speed
+            acceleration_time_bin_means = np.diff(np.array(speed_time_bin_means))
+            acceleration_time_bin_means = np.hstack((0, acceleration_time_bin_means))
+        else:
+            speed_time_bin_means = []
+            pos_time_bin_means = []
+            acceleration_time_bin_means = []
+
 
         speeds_binned_in_time.append(speed_time_bin_means)
         pos_binned_in_time.append(pos_time_bin_means)

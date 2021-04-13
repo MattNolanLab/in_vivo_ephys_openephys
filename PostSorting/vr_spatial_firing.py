@@ -59,24 +59,29 @@ def bin_fr_in_time(spike_data, raw_position_data):
         trial_times = np.array(raw_position_data['time_seconds'][np.array(raw_position_data['trial_number']) == trial_number])
         time_bins = np.arange(min(trial_times), max(trial_times), settings.time_bin_size)# 100ms time bins
 
+        # get the index of the first time point in the trial so we can subtract it from our spike indexes for each trial
+        i_start = np.where(np.array(raw_position_data['trial_number']) == trial_number)[0][0]
+
         for i, cluster_id in enumerate(spike_data.cluster_id):
-            firing_times = spike_data[spike_data["cluster_id"] == cluster_id]["firing_times"].iloc[0]
+            if len(time_bins)>1:
+                firing_times = spike_data[spike_data["cluster_id"] == cluster_id]["firing_times"].iloc[0]
+                trial_numbers = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["trial_number"].iloc[0])
+                trial_firing_times = firing_times[trial_numbers == trial_number]
 
-            # make a long form of firing_times which is binary showing when a spike occured
-            firing_times_long_form = np.zeros(len(trial_times))
-            firing_times_long_form = np.put(firing_times_long_form, firing_times, np.ones(len(firing_times)))
+                # count the spikes in each time bin
+                fr_hist = np.histogram((trial_firing_times-i_start)/settings.sampling_rate, time_bins)[0]/settings.time_bin_size
 
-            # count the spikes in each time bin
-            firing_times_bin_means = (np.histogram(trial_times, time_bins, weights = firing_times_long_form)[0] /
-                                    np.histogram(trial_times, time_bins)[0])
+                # and smooth
+                fr_hist = convolve(fr_hist, gauss_kernel)
 
-            # and smooth
-            firing_times_bin_means = convolve(firing_times_bin_means, gauss_kernel)
-
-            # append the binned firing for each cluster at each trial
-            fr_binned_in_time[i].append(firing_times_bin_means)
+                # append the binned firing for each cluster at each trial
+                fr_binned_in_time[i].append(fr_hist.tolist())
+            else:
+                fr_binned_in_time[i].append([])
 
     spike_data["fr_time_binned"] = fr_binned_in_time
+
+    return spike_data
 
 
 def add_location_and_task_variables(spike_data, raw_position_data):
