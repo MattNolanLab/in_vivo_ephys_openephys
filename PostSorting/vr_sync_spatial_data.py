@@ -70,7 +70,7 @@ def check_for_trial_restarts(trial_indices):
     new_trial_indices=[]
     for icount,i in enumerate(range(len(trial_indices)-1)):
         index_difference = trial_indices[icount] - trial_indices[icount+1]
-        if index_difference > - 15000:
+        if index_difference > - settings.sampling_rate/2:
             continue
         else:
             index = trial_indices[icount]
