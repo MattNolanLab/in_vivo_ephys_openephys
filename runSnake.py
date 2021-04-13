@@ -170,7 +170,7 @@ def process_recordings(args, config, expt_type, paths):
         target_files = [str(p/'processed/snakemake.done') for p in paths]
 
     # to do: enable multiple core processing
-    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=True, unlock=args.unlock, forcerun=args.forcerun, omit_from=args.omit)
+    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=False, unlock=args.unlock, forcerun=args.forcerun, omit_from=args.omit)
 
 
     if args.uploadresults:
