@@ -25,9 +25,9 @@ from PostSorting.make_plots import plot_waveforms
 from PreClustering.pre_process_ephys_data import (filterRecording,
                                                   get_sorting_range)
 from tqdm import tqdm
-
+import os
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
-
+import tempfile
 #%% define input and output
 # note: need to run this in the root folder of project
 
@@ -63,9 +63,10 @@ recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_
 # determine the filter chunk size
 recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000) #need to cache, otherwise the extracting waveform will take along time
 recording = st.preprocessing.whiten(recording, seed=0) #must do whitening first, otherwise the waveforms used to calculate cluster metrics will be very noisy
-recording = se.CacheRecordingExtractor(recording,verbose=True, chunk_mb=2000, save_path=sinput.recording_to_sort+'/processed_data.dat') # cache recording for speedup
 
-# tetrodeNum = np.array(recording.get_channel_ids())//setting.num_tetrodes
+# create a temp file for caching
+tmpdir = tempfile.TemporaryDirectory()
+recording = se.CacheRecordingExtractor(recording,verbose=True, chunk_mb=2000, save_path=tmpdir.name+'/processed_data.dat') # cache recording for speedup
 
 recording.dump_to_pickle(soutput.recording_info)
 
@@ -124,6 +125,9 @@ for id in sorting_ms4.get_unit_ids():
     mean_firing_rate = number_of_spikes/(recording.get_traces().shape[1]/setting.sampling_rate)
     sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
+
+#%% Remove tmp files
+tmpdir.cleanup()
 
 #%% save data
 
