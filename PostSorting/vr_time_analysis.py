@@ -5,14 +5,10 @@ import matplotlib.pyplot as plt
 import settings
 
 def calculate_binned_time(raw_position_data,processed_position_data, track_length):
-    '''
-    Calculate the time spent in each position bin for each trial
-    '''
     bin_size_cm = settings.vr_bin_size_cm
 
     times_binned = []
-    for trial_number in range(max(raw_position_data["trial_number"])+1):
-        #include all trials, including the incomplete trials in the beginning
+    for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_times = np.array(raw_position_data['dwell_time_ms'][np.array(raw_position_data['trial_number']) == trial_number])
 
