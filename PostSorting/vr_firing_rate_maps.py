@@ -10,9 +10,7 @@ def get_total_bin_times(binned_times_collumn):
     # time spent in a location bin for a given processed_position_data-like dataframe
     total_bin_times = np.zeros(len(binned_times_collumn.iloc[0]))
     for i in range(len(binned_times_collumn)):
-        dwell_time = binned_times_collumn.iloc[i]
-        assert not np.any(np.isnan(dwell_time)), f'invalid dwell time encountered {dwell_time}' #make sure the time is valid
-        total_bin_times += dwell_time
+        total_bin_times += np.nan_to_num(binned_times_collumn.iloc[i])
     return total_bin_times
 
 def calculate_rate_map_sem(spike_locations, spike_trial_numbers, processed_position_data, bins):
