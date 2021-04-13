@@ -78,9 +78,9 @@ def calculate_time(position_data, sampling_rate):
 
 
 # for each sampling point, calculates time from last sample point
-def calculate_instant_dwell_time(position_data):
+def calculate_instant_dwell_time(position_data, pos_sampling_rate):
     print('Calculating dwell time...')
-    position_data['dwell_time_ms'] = position_data['time_seconds'].diff() # [row] - [row-1]
+    position_data['dwell_time_ms'] = 1/pos_sampling_rate #the only way using diff may generate nan, and lead to error in subsequent dwell time calculation
     return position_data
 
 
