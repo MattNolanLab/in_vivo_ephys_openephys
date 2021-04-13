@@ -7,6 +7,7 @@ import PostSorting.parameters
 import PostSorting.load_snippet_data_opto
 
 import PostSorting.open_field_make_plots
+import time
 # import PostSorting.SALT
 
 
@@ -110,6 +111,7 @@ def get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate):
 
 def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path):
     print('Make peristimulus data frame.')
+    start_time = time.time()
     peristimulus_spikes_path = output_path + '/DataFrames/peristimulus_spikes.pkl'
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
     peristimulus_spikes = pd.DataFrame(columns=columns)
@@ -126,6 +128,8 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, o
             row_number_in_binary_array += 1
     peristimulus_spikes.iloc[:, 2:] = peristimulus_spikes_binary
     peristimulus_spikes.to_pickle(peristimulus_spikes_path)
+    elapsed_time = time.time() - start_time
+    print('making the peristimulus df took:' + str(elapsed_time))
     return peristimulus_spikes
 
 
