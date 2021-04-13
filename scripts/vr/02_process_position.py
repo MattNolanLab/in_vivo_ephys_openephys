@@ -25,9 +25,10 @@ recorded_location = get_raw_location(sinput.recording_to_sort, soutput.raw_posit
 first_ch = load_first_trial_channel(sinput.recording_to_sort)
 second_ch = load_second_trial_channel(sinput.recording_to_sort)
 
+#%%
 print('Downsampling')
 ds_ratio = int(setting.sampling_rate/setting.location_ds_rate)
-recorded_location_ds=downsample(recorded_location, ds_ratio) #filtering may cause
+recorded_location_ds=downsample(recorded_location, ds_ratio) 
 first_ch_ds = downsample(first_ch, ds_ratio)
 second_ch_ds = downsample(second_ch, ds_ratio)
 
@@ -35,11 +36,12 @@ second_ch_ds = downsample(second_ch, ds_ratio)
 raw_position_data = pd.DataFrame()
 raw_position_data = calculate_track_location(raw_position_data, recorded_location_ds, setting.track_length)
 raw_position_data = calculate_trial_numbers(raw_position_data, soutput.trial_figure)
+# raw_position_data = smooth_position(raw_position_data, setting.location_ds_rate)
 
 #%% Calculate trial-related information
 (raw_position_data,first_ch,second_ch) = calculate_trial_types(raw_position_data, first_ch_ds, second_ch_ds, soutput.trial_type_plot_folder)
 raw_position_data = calculate_time(raw_position_data, setting.location_ds_rate)
-raw_position_data = calculate_instant_dwell_time(raw_position_data)
+raw_position_data = calculate_instant_dwell_time(raw_position_data, setting.location_ds_rate)
 raw_position_data = calculate_instant_velocity(raw_position_data, soutput.speed_plot, setting.location_ds_rate, lowpass=True)
 raw_position_data = get_avg_speed_200ms(raw_position_data, soutput.mean_speed_plot, setting.location_ds_rate)
 

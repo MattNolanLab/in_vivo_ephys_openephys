@@ -13,7 +13,7 @@ def calculate_binned_speed(raw_position_data, processed_position_data, track_len
     trial_types = []
     position_bin_centres = []
 
-    for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
+    for trial_number in range(max(raw_position_data["trial_number"]+1)):
         trial_type = int(stats.mode(np.array(raw_position_data['trial_type'][np.array(raw_position_data['trial_number']) == trial_number]), axis=None)[0])
 
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])

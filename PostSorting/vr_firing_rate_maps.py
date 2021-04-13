@@ -55,11 +55,26 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
         x_locations_cm = np.array(cluster_spike_data["x_position_cm"].tolist()[0])
 
         if len(beaconed_processed_position_data)>0:
-            cluster_trial_x_locations = x_locations_cm[trial_types == 0]
+            cluster_trial_x_locations = x_locations_cm[trial_types == 0] #it also includes spikes from trial==0
             cluster_trial_numbers = trial_numbers[trial_types == 0]
             beaconed_bin_counts = np.histogram(cluster_trial_x_locations, bins)[0]
-            binned_times = get_total_bin_times(beaconed_processed_position_data["times_binned"])
+            binned_times = get_total_bin_times(beaconed_processed_position_data["times_binned"]) # but time binned only count from 1
+
             normalised_rate_map = beaconed_bin_counts/binned_times
+            # if cluster_id==3:
+            #     plt.figure()
+            #     plt.plot(beaconed_bin_counts)
+            #     plt.figure()
+            #     plt.plot(normalised_rate_map)
+            #     plt.figure()
+            #     plt.bar(np.arange(199),binned_times)
+            #     x=list(zip(binned_times,beaconed_bin_counts,normalised_rate_map))
+            #     for i,xx in enumerate(x):
+            #         print(f'{i}:{xx[0]:.2f} {xx[1]} {xx[2]:.2f}')
+
+
+
+                
             beaconed_firing_rate_map.append(normalised_rate_map.tolist())
 
             # calculate standard error

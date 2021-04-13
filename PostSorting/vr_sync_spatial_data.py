@@ -70,6 +70,22 @@ def calculate_track_location(position_data, recorded_location, track_length):
     return position_data
 
 
+def smooth_position(position_data, loc_sampling_rate, lowpass=10):
+    '''
+    Smooth the data
+    The position output from the Arduino is discrete. Many factors contribute to this incl. 
+    DAC resolution from arduino, position calculation in Blender etc. Occationally, random noise in signal
+    will make a datapoint fall in another bin. If it happens to have a spike in that time point, then
+    the dwell time of the animal in that location is very low, leading to a exceedingly high firing rate
+    need to use smoothing to remove this effect
+    Note: this function should be called after trial starting point has been detected 
+    (otherwise the teleport point will also be smoothed out) 
+    '''
+    b,a = signal.butter(5,lowpass/(loc_sampling_rate/2))
+    position_data['x_position_cm'] = signal.filtfilt(b,a, position_data['x_position_cm'])
+
+    return position_data
+
 # calculate time from start of recording in seconds for each sampling point
 def calculate_time(position_data, sampling_rate):
     print('Calculating time...')
@@ -78,9 +94,9 @@ def calculate_time(position_data, sampling_rate):
 
 
 # for each sampling point, calculates time from last sample point
-def calculate_instant_dwell_time(position_data):
+def calculate_instant_dwell_time(position_data, sampling_rate):
     print('Calculating dwell time...')
-    position_data['dwell_time_ms'] = position_data['time_seconds'].diff() # [row] - [row-1]
+    position_data['dwell_time_ms'] = 1/sampling_rate #the old way of diff will introduce nan at first number, which will affect dwell time for position later
     return position_data
 
 
@@ -98,16 +114,17 @@ def check_for_trial_restarts(trial_indices, loc_sampling_rate, min_time):
     return new_trial_indices
 
 
-def get_new_trial_indices(position_data,loc_sampling_freq = setting.sampling_rate/setting.location_ds_rate):
+def get_new_trial_indices(position_data, loc_sampling_freq = setting.location_ds_rate):
     location_diff = position_data['x_position_cm'].diff()  # Get the raw location from the movement channel
     trial_indices = np.where(location_diff < -20)[0]# return indices where is new trial
     trial_indices = check_for_trial_restarts(trial_indices, loc_sampling_freq, 0.5)# check if trial_indices values are within 1500 of eachother, if so, delete
     new_trial_indices=np.hstack((0,trial_indices,len(location_diff))) # add start and end indicies so fills in whole arrays
+    assert np.all(np.diff(trial_indices)> loc_sampling_freq), f"Some trials are too short. trial_indices={trial_indices}"
     return new_trial_indices
 
 
 def fill_in_trial_array(new_trial_indices,trials):
-    trial_count = 1
+    trial_count = 0
     for icount,i in enumerate(range(len(new_trial_indices)-1)):
         new_trial_index = int(new_trial_indices[icount])
         next_trial_index = int(new_trial_indices[icount+1])
