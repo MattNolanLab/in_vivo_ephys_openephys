@@ -60,9 +60,9 @@ def calculate_time(position_data):
 
 
 # for each sampling point, calculates time from last sample point
-def calculate_instant_dwell_time(position_data):
+def calculate_instant_dwell_time(position_data, pos_sampling_rate=settings.sampling_rate):
     print('Calculating dwell time...')
-    position_data['dwell_time_ms'] = position_data['time_seconds'].diff() # [row] - [row-1]
+    position_data['dwell_time_ms'] = 1/pos_sampling_rate
     return position_data
 
 
@@ -220,9 +220,9 @@ def get_avg_speed_200ms(position_data, output_path):
     PostSorting.vr_make_plots.plot_running_mean_velocity(position_data['speed_per200ms'], output_path)
     return position_data
 
-def downsampled_position_data(raw_position_data):
+def downsampled_position_data(raw_position_data, sampling_rate = settings.sampling_rate, down_sampled_rate = settings.location_ds_rate):
     position_data = pd.DataFrame()
-    downsample_factor = int(settings.sampling_rate/ settings.down_sampled_rate)
+    downsample_factor = int(sampling_rate/ down_sampled_rate)
     position_data["x_position_cm"] = raw_position_data["x_position_cm"][::downsample_factor]
     position_data["time_seconds"] =  raw_position_data["time_seconds"][::downsample_factor]
     position_data["speed_per200ms"] = raw_position_data["speed_per200ms"][::downsample_factor]
