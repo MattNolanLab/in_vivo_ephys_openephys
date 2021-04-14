@@ -139,13 +139,15 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     stimulation_start = cluster_rows.shape[1] / 2  # stimulus pulse starts in the middle of the array
     stimulation_end = cluster_rows.shape[1] / 2 + light_pulse_duration
     latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
+    salt_p = np.round(spatial_firing[spatial_firing.cluster_id == cluster].SALT_p[0], 4)
+    salt_i = np.round(spatial_firing[spatial_firing.cluster_id == cluster].SALT_I[0],4)
     ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5,
                color='lightblue')
     # convert to indices so we can make histogram
     spike_indices = np.where(cluster_rows.flatten() == 1)[0] % len(number_of_spikes_per_sampling_point)
     plt.hist(spike_indices, color='grey', alpha=0.5, bins=number_of_histogram_bins)
     plt.xlim(0, len(number_of_spikes_per_sampling_point))
-    plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd))
+    plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd), ' SALT p = ' + str(salt_p), ' SALT I = ' + str(salt_i))
     plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_histogram.png', dpi=300)
     plt.close()
 
