@@ -227,6 +227,7 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
     spatial_firing['SALT_p'] = all_p_values
     spatial_firing['SALT_I'] = all_i_values
     spatial_firing['SALT_latencies'] = all_latencies
+    return spatial_firing
 
 
 def main():
