@@ -125,10 +125,9 @@ def plot_polar_head_direction_histogram(hd_hist, spatial_firing, figure_folder_p
         cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
         hd_polar_fig = plt.figure()
         hd_polar_fig.set_size_inches(5, 5, forward=True)
-        ax = hd_polar_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+        ax = hd_polar_fig.add_subplot(1, 1, 1, polar=True)  # specify (nrows, ncols, axnum)
         hd_hist_cluster = cluster_df['hd_spike_histogram'].iloc[0]
         theta = np.linspace(0, 2*np.pi, 361)  # x axis
-        ax = plt.subplot(1, 1, 1, polar=True)
         ax = plot_utility.style_polar_plot(ax)
         ax.plot(theta[:-1], hd_hist_cluster, color='red', linewidth=2)
         ax.plot(theta[:-1], hd_hist*(max(hd_hist_cluster)/max(hd_hist)), color='black', linewidth=2)
@@ -184,7 +183,6 @@ def plot_rate_map_autocorrelogram(spatial_firing, figure_folder_path):
         ax = rate_map_autocorr_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         rate_map_autocorr = cluster_df['rate_map_autocorrelogram'].iloc[0]
         if rate_map_autocorr.size:
-            ax = plt.subplot(1, 1, 1)
             ax = plot_utility.style_open_field_plot(ax)
             autocorr_img = ax.imshow(rate_map_autocorr, cmap='jet', interpolation='nearest')
             rate_map_autocorr_fig.colorbar(autocorr_img)
