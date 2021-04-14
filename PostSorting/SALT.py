@@ -213,7 +213,7 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
         baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristim_cluster)
         latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                              test_trials=test_trials,
-                                             window_size=0.01, latency_step=0.01, baseline_start=0, baseline_end=0.05, test_start=0, test_end=0.05)
+                                             window_size=0.01, latency_step=0.01, baseline_start=0, baseline_end=0.2, test_start=0, test_end=0.2)
 
         print('latencies')
         print(latencies)
@@ -234,7 +234,7 @@ def main():
     import pandas as pd
     import PostSorting.parameters
     # recording_folder = '/Users/briannavandrey/Documents/recordings'
-    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-03-01_16-18-17_opto'
+    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2'
     prm = PostSorting.parameters.Parameters()
     prm.set_output_path(recording_folder + '/MountainSort')
     prm.set_sampling_rate(30000)
