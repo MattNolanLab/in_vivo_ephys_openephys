@@ -246,10 +246,9 @@ def plot_firing_fields(spatial_firing, spatial_data, figure_folder_path, samplin
             firing_rate_map = cluster_df['firing_maps'].iloc[0]
             if number_of_firing_fields > 0:
                 plt.clf()
-                of_figure = plt.figure()
+                of_figure,of_plot = plt.subplots(1,1)
                 plt.title('HD in detected fields', fontsize=24)
                 of_figure.set_size_inches(5, 5, forward=True)
-                of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
                 firing_rate_map_90 = np.rot90(firing_rate_map)
                 of_plot.imshow(firing_rate_map_90)
@@ -271,10 +270,9 @@ def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, 
             firing_rate_map = cluster_df['firing_maps'].iloc[0]
             if number_of_firing_fields > 0:
                 plt.clf()
-                of_figure = plt.figure()
+                of_figure, of_plot = plt.subplots(1,1)
                 plt.title('HD in detected fields', fontsize=24)
                 of_figure.set_size_inches(5, 5, forward=True)
-                of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
                 firing_rate_map_90 = np.rot90(firing_rate_map)
                 of_plot.imshow(firing_rate_map_90)
@@ -335,10 +333,9 @@ def plot_spikes_on_firing_fields(spatial_firing, figure_folder_path):
             number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
             if number_of_firing_fields > 0:
                 plt.clf()
-                of_figure = plt.figure()
+                of_figure, of_plot = plt.subplots(1,1)
                 plt.title('spikes in fields')
                 of_figure.set_size_inches(5, 5, forward=True)
-                of_plot = of_figure.add_subplot(1, 1, 1)
                 of_plot.axis('off')
                 firing_fields_cluster = cluster_df['firing_fields'].iloc[0]
                 colors = generate_colors(number_of_firing_fields)
