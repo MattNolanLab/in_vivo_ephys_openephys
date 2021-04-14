@@ -102,10 +102,20 @@ def find_nearest(array, value):
 
 # this is to remove any extra pulses that one dataset has but not the other
 def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data, skip_time=19):
+    # find the matching index in the oe and bonsai time
+    # the matching point is 19s in the future
     oe_time = sync_data_ephys_downsampled.time
     bonsai_time = spatial_data.synced_time_estimate
-    ephys_start_index = skip_time*setting.bonsai_sampling_rate  # bonsai sampling rate times 19 seconds
-    ephys_start_time = oe_time.values[ephys_start_index]
+
+    if oe_time.values[0]>=0:
+        ephys_start_index = skip_time*setting.bonsai_sampling_rate  # bonsai sampling rate times 19 seconds
+        ephys_start_time = oe_time.values[ephys_start_index]
+    else:
+        # take care of the case when ephys signal start earlier than bonsai
+        # set a time in the future, and find the corresponding index
+        ephys_start_time = skip_time
+        ephys_start_index = find_nearest(oe_time.values, ephys_start_time)
+
     bonsai_start_index = find_nearest(bonsai_time.values, ephys_start_time)
     return ephys_start_index, bonsai_start_index
 
@@ -173,13 +183,21 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, sync_figure_pat
 
     bonsai = spatial_data['syncLED'].values
     oe = sync_data_ephys_downsampled.sync_pulse.values
+
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 6 * np.std(bonsai))
     oe = reduce_noise(oe, 2)
     bonsai, oe = pad_shorter_array_with_0s(bonsai, oe)
     corr = np.correlate(bonsai, oe, "full")  # this is the correlation array between the sync pulse series
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     lag = (np.argmax(corr) - (corr.size + 1)/2)/avg_sampling_rate_bonsai  # lag between sync pulses is based on max correlation
-    spatial_data['synced_time_estimate'] = spatial_data.time_seconds - lag  # at this point the lag is about 100 ms
+    
+    if lag>0:
+        # here we assume the bonsai starts before the ephys
+        spatial_data['synced_time_estimate'] = spatial_data.time_seconds - lag  # at this point the lag is about 100 ms
+    else:
+        # ephys is ahead of bonsai, shift the ephys instead
+        sync_data_ephys_downsampled.time = sync_data_ephys_downsampled.time + lag
+        spatial_data['synced_time_estimate'] = spatial_data.time_seconds
 
     # cut off first 19 seconds to make sure there will be a corresponding pulse
     ephys_start, bonsai_start = trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data)
