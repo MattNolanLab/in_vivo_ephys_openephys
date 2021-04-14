@@ -8,7 +8,7 @@ import PostSorting.load_snippet_data_opto
 
 import PostSorting.open_field_make_plots
 import time
-# import PostSorting.SALT
+import PostSorting.SALT
 
 
 def load_opto_data(recording_to_process, prm):
@@ -242,11 +242,9 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
     spatial_firing = analyse_latencies(spatial_firing, sampling_rate)
     spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True)
     spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
-    # plt.plot((peristimulus_spikes.iloc[:, 2:].astype(int)).sum().rolling(50).sum())
-    # baseline, test = create_baseline_and_test_epochs(peristimulus_spikes)
-    # latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
-
+    spatial_firing = PostSorting.SALT.run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_spikes)
     return spatial_firing
+
 
 def main():
     import PostSorting.parameters
