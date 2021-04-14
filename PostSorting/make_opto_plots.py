@@ -147,7 +147,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     spike_indices = np.where(cluster_rows.flatten() == 1)[0] % len(number_of_spikes_per_sampling_point)
     plt.hist(spike_indices, color='grey', alpha=0.5, bins=number_of_histogram_bins)
     plt.xlim(0, len(number_of_spikes_per_sampling_point))
-    plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd), ' SALT p = ' + str(salt_p), ' SALT I = ' + str(salt_i))
+    plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + ' SALT p = ' + str(salt_p) +' SALT I = ' + str(salt_i))
     plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_histogram.png', dpi=300)
     plt.close()
 
