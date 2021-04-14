@@ -269,7 +269,7 @@ def plot_spikes_on_track(spike_data, processed_position_data, output_path, track
             if x_max>100:
                 spikes_on_track = plt.figure(figsize=(4,(x_max/32)))
             else:
-                spikes_on_track = plt.figure(figsize=(4,(x_max/20)))
+                spikes_on_track = plt.figure(figsize=(4,(x_max/20+1)))
 
             ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
 
