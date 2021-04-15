@@ -256,7 +256,7 @@ def make_combined_opto_plot(spatial_firing, output_path):
 def load_all_channels(output_path):
     all_channels = False
     is_loaded = False
-    path = '/'.join(i for i in output_path.split('/')[:-2]) + '/'
+    path = '/'.join(i for i in output_path.split('/')[:-1]) + '/'
     is_first = True
     channel_count = 0
     for file_path in glob.glob(path + '/*CH*continuous'):
@@ -361,13 +361,13 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
             latency_window_ms = 10
 
         # binary array containing light stimulation trials in each row (0 means no spike 1 means spike at a sampling point)
-        plot_lfp_around_stimulus(output_path)
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration,
                                  latency_window_ms=latency_window_ms)
         plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration)
         plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_snippets_opto', title='During opto-tagging')
         plot_waveforms_opto(spatial_firing, output_path, snippets_column_name='random_first_spike_snippets_opto', title='First spikes after light')
+        plot_lfp_around_stimulus(output_path)
         make_combined_opto_plot(spatial_firing, output_path)
 
 
