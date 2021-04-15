@@ -253,20 +253,91 @@ def make_combined_opto_plot(spatial_firing, output_path):
         plt.close()
 
 
-def plot_lfp_around_stimulus(output_path):
+def load_all_channels(output_path):
+    all_channels = False
+    is_loaded = False
     path = '/'.join(i for i in output_path.split('/')[:-2]) + '/'
     is_first = True
     channel_count = 0
     for file_path in glob.glob(path + '/*CH*continuous'):
-        print(file_path)
-        channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)
-        if is_first:
-            all_channels = np.zeros((len(glob.glob(path + '/*CH*continuous'), channel_data.size), np.int16))
-            is_first = False
-        all_channels[channel_count, :] = channel_data
-        channel_count += 1
-    print('cat')
+        if os.path.exists(file_path):
+            channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)
+            if is_first:
+                all_channels = np.zeros((len(list(glob.glob(path + '/*CH*continuous'))), channel_data.size), np.int16)
+                is_first = False
+                is_loaded = True
+            all_channels[channel_count, :] = channel_data
+            channel_count += 1
+    return all_channels, is_loaded
 
+
+def get_y_axis_positions_and_labels(baselines):
+    positions = []
+    labels = []
+    for baseline in baselines:
+        positions.append(baseline - 200)
+        labels.append('-200')
+        positions.append(baseline)
+        labels.append('0')
+        positions.append(baseline + 200)
+        labels.append('200')
+    return positions, labels
+
+
+def plot_lfp_traces(peristimulus_lfp):
+    baselines = []
+    baseline = 0
+    for channel in range(peristimulus_lfp.shape[0]):
+        plt.axhline(baseline, linestyle='--', alpha=0.6, color='grey')
+        plt.plot(peristimulus_lfp[channel] + baseline, color='black')
+        baselines.append(baseline)
+        baseline += 600
+    return baselines
+
+
+def plot_light_pulse(ax, peristimulus_lfp, baselines, half_window, pulse_length):
+    lowest_value = peristimulus_lfp[0].min()
+    highest_value = peristimulus_lfp[-1].max() + baselines[-1]
+
+    ax.axvspan(half_window, half_window + pulse_length, lowest_value, highest_value, alpha=0.95,
+               color='lightblue')
+
+
+def format_axis_labels(positions, sampling_rate, baselines):
+    labels = np.array(positions) / sampling_rate * 1000  # convert sampling points to ms
+    labels = (str(int(labels[0])), str(int(labels[1])), str(int(labels[2])))
+    plt.xticks(positions, labels)
+    plt.xlabel('Time (ms)')
+    positions, labels = get_y_axis_positions_and_labels(baselines)
+    plt.yticks(positions, labels)
+    plt.ylabel('Voltage (mV)')
+
+
+def make_lfp_plots_for_pulses(opto_pulses, all_channels, half_window, pulse_length, window_size, sampling_rate, path):
+    random_pulses = opto_pulses.opto_start_times.sample(n=10)
+    for pulse_index, pulse in random_pulses.iteritems():
+        peristimulus_lfp = all_channels[:, pulse - half_window:pulse + half_window]
+        peristimulus_figure, ax = plt.subplots()
+        baselines = plot_lfp_traces(peristimulus_lfp)
+        plot_light_pulse(ax, peristimulus_lfp, baselines, half_window, pulse_length)
+        positions = [0, half_window, window_size]
+        format_axis_labels(positions, sampling_rate, baselines)
+        plt.savefig(path + 'peristim_lfp_' + str(pulse_index) + '.png')
+        plt.close()
+
+
+def plot_lfp_around_stimulus(output_path, window_size=6000, length_of_pulse=30, sampling_rate=30000):
+    output_figure_path = output_path + '/Figures/peristimulus_lfp/'
+    if not os.path.exists(output_figure_path):
+        os.mkdir(output_figure_path)
+    half_of_window = int(window_size / 2)
+    all_channels, is_loaded = load_all_channels(output_path)
+    if not is_loaded:
+        return
+    opto_pulses_path = output_path + 'DataFrames/opto_pulses.pkl'
+    if os.path.exists(opto_pulses_path):
+        opto_pulses = pd.read_pickle(opto_pulses_path)
+        make_lfp_plots_for_pulses(opto_pulses, all_channels, half_of_window, length_of_pulse, window_size, sampling_rate, output_figure_path)
 
 
 def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, sampling_rate: int):
