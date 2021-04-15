@@ -313,8 +313,8 @@ def format_axis_labels(positions, sampling_rate, baselines):
     plt.ylabel('Voltage (mV)')
 
 
-def make_lfp_plots_for_pulses(opto_pulses, all_channels, half_window, pulse_length, window_size, sampling_rate, path):
-    random_pulses = opto_pulses.opto_start_times.sample(n=10)
+def make_lfp_plots_for_pulses(opto_pulses, all_channels, half_window, pulse_length, window_size, sampling_rate, path, number_of_samples=20):
+    random_pulses = opto_pulses.opto_start_times.sample(n=number_of_samples)
     for pulse_index, pulse in random_pulses.iteritems():
         peristimulus_lfp = all_channels[:, pulse - half_window:pulse + half_window]
         peristimulus_figure, ax = plt.subplots()
