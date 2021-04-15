@@ -175,8 +175,8 @@ def run_salt_test_on_test_data():
     latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                          test_trials=test_trials,
                                          window_size=0.01, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
-    print(latencies)
-    print(p_values)
+    # print(latencies)
+    # print(p_values)
 
 
 def turn_binary_array_to_time_series(binary_array, sampling_rate=30000):
