@@ -65,9 +65,9 @@ def bin_in_time(raw_position_data, processed_position_data):
     acc_binned_in_time = []
 
     for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
-        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
-        trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
-        trial_times = np.array(raw_position_data['time_seconds'][np.array(raw_position_data['trial_number']) == trial_number])
+        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
+        trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
+        trial_times = np.array(raw_position_data['time_seconds'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
 
         time_bins = np.arange(min(trial_times), max(trial_times), settings.time_bin_size)# 100ms time bins
 
@@ -89,7 +89,6 @@ def bin_in_time(raw_position_data, processed_position_data):
             speed_time_bin_means = []
             pos_time_bin_means = []
             acceleration_time_bin_means = []
-
 
         speeds_binned_in_time.append(speed_time_bin_means)
         pos_binned_in_time.append(pos_time_bin_means)
