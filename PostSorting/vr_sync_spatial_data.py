@@ -60,7 +60,7 @@ def calculate_time(position_data):
 
 
 # for each sampling point, calculates time from last sample point
-def calculate_instant_dwell_time(position_data, pos_sampling_rate=settings.sampling_rate):
+def calculate_instant_dwell_time(position_data, pos_sampling_rate):
     print('Calculating dwell time...')
     position_data['dwell_time_ms'] = 1/pos_sampling_rate
     return position_data
@@ -237,7 +237,7 @@ def syncronise_position_data(recording_folder, output_path, track_length):
     raw_position_data = calculate_trial_numbers(raw_position_data, output_path)
     raw_position_data = calculate_trial_types(raw_position_data, recording_folder, output_path)
     raw_position_data = calculate_time(raw_position_data)
-    raw_position_data = calculate_instant_dwell_time(raw_position_data)
+    raw_position_data = calculate_instant_dwell_time(raw_position_data, pos_sampling_rate=settings.sampling_rate)
     raw_position_data = calculate_instant_velocity(raw_position_data, output_path)
     raw_position_data = get_avg_speed_200ms(raw_position_data, output_path)
     position_data = downsampled_position_data(raw_position_data)
