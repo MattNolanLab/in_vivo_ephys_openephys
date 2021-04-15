@@ -11,7 +11,7 @@ def load_ephys_channel(recording_folder, ephys_channel, prm):
     print('Extracting ephys data')
     file_path = recording_folder + '/' + ephys_channel
     if os.path.exists(file_path):
-        channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        channel_data = open_ephys_IO.get_data_continuous(file_path)
     else:
         print('Movement data was not found.')
     return channel_data

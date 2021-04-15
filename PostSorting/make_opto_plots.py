@@ -1,14 +1,12 @@
-import array_utility
+import glob
 import os
 import matplotlib.pylab as plt
-import math
 import numpy as np
 import pandas as pd
-import plot_utility
 import PostSorting.parameters
 import PostSorting.make_plots
-import scipy.ndimage
 import matplotlib.image as mpimg
+import open_ephys_IO
 
 
 def make_folder_for_figures(output_path):
@@ -255,6 +253,22 @@ def make_combined_opto_plot(spatial_firing, output_path):
         plt.close()
 
 
+def plot_lfp_around_stimulus(output_path):
+    path = '/'.join(i for i in output_path.split('/')[:-2]) + '/'
+    is_first = True
+    channel_count = 0
+    for file_path in glob.glob(path + '/*CH*continuous'):
+        print(file_path)
+        channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)
+        if is_first:
+            all_channels = np.zeros((len(glob.glob(path + '/*CH*continuous'), channel_data.size), np.int16))
+            is_first = False
+        all_channels[channel_count, :] = channel_data
+        channel_count += 1
+    print('cat')
+
+
+
 def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, sampling_rate: int):
     """
     :param spatial_firing: data frame where each row corresponds to a cluster
@@ -276,6 +290,7 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
             latency_window_ms = 10
 
         # binary array containing light stimulation trials in each row (0 means no spike 1 means spike at a sampling point)
+        plot_lfp_around_stimulus(output_path)
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration,
                                  latency_window_ms=latency_window_ms)
@@ -286,12 +301,13 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 
 def main():
-    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort/DataFrames/peristimulus_spikes.pkl'
     peristimulus_spikes = pd.read_pickle(path)
-    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/spatial_firing.pkl'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing = pd.read_pickle(path)
     sampling_rate = 30000
-    output_path = ('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')
+    output_path = ('C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort/')
+    make_optogenetics_plots(spatial_firing, output_path, sampling_rate)
     plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=90,
                              latency_window_ms=10)
     plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=90)

@@ -28,7 +28,7 @@ def get_raw_location(recording_folder, prm):
     print('Extracting raw location...')
     file_path = recording_folder + '/' + prm.get_movement_channel()
     if os.path.exists(file_path):
-        location = open_ephys_IO.get_data_continuous(prm, file_path)
+        location = open_ephys_IO.get_data_continuous(file_path)
     else:
         print('Movement data was not found.')
     location=correct_for_restart(location)
@@ -153,7 +153,7 @@ def calculate_trial_numbers(position_data, prm):
 def load_first_trial_channel(recording_folder, prm):
     first = []
     file_path = recording_folder + '/' + prm.get_first_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
-    trial_first = open_ephys_IO.get_data_continuous(prm, file_path)
+    trial_first = open_ephys_IO.get_data_continuous(file_path)
     first.append(trial_first)
     return np.asarray(first, dtype=np.uint8)
 
@@ -162,7 +162,7 @@ def load_first_trial_channel(recording_folder, prm):
 def load_second_trial_channel(recording_folder, prm):
     second = []
     file_path = recording_folder + '/' + prm.get_second_trial_channel() #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
-    trial_second = open_ephys_IO.get_data_continuous(prm, file_path)
+    trial_second = open_ephys_IO.get_data_continuous(file_path)
     second.append(trial_second)
     return np.asarray(second, dtype=np.uint8)
 

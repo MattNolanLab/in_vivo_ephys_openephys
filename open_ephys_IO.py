@@ -36,7 +36,7 @@ def get_data_spike(folder_path, file_path, name):
     return waveforms, timestamps
 
 
-def get_data_continuous(prm, file_path):
+def get_data_continuous(file_path):
     data = OpenEphys.load(file_path)
     signal = data['data']
     signal = np.asanyarray(signal)
