@@ -308,8 +308,8 @@ def format_axis_labels(positions, sampling_rate, baselines):
     labels = (str(int(labels[0])), str(int(labels[1])), str(int(labels[2])))
     plt.xticks(positions, labels)
     plt.xlabel('Time (ms)')
-    positions, labels = get_y_axis_positions_and_labels(baselines)
-    plt.yticks(positions, labels)
+    # positions, labels = get_y_axis_positions_and_labels(baselines)
+    # plt.yticks(positions, labels)
     plt.ylabel('Voltage (mV)')
 
 
@@ -334,7 +334,7 @@ def plot_lfp_around_stimulus(output_path, window_size=6000, length_of_pulse=30, 
     all_channels, is_loaded = load_all_channels(output_path)
     if not is_loaded:
         return
-    opto_pulses_path = output_path + 'DataFrames/opto_pulses.pkl'
+    opto_pulses_path = output_path + '/DataFrames/opto_pulses.pkl'
     if os.path.exists(opto_pulses_path):
         opto_pulses = pd.read_pickle(opto_pulses_path)
         make_lfp_plots_for_pulses(opto_pulses, all_channels, half_of_window, length_of_pulse, window_size, sampling_rate, output_figure_path)
