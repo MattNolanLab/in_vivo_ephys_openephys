@@ -56,6 +56,49 @@ def trial_average_speed(processed_position_data):
 
     return trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds
 
+def bin_in_space(raw_position_data, processed_position_data):
+    gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/settings.vr_bin_size_cm)
+
+    speeds_binned_in_space = []
+    pos_binned_in_space = []
+    acc_binned_in_space = []
+
+    for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
+        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
+        trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
+
+        pos_bins = np.arange(min(trial_x_position_cm), max(trial_x_position_cm), settings.vr_bin_size_cm)# 1cm space bins
+
+        if len(pos_bins)>1:
+            # calculate the average speed and position in each 100ms time bin
+            speed_bin_means, pos_bin_edges = (np.histogram(trial_x_position_cm, pos_bins, weights = trial_speeds)[0] /
+                                              np.histogram(trial_x_position_cm, pos_bins)[0])
+
+            # get location bin centres
+            pos_bin_centres = 0.5*(pos_bin_edges[1:]+pos_bin_edges[:-1])
+
+            # and smooth
+            speed_bin_means = convolve(speed_bin_means, gauss_kernel)
+
+            # calculate the acceleration from the smoothed speed
+            acceleration_space_bin_means = np.diff(np.array(speed_bin_means))
+            acceleration_space_bin_means = np.hstack((0, acceleration_space_bin_means))
+
+        else:
+            speed_bin_means = []
+            pos_bin_centres = []
+            acceleration_space_bin_means = []
+
+        speeds_binned_in_space.append(speed_bin_means)
+        pos_binned_in_space.append(pos_bin_centres)
+        acc_binned_in_space.append(acceleration_space_bin_means)
+
+    processed_position_data["speeds_binned_in_space"] = speeds_binned_in_space
+    processed_position_data["pos_binned_in_space"] = pos_binned_in_space
+    processed_position_data["acc_binned_in_space"] = acc_binned_in_space
+
+    return processed_position_data
+
 
 def bin_in_time(raw_position_data, processed_position_data):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_time_seconds/settings.time_bin_size)
@@ -105,7 +148,10 @@ def bin_in_time(raw_position_data, processed_position_data):
 def process_position(raw_position_data, stop_threshold,track_length):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
     processed_position_data = bin_in_time(raw_position_data, processed_position_data)
+    processed_position_data = bin_in_space(raw_position_data, processed_position_data)
 
+    #TODO these functions should be removed and stops calculated from the time or space bins calculated above.
+    #TODO speed plots will need to be changed accordingly.
     processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data, track_length)
     processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,track_length)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, stop_threshold)
