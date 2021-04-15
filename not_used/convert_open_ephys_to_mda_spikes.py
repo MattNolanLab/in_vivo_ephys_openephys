@@ -97,7 +97,7 @@ def convert_continuous_to_mda(prm):
         channel_data_all = []
         for channel in range(4):
             file_path = folder_path + continuous_file_name + str(tetrode*4 + channel + 1) + '.continuous'
-            channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+            channel_data = open_ephys_IO.get_data_continuous(file_path)
             channel_data_all.append(channel_data)
 
         recording_length = len(channel_data_all[0])
@@ -118,7 +118,7 @@ def convert_all_tetrodes_to_mda(prm):
     path = spike_data_path + 'all_tetrodes\\data\\raw.mda'
 
     file_path = folder_path + '100_CH' + str(1) + '.continuous'
-    first_ch = open_ephys_IO.get_data_continuous(prm, file_path)
+    first_ch = open_ephys_IO.get_data_continuous(file_path)
     recording_length = len(first_ch)
     channels_all = np.zeros((number_of_tetrodes*4, recording_length))
     channels_all[0, :] = first_ch
@@ -126,7 +126,7 @@ def convert_all_tetrodes_to_mda(prm):
 
     for channel in range(15):
         file_path = folder_path + '100_CH' + str(channel + 2) + '.continuous'
-        channel_data = open_ephys_IO.get_data_continuous(prm, file_path)
+        channel_data = open_ephys_IO.get_data_continuous(file_path)
         channels_all[channel + 1, :] = channel_data
 
     mdaio.writemda16i(channels_all, path)
