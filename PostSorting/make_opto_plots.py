@@ -90,7 +90,7 @@ def get_binary_peristimulus_data_for_cluster(peristimulus_spikes: pd.DataFrame, 
 def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, sampling_rate, light_pulse_duration,
                                          latency_window_ms, save_path):
     cluster_rows = get_binary_peristimulus_data_for_cluster(peristimulus_spikes, cluster)
-    positions = [0, cluster_rows.shape[1]/2], cluster_rows.shape[1]
+    positions = [0, cluster_rows.shape[1]/2, cluster_rows.shape[1]]
     peristimulus_figure, ax = format_peristimulus_plot(positions, sampling_rate)
     plot_spikes_around_light(ax, cluster_rows, sampling_rate, light_pulse_duration, latency_window_ms)
     plt.ylim(0, cluster_rows.shape[0])
@@ -138,7 +138,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     number_of_histogram_bins = 100
     cluster_rows = get_binary_peristimulus_data_for_cluster(peristimulus_spikes, cluster)
     cluster_rows = cluster_rows.astype(int).to_numpy()
-    positions = [0, cluster_rows.shape[1] / 2], cluster_rows.shape[1]
+    positions = [0, cluster_rows.shape[1]/2, cluster_rows.shape[1]]
     peristimulus_figure, ax = format_peristimulus_plot(positions, sampling_rate)
     number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
     stimulation_start = cluster_rows.shape[1] / 2  # stimulus pulse starts in the middle of the array
