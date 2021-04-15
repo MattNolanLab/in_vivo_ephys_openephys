@@ -65,7 +65,6 @@ def format_peristimulus_plot(positions, sampling_rate):
     peristimulus_figure, ax = plt.subplots()
     peristimulus_figure.set_size_inches(5, 5, forward=True)
     plt.xlabel('Time (ms)', fontsize=14)
-    plt.ylabel('Trial', fontsize=14)
     labels = np.array(positions) / sampling_rate * 1000  # convert sampling points to ms
     labels = (str(int(labels[0])), str(int(labels[1])), str(int(labels[2])))
     plt.xticks(positions, labels)
@@ -95,6 +94,7 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plot_spikes_around_light(ax, cluster_rows, sampling_rate, light_pulse_duration, latency_window_ms)
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
+    plt.ylabel('Trial', fontsize=14)
     plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_raster.png', dpi=300)
     plt.close()
 
@@ -152,7 +152,9 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     spike_indices = np.where(cluster_rows.flatten() == 1)[0] % len(number_of_spikes_per_sampling_point)
     plt.hist(spike_indices, color='grey', alpha=0.5, bins=number_of_histogram_bins)
     plt.xlim(0, len(number_of_spikes_per_sampling_point))
+    plt.ylabel('Number of spikes', fontsize=14)
     plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + "\n" + ' SALT p = ' + str(salt_p) + ' SALT I = ' + str(salt_i))
+    plt.tight_layout()
     plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_histogram.png', dpi=300)
     plt.close()
 
