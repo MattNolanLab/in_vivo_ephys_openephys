@@ -303,7 +303,7 @@ def plot_light_pulse(ax, peristimulus_lfp, baselines, half_window, pulse_length)
                color='lightblue')
 
 
-def format_axis_labels(positions, sampling_rate, baselines):
+def format_axis_labels(positions, sampling_rate):
     labels = np.array(positions) / sampling_rate * 1000  # convert sampling points to ms
     labels = (str(int(labels[0])), str(int(labels[1])), str(int(labels[2])))
     plt.xticks(positions, labels)
@@ -321,7 +321,7 @@ def make_lfp_plots_for_pulses(opto_pulses, all_channels, half_window, pulse_leng
         baselines = plot_lfp_traces(peristimulus_lfp)
         plot_light_pulse(ax, peristimulus_lfp, baselines, half_window, pulse_length)
         positions = [0, half_window, window_size]
-        format_axis_labels(positions, sampling_rate, baselines)
+        format_axis_labels(positions, sampling_rate)
         plt.savefig(path + 'peristim_lfp_' + str(pulse_index) + '.png')
         plt.close()
 
