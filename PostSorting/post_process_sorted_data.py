@@ -111,7 +111,6 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, p
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
-    
 
 
 def create_folders_for_output(recording_to_process):
