@@ -48,6 +48,7 @@ reward_end = 110 #position for the reward
 movement_threshold = 3
 time_bin_size = 0.1 #seconds
 guassian_std_for_smoothing_in_time_seconds = 0.2
+guassian_std_for_smoothing_in_space_cm = 2
 movement_channel='100_ADC2.continuous'
 first_trial_channel='100_ADC4.continuous'
 second_trial_channel='100_ADC5.continuous'
