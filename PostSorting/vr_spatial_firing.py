@@ -92,7 +92,7 @@ def bin_fr_in_space(spike_data, raw_position_data):
     fr_binned_in_space_bin_centres = [[] for x in range(len(spike_data))]
 
     for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
-        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
+        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
         trial_x_dwell_time = np.array(raw_position_data['dwell_time_ms'][np.array(raw_position_data['trial_number']) == trial_number])
         pos_bins = np.arange(min(trial_x_position_cm), max(trial_x_position_cm), settings.vr_bin_size_cm)# 100ms time bins
 
@@ -106,8 +106,8 @@ def bin_fr_in_space(spike_data, raw_position_data):
                 trial_firing_locations = x_position_cm[trial_numbers == trial_number]
 
                 # count the spikes in each space bin and normalise by the total time spent in that bin for the trial
-                fr_hist, bin_edges = np.histogram(trial_firing_locations, pos_bins)[0]/\
-                                     np.histogram(trial_x_position_cm, pos_bins, weights=trial_x_dwell_time)[0]
+                fr_hist, bin_edges = np.histogram(trial_firing_locations, pos_bins)
+                fr_hist = fr_hist/np.histogram(trial_x_position_cm, pos_bins, weights=trial_x_dwell_time)[0]
 
                 # get location bin centres
                 bin_centres = 0.5*(bin_edges[1:]+bin_edges[:-1])
