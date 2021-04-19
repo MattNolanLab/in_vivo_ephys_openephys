@@ -133,12 +133,12 @@ def save_plots_of_pulses(bonsai, oe, prm, lag, name='sync_pulses'):
     plt.close()
 
 
-def save_plot(prm, data, name):
+def save_plot(prm, data, name, plot_color='black'):
     save_path = prm.get_output_path() + '/Figures/Sync_test/'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.figure()
-    plt.plot(data, color='red', label=name)
+    plt.plot(data, color=plot_color, label=name)
     plt.legend()
     plt.savefig(save_path + name + '_sync_pulses.png')
     plt.close()
@@ -175,9 +175,9 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
     bonsai = spatial_data['syncLED'].values
-    save_plot(prm, bonsai, 'bonsai')
+    save_plot(prm, bonsai, 'bonsai', plot_color='black')
     oe = sync_data_ephys_downsampled.sync_pulse.values
-    save_plot(prm, oe, 'open_ephys')
+    save_plot(prm, oe, 'open_ephys', plot_color='red')
     # save_plots_of_pulses(bonsai, oe, prm, name='pulses_before_processing')
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 6 * np.std(bonsai))
     oe = reduce_noise(oe, 2)
