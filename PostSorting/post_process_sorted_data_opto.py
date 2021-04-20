@@ -270,7 +270,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     # analyze spike data
     if not position_was_found:  # this is normally set after syncing the ephys and position data
-        run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=False, lfp_data=None)
+        run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=True, lfp_data=None)
     if position_was_found:
         try:
             synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)  # this will set the recording length
@@ -280,7 +280,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             print(error)
             print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
                   'I will run the rest of the analyses')
-            run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=False, lfp_data=None)
+            run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=True, lfp_data=None)
 
 
 
