@@ -144,7 +144,7 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Firing_fields')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None, lfp_data=None):
+def save_data_frames(spatial_firing, synced_spatial_data=None, snippet_data=None, bad_clusters=None, lfp_data=None):
     """
     Save data frames that contain the spike sorted analysis results for each cell.
     """
@@ -152,7 +152,8 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
-    synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
+    if synced_spatial_data is not None:
+        synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
     if snippet_data is not None:
         snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
     if bad_clusters is not None:
@@ -211,6 +212,7 @@ def run_analyses_without_position_data(spike_data_in, opto_analysis=False, lfp_d
         spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
 
     make_plots_with_no_spatial_data(spatial_firing, prm)
+    save_data_frames(spatial_firing, snippet_data=snippet_data, lfp_data=lfp_data)
 
 
 def set_recording_length(recording_to_process, prm):

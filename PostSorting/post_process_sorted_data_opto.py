@@ -130,7 +130,7 @@ def create_folders_for_output(recording_to_process):
         os.makedirs(recording_to_process + '/Firing_fields')
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None, lfp_data=None):
+def save_data_frames(spatial_firing, synced_spatial_data=None, snippet_data=None, bad_clusters=None, lfp_data=None):
     """
     Save data frames that contain the spike sorted analysis results for each cell.
     """
@@ -138,7 +138,8 @@ def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
-    synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
+    if synced_spatial_data is not None:
+        synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
     if snippet_data is not None:
         snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
     if bad_clusters is not None:
@@ -232,6 +233,7 @@ def run_analyses_without_position_data(recording_to_process, session_type, opto_
         spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
 
     make_plots_with_no_spatial_data(spatial_firing, prm)
+    save_data_frames(spatial_firing, snippet_data=snippet_data, lfp_data=lfp_data)
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort',
@@ -278,14 +280,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             print(error)
             print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
                   'I will run the rest of the analyses')
-
-        if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,
-                             lfp_data=lfp_data)
-        else:
             run_analyses_without_position_data(recording_to_process, session_type, opto_analysis=False, lfp_data=None)
-            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data,
-                                                               opto_analysis=opto_is_found, lfp_data=lfp_data)
 
 
 
