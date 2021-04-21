@@ -41,7 +41,7 @@ def correct_for_dead_channels(primary_channels, dead_channels):
     return primary_channels
 
 
-def process_firing_times(recording_to_process, session_type, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
+def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
     #TODO: should really refactor this two functions, one for VR and one for openfield
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
@@ -54,7 +54,7 @@ def process_firing_times(recording_to_process, session_type, sorter_name, dead_c
         firing_times = firing_times - stitchpoint
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, dead_channels)
-    if prm.get_opto_tagging_start_index() is not None:
+    if opto_tagging_start_index is not None:
         firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
         for cluster in units_list:
             cluster_firings_all = firing_times[cluster_ids == cluster]
@@ -88,9 +88,9 @@ def process_firing_times(recording_to_process, session_type, sorter_name, dead_c
     return firing_data
 
 
-def create_firing_data_frame(recording_to_process, session_type):
+def create_firing_data_frame(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
     spike_data = None
-    spike_data = process_firing_times(recording_to_process, session_type)
+    spike_data = process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index)
     return spike_data
 
 def available_ephys_channels(recording_to_process, prm):

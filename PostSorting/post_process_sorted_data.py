@@ -81,13 +81,13 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
 
 
 def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
+    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
     if is_found != None:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
         opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
-    return opto_on, opto_off, is_found
+    return opto_on, opto_off, is_found, opto_start_index
 
 
 def sync_data(recording_to_process, prm, spatial_data):
@@ -165,7 +165,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
+    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
@@ -173,7 +173,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         if not total_length:
             total_length = total_length_sampling_points
         # analyze spike data
-        spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type)
+        spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index=opto_start_index)
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length)
         spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())

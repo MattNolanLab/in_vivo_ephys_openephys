@@ -45,9 +45,9 @@ def process_position_data(recording_to_process, output_path, track_length, stop_
     return raw_position_data, processed_position_data, position_data
 
 
-def process_firing_properties(recording_to_process, session_type, sorter_name, dead_channels, paired_order, stitchpoint, total_length_sampling_points, opto_tagging_start_index=None):
+def process_firing_properties(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, total_length_sampling_points, opto_tagging_start_index=None):
     # TODO: add the doc for paired_order and stitchpoint here
-    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, session_type, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index)
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length_sampling_points)
     spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint) #TODO: check should really be done before calling a function, function should not do nothing
     return spike_data

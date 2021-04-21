@@ -48,7 +48,7 @@ def process_opto_data(recording_to_process, prm):
     else:
         prm.set_opto_tagging_start_index(None)
 
-    return opto_on, opto_off, is_found
+    return opto_on, opto_off, is_found, first_opto_pulse_index
 
 
 def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
