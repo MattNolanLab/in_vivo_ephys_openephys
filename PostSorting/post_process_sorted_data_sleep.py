@@ -264,7 +264,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     else:
         prm.set_pixel_ratio(pixel_ratio)
 
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
+    # lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
     opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     position_was_found = False
@@ -283,9 +283,9 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process,
                                                                                       session_type, prm)
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
+            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
         else:
             run_analyses_without_position_data(spike_data, opto_analysis=False, lfp_data=None)
-            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found, lfp_data=lfp_data)
+            synced_spatial_data, spatial_firing = run_analyses(spike_data, synced_spatial_data, opto_analysis=opto_is_found)
 
 

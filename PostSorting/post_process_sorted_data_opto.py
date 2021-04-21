@@ -259,7 +259,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     else:
         prm.set_pixel_ratio(pixel_ratio)
 
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
+    # lfp_data = PostSorting.lfp.process_lfp(recording_to_process, prm)
     opto_on, opto_off, opto_is_found = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     position_was_found = False
