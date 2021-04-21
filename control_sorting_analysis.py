@@ -168,7 +168,7 @@ def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
 
 
-def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags=None, recs_length=None, paired_order=None):
+def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order=None):
     if session_type == "openfield":
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order=paired_order,
                                                         running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
@@ -187,11 +187,11 @@ def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
 
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points[0])
 
-    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points[0], tags, recs_length, paired_order='first')
+    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points[0], tags, recs_length=recs_length, paired_order='first')
     for index, paired_recording in enumerate(paired_recordings_to_sort):
         print('I will run the post-sorting scrpits for: ' + paired_recording)
         copy_ephys_to_paired(recording_to_sort, paired_recording)
-        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points[index], tags, recs_length, paired_order='second')
+        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points[index], tags, recs_length=recs_length, paired_order='second')
         copy_paired_outputs_to_server(paired_recording)
         delete_ephys_for_paired(paired_recording)
 
@@ -252,6 +252,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
                     shutil.rmtree(path_to_paired_recording)
 
         else:
+           # (recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order=None)
             call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point=None, tags=tags)
 
         if os.path.exists(recording_to_sort) is True:

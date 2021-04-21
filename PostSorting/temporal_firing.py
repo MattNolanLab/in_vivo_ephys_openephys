@@ -1,4 +1,5 @@
 import numpy as np
+import settings
 
 def add_temporal_firing_properties_to_df(spatial_firing, stitchpoint, paired_order, total_length_sampling_points):
     # calculate number of spikes and mean firing rate for each cluster and add to spatial firing df
@@ -9,7 +10,7 @@ def add_temporal_firing_properties_to_df(spatial_firing, stitchpoint, paired_ord
     for cluster, cluster_id in enumerate(spatial_firing.cluster_id):
         firing_times = np.asarray(spatial_firing[spatial_firing.cluster_id == cluster_id].firing_times)[0]
         total_number_of_spikes = len(firing_times)
-        total_length_of_recording = total_length_sampling_points  # this does not include opto
+        total_length_of_recording = total_length_sampling_points/settings.sampling_rate # this does not include opto
 
         if stitchpoint is not None:
             total_length_of_recordings = total_length_sampling_points  # this does not include opto
