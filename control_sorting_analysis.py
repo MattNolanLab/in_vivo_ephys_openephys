@@ -168,7 +168,7 @@ def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
 
 
-def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order=None):
+def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length=False, paired_order=None):
     if session_type == "openfield":
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order=paired_order,
                                                         running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
