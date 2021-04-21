@@ -93,7 +93,7 @@ def process_light_stimulation(recording_to_process, prm):
 def sync_data(recording_to_process, prm, spatial_data):
     synced_spatial_data,total_length_sampling_points, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
                                                                                        spatial_data)
-    return synced_spatial_data
+    return synced_spatial_data, total_length_sampling_points
 
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm):
@@ -145,8 +145,8 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     file_handler = open(prm.get_output_path() + '/DataFrames/prm', 'wb')
     pickle.dump(prm, file_handler)
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort',
-                           stitchpoint=None, paired_order=None, total_length=None):
+def post_process_recording(recording_to_process, session_type, total_length=False, running_parameter_tags=False,
+                           sorter_name='MountainSort', stitchpoint=None, paired_order=None):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
@@ -158,7 +158,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
-    total_length_sampling_points = total_length/prm.get_sampling_rate()
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
@@ -170,10 +169,12 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
-        synced_spatial_data = sync_data(recording_to_process, prm, spatial_data)
+        synced_spatial_data, total_length_sampling_points = sync_data(recording_to_process, prm, spatial_data)
+        if not total_length:
+            total_length = total_length_sampling_points
         # analyze spike data
         spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type)
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length_sampling_points)
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length)
         spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
         snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
