@@ -145,6 +145,7 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     file_handler = open(prm.get_output_path() + '/DataFrames/prm', 'wb')
     pickle.dump(prm, file_handler)
 
+
 def post_process_recording(recording_to_process, session_type, total_length=False, running_parameter_tags=False,
                            sorter_name='MountainSort', stitchpoint=None, paired_order=None):
     create_folders_for_output(recording_to_process)
