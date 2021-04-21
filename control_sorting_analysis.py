@@ -182,7 +182,7 @@ def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_p
 
 
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
-                                      paired_recordings_to_sort, paired_session_types, paired_locations_on_server,
+                                      paired_recordings_to_sort, paired_session_types,
                                       stitch_points, tags):
 
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points[0])
@@ -245,7 +245,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         if paired_recording is not None:
             run_post_sorting_for_all_recordings(recording_to_sort, session_type,
-                                              paired_recordings_to_sort, paired_session_types, paired_locations_on_server,
+                                              paired_recordings_to_sort, paired_session_types,
                                               stitch_points, tags)
             for path_to_paired_recording in paired_recordings_to_sort:
                 if os.path.exists(path_to_paired_recording) is True:

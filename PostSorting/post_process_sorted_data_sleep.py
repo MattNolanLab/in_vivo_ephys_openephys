@@ -234,7 +234,7 @@ def analyze_snippets_and_temporal_firing(recording_to_process, session_type, prm
     """
     Run analyses on spike sorted data to analyze snippets and temporal firing properties.
     """
-    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type, prm)
+    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, session_type)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, prm)
     spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, prm)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm)

@@ -63,7 +63,6 @@ def get_snippets(firing_data, file_path, sorter_name, dead_channels, stitchpoint
         for cluster, cluster_id in enumerate(firing_data.cluster_id):
             tetrode = np.asarray(firing_data[firing_data.cluster_id == cluster_id].tetrode)[0]
             firing_times = np.asarray(firing_data[firing_data.cluster_id == cluster_id].firing_times)[0]
-            dead_channels = prm.get_dead_channels()
             if random_snippets is True:
                 snippets = extract_random_snippets(filtered_data, firing_times, tetrode, 50, dead_channels)
             else:
