@@ -6,14 +6,13 @@ import numpy as np
 import pandas as pd
 import plot_utility
 import scipy.ndimage
-
 from typing import Tuple
+import settings
 
 
-def plot_spike_histogram(spatial_firing, prm):
-    sampling_rate = prm.get_sampling_rate()
+def plot_spike_histogram(spatial_firing, output_path, sampling_rate = settings.sampling_rate):
     print('I will plot spikes vs time for the whole session excluding opto tagging.')
-    save_path = prm.get_output_path() + '/Figures/firing_properties'
+    save_path = output_path + '/Figures/firing_properties'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
@@ -110,13 +109,13 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     return corr, time
 
 
-def get_10ms_autocorr(firing_times_cluster, prm):
-    corr1, time1 = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / prm.get_sampling_rate(), 1, 20)
+def get_10ms_autocorr(firing_times_cluster, sampling_rate):
+    corr1, time1 = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / sampling_rate, 1, 20)
     return corr1, time1
 
 
-def get_250ms_autocorr(firing_times_cluster, prm):
-    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / prm.get_sampling_rate(), 1, 500)
+def get_250ms_autocorr(firing_times_cluster, sampling_rate):
+    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / sampling_rate, 1, 500)
     return corr, time
 
 
@@ -145,10 +144,10 @@ def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data
     plt.close()
 
 
-def plot_autocorrelograms(spike_data: pd.DataFrame, prm: object) -> None:
+def plot_autocorrelograms(spike_data: pd.DataFrame, output_path: str, sampling_rate = settings.sampling_rate) -> None:
     plt.close()
     print('I will plot autocorrelograms for each cluster (10 ms and 250 ms windows).')
-    save_path = prm.get_output_path() + '/Figures/firing_properties'
+    save_path = output_path + '/Figures/firing_properties'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
@@ -156,8 +155,8 @@ def plot_autocorrelograms(spike_data: pd.DataFrame, prm: object) -> None:
 
         firing_times_cluster = cluster_df['firing_times'].iloc[0]
         if len(firing_times_cluster)>1: # only calculate autocorr if there are any spikes
-            corr_10, time_10 = get_10ms_autocorr(firing_times_cluster, prm)
-            corr_250, time_250 = get_250ms_autocorr(firing_times_cluster, prm)
+            corr_10, time_10 = get_10ms_autocorr(firing_times_cluster, sampling_rate)
+            corr_250, time_250 = get_250ms_autocorr(firing_times_cluster, sampling_rate)
             make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data, save_path, cluster_index, cluster_id)
 
 
@@ -192,9 +191,9 @@ def plot_spikes_for_channel_centered(grid, spike_data, cluster_id, channel, snip
     plt.ylabel('Voltage (µV)', fontsize=14)
 
 
-def plot_waveforms(spike_data, prm):
+def plot_waveforms(spike_data, output_path):
     print('I will plot the waveform shapes for each cluster.')
-    save_path = prm.get_output_path() + '/Figures/firing_properties'
+    save_path = output_path + '/Figures/firing_properties'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):

@@ -43,6 +43,6 @@ def get_data_continuous(file_path):
     return signal
 
 
-def get_events(prm, file_path):
+def get_events(file_path):
     events = OpenEphys.load(file_path)
     return events

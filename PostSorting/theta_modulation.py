@@ -13,7 +13,6 @@ import warnings
 import sys
 from scipy import fftpack
 import elephant
-
 warnings.filterwarnings('ignore')
 
 test_params = PostSorting.parameters.Parameters()
@@ -100,7 +99,7 @@ fivefold greater than the mean spectral power between 0 and 125 Hz
 This is calculated and called Boccara_theta_class either 1=modulated, 0=not modulated
 """
 
-def calculate_spectral_density(firing_rate, prm, cluster_data, save_path):
+def calculate_spectral_density(firing_rate, cluster_data, save_path):
     f, Pxx_den = signal.welch(firing_rate, fs=1000, nperseg=10000, scaling='spectrum')
     Pxx_den = Pxx_den*f
     #print(cluster)
@@ -183,10 +182,10 @@ def calculate_boccara_theta(Pxx_den, f):
     #print(mean_peak_theta_power/mean_baseline_power)
     return boccara_theta_mod
 
-def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
+def calculate_boccara_theta_2(firing_rate, sampling_rate, cluster_data):
 
     firing_times_cluster = cluster_data.firing_times
-    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 2000)
+    corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/sampling_rate, 1, 2000)
 
     #corr, time = calculate_autocorrelogram_hist2(np.array(firing_times_cluster), 1, prm.get_sampling_rate())
     #time = time/prm.get_sampling_rate()
@@ -247,13 +246,7 @@ def calculate_boccara_theta_2(firing_rate, prm, cluster_data):
         boccara_theta_mod = 1 # classified as theta modulated if at least 5 fold larger
     else:
         boccara_theta_mod = 0
-
-    #print(mean_peak_theta_power/mean_baseline_power)
-
-    plt.title("t ="+str(mean_peak_theta_power/mean_baseline_power))
-    rn = np.random.randint(1000000, size=1)
-
-    #plt.savefig("/mnt/datastore/Harry/test_function_figure_space/fft_signal"+str(rn)+".png")
+        
     return boccara_theta_mod
 
 
@@ -264,9 +257,9 @@ def calculate_theta_peak(Pxx_den,f):
     theta_peak = theta_frequencies[0, np.argmax(theta_powers)]
     return theta_peak
 
-def calculate_theta_index(spike_data,prm):
+def calculate_theta_index(spike_data, output_path, sampling_rate):
     print('I am calculating theta index...')
-    save_path = prm.get_output_path() + '/Figures/firing_properties/autocorrelograms'
+    save_path = output_path + '/Figures/firing_properties/autocorrelograms'
     try:
         if os.path.exists(save_path) is False:
             os.makedirs(save_path)
@@ -290,10 +283,9 @@ def calculate_theta_index(spike_data,prm):
         else:
             instantaneous_firing_rate = extract_instantaneous_firing_rate(cluster_data)
             firing_rate = calculate_firing_probability(instantaneous_firing_rate)
-            f, Pxx_den = calculate_spectral_density(firing_rate, prm, cluster_data, save_path)
-
+            f, Pxx_den = calculate_spectral_density(firing_rate, cluster_data, save_path)
             #boccara_theta = calculate_boccara_theta(Pxx_den, f)
-            boccara_theta = calculate_boccara_theta_2(firing_rate, prm, cluster_data)
+            boccara_theta = calculate_boccara_theta_2(firing_rate, sampling_rate, cluster_data)
             t_index, t_power = calculate_theta_power(Pxx_den, f)
 
             theta_indices.append(t_index)
@@ -305,7 +297,7 @@ def calculate_theta_index(spike_data,prm):
             #print("boccara_thetas = "+str(boccara_theta))
 
             firing_times_cluster = cluster_data.firing_times
-            corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/prm.get_sampling_rate(), 1, 600)
+            corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster)/sampling_rate, 1, 600)
 
             fig = plt.figure(figsize=(7,4)) # width, height?
             ax = fig.add_subplot(1, 2, 1)  # specify (nrows, ncols, axnum)
@@ -481,22 +473,20 @@ def gen_modulated_firing(n_clusters, freq=8):
     spatial_firing["session_id"] = session_ids
     return spatial_firing
 
-def run_for_x(path_to_recording_list):
-    recordings_file_reader = open(path_to_recording_list, 'r')
-    recordings = recordings_file_reader.readlines()
-    list_of_recordings = list([x.strip() for x in recordings])
+def run_for_x(path_to_recording):
+    list_of_recordings = [f.path for f in os.scandir(path_to_recording) if f.is_dir()]
 
     for i in range(len(list_of_recordings)):
         try:
             recording_path = list_of_recordings[i]
             print("processing recording ", recording_path)
             spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
-            spatial_firing = pd.read_pickle('/mnt/datastore/'+spatial_firing_path)
+            spatial_firing = pd.read_pickle(spatial_firing_path)
             spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
-            test_params.set_output_path('/mnt/datastore/'+recording_path+"/MountainSort")
+            test_params.set_output_path(recording_path+"/MountainSort")
             test_params.set_sampling_rate(30000)
             spatial_firing = run_test(spatial_firing)
-            spatial_firing.to_pickle('/mnt/datastore/'+spatial_firing_path)
+            spatial_firing.to_pickle(spatial_firing_path)
             print("successful on recording, ", list_of_recordings[i])
 
         except Exception as ex:
@@ -506,42 +496,36 @@ def run_for_x(path_to_recording_list):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_tb(exc_traceback)
 
+def gen_modulated_firing_figure(freq, save_path):
+
+    total_length = 1000000
+    n_spikes = 10000
+    F = freq # desired frequnecy
+    Fs = 30000 # sampling rate
+    T = total_length/Fs # n seconds   30000
+    Ts = 1./Fs
+    N = int(T/Ts)
+    t = np.linspace(0, T, N)
+
+    signal1 = np.cos(2*np.pi*F*t)+1
+    signal1 += np.random.normal(0, 0.3, len(signal1))
+
+    #signal1_normalised = signal1/np.sum(signal1)
+    #signal1_normalised += np.random.normal(0, 0, len(signal1_normalised))
+    #signal2 = np.cos(2*np.pi*1234*t)+1
+    #signal2_normalised = signal2/np.sum(signal2)
+    #signal2_normalised = 0
+
+    #signal_total = signal1_normalised+signal2_normalised
+
+    fig, ax = plt.subplots(figsize=(12,3))
+    ax.plot(signal1[0:32000], color="black")
+    plt.savefig(save_path+"/mod_firing_example.png", dpi=300)
+    print("plotted depth correlation")
+
 def main():
+  print("===============================")
 
-    '''
-    recording_path = '/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/M2_D10_2019-06-28_14-56-06'
-    spatial_firing_path = recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"
-    spatial_firing = pd.read_pickle(spatial_firing_path)
-    spatial_firing= spatial_firing.sort_values(by=['cluster_id'])
-    test_params.set_output_path(recording_path+"/MountainSort")
-    test_params.set_sampling_rate(30000)
-    spatial_firing = run_test(spatial_firing)
-    spatial_firing.to_pickle(spatial_firing_path)
-    '''
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/OpenField/of_list.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort5/VirtualReality/vr_list.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/VirtualReality/vrlist.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m2.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort4/OpenFeild/mouse_info/filelist_m3.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/VirtualReality/vrlist_cohort3.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M1_of.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort3/OpenFeild/Mouse_Info/filelist_M6_of_1.txt")
-    print("done one")
-
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/VirtualReality/with_of_recordings.txt")
-    run_for_x("/mnt/datastore/Harry/Mouse_data_for_sarah_paper/_cohort2/OpenField/Mouse_info/filelist_all.txt")
-    print("done one")
-
-    # generate a dummy spatial firing dataframe to test if theta index can come out low if made randomly.
-    #random_firing = gen_modulated_firing(n_clusters=3, freq=8)
-    #random_firing = gen_random_firing(n_clusters=3)
-    #random_firing = run_test(random_firing)
-    print("look now")
 
 if __name__ == '__main__':
     main()
