@@ -36,18 +36,13 @@ def get_ons_and_offs(opto_data):
 def process_opto_data(recording_to_process, prm):
     opto_on = opto_off = None
     opto_data, is_found = load_opto_data(recording_to_process, prm)
+    first_opto_pulse_index = None
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
         if not np.asarray(opto_on).size:
-            prm.set_opto_tagging_start_index(None)
-            is_found = None
+            is_found = False
         else:
             first_opto_pulse_index = min(opto_on[0])
-            prm.set_opto_tagging_start_index(first_opto_pulse_index)
-
-    else:
-        prm.set_opto_tagging_start_index(None)
-
     return opto_on, opto_off, is_found, first_opto_pulse_index
 
 

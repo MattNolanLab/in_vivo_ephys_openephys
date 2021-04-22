@@ -81,8 +81,8 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
 
 
 def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)  # indices
-    if is_found != None:
+    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)
+    if is_found:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
