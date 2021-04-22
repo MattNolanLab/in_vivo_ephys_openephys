@@ -175,8 +175,8 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
     return spike_data, snippet_data, bad_clusters
 
 
-def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_analysis, total_length):
-    set_recording_length(recording_to_process, prm)
+def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_analysis):
+    total_length, is_found = set_recording_length(recording_to_process, prm)
     spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, total_length)
     spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
                                                                         settings.sampling_rate)
@@ -217,7 +217,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
     except:
         print('I cannot analyze the position data for this opto recording.')
     if not position_was_found:
-        run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_is_found, total_length)
+        run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_is_found)
 
     if position_was_found:
         try:
@@ -227,7 +227,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
             print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
                    'I will run the rest of the analyses')
 
-            run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_is_found, total_length)
+            run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_is_found)
 
 
 
