@@ -205,13 +205,14 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
     save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm, lag2)
 
-    if abs(lag2) < 1:
+    if abs(lag2) < 1.5:
         #after correlation sync, the difference in lag should very small, if not it may indicate error
         print(f'Rising edge lag is {lag2}')
         spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
     else:
         # time difference between riring edge is too large, potential bug
-        raise ValueError('Potential sync error. Lag between bonsai and ephys edge is' + str(lag2))
+        print('Lag is:' + str(lag2))
+        raise ValueError('Potential sync error.')
         
 
     # plots for testing
