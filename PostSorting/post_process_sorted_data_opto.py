@@ -182,9 +182,9 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
                                                                         settings.sampling_rate)
 
     if opto_analysis:
-        spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
+        spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
 
-    make_plots(spatial_firing, prm.get_output_path(), prm)
+    make_plots(spike_data, prm.get_output_path(), prm)
     save_data_frames(spike_data, synced_spatial_data=None, snippet_data=snippet_data, bad_clusters=bad_clusters,
                      lfp_data=None)
 
