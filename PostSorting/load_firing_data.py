@@ -50,8 +50,6 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
         return firing_data
     cluster_ids = firing_info[2]
     firing_times = firing_info[1]
-    if stitchpoint is not None and paired_order == "first":
-        firing_times = firing_times - stitchpoint
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, dead_channels)
     if opto_tagging_start_index is not None:
