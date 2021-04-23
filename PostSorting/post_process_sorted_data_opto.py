@@ -178,15 +178,18 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
 def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_analysis):
     total_length, is_found = set_recording_length(recording_to_process, prm)
     spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, total_length)
-    spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
-                                                                        settings.sampling_rate)
+    if len(spike_data) > 0:
+        spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
+                                                                            settings.sampling_rate)
 
-    if opto_analysis:
-        spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
+        if opto_analysis:
+            spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
 
-    make_plots(spike_data, prm.get_output_path(), prm)
-    save_data_frames(spike_data, synced_spatial_data=None, snippet_data=snippet_data, bad_clusters=bad_clusters,
-                     lfp_data=None)
+        make_plots(spike_data, prm.get_output_path(), prm)
+        save_data_frames(spike_data, synced_spatial_data=None, snippet_data=snippet_data, bad_clusters=bad_clusters,
+                         lfp_data=None)
+    else:
+        print('No curated clusters in this recording.')
 
 
 def post_process_recording(recording_to_process, session_type, total_length=False, running_parameter_tags=False,
