@@ -185,7 +185,7 @@ def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                       paired_recordings_to_sort, paired_session_types,
                                       stitch_points, tags):
 
-    recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points[0])
+    recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points)
 
     call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points[0], tags, recs_length=False, paired_order='first')
     for index, paired_recording in enumerate(paired_recordings_to_sort):

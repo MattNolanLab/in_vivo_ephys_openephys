@@ -28,12 +28,12 @@ def init_params():
 def split_back(recording_to_sort, stitch_point):
     """
     :param recording_to_sort: Path to recording #1 that is sorted together with other recordings
-    :param stitch_point: time point where the recordings were stitched together
+    :param stitch_point: length of recordings
     :return: the path (same as input parameter) and the total number of time steps in the combined data
     """
     print('I will split the data that was sorted together. It might take a while.')
     dir = [f.path for f in os.scandir(recording_to_sort)]
-
+    first_stitch_point = stitch_point[0]
     n_timestamps = 0
     for filepath in dir:
         filename = filepath.split("/")[-1]
@@ -45,9 +45,9 @@ def split_back(recording_to_sort, stitch_point):
             if n_timestamps == 0:
                 n_timestamps = len(ch["data"])
 
-            ch['data'] = ch['data'][:stitch_point]
-            ch['timestamps'] = ch['timestamps'][:stitch_point]
-            ch['recordingNumber'] = ch['recordingNumber'][:stitch_point]
+            ch['data'] = ch['data'][:first_stitch_point]
+            ch['timestamps'] = ch['timestamps'][:first_stitch_point]
+            ch['recordingNumber'] = ch['recordingNumber'][:first_stitch_point]
             OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
     
     return recording_to_sort, n_timestamps
