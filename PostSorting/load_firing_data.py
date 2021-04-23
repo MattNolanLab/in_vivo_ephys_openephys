@@ -43,6 +43,7 @@ def correct_for_dead_channels(primary_channels, dead_channels):
 
 def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
     #TODO: should really refactor this two functions, one for VR and one for openfield
+    # this is not an open field vs vr separation, but opto vs no opto - the 'vr' columns are empty and there's no point adding them
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
