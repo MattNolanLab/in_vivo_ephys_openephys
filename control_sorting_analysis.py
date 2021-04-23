@@ -176,9 +176,9 @@ def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_p
         post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', paired_order=paired_order,
                                                            running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
     elif session_type == "sleep":
-        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', paired_order=paired_order, running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
     elif session_type == "opto":
-        post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
+        post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', paired_order=paired_order, running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
 
 
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
