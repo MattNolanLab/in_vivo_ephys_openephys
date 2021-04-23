@@ -182,16 +182,16 @@ def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_p
 
 
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
-                                      paired_recordings_to_sort, paired_session_types,
-                                      stitch_points, tags):
+                                        paired_recordings_to_sort, paired_session_types,
+                                        stitch_points, tags):
 
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points)
 
-    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points[0], tags, recs_length=False, paired_order='first')
+    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points, tags, recs_length=False, paired_order=1)
     for index, paired_recording in enumerate(paired_recordings_to_sort):
         print('I will run the post-sorting scrpits for: ' + paired_recording)
         copy_ephys_to_paired(recording_to_sort, paired_recording)
-        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points[index], tags, recs_length=recs_length, paired_order='second')
+        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points, tags, recs_length=recs_length, paired_order=index + 2)
         copy_paired_outputs_to_server(paired_recording)
         delete_ephys_for_paired(paired_recording)
 
