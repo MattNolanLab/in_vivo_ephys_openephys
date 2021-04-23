@@ -66,9 +66,9 @@ def stitch_recordings(recording_to_sort, paired_recordings):
 
     directory_list = [f.path for f in os.scandir(recording_to_sort)]
     stitch_points = []
+    added_first_stitch = False
+    added_paired_stitch = False
     for filepath in directory_list:
-        added_first_stitch = False
-        added_paired_stitch = False
         filename = filepath.split("/")[-1]
         if filename.startswith(prm.get_continuous_file_name()):
             ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
