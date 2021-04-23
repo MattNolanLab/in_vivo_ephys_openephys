@@ -83,7 +83,8 @@ def stitch_recordings(recording_to_sort, paired_recordings):
                 ch['recordingNumber'] = np.append(ch['recordingNumber'], ch_p['recordingNumber'])
                 if not added_paired_stitch:
                     length_of_other_recording = len(ch_p['data'])
-                    stitch_points.append(length_of_other_recording)
+                    previous_stitch = stitch_points[-1]
+                    stitch_points.append(previous_stitch + length_of_other_recording)
             added_paired_stitch = True
             OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
 
