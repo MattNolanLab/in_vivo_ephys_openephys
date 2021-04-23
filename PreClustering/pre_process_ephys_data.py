@@ -67,18 +67,24 @@ def stitch_recordings(recording_to_sort, paired_recordings):
     directory_list = [f.path for f in os.scandir(recording_to_sort)]
     stitch_points = []
     for filepath in directory_list:
+        added_first_stitch = False
+        added_paired_stitch = False
         filename = filepath.split("/")[-1]
-
         if filename.startswith(prm.get_continuous_file_name()):
             ch = OpenEphys.loadContinuous(recording_to_sort + '/' + filename)
-            for recording in paired_recordings:
-                ch_p = OpenEphys.loadContinuous(recording + '/' + filename)
+            if not added_first_stitch:
                 length_of_recording = len(ch['data'])
                 stitch_points.append(length_of_recording)
+                added_first_stitch = True
+            for recording in paired_recordings:
+                ch_p = OpenEphys.loadContinuous(recording + '/' + filename)
                 ch['data'] = np.append(ch['data'], ch_p['data'])
                 ch['timestamps'] = np.append(ch['timestamps'], ch_p['timestamps'])
                 ch['recordingNumber'] = np.append(ch['recordingNumber'], ch_p['recordingNumber'])
-
+                if not added_paired_stitch:
+                    length_of_other_recording = len(ch_p['data'])
+                    stitch_points.append(length_of_other_recording)
+            added_paired_stitch = True
             OpenEphys.writeContinuousFile(filepath, ch['header'], ch['timestamps'], ch['data'], ch['recordingNumber'])
 
     return recording_to_sort, stitch_points
