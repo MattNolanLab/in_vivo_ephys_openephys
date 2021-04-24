@@ -41,9 +41,18 @@ def correct_for_dead_channels(primary_channels, dead_channels):
     return primary_channels
 
 
+def get_firing_times_for_recording(firing_times, paired_order, stitchpoint):
+    if paired_order is not None:
+        if paired_order == 1:
+            firing_times = firing_times[firing_times < stitchpoint[0]]
+        else:
+            bigger_than_previous_stitch = stitchpoint[paired_order - 2] < firing_times
+            smaller_than_next = firing_times < stitchpoint[paired_order - 1]
+            firing_times = firing_times[bigger_than_previous_stitch & smaller_than_next]
+    return firing_times
+
+
 def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
-    #TODO: should really refactor this two functions, one for VR and one for openfield
-    # this is not an open field vs vr separation, but opto vs no opto - the 'vr' columns are empty and there's no point adding them
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
@@ -53,37 +62,23 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, dead_channels)
-    if opto_tagging_start_index is not None:
-        firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
-        for cluster in units_list:
-            cluster_firings_all = firing_times[cluster_ids == cluster]
-            cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index)[0])
-            cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index)[0])
-            channel_detected = primary_channel[cluster_ids == cluster][0]
-            tetrode = int((channel_detected-1)/4 + 1)
-            ch = int((channel_detected - 1) % 4 + 1)
-            firing_data = firing_data.append({
-                "session_id": session_id,
-                "cluster_id":  int(cluster),
-                "tetrode": tetrode,
-                "primary_channel": ch,
-                "firing_times": cluster_firings,
-                "firing_times_opto": cluster_firings_opto
-            }, ignore_index=True)
-    else:
-        firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'trial_number', 'trial_type'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint8, np.uint16])
-        for cluster in units_list:
-            cluster_firings = firing_times[cluster_ids == cluster]
-            channel_detected = primary_channel[cluster_ids == cluster][0]
-            tetrode = int((channel_detected-1)/4 + 1)
-            ch = int((channel_detected - 1) % 4 + 1)
-            firing_data = firing_data.append({
-                "session_id": session_id,
-                "cluster_id":  int(cluster),
-                "tetrode": tetrode,
-                "primary_channel": ch,
-                "firing_times": cluster_firings
-            }, ignore_index=True)
+    firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
+    for cluster in units_list:
+        cluster_firings_all = firing_times[cluster_ids == cluster]
+        cluster_firings_all = get_firing_times_for_recording(cluster_firings_all, paired_order, stitchpoint)
+        cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index)[0])
+        cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index)[0])
+        channel_detected = primary_channel[cluster_ids == cluster][0]
+        tetrode = int((channel_detected-1)/4 + 1)
+        ch = int((channel_detected - 1) % 4 + 1)
+        firing_data = firing_data.append({
+            "session_id": session_id,
+            "cluster_id":  int(cluster),
+            "tetrode": tetrode,
+            "primary_channel": ch,
+            "firing_times": cluster_firings,
+            "firing_times_opto": cluster_firings_opto
+        }, ignore_index=True)
     return firing_data
 
 
