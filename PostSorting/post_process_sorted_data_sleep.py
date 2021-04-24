@@ -171,9 +171,9 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
                                                                 prm.get_local_recording_folder_path(),
                                                                 prm.get_ms_tmp_path())
     spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,
-                                                              dead_channels, random_snippets=False)
+                                                            dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=False)
     snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,
-                                                              dead_channels, random_snippets=True)
+                                                              dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=True)
 
     return spike_data, snippet_data, bad_clusters
 

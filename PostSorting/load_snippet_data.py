@@ -46,11 +46,10 @@ def extract_all_snippets(filtered_data, firing_times, tetrode, dead_channels):
     return snippets
 
 
-def get_snippets(firing_data, file_path, sorter_name, dead_channels, stitchpoint =None, paired_order=None, random_snippets=True):
+def get_snippets(firing_data, file_path, sorter_name, dead_channels, stitchpoint=None, paired_order=None, random_snippets=True):
     if 'random_snippets' in firing_data:
         return firing_data
     print('I will get some random snippets now for each cluster.')
-    filtered_data_path = []
 
     filtered_data_path = file_path + '/Electrophysiology/' + sorter_name + '/filt.mda'
 
