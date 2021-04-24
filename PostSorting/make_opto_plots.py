@@ -334,7 +334,16 @@ def make_lfp_plots_for_pulses(opto_pulses, all_channels, half_window, pulse_leng
         plt.close()
 
 
-def plot_lfp_around_stimulus(output_path, window_size=6000, length_of_pulse=30, sampling_rate=30000):
+def correct_for_stitch_for_pulses(opto_pulses, stitchpoint, paired_order):
+    if paired_order is not None:
+        if paired_order > 1:
+            time_point_to_add = stitchpoint[paired_order - 2]
+            opto_pulses.opto_start_times += time_point_to_add
+            opto_pulses.opto_end_times += time_point_to_add
+    return opto_pulses
+
+
+def plot_lfp_around_stimulus(output_path, stitch_point, paired_order, window_size=6000, length_of_pulse=30, sampling_rate=30000):
     output_figure_path = output_path + '/Figures/peristimulus_lfp/'
     if not os.path.exists(output_figure_path):
         os.mkdir(output_figure_path)
@@ -345,11 +354,14 @@ def plot_lfp_around_stimulus(output_path, window_size=6000, length_of_pulse=30, 
     opto_pulses_path = output_path + '/DataFrames/opto_pulses.pkl'
     if os.path.exists(opto_pulses_path):
         opto_pulses = pd.read_pickle(opto_pulses_path)
+        opto_pulses = correct_for_stitch_for_pulses(opto_pulses, stitch_point, paired_order)
         make_lfp_plots_for_pulses(opto_pulses, all_channels, half_of_window, length_of_pulse, window_size, sampling_rate, output_figure_path)
 
 
-def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, sampling_rate: int):
+def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, sampling_rate: int, stitch_point=None, paired_order=None):
     """
+    :param paired_order: number of recording in series if multiple are sorted together
+    :param stitch_point: list of points where recordings are stitched together
     :param spatial_firing: data frame where each row corresponds to a cluster
     :param output_path: output folder to save figures in (usually /MountainSort)
     :param sampling_rate: sampling rate of electrophysiology data
@@ -370,7 +382,7 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
         # binary array containing light stimulation trials in each row (0 means no spike 1 means spike at a sampling point)
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
-        plot_lfp_around_stimulus(output_path)
+        plot_lfp_around_stimulus(output_path, stitch_point, paired_order)
         plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration,
                                  latency_window_ms=latency_window_ms)
         plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration)
