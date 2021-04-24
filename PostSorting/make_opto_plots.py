@@ -338,8 +338,8 @@ def correct_for_stitch_for_pulses(opto_pulses, stitchpoint, paired_order):
     if paired_order is not None:
         if paired_order > 1:
             time_point_to_add = stitchpoint[paired_order - 2]
-            opto_pulses.opto_start_times += time_point_to_add
-            opto_pulses.opto_end_times += time_point_to_add
+            opto_pulses.opto_start_times -= time_point_to_add
+            opto_pulses.opto_end_times -= time_point_to_add
     return opto_pulses
 
 
