@@ -74,10 +74,9 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
     for cluster in units_list:
         cluster_firings_all = firing_times[cluster_ids == cluster]
         cluster_firings_all = get_firing_times_for_recording(cluster_firings_all, paired_order, stitchpoint)
-        opto_tagging_start_index_stitched = get_stitched_opto_tagging_index(opto_tagging_start_index, paired_order, stitchpoint)
-        cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index_stitched)[0])
+        cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index)[0])
         if opto_tagging_start_index is not None:
-            cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index_stitched)[0])
+            cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index)[0])
         else:
             cluster_firings_opto = []
         channel_detected = primary_channel[cluster_ids == cluster][0]

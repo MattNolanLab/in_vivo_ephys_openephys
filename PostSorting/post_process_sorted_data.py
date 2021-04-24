@@ -92,6 +92,7 @@ def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, 
 
 def process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm):
     opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)
+    opto_on, opto_off, opto_start_index = correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, stitchpoint)
     if is_found:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
