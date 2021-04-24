@@ -214,7 +214,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, prm)
+    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
     # process spatial data
     position_was_found = False
     try:
