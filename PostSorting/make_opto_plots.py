@@ -354,6 +354,7 @@ def plot_lfp_around_stimulus(output_path, stitch_point, paired_order, window_siz
     opto_pulses_path = output_path + '/DataFrames/opto_pulses.pkl'
     if os.path.exists(opto_pulses_path):
         opto_pulses = pd.read_pickle(opto_pulses_path)
+        # the times in opto_pulses are relative to the combined data
         opto_pulses = correct_for_stitch_for_pulses(opto_pulses, stitch_point, paired_order)
         make_lfp_plots_for_pulses(opto_pulses, all_channels, half_of_window, length_of_pulse, window_size, sampling_rate, output_figure_path)
 
