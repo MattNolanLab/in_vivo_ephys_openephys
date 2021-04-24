@@ -52,6 +52,14 @@ def get_firing_times_for_recording(firing_times, paired_order, stitchpoint):
     return firing_times
 
 
+def get_stitched_opto_tagging_index(opto_tagging_start_index, paired_order, stitchpoint):
+    if paired_order is not None:
+        if paired_order > 1:
+            time_point_to_add = stitchpoint[paired_order - 2]
+            opto_tagging_start_index += time_point_to_add
+    return opto_tagging_start_index
+
+
 def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
@@ -66,9 +74,10 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
     for cluster in units_list:
         cluster_firings_all = firing_times[cluster_ids == cluster]
         cluster_firings_all = get_firing_times_for_recording(cluster_firings_all, paired_order, stitchpoint)
-        cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index)[0])
+        opto_tagging_start_index_stitched = get_stitched_opto_tagging_index(opto_tagging_start_index, paired_order, stitchpoint)
+        cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index_stitched)[0])
         if opto_tagging_start_index is not None:
-            cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index)[0])
+            cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index_stitched)[0])
         else:
             cluster_firings_opto = []
         channel_detected = primary_channel[cluster_ids == cluster][0]
