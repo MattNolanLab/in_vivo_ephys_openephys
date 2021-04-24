@@ -82,8 +82,19 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
     return spatial_data, is_found
 
 
-def process_light_stimulation(recording_to_process, prm):
+def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, stitchpoint):
+    if paired_order is not None:
+        if paired_order > 1:
+            time_point_to_add = stitchpoint[paired_order - 2]
+            opto_on += time_point_to_add
+            opto_off += time_point_to_add
+            opto_start_index += time_point_to_add
+    return opto_on, opto_off, opto_start_index
+
+
+def process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm):
     opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm)
+    opto_on, opto_off, opto_start_index = correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, stitchpoint)
     if is_found:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
