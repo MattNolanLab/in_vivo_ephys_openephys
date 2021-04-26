@@ -86,10 +86,10 @@ def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, 
     if paired_order is not None:
         if paired_order > 1:
             time_point_to_add = stitchpoint[paired_order - 2]
-            opto_on += time_point_to_add
-            opto_off += time_point_to_add
+            opto_on = opto_on[0] + time_point_to_add
+            opto_off = opto_off[0] + time_point_to_add
             opto_start_index += time_point_to_add
-    return opto_on, opto_off, opto_start_index
+    return tuple((opto_on, 0)), tuple((opto_off, 0)), opto_start_index
 
 
 def process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm):
