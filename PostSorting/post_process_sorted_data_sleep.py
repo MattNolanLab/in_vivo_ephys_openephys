@@ -89,8 +89,8 @@ def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, 
             opto_on = opto_on[0] + time_point_to_add
             opto_off = opto_off[0] + time_point_to_add
             opto_start_index += time_point_to_add
-            opto_on = tuple(np.array(opto_on))
-            opto_off = tuple(np.array(opto_off))
+            opto_on = tuple(np.array([opto_on]))
+            opto_off = tuple(np.array([opto_off]))
         return opto_on, opto_off, opto_start_index
 
 
