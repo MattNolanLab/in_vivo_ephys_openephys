@@ -110,7 +110,7 @@ def sync_data(recording_to_process, prm, spatial_data):
     return synced_spatial_data, total_length_sampling_points
 
 
-def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm):
+def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm, paired_order=None):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
@@ -124,7 +124,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, o
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
-    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
+    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate(), paired_order=paired_order)
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
@@ -214,7 +214,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
 
             spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
 
-            make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
+            make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm, paired_order=paired_order)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)

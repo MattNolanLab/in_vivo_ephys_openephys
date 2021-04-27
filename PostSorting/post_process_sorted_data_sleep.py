@@ -111,12 +111,12 @@ def sync_data(recording_to_process, prm, spatial_data):
     return synced_spatial_data, total_length_sampling_points
 
 
-def make_plots(spatial_firing, position, output_path, prm):
+def make_plots(spatial_firing, position, output_path, prm, paired_order=None):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     # PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
-    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
+    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate(), paired_order=paired_order)
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
     if position is not None:
         PostSorting.make_plots.plot_speed_vs_firing_rate(position, spatial_firing, prm.get_sampling_rate(), 250,
@@ -201,7 +201,7 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
         spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
 
     position = None
-    make_plots(spike_data, position, prm.get_output_path(), prm)
+    make_plots(spike_data, position, prm.get_output_path(), prm, paired_order=paired_order)
     save_data_frames(spike_data, synced_spatial_data=None, snippet_data=snippet_data, bad_clusters=bad_clusters,
                      lfp_data=None)
     return spike_data
