@@ -7,6 +7,7 @@ import PostSorting.parameters
 import PostSorting.make_plots
 import matplotlib.image as mpimg
 import open_ephys_IO
+import mdaio
 
 
 def make_folder_for_figures(output_path):
@@ -277,6 +278,18 @@ def load_all_channels(output_path):
     return all_channels, is_loaded
 
 
+def load_filtered_data(output_path, sorter_name='MountainSort'):
+    is_loaded = False
+    filtered_data = []
+    file_path = '/'.join(i for i in output_path.split('/')[:-1]) + '/'
+    filtered_data_path = file_path + '/Electrophysiology/' + sorter_name + '/filt.mda'
+    if os.path.exists(filtered_data_path):
+        filtered_data = mdaio.readmda(filtered_data_path)
+        is_loaded = True
+    return filtered_data, is_loaded
+
+
+
 def get_y_axis_positions_and_labels(baselines):
     positions = []
     labels = []
@@ -322,7 +335,7 @@ def format_axis_labels(positions, sampling_rate):
 def make_lfp_plots_for_pulses(opto_pulses, all_channels, half_window, pulse_length, window_size, sampling_rate, path, number_of_samples=20):
     if len(opto_pulses.opto_start_times) < number_of_samples:
         number_of_samples = len(opto_pulses.opto_start_times)
-    random_pulses = opto_pulses.opto_start_times.sample(n=number_of_samples)
+    random_pulses = opto_pulses.opto_start_times.sample(n=number_of_samples, random_state=666)  # set seed
     for pulse_index, pulse in random_pulses.iteritems():
         peristimulus_lfp = all_channels[:, pulse - half_window:pulse + half_window]
         peristimulus_figure, ax = plt.subplots()
@@ -359,6 +372,20 @@ def plot_lfp_around_stimulus(output_path, stitch_point, paired_order, window_siz
         make_lfp_plots_for_pulses(opto_pulses, all_channels, half_of_window, length_of_pulse, window_size, sampling_rate, output_figure_path)
 
 
+def plot_filtered_lfp_around_stimulus(output_path, window_size=6000, length_of_pulse=30, sampling_rate=30000):
+    output_figure_path = output_path + '/Figures/peristimulus_lfp_filtered/'
+    if not os.path.exists(output_figure_path):
+        os.mkdir(output_figure_path)
+    half_of_window = int(window_size / 2)
+    all_channels, is_loaded = load_filtered_data(output_path)
+    if not is_loaded:
+        return
+    opto_pulses_path = output_path + '/DataFrames/opto_pulses.pkl'
+    if os.path.exists(opto_pulses_path):
+        opto_pulses = pd.read_pickle(opto_pulses_path)
+        make_lfp_plots_for_pulses(opto_pulses, all_channels, half_of_window, length_of_pulse, window_size, sampling_rate, output_figure_path)
+
+
 def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, sampling_rate: int, stitch_point=None, paired_order=None):
     """
     :param paired_order: number of recording in series if multiple are sorted together
@@ -384,6 +411,7 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
         # binary array containing light stimulation trials in each row (0 means no spike 1 means spike at a sampling point)
         peristimulus_spikes = pd.read_pickle(peristimulus_spikes_path)
         plot_lfp_around_stimulus(output_path, stitch_point, paired_order)
+        plot_filtered_lfp_around_stimulus(output_path, window_size=6000, length_of_pulse=30, sampling_rate=30000)
         plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration,
                                  latency_window_ms=latency_window_ms)
         plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=light_pulse_duration)
