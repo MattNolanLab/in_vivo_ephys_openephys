@@ -27,6 +27,7 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
+import PostSorting.waveforms_pca
 
 
 prm = PostSorting.parameters.Parameters()
@@ -180,6 +181,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
+    PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
