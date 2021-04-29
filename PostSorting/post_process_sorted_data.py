@@ -29,6 +29,8 @@ import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 import PostSorting.waveforms_pca
 
+import PreClustering.dead_channels
+
 
 prm = PostSorting.parameters.Parameters()
 
@@ -170,7 +172,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
     prm.set_paired_order(paired_order)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
-
+    PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
