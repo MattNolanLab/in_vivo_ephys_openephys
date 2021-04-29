@@ -70,9 +70,9 @@ def bin_in_space(raw_position_data, processed_position_data):
         pos_bins = np.arange(min(trial_x_position_cm), max(trial_x_position_cm), settings.vr_bin_size_cm)# 1cm space bins
 
         if len(pos_bins)>1:
-            # calculate the average speed and position in each 100ms time bin
-            speed_bin_means, pos_bin_edges = (np.histogram(trial_x_position_cm, pos_bins, weights = trial_speeds)[0] /
-                                              np.histogram(trial_x_position_cm, pos_bins)[0])
+            # calculate the average speed and position in each space bin
+            speed_bin_means, pos_bin_edges = np.histogram(trial_x_position_cm, pos_bins, weights=trial_speeds)
+            speed_bin_means = speed_bin_means/np.histogram(trial_x_position_cm, pos_bins)[0]
 
             # get location bin centres
             pos_bin_centres = 0.5*(pos_bin_edges[1:]+pos_bin_edges[:-1])
