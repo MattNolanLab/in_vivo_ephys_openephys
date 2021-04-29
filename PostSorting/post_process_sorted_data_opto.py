@@ -193,6 +193,7 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
 def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, opto_analysis):
     total_length, is_found = set_recording_length(recording_to_process, prm)
     spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index, total_length)
+    # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     if len(spike_data) > 0:
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
                                                                             settings.sampling_rate)
@@ -227,7 +228,6 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
     # process spatial data
     position_was_found = False

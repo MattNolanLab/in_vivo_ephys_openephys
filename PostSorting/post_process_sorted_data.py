@@ -181,7 +181,6 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
@@ -202,6 +201,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         else:
             snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=True)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+            # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
             position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)

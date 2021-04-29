@@ -229,7 +229,6 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
     # process spatial data
     position_was_found = False
@@ -248,6 +247,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
                                                                                           paired_order, stitchpoint,
                                                                                           opto_start_index,
                                                                                           total_length)
+            # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
             spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
                                                                             settings.sampling_rate)
 
