@@ -377,6 +377,7 @@ def plot_filtered_lfp_around_stimulus(output_path, window_size=6000, length_of_p
     if not os.path.exists(output_figure_path):
         os.mkdir(output_figure_path)
     half_of_window = int(window_size / 2)
+    # this is the data that is used for spike detection
     all_channels, is_loaded = load_filtered_data(output_path)
     if not is_loaded:
         return
