@@ -203,6 +203,14 @@ def convert_peristimulus_data_to_baseline_and_test(peristimulus_data):
 
 
 def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
+    """
+    This version of the SALT test slightly differs from the published MATLAB code and runs the test on multiple
+    windows after the light pulse. This could be useful when looking at longer latency responses.
+    :param spatial_firing: data frame where each row is a cell
+    :param peristimulus_data: binary matrix where each row is a trial (light pulse) and 1s represent spikes and 0s
+    no spikes
+    :return: spatial_firing: data frame where each row is a cell - now containing SALT results
+    """
     print('I will run the SALT test now.')
     all_latencies = []
     all_p_values = []
