@@ -60,7 +60,6 @@ rule process_expt:
     script:
         '../scripts/openfield/04a_process_expt_openfield.py'
 
-
 rule plot_figures:
     input:
         spatial_firing = '{recording}/processed/spatial_firing_of.pkl',
@@ -84,7 +83,18 @@ rule plot_figures:
         firing_field_head_direction_raw = directory(figure_prefix+'/firing_field_head_direction_raw/'),
         firing_fields_coloured_spikes = directory(figure_prefix+'/firing_fields_coloured_spikes/'),
         combined = directory(figure_prefix+'/combined/'),
-        coverage_map = figure_prefix+'/session/heatmap.png',
-        result = touch('{recording}/processed/snakemake.done')
+        coverage_map = figure_prefix+'/session/heatmap.png'
     script:
         '../scripts/openfield/05a_plot_figure_openfield.py'
+
+rule process_spatial_info:
+    input:
+        position = '{recording}/processed/synced_spatial_data.pkl',
+        spatial_firing = '{recording}/processed/spatial_firing_of.pkl',
+        coverage_map = figure_prefix+'/session/heatmap.png'
+    output:
+        spatial_info = '{recording}/processed/spatial_info.pkl',
+        result = touch('{recording}/processed/snakemake.done')
+    script:
+        '../scripts/openfield/06_calculate_spatial_info.py'
+
