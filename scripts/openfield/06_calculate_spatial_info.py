@@ -2,13 +2,13 @@
 
 from PostSorting.spatial_information import *
 import SnakeIOHelper 
-import setting
+import settings
 import pandas as pd
 
 #%% define input and output
 
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk',
-     [setting.debug_folder+'/processed/spatial_info.pkl'],
+     [settings.debug_folder+'/processed/spatial_info.pkl'],
     'process_spatial_info')
 
 

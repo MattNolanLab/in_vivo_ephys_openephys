@@ -9,7 +9,7 @@ from scipy import stats
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
 import PostSorting.vr_cued
-import setting
+import settings
 from file_utility import load_openephys_file
 
 from scipy import signal
@@ -42,7 +42,7 @@ def correct_for_restart(location):
     return location
 
 
-def get_raw_location(recording_folder, output_path, movement_ch_suffix = setting.movement_ch_suffix):
+def get_raw_location(recording_folder, output_path, movement_ch_suffix = settings.movement_ch_suffix):
     """
     Loads raw location continuous channel from ACD1.continuous
     # input: spatial dataframe, path to local recording folder, initialised parameters
@@ -98,7 +98,7 @@ def check_for_trial_restarts(trial_indices, loc_sampling_rate, min_time):
     return new_trial_indices
 
 
-def get_new_trial_indices(position_data,loc_sampling_freq = setting.location_ds_rate):
+def get_new_trial_indices(position_data,loc_sampling_freq = settings.location_ds_rate):
     location_diff = position_data['x_position_cm'].diff()  # Get the raw location from the movement channel
     trial_indices = np.where(location_diff < -20)[0]# return indices where is new trial
     trial_indices = check_for_trial_restarts(trial_indices, loc_sampling_freq, 0.5)# check if trial_indices values are within 1500 of eachother, if so, delete
@@ -132,7 +132,7 @@ def calculate_trial_numbers(position_data, output_path):
 
 
 # two continuous channels represent trial type
-def load_first_trial_channel(recording_folder, first_trial_channel_suffix = setting.first_trial_channel_suffix):
+def load_first_trial_channel(recording_folder, first_trial_channel_suffix = settings.first_trial_channel_suffix):
     first = []
     # file_path = search4File(recording_folder + '/*' + first_trial_channel_suffix) #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     # trial_first = OpenEphys.loadContinuousFast(file_path)['data']
@@ -142,7 +142,7 @@ def load_first_trial_channel(recording_folder, first_trial_channel_suffix = sett
 
 
 # two continuous channels represent trial type
-def load_second_trial_channel(recording_folder, second_trial_channel = setting.second_trial_channel_suffix):
+def load_second_trial_channel(recording_folder, second_trial_channel = settings.second_trial_channel_suffix):
     second = []
     # file_path = search4File(recording_folder + '/*' + second_trial_channel) #todo this should bw in params, it is 100 for me, 105 for Tizzy (I don't have _0)
     # trial_second = OpenEphys.loadContinuousFast(file_path)['data']
@@ -175,11 +175,12 @@ def calculate_trial_types(position_data, first_ch, second_ch, output_path):
     position_data['trial_type'] = np.asarray(trial_type, dtype=np.uint8)
     return (position_data,first_ch,second_ch)
 
-def calculate_instant_velocity(position_data, output_path, sampling_rate, lowpass=False):
+def calculate_instant_velocity(position_data, output_path, sampling_rate, speed_win, lowpass=False):
+    #speed_win: time window in second to smooth the speed
     print('Calculating velocity...')
     location = np.array(position_data['x_position_cm'], dtype=np.float32)
 
-    sampling_points_per200ms = int(sampling_rate/5)
+    sampling_points_per200ms = int(sampling_rate*speed_win)
     end_of_loc_to_subtr = location[:-sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     beginning_of_loc_to_subtr = location[:sampling_points_per200ms]# Rearrange arrays in a way that they just need to be subtracted from each other
     location_to_subtract_from = np.append(beginning_of_loc_to_subtr, end_of_loc_to_subtr)
@@ -188,8 +189,8 @@ def calculate_instant_velocity(position_data, output_path, sampling_rate, lowpas
     # use new trial indices to fix velocity around teleports
     new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
     for new_trial_indice in new_trial_indices:
-        if new_trial_indice>sampling_rate/5: # ignores first trial index
-            velocity[int(new_trial_indice-sampling_rate/5):int(new_trial_indice+sampling_rate/5)] =np.nan
+        if new_trial_indice>sampling_rate*speed_win: # ignores first trial index
+            velocity[int(new_trial_indice-(sampling_rate*speed_win)):int(new_trial_indice+(sampling_rate*speed_win))] =np.nan
 
     #now interpolate where these nan values are
     ok = ~np.isnan(velocity)
@@ -197,7 +198,7 @@ def calculate_instant_velocity(position_data, output_path, sampling_rate, lowpas
     fp = velocity[~np.isnan(velocity)]
     x  = np.isnan(velocity).ravel().nonzero()[0]
     velocity[np.isnan(velocity)] = np.interp(x, xp, fp)
-    velocity = velocity*5
+    velocity = velocity/speed_win
 
     # remove negative velocity
     velocity[velocity<0] = 0
@@ -242,15 +243,16 @@ def get_rolling_sum(array_in, window):
     array_out = np.hstack((beginning, inner_part_result, end))
     return array_out
 
-def get_avg_speed_200ms(position_data, output_path, loc_sampling_rate):
+def get_avg_speed_200ms(position_data, output_path, loc_sampling_rate, speed_win):
+    #speed_win: time window in second over which to smooth the speed
     print('Calculating average speed...')
     velocity = np.array(position_data['velocity'])  # Get the raw location from the movement channel
-    sampling_points_per200ms = int(loc_sampling_rate/5)
+    sampling_points_per200ms = int(loc_sampling_rate*speed_win)
     position_data['speed_per200ms'] = running_mean(velocity, sampling_points_per200ms)  # Calculate average speed at each point by averaging instant velocities
     PostSorting.vr_make_plots.plot_running_mean_velocity(position_data['speed_per200ms'], output_path)
     return position_data
 
-def downsampled_position_data(raw_position_data, sampling_rate = setting.sampling_rate, down_sampled_rate = setting.location_ds_rate):
+def downsampled_position_data(raw_position_data, sampling_rate = settings.sampling_rate, down_sampled_rate = settings.location_ds_rate):
     position_data = pd.DataFrame()
     downsample_factor = int(sampling_rate/ down_sampled_rate)
     position_data["x_position_cm"] = raw_position_data["x_position_cm"][::downsample_factor]

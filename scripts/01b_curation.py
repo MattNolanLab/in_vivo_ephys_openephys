@@ -18,7 +18,7 @@ import spikeinterface.toolkit as st
 import spikeinterface.widgets as sw
 from tqdm import tqdm
 
-import setting
+import settings
 import SnakeIOHelper
 from PostSorting.make_plots import plot_waveforms, plot_waveforms_concat
 from PreClustering.pre_process_ephys_data import filterRecording
@@ -26,7 +26,7 @@ import time
 from file_utility import load_recording_info
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [settings.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],
     'curate_clusters')
 #%%
 
@@ -55,7 +55,7 @@ curated_sorter_df.to_pickle(soutput.sorter_curated_df)
 #%% Plot spike waveforms
 recording_info = load_recording_info(sinput.recording_info)
 
-tetrodeNum = np.array(recording_info['recording_channels'])//setting.num_tetrodes
+tetrodeNum = np.array(recording_info['recording_channels'])//settings.num_tetrodes
 
 plot_waveforms_concat(sorter_df, soutput.waveform_figure_all, tetrodeNum)
 plot_waveforms_concat(curated_sorter_df, soutput.waveform_figure_curated, tetrodeNum)

@@ -5,7 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 import math_utility
-import setting
+import settings
 from scipy.interpolate import interp1d
 import PostSorting.parameters
 import pickle
@@ -107,7 +107,7 @@ def calculate_central_speed(position_data):
     return position_data
 
 
-def remove_jumps(position_data, pixel_ratio = setting.pixel_ratio):
+def remove_jumps(position_data, pixel_ratio = settings.pixel_ratio):
     max_speed = 1  # m/s, anything above this is not realistic
     max_speed_pixels = max_speed * pixel_ratio
     speed_exceeded_left = position_data['speed_left'] > max_speed_pixels
@@ -164,7 +164,7 @@ def calculate_head_direction(position):
     return position
 
 
-def convert_to_cm(position_data, pixel_ratio = setting.pixel_ratio):
+def convert_to_cm(position_data, pixel_ratio = settings.pixel_ratio):
     position_data['position_x_pixels'] = position_data.position_x
     position_data['position_y_pixels'] = position_data.position_y
     position_data['position_x'] = position_data.position_x / pixel_ratio * 100

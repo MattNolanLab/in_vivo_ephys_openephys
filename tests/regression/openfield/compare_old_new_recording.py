@@ -2,7 +2,7 @@
 import pandas as pd 
 import sys
 sys.path.append('/home/ubuntu/in_vivo_ephys_openephys/')
-import setting
+import settings
 import subprocess
 from pathlib import Path
 import yaml

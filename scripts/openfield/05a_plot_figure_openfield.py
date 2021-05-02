@@ -1,6 +1,6 @@
 #%%
 import PostSorting.make_plots
-import setting
+import settings
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
@@ -11,7 +11,7 @@ import logging
 
 #%% define input and output
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/snakemake.done'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [settings.debug_folder+'/processed/snakemake.done'],
 'plot_figures')
 
 logger = logging.Logger(__file__)
@@ -28,7 +28,7 @@ PostSorting.make_plots.plot_spike_histogram(spatial_firing, soutput.spike_histog
 
 #%%
 logger.info('I will plot the speed vs firing rate')
-PostSorting.make_plots.plot_firing_rate_vs_speed(position_data, spatial_firing, setting.sampling_rate, 250, 
+PostSorting.make_plots.plot_firing_rate_vs_speed(position_data, spatial_firing, settings.sampling_rate, 250, 
     soutput.firing_rate_vs_speed)
 
 #%%

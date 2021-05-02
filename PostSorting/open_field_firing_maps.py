@@ -7,9 +7,9 @@ from numba import jit
 import numpy as np
 import math
 import time
-import setting
+import settings
 
-def get_dwell(spatial_data, pixel_ratio = setting.pixel_ratio):
+def get_dwell(spatial_data, pixel_ratio = settings.pixel_ratio):
     min_dwell_distance_cm = 5  # from point to determine min dwell time
     min_dwell_distance_pixels = min_dwell_distance_cm / 100 * pixel_ratio
 
@@ -19,13 +19,13 @@ def get_dwell(spatial_data, pixel_ratio = setting.pixel_ratio):
     return min_dwell, min_dwell_distance_pixels
 
 
-def get_bin_size(pixel_ratio = setting.pixel_ratio):
+def get_bin_size(pixel_ratio = settings.pixel_ratio):
     bin_size_cm = 2.5
     bin_size_pixels = bin_size_cm / 100 * pixel_ratio
     return bin_size_pixels
 
 
-def get_number_of_bins(spatial_data, pixel_ratio = setting.pixel_ratio):
+def get_number_of_bins(spatial_data, pixel_ratio = settings.pixel_ratio):
     bin_size_pixels = get_bin_size(pixel_ratio)
     length_of_arena_x = spatial_data.position_x_pixels[~np.isnan(spatial_data.position_x_pixels)].max()
     length_of_arena_y = spatial_data.position_y_pixels[~np.isnan(spatial_data.position_y_pixels)].max()
@@ -131,7 +131,7 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_
 
     return firing_rate_map
 
-def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, pixel_ratio = setting.pixel_ratio, try_parallel_first = True):
+def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, pixel_ratio = settings.pixel_ratio, try_parallel_first = True):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000
     min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, pixel_ratio)
@@ -184,7 +184,7 @@ def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bi
     return position_heat_map
 
 
-def get_position_heatmap(spatial_data, pixel_ratio = setting.pixel_ratio):
+def get_position_heatmap(spatial_data, pixel_ratio = settings.pixel_ratio):
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, pixel_ratio)
     bin_size_cm = get_bin_size(pixel_ratio)
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, pixel_ratio)

@@ -3,7 +3,7 @@ import math
 import numpy as np
 import random
 import PostSorting.parameters
-import setting
+import settings
 
 '''
 colour functions are from https://gist.github.com/adewes/5884820
@@ -155,7 +155,7 @@ def pandas_collumn_to_2d_numpy_array(pandas_series):
 
 
 def style_track_plot(ax, bins):
-    divider = setting.sampling_rate/bins
+    divider = settings.sampling_rate/bins
     ax.axvspan(88/divider, (88+22)/divider, facecolor='DarkGreen', alpha=.25, linewidth =0)
     ax.axvspan(0, 30/divider, facecolor='k', linewidth =0, alpha=.25) # black box
     ax.axvspan((200-30)/divider, 200/divider, facecolor='k', linewidth =0, alpha=.25)# black box

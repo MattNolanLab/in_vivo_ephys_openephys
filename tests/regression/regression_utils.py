@@ -1,7 +1,7 @@
 import pandas as pd 
 import sys
 sys.path.append('/home/ubuntu/in_vivo_ephys_openephys/')
-import setting
+import settings
 import subprocess
 from pathlib import Path
 import yaml
@@ -14,7 +14,7 @@ def convertOld2New(df_old):
     df_new = pd.DataFrame()
     df_new['cluster_id'] = df_old['cluster_id']
     df_new['session_id'] = df_old['session_id']
-    df_new['sampling_frequency'] = setting.sampling_rate
+    df_new['sampling_frequency'] = settings.sampling_rate
     df_new['spike_train'] = df_old['firing_times']
     df_new['number_of_spikes'] = df_old['number_of_spikes']
     df_new['noise_overlap'] = df_old['noise_overlap']

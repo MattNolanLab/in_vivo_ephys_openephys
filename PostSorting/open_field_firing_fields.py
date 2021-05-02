@@ -4,7 +4,7 @@ import pandas as pd
 import subprocess
 import PostSorting.open_field_head_direction
 import matplotlib.pylab as plt
-import setting
+import settings
 
 # return indices of neighbors of bin considering borders
 def find_neighbors(bin_to_test, max_x, max_y):
@@ -240,7 +240,7 @@ def analyze_fields_r(fields_path, cluster):
 
 
 def analyze_hd_in_field(spatial_data, field, spatial_firing, cluster_id, field_id, hd_csv_path, 
-            sample_rate = setting.sampling_rate):
+            sample_rate = settings.sampling_rate):
     hd_in_field_session, times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field)
     hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster_id)
     save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, field_id,hd_csv_path)

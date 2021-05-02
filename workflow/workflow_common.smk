@@ -1,5 +1,5 @@
 
-sorterPrefix = '{recording}/processed/'+setting.sorterName
+sorterPrefix = '{recording}/processed/'+settings.sorterName
 
 rule sort_spikes:
     input:

@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import math
 import gc
-import setting
+import settings
 from tqdm import tqdm
 
 def check_stop_threshold(recording_directory):

@@ -6,14 +6,14 @@ import numpy as np
 import pandas as pd
 import plot_utility
 import scipy.ndimage
-import setting
+import settings
 from typing import Tuple
 from tqdm import tqdm
 import matplotlib as mpl
 from typing import Tuple
 
 
-def plot_spike_histogram(spatial_firing, save_path, sampling_rate = setting.sampling_rate):
+def plot_spike_histogram(spatial_firing, save_path, sampling_rate = settings.sampling_rate):
     print('I will plot spikes vs time for the whole session excluding opto tagging.')
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
@@ -107,12 +107,12 @@ def calculate_autocorrelogram_hist(spikes, bin_size, window):
     return corr, time
 
 
-def get_10ms_autocorr(firing_times_cluster,sampling_rate = setting.sampling_rate):
+def get_10ms_autocorr(firing_times_cluster,sampling_rate = settings.sampling_rate):
     corr1, time1 = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / sampling_rate, 1, 20)
     return corr1, time1
 
 
-def get_250ms_autocorr(firing_times_cluster, sampling_rate = setting.sampling_rate):
+def get_250ms_autocorr(firing_times_cluster, sampling_rate = settings.sampling_rate):
     corr, time = calculate_autocorrelogram_hist(np.array(firing_times_cluster) / sampling_rate, 1, 500)
     return corr, time
 
@@ -143,7 +143,7 @@ def make_combined_autocorr_plot(time_10, corr_10, time_250, corr_250, spike_data
     plt.close()
 
 
-def plot_autocorrelograms(spike_data: pd.DataFrame, output_path: str, sampling_rate = setting.sampling_rate) -> None:
+def plot_autocorrelograms(spike_data: pd.DataFrame, output_path: str, sampling_rate = settings.sampling_rate) -> None:
     plt.close()
     print('I will plot autocorrelograms for each cluster (10 ms and 250 ms windows).')
 
@@ -232,7 +232,7 @@ def plot_waveforms_concat(sorted_df, figure_path, tetrodeNum):
         #extract waveforms from dataframe
         waveforms = sorted_df.waveforms.iloc[cluster]
         max_channel = sorted_df.max_channel.values[cluster] # max_channel is w.r.t the original channel number before bad channel removal
-        tetrode = max_channel//setting.num_tetrodes
+        tetrode = max_channel//settings.num_tetrodes
         channels = np.where(tetrodeNum==tetrode)[0] # which channel belong to the same tetrode
         cluster_id = sorted_df.cluster_id.iloc[cluster]
 

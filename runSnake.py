@@ -38,6 +38,7 @@ parser.add_argument('--skip','-s', action= 'store_true', default=False, help='wh
 parser.add_argument('--unlock',action= 'store_true', default=False, help='whether skip processed recordings')
 parser.add_argument('--forcerun', '-R', nargs='*', help='whether to force run a certain rule')
 parser.add_argument('--omit', '-O', nargs='*', help='whether to skip certain rule')
+parser.add_argument('--touch', action= 'store_true', default=False, help='whether to touch files without running')
 
 
 def _logPath(path,names):
@@ -170,7 +171,9 @@ def process_recordings(args, config, expt_type, paths):
         target_files = [str(p/'processed/snakemake.done') for p in paths]
 
     # to do: enable multiple core processing
-    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, cores=config['cores'],printreason=False, unlock=args.unlock, forcerun=args.forcerun, omit_from=args.omit)
+    snakemake(snakefile, targets = target_files, dryrun=args.dryrun, 
+        cores=config['cores'], printreason=True, unlock=args.unlock, 
+        forcerun=args.forcerun, omit_from=args.omit, touch=args.touch)
 
 
     if args.uploadresults:

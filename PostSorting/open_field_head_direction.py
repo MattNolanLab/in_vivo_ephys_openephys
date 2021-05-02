@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 import PostSorting.open_field_firing_maps
-import setting
+import settings
 
 def moving_sum(array, window):
     ret = np.cumsum(array, dtype=float)
@@ -156,7 +156,7 @@ def put_stat_results_in_spatial_df(spatial_firing, prm):
     return spatial_firing
 
 
-def process_hd_data(spatial_firing, spatial_data, sampling_rate = setting.sampling_rate):
+def process_hd_data(spatial_firing, spatial_data, sampling_rate = settings.sampling_rate):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)

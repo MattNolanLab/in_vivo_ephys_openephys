@@ -3,12 +3,12 @@
 #%%
 from PostSorting.load_firing_data import process_firing_times2
 import PostSorting
-import setting
+import settings
 from types import SimpleNamespace
 import SnakeIOHelper
 
 #%%
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/spatial_firing.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [settings.debug_folder+'/processed/spatial_firing.pkl'],
     'process_firings')
 
 #%% process firing times

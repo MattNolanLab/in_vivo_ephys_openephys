@@ -1,5 +1,5 @@
 import os
-import setting
+import settings
 
 def getRecording2sort(base_folder):
     folder = []
@@ -19,7 +19,7 @@ def optionalFile(path):
 
 recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
 figure_prefix = '{recording}/processed/figures'
-sorterPrefix = '{recording}/processed/'+setting.sorterName
+sorterPrefix = '{recording}/processed/'+settings.sorterName
 
 
 rule all:
@@ -42,7 +42,7 @@ rule process_position:
 rule process_firings:
     input:
         recording_to_sort = '{recording}',
-        sorted_data_path = '{recording}/processed/'+setting.sorterName+'/sorter_curated_df.pkl'
+        sorted_data_path = '{recording}/processed/'+settings.sorterName+'/sorter_curated_df.pkl'
     output:
         spatial_firing = '{recording}/processed/spatial_firing.pkl'
     script:

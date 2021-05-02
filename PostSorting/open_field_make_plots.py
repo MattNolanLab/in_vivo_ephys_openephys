@@ -15,7 +15,7 @@ import plot_utility
 import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
 import PostSorting.parameters
-import setting
+import settings
 import glob
 
 #resetting the style to default first
@@ -235,7 +235,7 @@ def save_field_polar_plot(figure_folder_path, hd_hist_session, hd_hist_cluster, 
     plt.close()
 
 
-def plot_firing_fields(spatial_firing, spatial_data, figure_folder_path, sampling_rate = setting.sampling_rate):
+def plot_firing_fields(spatial_firing, spatial_data, figure_folder_path, sampling_rate = settings.sampling_rate):
     print('I will plot the firing fields')
 
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
@@ -259,7 +259,7 @@ def plot_firing_fields(spatial_firing, spatial_data, figure_folder_path, samplin
                 plt.savefig(figure_folder_path + cluster_df['session_id'].iloc[0] + '_firing_fields_rate_map_' + str(cluster_id) + '.png', dpi=300, bbox_inches="tight")
                 plt.close()
 
-def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, is_normalized, sampling_rate = setting.sampling_rate):
+def plot_hd_for_firing_fields(spatial_firing, spatial_data, figure_folder_path, is_normalized, sampling_rate = settings.sampling_rate):
     print('I will make the polar HD plots for individual firing fields now.')
 
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
@@ -359,7 +359,7 @@ def loadImg2Figure(path, grid, figure_idx):
 
 
 def make_combined_figures_auto(folder_list, common_figures, var_folders, 
-    combined_figure_path, spatial_firing, sorter_name=setting.sorterName,ext='png', dpi=500):
+    combined_figure_path, spatial_firing, sorter_name=settings.sorterName,ext='png', dpi=500):
     # automatically combine figures in specified folder
     # the figure name for each figure should be in the form of xxx_<cluster_id>.png
     # variable length figure should be in the form of xxx_<cluster_id>-<figure_id>.png
@@ -409,7 +409,7 @@ def make_combined_figures_auto(folder_list, common_figures, var_folders,
         plt.savefig(combined_figure_path + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=dpi)
         plt.close()
 
-def make_combined_figure(figures_path, spatial_firing, sorter_name = setting.sorterName):
+def make_combined_figure(figures_path, spatial_firing, sorter_name = settings.sorterName):
     plt.close('all')
 
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):

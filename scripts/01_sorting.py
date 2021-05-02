@@ -11,7 +11,7 @@ import file_utility
 import Logger
 import numpy as np
 import pandas as pd
-import setting
+import settings
 import SnakeIOHelper
 import spikeinterface as si
 import spikeinterface.comparison as sc
@@ -31,7 +31,7 @@ import tempfile
 #%% define input and output
 # note: need to run this in the root folder of project
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [setting.debug_folder+'/processed/mountainsort4/sorter_df.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [settings.debug_folder+'/processed/mountainsort4/sorter_df.pkl'],
     'sort_spikes')
 
 #%% Load data and create recording extractor
@@ -50,10 +50,10 @@ else:
 #%% Remove bad channel and filter the recording
 logger.info('Filtering files') #TODO logging not show correctly
 Fs = 30000
-# recording = se.NumpyRecordingExtractor(signal[:,:Fs*60*5],setting.sampling_rate,geom)
+# recording = se.NumpyRecordingExtractor(signal[:,:Fs*60*5],settings.sampling_rate,geom)
 
 start,end = get_sorting_range(signal.shape[1], Path(sinput.recording_to_sort) / 'parameter.yaml' )
-recording = se.NumpyRecordingExtractor(signal[:,start:end],setting.sampling_rate,geom)
+recording = se.NumpyRecordingExtractor(signal[:,start:end],settings.sampling_rate,geom)
 
 recording = recording.load_probe_file(sinput.probe_file) #load probe definition
 recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel) #remove bad channel
@@ -122,7 +122,7 @@ print(f'Extracting waveform took {time.time()-start}')
 
 for id in sorting_ms4.get_unit_ids():
     number_of_spikes = len(sorting_ms4.get_unit_spike_train(id))
-    mean_firing_rate = number_of_spikes/(recording.get_traces().shape[1]/setting.sampling_rate)
+    mean_firing_rate = number_of_spikes/(recording.get_traces().shape[1]/settings.sampling_rate)
     sorting_ms4.set_unit_property(id,'number_of_spikes',number_of_spikes)
     sorting_ms4.set_unit_property(id, 'mean_firing_rate', mean_firing_rate)
 

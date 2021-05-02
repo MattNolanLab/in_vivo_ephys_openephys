@@ -4,7 +4,7 @@ import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 
 import OpenEphys
-import setting
+import settings
 import numpy as np 
 import json
 import os

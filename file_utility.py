@@ -1,9 +1,9 @@
 import glob
 import os
-import setting
+import settings
 import OpenEphys
 import numpy as np
-import setting
+import settings
 import glob
 import pickle
 
@@ -65,7 +65,7 @@ def load_OpenEphysRecording(folder, auto_concat=True):
     '''
 
     signal = []
-    for i in range(setting.num_tetrodes*4):
+    for i in range(settings.num_tetrodes*4):
         # Different open ephys setting may lead to different source id for the data file
         # so search for the data file instead of using hard-coded name
 
@@ -73,7 +73,7 @@ def load_OpenEphysRecording(folder, auto_concat=True):
 
         if i==0:
             #preallocate array on first run
-            signal = np.zeros((setting.num_tetrodes*4,x.shape[0]))
+            signal = np.zeros((settings.num_tetrodes*4,x.shape[0]))
         signal[i,:] = x
     return signal
 

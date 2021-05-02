@@ -5,7 +5,7 @@ import spikeinterface.toolkit as st
 import spikeinterface.sorters as sorters
 import spikeinterface.comparison as sc
 import spikeinterface.widgets as sw
-import setting
+import settings
 import OpenEphys
 import numpy as np
 import pandas as pd
@@ -16,12 +16,12 @@ recording_location = 'testData/M1_D31_2018-11-01_12-28-25/'
 #%%
 def load_OpenEphysRecording(folder):
     signal = []
-    for i in range(setting.num_tetrodes*4):
-        fname = folder+setting.data_file_prefix+str(i+1)+setting.data_file_suffix+'.continuous'
+    for i in range(settings.num_tetrodes*4):
+        fname = folder+settings.data_file_prefix+str(i+1)+settings.data_file_suffix+'.continuous'
         x = OpenEphys.loadContinuousFast(fname)['data']
         if i==0:
             #preallocate array on first run
-            signal = np.zeros((setting.num_tetrodes*4,x.shape[0]))
+            signal = np.zeros((settings.num_tetrodes*4,x.shape[0]))
         signal[i,:] = x
     return signal
 
@@ -31,8 +31,8 @@ signal = load_OpenEphysRecording(recording_location)
 geom = pd.read_csv('sorting_files/geom_all_tetrodes_original.csv',header=None).values
 
 #%%
-Fs = setting.sampling_rate
-recording =se.NumpyRecordingExtractor(signal,setting.sampling_rate,geom)
+Fs = settings.sampling_rate
+recording =se.NumpyRecordingExtractor(signal,settings.sampling_rate,geom)
 # recording = se.NumpyRecordingExtractor(signal[:,Fs*120:Fs*300],Fs, geom)
 #%%
 sw.plot_electrode_geometry(recording)

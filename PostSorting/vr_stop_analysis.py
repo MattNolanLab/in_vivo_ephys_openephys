@@ -73,6 +73,7 @@ def calculate_rewarded_trials(processed_position_data):
             rewarded = True
         rewarded_trials.append(rewarded)
 
+    print(f'There are totally {np.sum(rewarded_trials)} rewarded trials')
     processed_position_data["rewarded"] = rewarded_trials
     return processed_position_data
 
@@ -85,3 +86,9 @@ def process_stops(processed_position_data,stop_threshold):
     return processed_position_data
 
 
+def read_blender_log(log_path):
+    # Read log file saved by blender
+    headers = ['time','position','speed','speed_over_gain','reward_is_received','reward_is_failed','lick_detected',
+        'tone_played','track_idx','tot_trials','gain_mod','rz_start','rz_stop', 'sync_pulse']
+    df_blender = pd.read_csv(log_path,skiprows=4,sep=';',names=headers)
+    return df_blender

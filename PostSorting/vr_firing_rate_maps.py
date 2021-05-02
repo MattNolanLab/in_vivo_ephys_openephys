@@ -23,7 +23,10 @@ def calculate_rate_map_sem(spike_locations, spike_trial_numbers, processed_posit
         trial_spike_locations = spike_locations[spike_trial_numbers==trial_number]
         trial_binned_time = trial_processed_position_data["times_binned"].iloc[0]
         spike_bin_counts = np.histogram(trial_spike_locations, bins)[0]
-        normalised_rate_map = spike_bin_counts/trial_binned_time
+
+        with np.errstate(divided='ignore',invalid='ignore'): #suppress divide by zero error
+            normalised_rate_map = spike_bin_counts/trial_binned_time
+            normalised_rate_map[np.isnan(normalised_rate_map)] = 0 #set empty bin to zero
 
         rate_map_per_trial.append(normalised_rate_map.tolist())
 

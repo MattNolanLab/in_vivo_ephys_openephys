@@ -7,14 +7,14 @@ from PostSorting import open_field_grid_cells
 from PostSorting import open_field_firing_fields
 from PostSorting import compare_first_and_second_half
 import PostSorting
-import setting
+import settings
 import pandas as pd
 from collections import namedtuple
 import SnakeIOHelper
 import pickle
 #%% define input and output
 
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/spatial_firing_of.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [settings.debug_folder+'/processed/spatial_firing_of.pkl'],
     'process_expt')
 
 #%% Load data
@@ -24,7 +24,7 @@ synced_spatial_data = pd.read_pickle(sinput.position)
 #%% Proccess spike data together with location data
 spike_data_spatial = open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
 spike_data_spatial = speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, 250,
-        setting.sampling_rate)
+        settings.sampling_rate)
 
 #%% Calculate head direction tuning
 hd_histogram, spatial_firing = open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)

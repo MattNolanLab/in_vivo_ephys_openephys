@@ -2,7 +2,7 @@
 from matplotlib.pyplot import plot
 import PostSorting.vr_make_plots
 import PostSorting.make_plots
-import setting
+import settings
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
@@ -10,7 +10,7 @@ import SnakeIOHelper
 import PostSorting.open_field_make_plots as open_field_make_plots
 
 #%% define input and output
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [setting.debug_folder+'/processed/snakemake.done'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [settings.debug_folder+'/processed/snakemake.done'],
     'plot_figures')
     
 #%% Load data

@@ -20,3 +20,5 @@ pandas
 pytest
 elephant
 spikeinterface
+xarray
+bottleneck

@@ -32,7 +32,7 @@ Each script will read in some data file and always save some output in the end. 
 ### How to use
 The each script of the workflow can be run independently or as a workflow as a whole. Running each scirpt independently is great for debugging and development, while running the whole workflow is for batch processing.
 - To run each script independently
-    - Define the record to sort in the `debug_folder` in `setting.py` e.g. 
+    - Define the record to sort in the `debug_folder` in `settings.py` e.g. 
     
         ```
         debug_folder ='/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of

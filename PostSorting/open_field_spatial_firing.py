@@ -1,5 +1,5 @@
 import pandas as pd
-import setting
+import settings
 
 
 def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_open_ephys=30000):
@@ -9,7 +9,7 @@ def calculate_corresponding_indices(spike_data, spatial_data, avg_sampling_rate_
     
     return spike_data
 
-def remove_excess_firing(spike_data, spatial_data,Fs=setting.sampling_rate):
+def remove_excess_firing(spike_data, spatial_data,Fs=settings.sampling_rate):
     # remove spike time that are beyond the bonsai data (e.g. when bonsai is stopped before open-ephys)
     bonsai_last_time = spatial_data.synced_time.values[-1] - 1 #make sure we cover the last frame
     for i in range(len(spike_data)):

@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
 import OpenEphys
-import setting
+import settings
 import glob
 from file_utility import load_openephys_file
 import pickle
 
-def load_sync_data_ephys(recording_to_process, sync_channel = setting.sync_channel_suffix ):
+def load_sync_data_ephys(recording_to_process, sync_channel = settings.sync_channel_suffix ):
     is_found = False
     sync_data = None
     print('loading sync channel...')
@@ -49,7 +49,7 @@ def get_video_sync_on_and_off_times(spatial_data):
     return spatial_data
 
 
-def get_ephys_sync_on_and_off_times(sync_data_ephys, sampling_rate = setting.sampling_rate):
+def get_ephys_sync_on_and_off_times(sync_data_ephys, sampling_rate = settings.sampling_rate):
     sync_data_ephys['on_index'] = sync_data_ephys['sync_pulse'] > 0.5
     sync_data_ephys['on_index_diff'] = np.append([None], np.diff(sync_data_ephys['on_index'].values))  # true when light turns on
     sync_data_ephys['time'] = sync_data_ephys.index / sampling_rate
@@ -108,7 +108,7 @@ def trim_arrays_find_starts(sync_data_ephys_downsampled, spatial_data, skip_time
     bonsai_time = spatial_data.synced_time_estimate
 
     if oe_time.values[0]>=0:
-        ephys_start_index = skip_time*setting.bonsai_sampling_rate  # bonsai sampling rate times 19 seconds
+        ephys_start_index = skip_time*settings.bonsai_sampling_rate  # bonsai sampling rate times 19 seconds
         ephys_start_time = oe_time.values[ephys_start_index]
     else:
         # take care of the case when ephys signal start earlier than bonsai

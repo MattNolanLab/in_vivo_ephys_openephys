@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 import PostSorting.parameters
-import setting
+import settings
 import PostSorting.open_field_make_plots
 import OpenEphys
 from file_utility import search4File
 
-def load_opto_data(recording_to_process, opto_ch = setting.opto_ch_suffix):
+def load_opto_data(recording_to_process, opto_ch = settings.opto_ch_suffix):
     is_found = False
     opto_data = None
     print('loading opto channel...')

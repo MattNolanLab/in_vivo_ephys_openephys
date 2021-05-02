@@ -1,5 +1,5 @@
 import os
-import setting
+import settings
 
 def getRecording2sort(base_folder):
     folder = []
@@ -11,7 +11,7 @@ def getRecording2sort(base_folder):
     return folder
 
 recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
-sorterPrefix = '{recording}/processed/'+setting.sorterName
+sorterPrefix = '{recording}/processed/'+settings.sorterName
 
 # rule all:
 #     input:
@@ -43,7 +43,7 @@ rule process_position:
 rule process_firings:
     input:
         recording_to_sort = '{recording}',
-        sorted_data_path = '{recording}/processed/'+setting.sorterName+'/sorter_curated_df.pkl'
+        sorted_data_path = '{recording}/processed/'+settings.sorterName+'/sorter_curated_df.pkl'
     output:
         spike_data ='{recording}/processed/spatial_firing.pkl'
     script:
@@ -77,7 +77,18 @@ rule plot_figures:
         spike_trajectories = directory('{recording}/processed/figures/spike_trajectories/'),
         spike_rate =  directory('{recording}/processed/figures/spike_rate/'),
         combined = directory('{recording}/processed/figures/combined/'),
-        result = touch('{recording}/processed/snakemake.done')
+        done = touch('{recording}/processed/workflow/plot_figures.done')
     script:
         '../scripts/vr/05_plot_figure_vr.py'
 
+rule bin_data:
+    input:
+        pre_step = '{recording}/processed/workflow/plot_figures.done',
+        raw_position = '{recording}/processed/raw_position.pkl',
+        processed_position = '{recording}/processed/processed_position.pkl',
+        spatial_firing_vr =  '{recording}/processed/spatial_firing_vr.pkl'
+    output:
+        bin_data = '{recording}/processed/binned_data.pkl',
+        done = touch('{recording}/processed/snakemake.done')
+    script:
+        '../scripts/vr/06_bin_firing.py'

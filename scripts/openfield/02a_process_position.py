@@ -6,7 +6,7 @@ import PostSorting.open_field_spatial_data as ppsd
 import PostSorting.post_process_sorted_data as post_process_sorted_data
 import PostSorting.open_field_sync_data as open_field_sync_data
 from collections import namedtuple
-import setting
+import settings
 import gc
 import control_sorting_analysis
 import hd_sampling_analysis
@@ -15,7 +15,7 @@ import PostSorting.open_field_light_data as open_field_light_data
 from file_utility import get_tags_parameter_file
 
 #%% define input and outpu
-(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [setting.debug_folder+'/processed/opto_pulse.pkl'],
+(sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [settings.debug_folder+'/processed/opto_pulse.pkl'],
     'process_position')
 
 #%% Read tags from folder

@@ -11,7 +11,7 @@ from PreClustering import convert_open_ephys_to_mda
 import spikeinterface as si
 import yaml
 from pathlib import Path
-import setting
+import settings
 
 
 def get_sorting_range(max_signal_length, param_file_location):
@@ -28,12 +28,12 @@ def get_sorting_range(max_signal_length, param_file_location):
             param = yaml.load(f, Loader=yaml.FullLoader)
             if 'sorting_range' in param.keys():
                 if 'start' in param['sorting_range'].keys():
-                    start = param['sorting_range']['start'] * setting.sampling_rate
+                    start = param['sorting_range']['start'] * settings.sampling_rate
                 
                 if 'end' in param['sorting_range'].keys():
-                    end = param['sorting_range']['end'] * setting.sampling_rate
+                    end = param['sorting_range']['end'] * settings.sampling_rate
 
-                print(f'I will sort from {start/setting.sampling_rate:.2f}s to {end/setting.sampling_rate:.2f}s')
+                print(f'I will sort from {start/settings.sampling_rate:.2f}s to {end/settings.sampling_rate:.2f}s')
     except:
         print('No sorting range specified. I will sort the whole recording')
 

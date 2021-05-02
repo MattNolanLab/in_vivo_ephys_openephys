@@ -6,14 +6,14 @@ prm.set_filepath('C:/Users/s1466507/Documents/Ephys/deep MEC/day3/2016-08-29_09-
 prm.get_filepath()
 '''
 
-import setting
+import settings
 
 
 class Parameters:
     analyze_tetrode_by_tetrode = False
     analyze_all_tetrodes_together = True
 
-    sorter_name = setting.sorterName
+    sorter_name = settings.sorterName
 
     dead_channels = []
 
@@ -29,17 +29,17 @@ class Parameters:
     spike_path = ''
     ephys_path = ''
 
-    sampling_rate = setting.sampling_rate
-    num_tetrodes = setting.num_tetrodes
-    movement_ch = setting.movement_ch_suffix
-    opto_ch = setting.opto_ch_suffix
-    waveform_size = setting.wave_form_size
+    sampling_rate = settings.sampling_rate
+    num_tetrodes = settings.num_tetrodes
+    movement_ch = settings.movement_ch_suffix
+    opto_ch = settings.opto_ch_suffix
+    waveform_size = settings.wave_form_size
 
-    analyze_tetrode_by_tetrode = setting.is_tetrode_by_tetrode
-    analyze_all_tetrodes_together = not setting.is_tetrode_by_tetrode
+    analyze_tetrode_by_tetrode = settings.is_tetrode_by_tetrode
+    analyze_all_tetrodes_together = not settings.is_tetrode_by_tetrode
 
-    continuous_file_name = setting.data_file_prefix
-    continuous_file_name_end = setting.data_file_suffix
+    continuous_file_name = settings.data_file_prefix
+    continuous_file_name_end = settings.data_file_suffix
 
     def __init__(self):
         return
