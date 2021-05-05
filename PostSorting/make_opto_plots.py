@@ -281,7 +281,6 @@ def load_filtered_data(output_path, sorter_name='MountainSort'):
     return filtered_data, is_loaded
 
 
-
 def get_y_axis_positions_and_labels(baselines):
     positions = []
     labels = []
