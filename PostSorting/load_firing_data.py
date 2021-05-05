@@ -42,6 +42,17 @@ def correct_for_dead_channels(primary_channels, dead_channels):
 
 
 def get_firing_times_for_recording(firing_times, paired_order, stitchpoint):
+    """
+    (1) Checks 'paired_order' to determine whether this is data from a single recording or from multiple recordings that
+    were stitched together before sorting in order to sort them together. For single recordings, paired order is set to
+    None. For combined recordings, paired_order indicates the order of the recordings, so for example if paired_order is
+    3, this means that this is the third recording in a series of n.
+
+    (2) Selects firing times from the combined sorting output that belong to the recording currently analysed.
+    'firing_times' is the output of the spike sorter and contains all firing events from all recordings sorted together.
+    The function uses the 'stitchpoint' - a list of time points where the recordings were stitched together to determine
+    which firing events belong to the recording currently analysed and return the times that belong to the recording.
+    """
     if paired_order is not None:
         if paired_order == 1:
             firing_times = firing_times[firing_times < stitchpoint[0]]
