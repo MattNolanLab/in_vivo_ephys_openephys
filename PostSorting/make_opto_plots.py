@@ -202,6 +202,22 @@ def plot_waveforms_opto(spike_data, output_path, snippets_column_name='random_sn
             plt.close()
 
 
+def add_opto_subplot(figure_path, grid, grid_row, grid_columns):
+    if os.path.exists(figure_path):
+        figure_name = mpimg.imread(figure_path)
+        plot_name = plt.subplot(grid[grid_row, grid_columns])
+        plot_name.axis('off')
+        plot_name.imshow(figure_name)
+
+
+def add_subplots_to_combined_opto_figure(grid, waveforms_cell_all, waveforms_opto_random, waveforms_first_spikes, peristimulus_raster,peristimulus_histogram):
+    add_opto_subplot(waveforms_cell_all, grid, 0, 0)
+    add_opto_subplot(waveforms_opto_random, grid, 0, 1)
+    add_opto_subplot(waveforms_first_spikes, grid, 0, 2)
+    add_opto_subplot(peristimulus_raster, grid, 1, 0)
+    add_opto_subplot(peristimulus_histogram, grid, 1, 1)
+
+
 def make_combined_opto_plot(spatial_firing, output_path):
     print('I will make the combined images for opto stimulation analysis results now.')
     save_path = output_path + '/Figures/opto_plots_combined'
@@ -211,46 +227,22 @@ def make_combined_opto_plot(spatial_firing, output_path):
     figures_path = output_path + '/Figures/'
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
         cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)]  # data frame for that cluster
-
-        waveforms_cell_all = figures_path + 'firing_properties/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_waveforms.png'
-        waveforms_opto_random = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_random_snippets_opto.png'
-        waveforms_first_spikes = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_random_first_spike_snippets_opto.png'
-        peristimulus_raster = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_peristimulus_raster.png'
-        peristimulus_histogram = figures_path + 'opto_stimulation/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '_peristimulus_histogram.png'
+        cluster_path_name = cluster_df['session_id'].iloc[0] + '_' + str(cluster_id)
+        waveforms_cell_all = figures_path + 'firing_properties/' + cluster_path_name + '_waveforms.png'
+        waveforms_opto_random = figures_path + 'opto_stimulation/' + cluster_path_name + '_random_snippets_opto.png'
+        waveforms_first_spikes = figures_path + 'opto_stimulation/' + cluster_path_name + '_random_first_spike_snippets_opto.png'
+        peristimulus_raster = figures_path + 'opto_stimulation/' + cluster_path_name + '_peristimulus_raster.png'
+        peristimulus_histogram = figures_path + 'opto_stimulation/' + cluster_path_name + '_peristimulus_histogram.png'
 
         number_of_rows = 2
         number_of_columns = 3
         grid = plt.GridSpec(number_of_rows, number_of_columns, wspace=0.2, hspace=0.2)
         plt.suptitle('Light responses')
 
-        if os.path.exists(waveforms_cell_all):
-            waves_all = mpimg.imread(waveforms_cell_all)
-            waves_all_plot = plt.subplot(grid[0, 0])
-            waves_all_plot.axis('off')
-            waves_all_plot.imshow(waves_all)
-        if os.path.exists(waveforms_opto_random):
-            waves_opto = mpimg.imread(waveforms_opto_random)
-            waves_opto_plot = plt.subplot(grid[0, 1])
-            waves_opto_plot.axis('off')
-            waves_opto_plot.imshow(waves_opto)
-        if os.path.exists(waveforms_first_spikes):
-            first_spks = mpimg.imread(waveforms_first_spikes)
-            first_spks_plot = plt.subplot(grid[0, 2])
-            first_spks_plot.axis('off')
-            first_spks_plot.imshow(first_spks)
-        if os.path.exists(peristimulus_raster):
-            peristim_raster = mpimg.imread(peristimulus_raster)
-            pristim_plot = plt.subplot(grid[1, 0])
-            pristim_plot.axis('off')
-            pristim_plot.imshow(peristim_raster)
-        if os.path.exists(peristimulus_histogram):
-            peristim_hist = mpimg.imread(peristimulus_histogram)
-            pristim_plot = plt.subplot(grid[1, 1])
-            pristim_plot.axis('off')
-            pristim_plot.imshow(peristim_hist)
+        add_subplots_to_combined_opto_figure(grid, waveforms_cell_all, waveforms_opto_random, waveforms_first_spikes,
+                                             peristimulus_raster, peristimulus_histogram)
 
-        plt.savefig(save_path + '/' + cluster_df['session_id'].iloc[0] + '_' + str(cluster_id) + '.png', dpi=1000)
-        # plt.savefig(save_path + '/' + spatial_firing.session_id[cluster] + '_' + str(cluster + 1) + '.pdf', dpi=1000)
+        plt.savefig(save_path + '/' + cluster_path_name + '.png', dpi=1000)
         plt.close()
 
 
