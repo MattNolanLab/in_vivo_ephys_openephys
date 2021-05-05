@@ -421,9 +421,6 @@ def main():
     sampling_rate = 30000
     output_path = ('C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort')
     make_optogenetics_plots(spatial_firing, output_path, sampling_rate)
-    plot_peristimulus_raster(peristimulus_spikes, output_path, sampling_rate, light_pulse_duration=90,
-                             latency_window_ms=10)
-    plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, output_path, light_pulse_duration=90)
 
 
 if __name__ == '__main__':
