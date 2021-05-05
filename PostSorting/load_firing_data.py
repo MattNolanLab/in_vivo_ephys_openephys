@@ -72,6 +72,18 @@ def get_stitched_opto_tagging_index(opto_tagging_start_index, paired_order, stit
 
 
 def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None, number_of_channels_neighborhood=4):
+    """
+    :param recording_to_process: path to the folder with the recording data
+    :param sorter_name: name of spike sorter, this will determine the name of the output folder
+    :param dead_channels: list of dead (broken) channel ids
+    :param paired_order: None for a single recording, when multiple recordings are sorted together, this indicates the
+    order (the output of the sorting is stitched together and has to be split up)
+    :param stitchpoint: None for single recordings, time points of stitches for multiple recordings
+    :param opto_tagging_start_index: time point when opto-tagging started
+    :param number_of_channels_neighborhood: number of channels sorted together in the same neighbourhood. This is 4 for
+    tetrode recordings.
+    :return: Data frame with firing times of clusters
+    """
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
