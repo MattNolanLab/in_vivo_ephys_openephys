@@ -94,7 +94,7 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
     plt.ylabel('Trial', fontsize=14)
-    plt.savefig(save_path + '/' + 'peristimulus_raster_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
+    plt.savefig(save_path + '/peristimulus_raster_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
 
 
@@ -154,7 +154,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     plt.ylabel('Number of spikes', fontsize=14)
     plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + "\n" + ' SALT p = ' + str(salt_p) + ' SALT I = ' + str(salt_i))
     plt.tight_layout()
-    plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_histogram.png', dpi=300)
+    plt.savefig(save_path + '/peristimulus_histogram_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
 
 
