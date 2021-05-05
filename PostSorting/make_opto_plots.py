@@ -242,7 +242,7 @@ def make_combined_opto_plot(spatial_firing, output_path):
         add_subplots_to_combined_opto_figure(grid, waveforms_cell_all, waveforms_opto_random, waveforms_first_spikes,
                                              peristimulus_raster, peristimulus_histogram)
 
-        plt.savefig(save_path + '/' + cluster_path_name + '.png', dpi=1000)
+        plt.savefig(save_path + '/combined_opto_' + cluster_path_name + '.png', dpi=1000)
         plt.close()
 
 
