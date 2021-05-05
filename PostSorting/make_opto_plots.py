@@ -94,7 +94,7 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
     plt.ylabel('Trial', fontsize=14)
-    plt.savefig(save_path + '/' + session.iloc[0] + '_' + str(cluster) + '_peristimulus_raster.png', dpi=300)
+    plt.savefig(save_path + '/' + 'peristimulus_raster_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
 
 
