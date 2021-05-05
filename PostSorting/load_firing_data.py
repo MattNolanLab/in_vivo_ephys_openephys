@@ -71,7 +71,7 @@ def get_stitched_opto_tagging_index(opto_tagging_start_index, paired_order, stit
     return opto_tagging_start_index
 
 
-def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
+def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None, number_of_channels_neighborhood=4):
     session_id = recording_to_process.split('/')[-1]
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
@@ -92,8 +92,8 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
             cluster_firings_opto = []
             cluster_firings = cluster_firings_all
         channel_detected = primary_channel[cluster_ids == cluster][0]
-        tetrode = int((channel_detected-1)/4 + 1)
-        ch = int((channel_detected - 1) % 4 + 1)
+        tetrode = int((channel_detected-1)/number_of_channels_neighborhood + 1)
+        ch = int((channel_detected - 1) % number_of_channels_neighborhood + 1)
         firing_data = firing_data.append({
             "session_id": session_id,
             "cluster_id":  int(cluster),
