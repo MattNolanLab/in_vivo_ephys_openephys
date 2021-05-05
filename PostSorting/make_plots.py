@@ -163,6 +163,7 @@ def plot_autocorrelograms(spike_data: pd.DataFrame, output_path: str, sampling_r
 def plot_spikes_for_channel(grid, highest_value, lowest_value, spike_data, cluster_id, channel, snippet_column_name):
     cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
     snippet_plot = plt.subplot(grid[int(channel/2), channel % 2])
+    # waveform shapes are multiplied by -1 to be consistent with how they are shown in most papers
     mean = np.mean(cluster_df[snippet_column_name].iloc[0][channel, :, :], 1) * -1
     plt.ylim(lowest_value - 10, highest_value + 30)
     plot_utility.style_plot(snippet_plot)
