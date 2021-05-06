@@ -191,13 +191,12 @@ def analyse_latencies(spatial_firing, sampling_rate):
     return spatial_firing
 
 
-def get_opto_parameters(output_path):
+def get_opto_parameters(output_path, opto_file_name='opto_parameters.txt'):
     path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
     found = False
     opto_parameters = np.nan
     for file_name in os.listdir(path_to_recording):
-        if file_name.startswith("opto_para"):   # we have a fair amount of typos in the file names
-            print(file_name)
+        if file_name == opto_file_name:
             print('I found the opto parameters file.')
             found = True
             opto_parameters_path = path_to_recording + file_name
