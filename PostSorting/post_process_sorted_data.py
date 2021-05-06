@@ -201,7 +201,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
             total_length = total_length_sampling_points
         # analyze spike data
         spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index=opto_start_index)
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length)
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length)
         spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
         snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=False)
