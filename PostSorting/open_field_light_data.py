@@ -191,8 +191,7 @@ def analyse_latencies(spatial_firing, sampling_rate):
     return spatial_firing
 
 
-def get_opto_parameters(output_path, opto_file_name='opto_parameters.txt'):
-    path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
+def get_opto_parameters(path_to_recording, opto_file_name='opto_parameters.txt'):
     found = False
     opto_parameters = np.nan
     for file_name in os.listdir(path_to_recording):
@@ -227,7 +226,8 @@ def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, windo
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10):
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
     print('I will process opto data.')
-    opto_parameters, opto_params_is_found = get_opto_parameters(output_path)
+    path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
+    opto_parameters, opto_params_is_found = get_opto_parameters(path_to_recording)
     save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms)
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate)
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)
