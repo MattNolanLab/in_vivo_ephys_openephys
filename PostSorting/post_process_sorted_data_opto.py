@@ -108,12 +108,6 @@ def process_light_stimulation(recording_to_process, paired_order, stitchpoint, p
     return opto_on, opto_off, is_found, opto_start_index
 
 
-def sync_data(recording_to_process, prm, spatial_data):
-    synced_spatial_data,total_length_sampling_points, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
-                                                                                       spatial_data)
-    return synced_spatial_data, total_length_sampling_points
-
-
 def make_plots(spatial_firing, output_path, prm, stitch_point=None, paired_order=None):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
@@ -242,7 +236,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
 
     if position_was_found:
         try:
-            synced_spatial_data, total_length_sampling_points = sync_data(recording_to_process, prm, spatial_data)
+            synced_spatial_data, total_length_sampling_points = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
         except AssertionError as error:
             print(error)
             print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
