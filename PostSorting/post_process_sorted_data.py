@@ -84,6 +84,15 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
 
 
 def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, stitchpoint):
+    """
+        (1) Checks 'paired_order' to determine whether this is data from a single recording or from multiple recordings that
+        were stitched together before sorting in order to sort them together. For single recordings, paired order is set to
+        None. For combined recordings, paired_order indicates the order of the recordings, so for example if paired_order is
+        3, this means that this is the third recording in a series of n.
+
+        (2) Shifts the opto pulse times by the stitchpoint to be consistent with the firing times saved for the cell
+        """
+
     if paired_order is not None:
         if paired_order > 1:
             time_point_to_add = stitchpoint[paired_order - 2]
