@@ -11,11 +11,11 @@ import time
 import PostSorting.SALT
 
 
-def load_opto_data(recording_to_process, prm):
+def load_opto_data(recording_to_process, opto_channel):
     is_found = False
     opto_data = None
     print('loading opto channel...')
-    file_path = recording_to_process + '/' + prm.get_opto_channel()
+    file_path = recording_to_process + '/' + opto_channel
     if os.path.exists(file_path):
         opto_data = open_ephys_IO.get_data_continuous(file_path)
         is_found = True
@@ -33,9 +33,9 @@ def get_ons_and_offs(opto_data):
     return opto_on, opto_off
 
 
-def process_opto_data(recording_to_process, prm):
+def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
-    opto_data, is_found = load_opto_data(recording_to_process, prm)
+    opto_data, is_found = load_opto_data(recording_to_process, opto_channel)
     first_opto_pulse_index = None
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
