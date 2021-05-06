@@ -119,8 +119,8 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
-def save_plots_of_pulses(bonsai, oe, prm, lag, name='sync_pulses'):
-    save_path = prm.get_output_path() + '/Figures/Sync_test/'
+def save_plots_of_pulses(bonsai, oe, output_path, lag, name='sync_pulses'):
+    save_path = output_path + '/Figures/Sync_test/'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.figure()
@@ -202,8 +202,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
 
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time
-
-    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm, lag2)
+    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm.get_output_path(), lag2)
 
     if abs(lag2) < 1.5:
         #after correlation sync, the difference in lag should very small, if not it may indicate error
