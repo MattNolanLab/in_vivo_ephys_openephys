@@ -96,15 +96,15 @@ def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, 
     return opto_on, opto_off, opto_start_index
 
 
-def process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm):
-    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
+def process_light_stimulation(recording_to_process, paired_order, stitchpoint, opto_channel, output_path):
+    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, opto_channel)
     if is_found:
         opto_on, opto_off, opto_start_index = correct_for_paired_order(opto_on, opto_off, opto_start_index,
                                                                        paired_order, stitchpoint)
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
-        if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-            os.makedirs(prm.get_output_path() + '/DataFrames')
-        opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
+        if os.path.exists(output_path + '/DataFrames') is False:
+            os.makedirs(output_path + '/DataFrames')
+        opto_data_frame.to_pickle(output_path + '/DataFrames/opto_pulses.pkl')
     return opto_on, opto_off, is_found, opto_start_index
 
 
@@ -216,7 +216,8 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
     PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
-    output_path = recording_to_process+'/'+settings.sorterName
+    output_path = recording_to_process + '/' + settings.sorterName
+    opto_channel = prm.get_opto_channel()
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
@@ -224,7 +225,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
+    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, opto_channel, output_path)
     # process spatial data
     position_was_found = False
     try:
