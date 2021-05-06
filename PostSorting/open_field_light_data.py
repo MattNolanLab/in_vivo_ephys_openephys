@@ -216,11 +216,11 @@ def load_parameters(prm):
     return output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels
 
 
-def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms):
+def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms, save_path='/DataFrames/opto_parameters.pkl'):
     if opto_params_is_found:
         opto_parameters['window_size_ms'] = window_size_ms
         opto_parameters['first_spike_latency_ms'] = first_spike_latency_ms
-        opto_parameters.to_pickle(output_path + '/DataFrames/opto_parameters.pkl')
+        opto_parameters.to_pickle(output_path + save_path)
 
 
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10):
