@@ -91,7 +91,7 @@ def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, 
         3, this means that this is the third recording in a series of n.
 
         (2) Shifts the opto pulse times by the stitchpoint to be consistent with the firing times saved for the cell
-        """
+    """
 
     if paired_order is not None:
         if paired_order > 1:
