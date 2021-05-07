@@ -156,12 +156,6 @@ class Parameters:
     def set_ms_tmp_path(self, path):
         Parameters.ms_tmp_path = path
 
-    def get_total_length_sampling_points(self):
-        return Parameters.total_length_sampling_points
-
-    def set_total_length_sampling_points(self, length):
-        Parameters.total_length_sampling_points = length
-
     def get_dead_channels(self):
         return Parameters.dead_channels
 
