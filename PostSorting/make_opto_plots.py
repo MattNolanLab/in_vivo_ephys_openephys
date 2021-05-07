@@ -231,8 +231,8 @@ def make_combined_opto_plot(spatial_firing, output_path):
         waveforms_cell_all = figures_path + 'firing_properties/' + cluster_path_name + '_waveforms.png'
         waveforms_opto_random = figures_path + 'opto_stimulation/' + cluster_path_name + '_random_snippets_opto.png'
         waveforms_first_spikes = figures_path + 'opto_stimulation/' + cluster_path_name + '_random_first_spike_snippets_opto.png'
-        peristimulus_raster = figures_path + 'opto_stimulation/' + cluster_path_name + '_peristimulus_raster.png'
-        peristimulus_histogram = figures_path + 'opto_stimulation/' + cluster_path_name + '_peristimulus_histogram.png'
+        peristimulus_raster = figures_path + 'opto_stimulation/peristimulus_raster_' + cluster_path_name + '.png'
+        peristimulus_histogram = figures_path + 'opto_stimulation/peristimulus_histogram_' + cluster_path_name + '.png'
 
         number_of_rows = 2
         number_of_columns = 3
