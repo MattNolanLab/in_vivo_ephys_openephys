@@ -3,6 +3,7 @@ import pandas as pd
 
 def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000):
     start_of_spatial_data_sampling_points = spatial_data.synced_time[0] * sampling_rate_ephys
+    # this is needed when multiple recordings are stitched together for sorting
     firing_times_shifted_to_start = spike_data.firing_times - start_of_spatial_data_sampling_points
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = sampling_rate_ephys / avg_sampling_rate_bonsai
