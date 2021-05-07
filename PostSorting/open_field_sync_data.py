@@ -261,7 +261,6 @@ def process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=None,
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
 
     synced_spatial_data = remove_opto_tagging_from_spatial_data(prm, synced_spatial_data)
-    prm.set_total_length_sampling_points(synced_spatial_data.synced_time.values[-1]) # seconds
     total_length_sampling_points = synced_spatial_data.synced_time.values[-1]
     synced_spatial_data = correct_for_sorting_multiple_recordings(synced_spatial_data, stitchpoint, paired_order)
 

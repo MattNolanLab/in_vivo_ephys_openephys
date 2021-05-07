@@ -130,9 +130,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
 
-    if total_length is not None:
-        prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
-
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process +  prm.get_sorter_name())
 
