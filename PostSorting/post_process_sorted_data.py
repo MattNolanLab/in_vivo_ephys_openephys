@@ -116,12 +116,6 @@ def process_light_stimulation(recording_to_process, paired_order, stitchpoint, p
     return opto_on, opto_off, is_found, opto_start_index
 
 
-def sync_data(recording_to_process, prm, spatial_data):
-    synced_spatial_data,total_length_sampling_points, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
-                                                                                       spatial_data)
-    return synced_spatial_data, total_length_sampling_points
-
-
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm, stitch_point=None, paired_order=None):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
@@ -196,12 +190,9 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
-        synced_spatial_data, total_length_sampling_points = sync_data(recording_to_process, prm, spatial_data)
-        if not total_length:
-            total_length = total_length_sampling_points
-        # analyze spike data
+        synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=stitchpoint, paired_order=paired_order)
         spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index=opto_start_index)
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length)
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
         spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
         snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=False)
