@@ -108,12 +108,6 @@ def process_light_stimulation(recording_to_process, paired_order, stitchpoint, p
     return opto_on, opto_off, is_found, opto_start_index
 
 
-def sync_data(recording_to_process, prm, spatial_data):
-    synced_spatial_data,total_length_sampling_points, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
-                                                                                       spatial_data)
-    return synced_spatial_data, total_length_sampling_points
-
-
 def make_plots(spatial_firing, position, output_path, prm, stitch_point=None, paired_order=None):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
@@ -254,7 +248,8 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
 
             if opto_is_found:
                 spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
-            synced_spatial_data, total_length_sampling_points = sync_data(recording_to_process, prm, spatial_data)
+            synced_spatial_data, total_length_sampling_points, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
+                                                                                                                             spatial_data, stitchpoint=stitchpoint, paired_order=paired_order)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data, settings.gauss_sd_for_speed_score, settings.sampling_rate)
 
