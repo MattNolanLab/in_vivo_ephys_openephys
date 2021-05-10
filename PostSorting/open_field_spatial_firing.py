@@ -1,9 +1,9 @@
 import pandas as pd
 
 
-def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000, stitchpoint_to_subtract=None):
+def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000, stitchpoint_to_subtract=False):
     # this is needed when multiple recordings are stitched together for sorting
-    if stitchpoint_to_subtract is not None:
+    if stitchpoint_to_subtract:
         firing_times = spike_data.firing_times - stitchpoint_to_subtract
     else:
         firing_times = spike_data.firing_times
@@ -13,7 +13,7 @@ def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephy
     return spike_data
 
 
-def find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtract=None):
+def find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtract=False):
     spike_data = calculate_corresponding_indices(spike_data, spatial_data, stitchpoint_to_subtract=stitch_point_to_subtract)
     spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed'])
 
