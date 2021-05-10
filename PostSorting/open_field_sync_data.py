@@ -147,8 +147,7 @@ def save_plot(prm, data, name, plot_color='black'):
 
 
 def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
-
-    '''
+    """
     The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
     The open ephys GUI receives TTL pulses. Bonsai detects intensity from an LED that lights up whenever the TTL is
     sent to open ephys. The pulses have 20-60 s long randomised gaps in between them. The recordings don't necessarily
@@ -172,7 +171,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
     #Note: the syncLED column must have stable sampling frequency/FPS, otherwise there will be error
 
-    '''
+    """
 
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
@@ -207,19 +206,14 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm.get_output_path(), lag2)
 
     if abs(lag2) < 1.5:
-        #after correlation sync, the difference in lag should very small, if not it may indicate error
+        # after correlation sync, the difference in lag should very small, if not it may indicate error
         print(f'Rising edge lag is {lag2}')
         spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
     else:
         # time difference between riring edge is too large, potential bug
         print('Lag is:' + str(lag2))
         raise ValueError('Potential sync error.')
-        
 
-    # plots for testing
-    # plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
-    # trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
-    # plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
     return spatial_data
 
 
@@ -253,7 +247,7 @@ def process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=None,
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data,prm)
+    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
     # remove negative time points
