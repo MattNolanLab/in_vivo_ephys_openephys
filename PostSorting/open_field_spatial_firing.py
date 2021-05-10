@@ -33,17 +33,18 @@ def find_firing_location_indices(spike_data, spatial_data):
     spike_data['position_y_pixels'] = spatial_firing.position_y_pixels.values
     spike_data['hd'] = spatial_firing.hd.values
     spike_data['speed'] = spatial_firing.speed.values
-    return spike_data
-
-
-def add_firing_locations(spike_data, spatial_data):
-    spike_data = find_firing_location_indices(spike_data, spatial_data)
     spike_data = spike_data.drop(['bonsai_indices'], axis=1)
     return spike_data
 
 
 def process_spatial_firing(spike_data, spatial_data):
+    """
+    :param spike_data: data frame containing firing times where each row is a neuron
+    :param spatial_data: data frame containing position of animal (x, y, hd, time)
+    :return: combined data frame containing firing times and corresponding positions as lists
+    firing_times = [,,,,] x = [,,,,] y = [,,,,] ... in each row for each cell
+    """
     if 'position_x' in spike_data:
         return spike_data
-    spatial_spike_data = add_firing_locations(spike_data, spatial_data)
+    spatial_spike_data = find_firing_location_indices(spike_data, spatial_data)
     return spatial_spike_data
