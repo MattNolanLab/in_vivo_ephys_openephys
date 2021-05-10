@@ -5,7 +5,6 @@ class Parameters:
     is_ubuntu = True
     is_windows = False
     is_stable = False
-    is_interleaved_opto = False
     delete_two_min = False
     first_half_only = False
     second_half_only = False
@@ -120,12 +119,6 @@ class Parameters:
     def set_downsampled_rate(self, dsr):
         Parameters.downsampled_rate = dsr
 
-    def get_opto_tagging_start_index(self):
-        return Parameters.opto_tagging_start_index
-
-    def set_opto_tagging_start_index(self, opto_start):
-        Parameters.opto_tagging_start_index = opto_start
-
     def get_sampling_rate_rate(self):
         return Parameters.sampling_rate_rate
 
@@ -224,12 +217,6 @@ class Parameters:
 
     def set_stop_threshold(self, st):
         Parameters.stop_threshold = st
-
-    def get_interleaved_opto(self):
-        return Parameters.is_interleaved_opto
-
-    def set_interleaved_opto(self, inter_opto):
-        Parameters.is_interleaved_opto = inter_opto
 
     def get_delete_two_minutes(self):
         return Parameters.delete_two_min
