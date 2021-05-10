@@ -82,7 +82,6 @@ def downsample_ephys_data(sync_data_ephys, spatial_data, prm):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
-    prm.set_sampling_rate_rate(sampling_rate_rate)
     length = int(len(sync_data_ephys['time']) / sampling_rate_rate)
     indices = (np.arange(length) * sampling_rate_rate).astype(int)
     sync_data_ephys_downsampled = sync_data_ephys['time'][indices]

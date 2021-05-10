@@ -23,7 +23,6 @@ prm = PostSorting.parameters.Parameters()
 
 
 def initialize_parameters(recording_to_process):
-    prm.set_is_ubuntu(True)
     prm.set_sampling_rate(30000)
     prm.set_downsampled_rate(1000)
     prm.set_local_recording_folder_path(recording_to_process)

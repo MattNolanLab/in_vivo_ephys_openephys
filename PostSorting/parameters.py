@@ -40,12 +40,6 @@ class Parameters:
     def __init__(self):
         return
 
-    def get_is_stable(self):
-            return Parameters.is_stable
-
-    def set_is_stable(self, is_stbl):
-        Parameters.is_stable = is_stbl
-
     def get_sorter_name(self):
             return Parameters.sorter_name
 
@@ -63,18 +57,6 @@ class Parameters:
 
     def set_second_half_only(self, is_second):
         Parameters.second_half_only = is_second
-
-    def get_is_ubuntu(self):
-        return Parameters.is_ubuntu
-
-    def set_is_ubuntu(self, is_ub):
-        Parameters.is_ubuntu = is_ub
-
-    def get_is_windows(self):
-        return Parameters.is_windows
-
-    def set_is_windows(self, is_win):
-        Parameters.is_windows = is_win
 
     def get_pixel_ratio(self):
         return Parameters.pixel_ratio
@@ -118,12 +100,6 @@ class Parameters:
 
     def set_downsampled_rate(self, dsr):
         Parameters.downsampled_rate = dsr
-
-    def get_sampling_rate_rate(self):
-        return Parameters.sampling_rate_rate
-
-    def set_sampling_rate_rate(self, sr):
-        Parameters.sampling_rate_rate = sr
 
     def get_local_recording_folder_path(self):
         return Parameters.local_recording_folder_path

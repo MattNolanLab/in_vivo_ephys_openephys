@@ -37,7 +37,6 @@ import PreClustering.dead_channels
 
 
 def initialize_parameters(recording_to_process):
-    prm.set_is_ubuntu(True)
     prm.set_pixel_ratio(440)
     prm.set_opto_channel('100_ADC3.continuous')
     if os.path.exists(recording_to_process + '/100_ADC1.continuous'):
