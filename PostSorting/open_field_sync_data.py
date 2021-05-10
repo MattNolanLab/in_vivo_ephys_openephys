@@ -217,13 +217,13 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     return spatial_data
 
 
-def remove_opto_tagging_from_spatial_data(opto_start, spatial_data):
-    if opto_start is None:
+def remove_opto_tagging_from_spatial_data(start_of_opto_tagging, spatial_data):
+    if start_of_opto_tagging is None:
         return spatial_data
     else:
-        beginning_of_opto_tagging = opto_start
-        bonsai_start_index = int(beginning_of_opto_tagging / settings.sampling_rate)
-        spatial_data.drop(range(bonsai_start_index, len(spatial_data)), inplace=True)
+        start_of_opto_seconds = int(start_of_opto_tagging / settings.sampling_rate)
+        nearest_bonsai_index = (np.abs(spatial_data.synced_time - start_of_opto_seconds)).argmin()
+        spatial_data.drop(range(nearest_bonsai_index, len(spatial_data)), inplace=True)
     return spatial_data
 
 
