@@ -190,7 +190,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
-        synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=stitchpoint, paired_order=paired_order)
+        synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=stitchpoint, paired_order=paired_order, opto_start=opto_start_index)
         spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index)
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
         spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)

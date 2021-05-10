@@ -235,7 +235,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
 
     if position_was_found:
         try:
-            synced_spatial_data, total_length_seconds = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=stitchpoint, paired_order=paired_order)
+            synced_spatial_data, total_length_seconds = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=stitchpoint, paired_order=paired_order, opto_start=opto_start_index)
         except AssertionError as error:
             print(error)
             print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
