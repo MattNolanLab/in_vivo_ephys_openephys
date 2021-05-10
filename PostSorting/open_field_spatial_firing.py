@@ -1,18 +1,20 @@
 import pandas as pd
 
 
-def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000):
-    start_of_spatial_data_sampling_points = spatial_data.synced_time[0] * sampling_rate_ephys
+def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000, stitchpoint_to_subtract=None):
     # this is needed when multiple recordings are stitched together for sorting
-    firing_times_shifted_to_start = spike_data.firing_times - start_of_spatial_data_sampling_points
+    if stitchpoint_to_subtract is not None:
+        firing_times = spike_data.firing_times - stitchpoint_to_subtract
+    else:
+        firing_times = spike_data.firing_times
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = sampling_rate_ephys / avg_sampling_rate_bonsai
-    spike_data['bonsai_indices'] = firing_times_shifted_to_start /sampling_rate_rate
+    spike_data['bonsai_indices'] = firing_times / sampling_rate_rate
     return spike_data
 
 
-def find_firing_location_indices(spike_data, spatial_data):
-    spike_data = calculate_corresponding_indices(spike_data, spatial_data)
+def find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtract=None):
+    spike_data = calculate_corresponding_indices(spike_data, spatial_data, stitchpoint_to_subtract=stitch_point_to_subtract)
     spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed'])
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
@@ -37,8 +39,19 @@ def find_firing_location_indices(spike_data, spatial_data):
     return spike_data
 
 
-def process_spatial_firing(spike_data, spatial_data):
+def get_stitch_point_to_subtract(stitch_point, paired_order):
     """
+    Find amount of time firing times are shifted by.
+    """
+    stitch_point_to_subtract = False
+    if paired_order > 1:
+        stitch_point_to_subtract = stitch_point[paired_order - 2]
+    return stitch_point_to_subtract
+
+
+def process_spatial_firing(spike_data, spatial_data, stitch_point=None, paired_order=None):
+    """
+    :param stitch_point: list of points where recordings sorted together were combined
     :param spike_data: data frame containing firing times where each row is a neuron
     :param spatial_data: data frame containing position of animal (x, y, hd, time)
     :return: combined data frame containing firing times and corresponding positions as lists
@@ -46,5 +59,6 @@ def process_spatial_firing(spike_data, spatial_data):
     """
     if 'position_x' in spike_data:
         return spike_data
-    spatial_spike_data = find_firing_location_indices(spike_data, spatial_data)
+    stitch_point = get_stitch_point_to_subtract(stitch_point, paired_order)
+    spatial_spike_data = find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtract=stitch_point)
     return spatial_spike_data
