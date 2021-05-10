@@ -168,9 +168,8 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
     """
     Run analyses on spike sorted data to analyze snippets and temporal firing properties.
     """
-    spike_data = PostSorting.load_firing_data.create_firing_data_frame(recording_to_process, sorter_name, dead_channels,
-                                                                       paired_order, stitchpoint,
-                                                                       opto_tagging_start_index=opto_start_index)
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels,
+                                                                   paired_order, stitchpoint, opto_start_index)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length)
     spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name,

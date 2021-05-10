@@ -117,11 +117,6 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
     return firing_data
 
 
-def create_firing_data_frame(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None):
-    spike_data = None
-    spike_data = process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index)
-    return spike_data
-
 def available_ephys_channels(recording_to_process, prm):
     '''
     :param recording_to_process: absolute path of recroding to sort
