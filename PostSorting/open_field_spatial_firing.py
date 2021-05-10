@@ -52,6 +52,7 @@ def get_stitch_point_to_subtract(stitch_point, paired_order):
 
 def process_spatial_firing(spike_data, spatial_data, stitch_point=None, paired_order=None):
     """
+    :param paired_order: number of recording in series of recordings sorted together
     :param stitch_point: list of points where recordings sorted together were combined
     :param spike_data: data frame containing firing times where each row is a neuron
     :param spatial_data: data frame containing position of animal (x, y, hd, time)
