@@ -170,11 +170,6 @@ def process_hd_data(spatial_firing, spatial_data, prm):
         except:
             angles_spike = (np.array(cluster.hd) + 180) * np.pi / 180
 
-        if prm.get_is_stable() is False:
-            print('The watson test is not going to run. If you need this data, you can run it on the dataframes later.')
-            # save_hd_for_r(angles_whole_session, angles_spike, index, prm)
-            # analyze_hd_r(prm, index)
-
         hd_spike_histogram = get_hd_histogram(angles_spike)
         hd_spike_histogram = hd_spike_histogram / hd_histogram
         hd_spike_histograms.append(hd_spike_histogram)
