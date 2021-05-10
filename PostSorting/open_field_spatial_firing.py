@@ -44,8 +44,9 @@ def get_stitch_point_to_subtract(stitch_point, paired_order):
     Find amount of time firing times are shifted by.
     """
     stitch_point_to_subtract = False
-    if paired_order > 1:
-        stitch_point_to_subtract = stitch_point[paired_order - 2]
+    if paired_order is not None:
+        if paired_order > 1:
+            stitch_point_to_subtract = stitch_point[paired_order - 2]
     return stitch_point_to_subtract
 
 
