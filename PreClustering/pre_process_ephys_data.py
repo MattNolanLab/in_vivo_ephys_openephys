@@ -60,7 +60,7 @@ def split_continuous_data(recording_to_sort, stitch_point):
 
 
 def make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name):
-    sorting_output_folder = paired_path_local + 'Electrophysiology/' + sorter_name + '/'
+    sorting_output_folder = paired_path_local + '/Electrophysiology/' + sorter_name + '/'
     if os.path.exists(sorting_output_folder) is False:
         os.makedirs(sorting_output_folder)
     return sorting_output_folder
@@ -82,8 +82,8 @@ def split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, s
     filtered_data_path = recording_to_sort + '/Electrophysiology/' + sorter_name + '/filt.mda'
     filtered_data = mdaio.readmda(filtered_data_path)
     for paired_index, recording in enumerate(paired_recordings):
-        first_half_of_local_path = recording_to_sort.split('/')[:-1]
-        second_half = recording.split('/'[-1])
+        first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
+        second_half = '/' + recording.split('/')[-1]
         paired_path_local = first_half_of_local_path + second_half
         sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
         # get correct part of filtered data based on stitch points
@@ -99,29 +99,33 @@ def copy_curation_information(recording_to_sort, sorter_name):
     curation_data = recording_to_sort + '/Electrophysiology/' + sorter_name + '/cluster_metrics.json'
     if os.path.exists(curation_data):
         for recording in paired_recordings:
-            first_half_of_local_path = recording_to_sort.split('/')[:-1]
-            second_half = recording.split('/'[-1])
+            first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
+            second_half = '/' + recording.split('/')[-1]
             paired_path_local = first_half_of_local_path + second_half
             sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
-            shutil.copyfile(curation_data, sorting_output_folder + '/Electrophysiology/' + sorter_name + '/cluster_metrics.json')
+            shutil.copyfile(curation_data, sorting_output_folder + '/cluster_metrics.json')
 
 
 def split_firing_times_sorting_output(recording_to_sort, sorter_name, stitch_point):
     tags = control_sorting_analysis.get_tags_parameter_file(recording_to_sort)
     paired_recordings = control_sorting_analysis.check_for_paired(tags)
-    # this are the cluster quality metrics
+    # this are the firing times of the sorted clusters
     firing_times_path = recording_to_sort + '/Electrophysiology/' + sorter_name + '/firings.mda'
     if os.path.exists(firing_times_path):
         firing_info = mdaio.readmda(firing_times_path)
 
-        for recording in paired_recordings:
-            first_half_of_local_path = recording_to_sort.split('/')[:-1]
-            second_half = recording.split('/'[-1])
+        for stitch_index, recording in enumerate(paired_recordings):
+            first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
+            second_half = '/' + recording.split('/')[-1]
             paired_path_local = first_half_of_local_path + second_half
             sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
             # todo split firing times file based on stitch point
-            firing_times_recording = []  # placeholder
-            mdaio.writemda16i(firing_times_recording, sorting_output_folder + '/Electrophysiology/' + sorter_name + '/firings.mda')
+            after_previous_stitch = firing_info[1] > stitch_point[stitch_index]
+            before_next_stitch = firing_info[1] <= stitch_point[stitch_index + 1]
+            in_recording = after_previous_stitch & before_next_stitch
+            indices_in_recording = np.where(in_recording == 1)[0]
+            firing_times_recording = firing_info[:, indices_in_recording]
+            mdaio.writemda16i(firing_times_recording, sorting_output_folder + '/firings.mda')
 
 
 def split_back(recording_to_sort, stitch_point, sorter_name='MountainSort'):
@@ -132,6 +136,7 @@ def split_back(recording_to_sort, stitch_point, sorter_name='MountainSort'):
     :return: the path (same as input parameter) and the total number of time steps in the combined data
     """
     print('I will split the data that was sorted together. It might take a while.')
+    n_timestamps = 0
     n_timestamps = split_continuous_data(recording_to_sort, stitch_point)
     # make ephys folder structure for each
     split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, stitch_point)
@@ -227,10 +232,12 @@ def main():
     #recording_folder = 'C:/Users/s1466507/Documents/Ephys/recordings/M0_2017-12-14_15-00-13_of'
     #pre_process_data(recording_folder)
 
-    recording_folder = r"C:\Users\44756\Desktop\test_recordings_waveform_matching\M2_D3_2019-03-06_13-35-15"
-    paired_folder =    r"C:\Users\44756\Desktop\test_recordings_waveform_matching\M2_D3_2019-03-06_15-24-38"
+    recording_folder = r"C:/Users/s1466507/Documents/Work/stitch_test/M0_2017-11-14_16-54-12_of"
+    paired_folder =    r"C:\Users\s1466507\Documents\Work\stitch_test\M2_2017-11-14_16-54-15_of"
 
-    stitch_recordings(recording_folder, paired_folder)
+    split_back(recording_folder, [2500, 10000], sorter_name='MountainSort')
+
+    # stitch_recordings(recording_folder, paired_folder)
 
 
 if __name__ == '__main__':
