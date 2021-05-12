@@ -126,7 +126,7 @@ def split_firing_times_sorting_output(recording_to_sort: str, sorter_name: str, 
             indices_in_recording = np.where(in_recording == 1)[0]
             firing_times_recording = firing_info[:, indices_in_recording]
             firing_times_recording[1] -= stitch_point[stitch_index]  # shift so they start at 0
-            mdaio.writemda16i(firing_times_recording, sorting_output_folder + '/firings.mda')
+            mdaio.writemda32(firing_times_recording, sorting_output_folder + '/firings.mda')
 
 
 def split_back(recording_to_sort: str, stitch_point: list, sorter_name='MountainSort'):
