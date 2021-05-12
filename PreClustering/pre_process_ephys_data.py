@@ -119,7 +119,7 @@ def split_firing_times_sorting_output(recording_to_sort: str, sorter_name: str, 
             second_half = '/' + recording.split('/')[-1]
             paired_path_local = first_half_of_local_path + second_half
             sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
-            # todo split firing times file based on stitch point
+            # split firing times file based on stitch point
             after_previous_stitch = firing_info[1] > stitch_point[stitch_index]
             before_next_stitch = firing_info[1] <= stitch_point[stitch_index + 1]
             in_recording = after_previous_stitch & before_next_stitch
