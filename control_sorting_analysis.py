@@ -153,13 +153,9 @@ def remove_folder_from_server_and_copy(recording_to_sort, location_on_server, na
         pass
 
 
-def copy_ephys_to_paired(recording_to_sort, paired_recordings_to_sort):
-    shutil.copytree(recording_to_sort+"/Electrophysiology", paired_recordings_to_sort +"/Electrophysiology")
-
-
-def delete_ephys_for_paired(paired_recordings_to_sort):
-    if os.path.exists(paired_recordings_to_sort + "/Electrophysiology") is True:
-        shutil.rmtree(paired_recordings_to_sort + "/Electrophysiology")
+def delete_ephys_for_recording(recording):
+    if os.path.exists(recording + "/Electrophysiology") is True:
+        shutil.rmtree(recording + "/Electrophysiology")
 
 
 def copy_output_to_server(recording_to_sort, location_on_server):
@@ -169,6 +165,8 @@ def copy_output_to_server(recording_to_sort, location_on_server):
 
 
 def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length=False, paired_order=None):
+    stitch_point = None
+    paired_order = None
     if session_type == "openfield":
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', paired_order=paired_order,
                                                         running_parameter_tags=tags, stitchpoint=stitch_point, total_length=recs_length)
@@ -188,12 +186,12 @@ def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points)
 
     call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points, tags, recs_length=False, paired_order=1)
+    delete_ephys_for_recording(recording_to_sort)
     for index, paired_recording in enumerate(paired_recordings_to_sort):
         print('I will run the post-sorting scrpits for: ' + paired_recording)
-        copy_ephys_to_paired(recording_to_sort, paired_recording)
         call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points, tags, recs_length=recs_length, paired_order=index + 2)
         copy_paired_outputs_to_server(paired_recording)
-        delete_ephys_for_paired(paired_recording)
+        delete_ephys_for_recording(paired_recording)
 
 
 def copy_paired_outputs_to_server(paired_recordings_to_sort):
