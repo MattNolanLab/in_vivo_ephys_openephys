@@ -125,6 +125,7 @@ def split_firing_times_sorting_output(recording_to_sort: str, sorter_name: str, 
             in_recording = after_previous_stitch & before_next_stitch
             indices_in_recording = np.where(in_recording == 1)[0]
             firing_times_recording = firing_info[:, indices_in_recording]
+            firing_times_recording[1] -= stitch_point[stitch_index]  # shift so they start at 0
             mdaio.writemda16i(firing_times_recording, sorting_output_folder + '/firings.mda')
 
 
