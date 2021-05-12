@@ -82,32 +82,9 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
     return spatial_data, is_found
 
 
-def correct_for_paired_order(opto_on, opto_off, opto_start_index, paired_order, stitchpoint):
-    """
-        (1) Checks 'paired_order' to determine whether this is data from a single recording or from multiple recordings that
-        were stitched together before sorting in order to sort them together. For single recordings, paired order is set to
-        None. For combined recordings, paired_order indicates the order of the recordings, so for example if paired_order is
-        3, this means that this is the third recording in a series of n.
-
-        (2) Shifts the opto pulse times by the stitchpoint to be consistent with the firing times saved for the cell
-    """
-
-    if paired_order is not None:
-        if paired_order > 1:
-            time_point_to_add = stitchpoint[paired_order - 2]
-            opto_on = opto_on[0] + time_point_to_add
-            opto_off = opto_off[0] + time_point_to_add
-            opto_start_index += time_point_to_add
-            opto_on = tuple(np.array([opto_on]))
-            opto_off = tuple(np.array([opto_off]))
-    return opto_on, opto_off, opto_start_index
-
-
-def process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm):
+def process_light_stimulation(recording_to_process, prm):
     opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
     if is_found:
-        opto_on, opto_off, opto_start_index = correct_for_paired_order(opto_on, opto_off, opto_start_index,
-                                                                       paired_order, stitchpoint)
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
@@ -115,7 +92,7 @@ def process_light_stimulation(recording_to_process, paired_order, stitchpoint, p
     return opto_on, opto_off, is_found, opto_start_index
 
 
-def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm, stitch_point=None, paired_order=None):
+def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
@@ -129,7 +106,7 @@ def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, o
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
-    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate(), stitch_point=stitch_point, paired_order=paired_order)
+    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
@@ -165,13 +142,10 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     pickle.dump(prm, file_handler)
 
 
-def post_process_recording(recording_to_process, session_type, total_length=False, running_parameter_tags=False,
-                           sorter_name='MountainSort', stitchpoint=None, paired_order=None):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
-    prm.set_stitch_point(stitchpoint)
-    prm.set_paired_order(paired_order)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     PreClustering.dead_channels.get_dead_channel_ids(prm)
@@ -185,23 +159,22 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, paired_order, stitchpoint, prm)
+    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
-        synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=stitchpoint, paired_order=paired_order, opto_start=opto_start_index)
-        spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order, stitchpoint, opto_start_index)
+        synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, opto_start=opto_start_index)
+        spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_start_index)
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
-        spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
-        snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=False)
+        snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
 
         else:
-            snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, stitchpoint=stitchpoint, paired_order=paired_order, random_snippets=True)
-            spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data, stitch_point=stitchpoint, paired_order=paired_order)
+            snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
+            spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
             # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
@@ -217,7 +190,7 @@ def post_process_recording(recording_to_process, session_type, total_length=Fals
 
             spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
 
-            make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm, stitch_point=stitchpoint, paired_order=paired_order)
+            make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)

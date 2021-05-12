@@ -212,18 +212,6 @@ class Parameters:
     def set_goal_location_chennl(self, goal_location_channel):
         Parameters.goal_location_channel = goal_location_channel
 
-    def set_stitch_point(self, stitchpoint):
-        Parameters.stitchpoint = stitchpoint
-
-    def get_stitch_point(self):
-        return Parameters.stitchpoint
-
-    def set_paired_order(self, paired_order):
-        Parameters.paired_order = paired_order
-
-    def get_paired_order(self):
-        return Parameters.paired_order
-
     def set_vr_grid_analysis_bin_size(self, bin_size):
         Parameters.vr_grid_analysis_bin_size = bin_size
 

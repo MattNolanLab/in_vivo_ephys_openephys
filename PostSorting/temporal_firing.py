@@ -18,14 +18,6 @@ def add_temporal_firing_properties_to_df(spatial_firing, total_length_seconds):
     return spatial_firing
 
 
-def correct_for_stitch(spatial_firing, paired_order, stitchpoint):
-    if paired_order is not None:
-        for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
-            firing_times = np.asarray(spatial_firing[spatial_firing.cluster_id == cluster_id].firing_times)[0]
-            spatial_firing = get_firing_times_for_recording(paired_order, spatial_firing, cluster_index, firing_times, stitchpoint)
-    return spatial_firing
-
-
 def get_firing_times_for_recording(paired_order, spatial_firing, cluster_index, firing_times, stitchpoint):
     if paired_order == 1:
         spatial_firing.firing_times.iloc[cluster_index] = firing_times[firing_times < stitchpoint[0]]

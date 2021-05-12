@@ -226,20 +226,7 @@ def remove_opto_tagging_from_spatial_data(start_of_opto_tagging, spatial_data):
     return spatial_data
 
 
-def correct_for_sorting_multiple_recordings(synced_spatial_data, stitchpoint, paired_order):
-    """"
-    When multiple recordings are sorted together, the time in this data frame needs to be shifted to match the firing
-    times.
-    """
-    if paired_order is not None:
-        if paired_order > 1:
-            time_point_to_add = stitchpoint[paired_order - 2]
-            time_to_add_seconds = time_point_to_add / settings.sampling_rate
-            synced_spatial_data.synced_time = synced_spatial_data.synced_time + time_to_add_seconds
-    return synced_spatial_data
-
-
-def process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=None, paired_order=None, opto_start=None):
+def process_sync_data(recording_to_process, prm, spatial_data, opto_start=None):
     sync_data, is_found = load_sync_data_ephys(recording_to_process, prm)
     sync_data_ephys = pd.DataFrame(sync_data)
     sync_data_ephys.columns = ['sync_pulse']
@@ -252,7 +239,6 @@ def process_sync_data(recording_to_process, prm, spatial_data, stitchpoint=None,
     synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
     total_length_sampling_points = synced_spatial_data.synced_time.values[-1]
-    synced_spatial_data = correct_for_sorting_multiple_recordings(synced_spatial_data, stitchpoint, paired_order)
     synced_spatial_data = remove_opto_tagging_from_spatial_data(opto_start, synced_spatial_data)
 
     return synced_spatial_data, total_length_sampling_points, is_found

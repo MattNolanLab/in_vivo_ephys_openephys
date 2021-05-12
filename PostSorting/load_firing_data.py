@@ -41,44 +41,11 @@ def correct_for_dead_channels(primary_channels, dead_channels):
     return primary_channels
 
 
-def get_firing_times_for_recording(firing_times, paired_order, stitchpoint):
-    """
-    (1) Checks 'paired_order' to determine whether this is data from a single recording or from multiple recordings that
-    were stitched together before sorting in order to sort them together. For single recordings, paired order is set to
-    None. For combined recordings, paired_order indicates the order of the recordings, so for example if paired_order is
-    3, this means that this is the third recording in a series of n.
-
-    (2) Selects firing times from the combined sorting output that belong to the recording currently analysed.
-    'firing_times' is the output of the spike sorter and contains all firing events from all recordings sorted together.
-    The function uses the 'stitchpoint' - a list of time points where the recordings were stitched together to determine
-    which firing events belong to the recording currently analysed and return the times that belong to the recording.
-    """
-    if paired_order is not None:
-        if paired_order == 1:
-            firing_times = firing_times[firing_times < stitchpoint[0]]
-        else:
-            bigger_than_previous_stitch = stitchpoint[paired_order - 2] < firing_times
-            smaller_than_next = firing_times < stitchpoint[paired_order - 1]
-            firing_times = firing_times[bigger_than_previous_stitch & smaller_than_next]
-    return firing_times
-
-
-def get_stitched_opto_tagging_index(opto_tagging_start_index, paired_order, stitchpoint):
-    if paired_order is not None:
-        if paired_order > 1:
-            time_point_to_add = stitchpoint[paired_order - 2]
-            opto_tagging_start_index += time_point_to_add
-    return opto_tagging_start_index
-
-
-def process_firing_times(recording_to_process, sorter_name, dead_channels, paired_order=None, stitchpoint=None, opto_tagging_start_index=None, number_of_channels_neighborhood=4):
+def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=None, number_of_channels_neighborhood=4):
     """
     :param recording_to_process: path to the folder with the recording data
     :param sorter_name: name of spike sorter, this will determine the name of the output folder
     :param dead_channels: list of dead (broken) channel ids
-    :param paired_order: None for a single recording, when multiple recordings are sorted together, this indicates the
-    order (the output of the sorting is stitched together and has to be split up)
-    :param stitchpoint: None for single recordings, time points of stitches for multiple recordings
     :param opto_tagging_start_index: time point when opto-tagging started
     :param number_of_channels_neighborhood: number of channels sorted together in the same neighbourhood. This is 4 for
     tetrode recordings.
@@ -96,7 +63,6 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, paire
     firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
     for cluster in units_list:
         cluster_firings_all = firing_times[cluster_ids == cluster]
-        cluster_firings_all = get_firing_times_for_recording(cluster_firings_all, paired_order, stitchpoint)
         if opto_tagging_start_index is not None:
             cluster_firings = np.take(cluster_firings_all, np.where(cluster_firings_all < opto_tagging_start_index)[0])
             cluster_firings_opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index)[0])
