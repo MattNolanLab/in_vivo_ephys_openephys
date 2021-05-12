@@ -1,6 +1,5 @@
 from joblib import Parallel, delayed
 import datetime
-import gc
 import glob
 import os
 import multiprocessing
@@ -164,9 +163,7 @@ def copy_output_to_server(recording_to_sort, location_on_server):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
 
 
-def call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point, tags, recs_length=False, paired_order=None):
-    stitch_point = None
-    paired_order = None
+def call_post_sorting_for_session_type(recording_to_sort, session_type, tags):
     if session_type == "openfield":
         post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
     elif session_type == "vr":
@@ -183,11 +180,11 @@ def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
 
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points)
 
-    call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_points, tags, recs_length=False, paired_order=1)
+    call_post_sorting_for_session_type(recording_to_sort, session_type, tags)
     delete_ephys_for_recording(recording_to_sort)
     for index, paired_recording in enumerate(paired_recordings_to_sort):
         print('I will run the post-sorting scrpits for: ' + paired_recording)
-        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], stitch_points, tags, recs_length=recs_length, paired_order=index + 2)
+        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], tags)
         copy_paired_outputs_to_server(paired_recording)
         delete_ephys_for_recording(paired_recording)
 
@@ -249,7 +246,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
 
         else:
            # (recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order=None)
-            call_post_sorting_for_session_type(recording_to_sort, session_type, stitch_point=None, tags=tags)
+            call_post_sorting_for_session_type(recording_to_sort, session_type, tags=tags)
 
         if os.path.exists(recording_to_sort) is True:
             copy_output_to_server(recording_to_sort, location_on_server)
