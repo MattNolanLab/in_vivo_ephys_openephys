@@ -66,7 +66,7 @@ def make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_na
     return sorting_output_folder
 
 
-def split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, stitch_point):
+def split_filtered_electrophysiology_data_file(recording_to_sort: str, sorter_name: str, stitch_point: list):
     """
     Split filt.mda file and move to paired recording folders. This is the filtered and whitened data that is used for
     spike detection. We use this for plotting the action potentials later on so it needs to correspond to the firing
@@ -92,7 +92,7 @@ def split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, s
         mdaio.writemda16i(paired_recording_filtered, sorting_output_folder + 'filt.mda')
 
 
-def copy_curation_information(recording_to_sort, sorter_name):
+def copy_curation_information(recording_to_sort: str, sorter_name: str):
     tags = control_sorting_analysis.get_tags_parameter_file(recording_to_sort)
     paired_recordings = control_sorting_analysis.check_for_paired(tags)
     # this are the cluster quality metrics
@@ -106,7 +106,7 @@ def copy_curation_information(recording_to_sort, sorter_name):
             shutil.copyfile(curation_data, sorting_output_folder + '/cluster_metrics.json')
 
 
-def split_firing_times_sorting_output(recording_to_sort, sorter_name, stitch_point):
+def split_firing_times_sorting_output(recording_to_sort: str, sorter_name: str, stitch_point: list):
     tags = control_sorting_analysis.get_tags_parameter_file(recording_to_sort)
     paired_recordings = control_sorting_analysis.check_for_paired(tags)
     # this are the firing times of the sorted clusters
@@ -128,7 +128,7 @@ def split_firing_times_sorting_output(recording_to_sort, sorter_name, stitch_poi
             mdaio.writemda16i(firing_times_recording, sorting_output_folder + '/firings.mda')
 
 
-def split_back(recording_to_sort, stitch_point, sorter_name='MountainSort'):
+def split_back(recording_to_sort: str, stitch_point: list, sorter_name='MountainSort'):
     """
     :param sorter_name: name of spike sorting program
     :param recording_to_sort: Path to recording #1 that is sorted together with other recordings
@@ -136,19 +136,17 @@ def split_back(recording_to_sort, stitch_point, sorter_name='MountainSort'):
     :return: the path (same as input parameter) and the total number of time steps in the combined data
     """
     print('I will split the data that was sorted together. It might take a while.')
-    n_timestamps = 0
     n_timestamps = split_continuous_data(recording_to_sort, stitch_point)
-    # make ephys folder structure for each
+    # split filtered data (sorting input)
     split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, stitch_point)
     # copy curation file
     copy_curation_information(recording_to_sort, sorter_name)
     # split firings.mda
     split_firing_times_sorting_output(recording_to_sort, sorter_name, stitch_point)
-    
     return recording_to_sort, n_timestamps
 
 
-def stitch_recordings(recording_to_sort, paired_recordings):
+def stitch_recordings(recording_to_sort: str, paired_recordings: list):
     """
     Load continuous data from multiple recordings, concatenate the arrays and write new continuous files.
     :param recording_to_sort: path to recording #1
