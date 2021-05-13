@@ -1,20 +1,17 @@
 import pandas as pd
 
 
-def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000, stitchpoint_to_subtract=False):
+def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000):
     # this is needed when multiple recordings are stitched together for sorting
-    if stitchpoint_to_subtract:
-        firing_times = spike_data.firing_times - stitchpoint_to_subtract
-    else:
-        firing_times = spike_data.firing_times
+    firing_times = spike_data.firing_times
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = sampling_rate_ephys / avg_sampling_rate_bonsai
     spike_data['bonsai_indices'] = firing_times / sampling_rate_rate
     return spike_data
 
 
-def find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtract=False):
-    spike_data = calculate_corresponding_indices(spike_data, spatial_data, stitchpoint_to_subtract=stitch_point_to_subtract)
+def find_firing_location_indices(spike_data, spatial_data):
+    spike_data = calculate_corresponding_indices(spike_data, spatial_data)
     spatial_firing = pd.DataFrame(columns=['position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed'])
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
@@ -39,18 +36,7 @@ def find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtr
     return spike_data
 
 
-def get_stitch_point_to_subtract(stitch_point, paired_order):
-    """
-    Find amount of time firing times are shifted by.
-    """
-    stitch_point_to_subtract = False
-    if paired_order is not None:
-        if paired_order > 1:
-            stitch_point_to_subtract = stitch_point[paired_order - 2]
-    return stitch_point_to_subtract
-
-
-def process_spatial_firing(spike_data, spatial_data, stitch_point=None, paired_order=None):
+def process_spatial_firing(spike_data, spatial_data):
     """
     :param paired_order: number of recording in series of recordings sorted together
     :param stitch_point: list of points where recordings sorted together were combined
@@ -61,6 +47,5 @@ def process_spatial_firing(spike_data, spatial_data, stitch_point=None, paired_o
     """
     if 'position_x' in spike_data:
         return spike_data
-    stitch_point = get_stitch_point_to_subtract(stitch_point, paired_order)
-    spatial_spike_data = find_firing_location_indices(spike_data, spatial_data, stitch_point_to_subtract=stitch_point)
+    spatial_spike_data = find_firing_location_indices(spike_data, spatial_data)
     return spatial_spike_data
