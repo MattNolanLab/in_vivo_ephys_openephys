@@ -103,7 +103,7 @@ _(this is the name of the df in the main code)_
 
 This is then normalized on the plot hd_hist*(max(hd_hist_cluster))/max(hd_hist)) is plotted. 
 
-_We should discuss whether this is a good way, it does not make a lot of sense to me. It is now exactly as in the MATLAB version._
+_We should discuss whether this is a good way, it does not make a lot of sense to me. It is not exactly as in the MATLAB version._
 * firing_fields : lists of indices that belong to an individual firing field detected. One cluster can have multiple lists. (Indices correspond to the firing rate map.)
 For example on this image, the yellow circles represent the local maximum that the algorithm found and then all the blue parts around them were taken for that particular firing field. This cluster will have four lists added to its firing fields.
 
@@ -208,7 +208,7 @@ Calculate speed and add it to 'position_data' data frame by dividing distance tr
 
 ### VR
 
-# parameters 
+### parameters 
 
 Specific parameters need to be set for the vr analysis environment. 
 
