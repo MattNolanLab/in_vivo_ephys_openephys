@@ -1,6 +1,6 @@
 Each workflow contains a number of rules, each defined by its input, output, and script to execute. For general structure of the workflow file, please consult the official [snakemake documentation](https://snakemake.readthedocs.io/en/stable/tutorial/basics.html). The workflow file define all the input and output filename of the analysis. It is also easy to see which output files are created by which scripts.
 
-The path of the scripts file are relativee to the workflow file, i.e. you will need to use `../scripts/somescript.py` to refer to your script file in the workflow.
+The path of the scripts file are relative to the workflow file, i.e. you will need to use `../scripts/somescript.py` to refer to your script file in the workflow.
 
 Always create a new workflow for a new experiment type rather than extending the old one with additional rules. The rule of thumb is that you first consider whether others with a different experimental design will be interested in your analysis. If not, then create a new workflow. You can always copy an old workflow file and rename to edit it.
 
