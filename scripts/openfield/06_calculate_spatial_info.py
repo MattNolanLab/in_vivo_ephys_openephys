@@ -1,7 +1,7 @@
 #%%
 
 from PostSorting.spatial_information import *
-import SnakeIOHelper 
+from utils import SnakeIOHelper
 import settings
 import pandas as pd
 
@@ -19,5 +19,3 @@ position= pd.read_pickle(sinput.position)
 spatial_info_df = process_spatial_info(spatial_firing, position)
 
 spatial_info_df.to_pickle(soutput.spatial_info)
-
-# %%

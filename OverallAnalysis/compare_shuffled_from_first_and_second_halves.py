@@ -6,7 +6,7 @@ import OverallAnalysis.folder_path_settings
 import OverallAnalysis.false_positives
 import OverallAnalysis.open_field_firing_maps_processed_data
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import OverallAnalysis.shuffle_cell_analysis
 import PostSorting.compare_first_and_second_half
 import PostSorting.open_field_head_direction

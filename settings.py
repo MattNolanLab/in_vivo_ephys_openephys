@@ -69,14 +69,4 @@ binSize = 100 # in ms
 
 ############
 # Debug
-# debug_folder = 'testData/M6_2018-03-06_16-10-00_of' #recording for debug purpose
-# debug_folder ='/media/data2/pipeline_testing_data/M1_D31_2018-11-01_12-28-25'
-# debug_folder ='/home/ubuntu/to_sort/recordings/M5_2018-03-06_15-34-44_of'
-# debug_folder = '../testdata/M1_D31_2018-11-01_12-28-25'
-# debug_folder ='/mnt/datastore/Junji/Data/2021cohort1/openfield/M1_D1_2021-01-11_14-56-02'
-debug_folder = '/mnt/datastore/Teris/FragileX/data/VR/M2_D28_2021-02-17_15-53-49'
-# debug_folder = '../testdata//M5_2018-03-06_15-34-44_of'
-# debug_folder ='/home/ubuntu/to_sort/recordings/M2_D1_2021-01-11_15-53-56'
-# debug_folder ='/home/ubuntu/to_sort/recordings/M2_D9_2021-01-21_16-42-58'
-# openfield/M2_D28 missing location files
-# problematic trials:
+debug_folder = '/mnt/datastore/Teris/FragileX/data/OpenField/M1_D1_2021-01-11_16-14-41'

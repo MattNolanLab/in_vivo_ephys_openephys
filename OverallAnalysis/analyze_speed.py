@@ -2,7 +2,7 @@ import glob
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import PostSorting.make_plots
 import PostSorting.speed
 import OverallAnalysis.folder_path_settings

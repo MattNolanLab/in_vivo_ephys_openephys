@@ -1,7 +1,7 @@
 import tables
 import matplotlib.pylab as plt
 import numpy as np
-import plot_utility
+from utils import plot_utility
 import pandas as pd
 
 

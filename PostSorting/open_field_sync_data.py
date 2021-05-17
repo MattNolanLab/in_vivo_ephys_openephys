@@ -1,14 +1,14 @@
 from __future__ import division
 import glob
-import open_ephys_IO
+from utils import open_ephys_IO
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
-import OpenEphys
+from utils import OpenEphys
 import settings
 import glob
-from file_utility import load_openephys_file
+from utils.file_utility import load_openephys_file
 import pickle
 
 def load_sync_data_ephys(recording_to_process, sync_channel = settings.sync_channel_suffix ):

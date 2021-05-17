@@ -1,4 +1,4 @@
-import open_ephys_IO
+from utils import open_ephys_IO
 import os
 import numpy as np
 import pandas as pd
@@ -6,8 +6,8 @@ from scipy import stats
 import PostSorting.parameters
 import settings
 import PostSorting.open_field_make_plots
-import OpenEphys
-from file_utility import search4File
+from utils import OpenEphys
+from utils.file_utility import search4File
 
 def load_opto_data(recording_to_process, opto_ch = settings.opto_ch_suffix):
     is_found = False

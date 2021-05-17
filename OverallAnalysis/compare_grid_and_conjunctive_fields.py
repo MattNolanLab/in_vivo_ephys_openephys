@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import os
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_grid_cells
 

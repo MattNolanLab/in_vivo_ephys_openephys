@@ -1,7 +1,7 @@
 import pandas as pd
 import PostSorting.parameters
 import os
-import open_ephys_IO
+from utils import open_ephys_IO
 import matplotlib.pyplot as plt
 import numpy as np
 

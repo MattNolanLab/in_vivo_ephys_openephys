@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pylab as plt
-import plot_utility
+from utils import plot_utility
 
 path = 'C:/Users/s1466507/Dropbox/Edinburgh/PhD/thesis/5 firing_properties/field_correlations/fields_correlation_detector2.xlsx'
 

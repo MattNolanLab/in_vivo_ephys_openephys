@@ -8,7 +8,7 @@ import PostSorting.vr_make_plots
 import PostSorting.vr_cued
 from scipy import stats
 import PostSorting.vr_speed_analysis
-import plot_utility
+from utils import plot_utility
 
 def calculate_total_trial_numbers(raw_position_data,processed_position_data):
     print('calculating total trial numbers for trial types')

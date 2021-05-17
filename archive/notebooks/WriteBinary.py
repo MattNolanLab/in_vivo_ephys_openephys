@@ -3,13 +3,13 @@
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 
-import OpenEphys
+from utils import OpenEphys
 import settings
 import numpy as np 
 import json
 import os
 from pathlib import Path
-import OpenEphys
+from utils import OpenEphys
 #%%
 outFolder = 'testData'
 debug_folder = '/media/data2/pipeline_testing_data/M1_D31_2018-11-01_12-28-25'

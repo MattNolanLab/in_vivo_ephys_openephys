@@ -11,8 +11,8 @@ import scipy.io as sio
 from PostSorting import glmneuron
 import pandas as pd
 import tqdm
-import OpenEphys
-import SnakeIOHelper
+from utils import OpenEphys
+from utils import SnakeIOHelper
 import shutil
 import xarray as xr
 from pathlib import Path

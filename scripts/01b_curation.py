@@ -19,11 +19,11 @@ import spikeinterface.widgets as sw
 from tqdm import tqdm
 
 import settings
-import SnakeIOHelper
+from utils import SnakeIOHelper
 from PostSorting.make_plots import plot_waveforms, plot_waveforms_concat
 from PreClustering.pre_process_ephys_data import filterRecording
 import time 
-from file_utility import load_recording_info
+from utils.file_utility import load_recording_info
 
 #%% define input and output
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [settings.debug_folder+'/processed/mountainsort4/sorter_curated_df.pkl'],

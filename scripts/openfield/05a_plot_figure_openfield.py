@@ -4,7 +4,7 @@ import settings
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
-import SnakeIOHelper 
+from utils import SnakeIOHelper
 import pickle
 import PostSorting.open_field_make_plots as open_field_make_plots
 import logging

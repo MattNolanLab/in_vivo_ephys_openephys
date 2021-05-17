@@ -8,7 +8,7 @@ import OverallAnalysis.folder_path_settings
 import pandas as pd
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
-import plot_utility
+from utils import plot_utility
 from rpy2 import robjects as robj
 from scipy.stats import circstd
 from rpy2.robjects import pandas2ri

@@ -2,17 +2,13 @@
 
 #%%
 import pandas as pd
-import PostSorting.open_field_spatial_data as ppsd
-import PostSorting.post_process_sorted_data as post_process_sorted_data
-import PostSorting.open_field_sync_data as open_field_sync_data
-from collections import namedtuple
-import settings
-import gc
-import control_sorting_analysis
-import hd_sampling_analysis
-import SnakeIOHelper
 import PostSorting.open_field_light_data as open_field_light_data
-from file_utility import get_tags_parameter_file
+import PostSorting.open_field_spatial_data as ppsd
+import PostSorting.open_field_sync_data as open_field_sync_data
+import PostSorting.post_process_sorted_data as post_process_sorted_data
+import settings
+from utils import SnakeIOHelper
+from utils.file_utility import get_tags_parameter_file
 
 #%% define input and outpu
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [settings.debug_folder+'/processed/opto_pulse.pkl'],

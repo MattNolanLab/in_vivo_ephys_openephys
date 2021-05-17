@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import pandas as pd
-import open_ephys_IO
+from utils import open_ephys_IO
 import PostSorting.parameters
 import math
 import gc
@@ -10,7 +10,7 @@ import PostSorting.vr_stop_analysis
 import PostSorting.vr_make_plots
 import PostSorting.vr_cued
 import settings
-from file_utility import load_openephys_file
+from utils.file_utility import load_openephys_file
 
 from scipy import signal
 

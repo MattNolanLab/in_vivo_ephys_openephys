@@ -4,7 +4,7 @@ import numpy as np
 import spikeinterface.toolkit as st
 import os
 import spikeinterface.extractors as se
-import OpenEphys
+from utils import OpenEphys
 
 unique_colors = '#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', \
                 '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', \

@@ -11,7 +11,7 @@ import pandas as pd
 from matplotlib.gridspec import GridSpec
 from tqdm import tqdm
 
-import plot_utility
+from utils import plot_utility
 import PostSorting.open_field_firing_fields
 import PostSorting.open_field_head_direction
 import PostSorting.parameters

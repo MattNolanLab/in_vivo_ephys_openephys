@@ -6,7 +6,7 @@ import spikeinterface.sorters as sorters
 import spikeinterface.comparison as sc
 import spikeinterface.widgets as sw
 import settings
-import OpenEphys
+from utils import OpenEphys
 import numpy as np
 import pandas as pd
 import pickle

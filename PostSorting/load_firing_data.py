@@ -1,10 +1,10 @@
-import mdaio
+from utils import mdaio
 import numpy as np
 import os
 from pathlib import Path
 import pandas as pd
 import PreClustering.dead_channels
-import data_frame_utility
+from utils import data_frame_utility
 import settings as settings
 
 def get_firing_info(file_path, sorter_name):

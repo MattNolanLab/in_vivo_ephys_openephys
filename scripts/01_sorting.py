@@ -7,27 +7,28 @@ import time
 from collections import namedtuple
 from pathlib import Path
 
-import file_utility
-import Logger
 import numpy as np
 import pandas as pd
 import settings
-import SnakeIOHelper
 import spikeinterface as si
 import spikeinterface.comparison as sc
 import spikeinterface.extractors as se
 import spikeinterface.sorters as sorters
 import spikeinterface.toolkit as st
 import spikeinterface.widgets as sw
-import spikeinterfaceHelper
-import yaml
+import utils.Logger
+from utils import spikeinterfaceHelper
 from PostSorting.make_plots import plot_waveforms
 from PreClustering.pre_process_ephys_data import (filterRecording,
                                                   get_sorting_range)
 from tqdm import tqdm
-import os
+from utils import SnakeIOHelper
+
 logger = logging.getLogger(os.path.basename(__file__)+':'+__name__)
 import tempfile
+
+from utils import file_utility
+
 #%% define input and output
 # note: need to run this in the root folder of project
 
@@ -50,7 +51,6 @@ else:
 #%% Remove bad channel and filter the recording
 logger.info('Filtering files') #TODO logging not show correctly
 Fs = 30000
-# recording = se.NumpyRecordingExtractor(signal[:,:Fs*60*5],settings.sampling_rate,geom)
 
 start,end = get_sorting_range(signal.shape[1], Path(sinput.recording_to_sort) / 'parameter.yaml' )
 recording = se.NumpyRecordingExtractor(signal[:,start:end],settings.sampling_rate,geom)
@@ -100,8 +100,6 @@ quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording,
     n_jobs = 4,
     metric_names=['snr','isi_violation', 'd_prime','noise_overlap','nn_miss_rate','firing_rate'],
     recompute_info=True)
-
-# %prun -D prun_dump quality_metrics = st.validation.compute_quality_metrics(sorting_ms4, recording, verbose=True, max_spikes_per_unit_for_noise_overlap=500, max_spikes_per_unit_for_snr = 200, memmap= False, max_spikes_for_nn = 1000, metric_names=['snr','isi_violation', 'd_prime','noise_overlap','nn_miss_rate','firing_rate'], recompute_info=True)
 
 print(f'Calculate quality metrics took {time.time()-start}')
 #need to compute metrics before getting the waveforms

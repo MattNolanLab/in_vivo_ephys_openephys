@@ -1,6 +1,6 @@
 import os
 import csv
-import file_utility
+from utils import file_utility
 
 
 def get_dead_channel_ids(prm):

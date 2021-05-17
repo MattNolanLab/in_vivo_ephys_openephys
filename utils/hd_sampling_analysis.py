@@ -1,6 +1,6 @@
 import os
 import matplotlib.pylab as plt
-import power_spectra
+from utils import power_spectra
 
 
 def plot_power_spectrum_for_hd(freqs, idx, ps, figure_path):

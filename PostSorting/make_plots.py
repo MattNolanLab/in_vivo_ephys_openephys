@@ -1,10 +1,9 @@
-import array_utility
 import os
 import matplotlib.pylab as plt
 import math
 import numpy as np
 import pandas as pd
-import plot_utility
+from utils import plot_utility, array_utility
 import scipy.ndimage
 import settings
 from typing import Tuple

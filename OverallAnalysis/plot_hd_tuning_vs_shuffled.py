@@ -8,7 +8,7 @@ import OverallAnalysis.compare_shuffled_from_first_and_second_halves_fields
 import OverallAnalysis.false_positives
 import pandas as pd
 import PostSorting.parameters
-import plot_utility
+from utils import plot_utility
 
 import scipy
 import scipy.stats

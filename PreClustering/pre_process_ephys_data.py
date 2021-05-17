@@ -2,16 +2,17 @@ import PreClustering.dead_channels
 import PreClustering.make_sorting_database
 import PreClustering.parameters
 import numpy as np
-import OpenEphys
+from utils import OpenEphys
 import os
 
-import file_utility
+from utils import file_utility
 import numpy as np
 from PreClustering import convert_open_ephys_to_mda
 import spikeinterface as si
 import yaml
 from pathlib import Path
 import settings
+from scipy.signal import butter
 
 
 def get_sorting_range(max_signal_length, param_file_location):

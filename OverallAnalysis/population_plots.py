@@ -2,7 +2,7 @@ import matplotlib.pylab as plt
 import cmocean
 from matplotlib  import cm
 import numpy as np
-import plot_utility
+from utils import plot_utility
 
 
 def plot_avg_firing_combined(superficial, deep, path, name):

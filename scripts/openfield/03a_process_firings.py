@@ -5,7 +5,7 @@ from PostSorting.load_firing_data import process_firing_times2
 import PostSorting
 import settings
 from types import SimpleNamespace
-import SnakeIOHelper
+from utils import SnakeIOHelper
 
 #%%
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_of.smk', [settings.debug_folder+'/processed/spatial_firing.pkl'],

@@ -11,7 +11,7 @@ import OverallAnalysis.folder_path_settings
 import pandas as pd
 import PostSorting.open_field_head_direction
 import PostSorting.open_field_make_plots
-import plot_utility
+from utils import plot_utility
 import PostSorting.compare_first_and_second_half
 import PostSorting.parameters
 

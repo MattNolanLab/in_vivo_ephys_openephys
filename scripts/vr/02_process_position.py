@@ -13,7 +13,7 @@ from types import SimpleNamespace
 import gc
 import PostSorting.vr_stop_analysis as vr_stop_analysis
 import scipy.signal as signal
-import SnakeIOHelper
+from utils import SnakeIOHelper
 #%% Define input and output
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [settings.debug_folder+'/processed/processed_position.pkl'],
     'process_position')

@@ -3,7 +3,7 @@ import OverallAnalysis.folder_path_settings
 import OverallAnalysis.shuffle_field_analysis_heading
 import OverallAnalysis.shuffle_cell_analysis
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import PostSorting.open_field_heading_direction
 import PostSorting.open_field_firing_maps
 import matplotlib.pylab as plt

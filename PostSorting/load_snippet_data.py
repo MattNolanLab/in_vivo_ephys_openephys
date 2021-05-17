@@ -1,5 +1,5 @@
 import os
-import mdaio
+from utils import mdaio
 import numpy as np
 import PreClustering.dead_channels
 import matplotlib.pylab as plt

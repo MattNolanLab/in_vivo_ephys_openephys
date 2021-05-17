@@ -2,10 +2,10 @@ import matplotlib.pylab as plt
 import numpy as np
 import PostSorting.open_field_firing_maps
 import pandas as pd
-import open_ephys_IO
+from utils import open_ephys_IO
 import os
 from scipy import signal
-import plot_utility
+from utils import plot_utility
 import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
 import re

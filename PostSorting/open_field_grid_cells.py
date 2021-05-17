@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import array_utility
+from utils import array_utility
 from skimage import measure
 from scipy import misc
 from scipy.ndimage import rotate

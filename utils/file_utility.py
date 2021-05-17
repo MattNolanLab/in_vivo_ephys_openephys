@@ -1,7 +1,7 @@
 import glob
 import os
 import settings
-import OpenEphys
+from utils import OpenEphys
 import numpy as np
 import settings
 import glob

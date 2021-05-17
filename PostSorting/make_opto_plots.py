@@ -1,10 +1,10 @@
-import array_utility
+from utils import array_utility
 import os
 import matplotlib.pylab as plt
 import math
 import numpy as np
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import PostSorting.parameters
 import scipy.ndimage
 

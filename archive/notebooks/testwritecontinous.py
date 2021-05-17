@@ -1,5 +1,5 @@
 #%%
-import OpenEphys
+from utils import OpenEphys
 import numpy as np
 import os
 import shutil

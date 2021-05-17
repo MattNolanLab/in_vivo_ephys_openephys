@@ -1,6 +1,6 @@
 import os
 import matplotlib.pylab as plt
-import plot_utility
+from utils import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data

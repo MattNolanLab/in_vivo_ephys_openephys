@@ -6,7 +6,7 @@ import settings
 import pandas as pd
 from collections import namedtuple
 from types import SimpleNamespace
-import SnakeIOHelper
+from utils import SnakeIOHelper
 
 # #%% define sinput and output
 (sinput, soutput) = SnakeIOHelper.getSnake(locals(), 'workflow/workflow_vr.smk', [settings.debug_folder+'/processed/spatial_firing_vr.pkl'],

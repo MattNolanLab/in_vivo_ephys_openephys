@@ -1,7 +1,7 @@
 import os
 from shutil import copyfile
 
-import file_utility
+from utils import file_utility
 import PreClustering.dead_channels
 
 

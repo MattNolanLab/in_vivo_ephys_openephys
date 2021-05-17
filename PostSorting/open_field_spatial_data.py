@@ -1,10 +1,10 @@
 import csv
 import glob
-import hd_sampling_analysis
+from utils import hd_sampling_analysis
 import numpy as np
 import os
 import pandas as pd
-import math_utility
+from utils import math_utility
 import settings
 from scipy.interpolate import interp1d
 import PostSorting.parameters

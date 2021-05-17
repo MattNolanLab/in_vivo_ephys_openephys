@@ -10,7 +10,7 @@ import PostSorting
 import settings
 import pandas as pd
 from collections import namedtuple
-import SnakeIOHelper
+from utils import SnakeIOHelper
 import pickle
 #%% define input and output
 

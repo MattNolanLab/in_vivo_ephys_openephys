@@ -1,4 +1,4 @@
-import array_utility
+from utils import array_utility
 import glob
 import matplotlib.pylab as plt
 import numpy as np
@@ -10,7 +10,7 @@ import OverallAnalysis.open_field_firing_maps_processed_data
 import OverallAnalysis.shuffle_field_analysis
 import OverallAnalysis.shuffle_field_analysis_all_animals
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import OverallAnalysis.shuffle_cell_analysis
 import OverallAnalysis.shuffle_field_analysis
 import PostSorting.compare_first_and_second_half

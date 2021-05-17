@@ -1,8 +1,8 @@
-import array_utility
+from utils import array_utility
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import scipy.ndimage
 import scipy.stats
 

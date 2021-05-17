@@ -5,7 +5,7 @@ import os
 import OverallAnalysis.false_positives
 import OverallAnalysis.folder_path_settings
 import pandas as pd
-import plot_utility
+from utils import plot_utility
 import PostSorting.open_field_grid_cells
 import PostSorting.open_field_heading_direction
 import scipy
@@ -14,7 +14,7 @@ import shutil
 from statsmodels.sandbox.stats.multicomp import multipletests
 import PostSorting.open_field_firing_maps
 import PostSorting.parameters
-import array_utility
+from utils import array_utility
 
 local_path = OverallAnalysis.folder_path_settings.get_local_path() + '/shuffled_heading_direction_cell/'
 local_path_mouse = local_path + 'all_mice_df.pkl'
