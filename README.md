@@ -83,8 +83,5 @@ For structure of individual scripts and workflow, please consult the README in t
     sudo swapon /swapfile
     ```
 
-### Known issues
-- Always need to have all the files (e.g. dead_channels.txt), even if they are empty
-
 ### Other problems
 - Please file a issue for any problem that you have found. Thank you!
