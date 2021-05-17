@@ -12,7 +12,7 @@ An environment file is provided for all the dependencies. Please create the cond
 conda create -f environment.yml
 ```
 
-note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first
+note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first. It is needed to compile the isosplit library for mountainsort4.
 
 Due to the folder organization, you will also need to add the project root folder to your PYTHON path.
 In the root folder of this repository i.e. `in_vivo_ephys_openephys`, execute the following. 
