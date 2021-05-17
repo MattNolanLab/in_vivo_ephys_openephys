@@ -91,13 +91,40 @@ _(this is the name of the df in the main code)_
 * firing_times : array of all firing event times that belong to cluster from the open field exploration (in sampling points)
 * number_of_spikes : total number of spikes in session excluding opto tagging part
 * mean_firing_rate : total number of spikes / total time exclding opto tagging data [Hz]
+* recording_length_seconds : length of recording (sec)
+* isolation : cluster quality metric (see MountainSort paper)
+* noise_overlap : cluster quality metric (see MountainSort paper)
+* peak_snr : cluster quality metric (see MountainSort paper)
+* peak_amp : amplitude of spike at peak (mV)
+* all_snippets : all detected spike waveforms corresponding to cell
 * firing_times_opto : array of firing events from the opto tagging part of the recording (in sampling points)
 * position_x : x coordinate of position of animal in arena in cm corresponding to each firing event from the exploration
 * position_y : y coordinate of position of animal in arena in cm corresponding to each firing event from the exploration
 * position_x_pixels : x coordinate of position of animal in arena in pixels corresponding to each firing event from the exploration
 * position_y_pixels : y coordinate of position of animal in arena in pixels corresponding to each firing event from the exploration
 * hd : head-direction of animal in degrees corresponding to each firing event from the exploration [-180;180]
+* speed : speed of animal corresponding to each firing event
+* speed_score : The speed score is a measure of the correlation between the firing rate of the neuron and the running speed of the
+animal. The firing times of the neuron are binned at the same sampling rate as the position data (speed). The resulting
+temporal firing histogram is then smoothed with a Gaussian (standard deviation ~250ms). Speed and temporal firing rate
+are correlated (Pearson correlation) to obtain the speed score.
+Based on: Gois & Tort, 2018, Cell Reports 25, 1872–1884
+* speed_score_p_values : p value corrsponding to speed score
+* border_score : border scores according to Solstad et al (2008)
+* corner_score : Corner scores and cue scores are also formalised loosely following the b = (cM - dm) / (cM + dm) structure.
+* ThetaPower :
+* ThetaIndex :
+* Boccara_theta_class :
 * firing_maps : binned data array for each cluster with firing rate maps
+* rate_map_autocorrelogram : autocorrelogram of diring rate map (shifted in 2d)
+* grid_spacing : Defined by Hafting, Fyhn, Molden, Moser, Moser (2005) as the distance from the central autocorrelogram peak to the
+vertices of the inner hexagon in the autocorrelogram (the median of the six distances). This should be in cm.
+* field_size : Defined by Wills, Barry, Cacucci (2012) as the square root of the area of the central peak of the autocorrelogram
+divided by pi. (This should be in cm2.)
+* grid_score : Defined by Krupic, Bauza, Burton, Barry, O'Keefe (2015) as the difference between the minimum correlation coefficient
+for autocorrelogram rotations of 60 and 120 degrees and the maximum correlation coefficient for autocorrelogram
+rotations of 30, 90 and 150 degrees. This score can vary between -2 and 2, although generally values above
+below -1.5 or above 1.5 are uncommon.
 * hd_spike_histogram : polar histogram of HD when the cell fired. For each degree the number of events are counted and then smoothing is done on this data by adding the values up in a (23 degree) rolling window. For each degree between 0 and 360 the number of events between n-window and n+window is added up. This histogram is then divided by the histogram obtained from all the HD data from the session divided by the sampling rate.
 `spike_histogram = spike_histogram_hd/(hd_histogram_session/ephys_sampling_rate)`
 
@@ -116,6 +143,10 @@ For example on this image, the yellow circles represent the local maximum that t
 * field_preferred_hd : preferred head-direction in field
 * field_hd_score : hd score in field (see hd score definition above)
 * field_max_firing_rate : max firing rate in given field among rate bins
+* number_of_spikes_in_fields : number of spikes/firing events that occured in field
+* time_spent_in_fields_sampling_points : amount of time the animal spent in the field
+* spike_times_in_fields : specific firing times in field
+* times_in_session_fields : time points when the animal was in the field
 
 ![image](https://user-images.githubusercontent.com/16649631/43839928-480eb3c2-9b17-11e8-96a4-f2da8b4de1c6.png)
 
@@ -138,6 +169,12 @@ For example on this image, the yellow circles represent the local maximum that t
 * hd_p : result of two-sample Kuiper test on the distribution of hd from the whole session and the distribution of hd when the cell fired. The probability of obtaining two samples this different from the same distribution.
 
 * hd_stat : the raw test statistic from the Kuiper test described above
+* rayleigh_score :  This test is  used to identify a non-uniform distribution, i.e. it is designed for detecting an unimodal deviation from uniformity. More precisely, it assumes the following hypotheses:
+    - H0 (null hypothesis): The population is distributed uniformly around the
+    circle.
+    - H1 (alternative hypothesis): The population is not distributed uniformly
+    around the circle.
+    Small p-values suggest to reject the null hypothesis
 
 ### Circular statistics are done in R using the circular.r package 
 
@@ -154,10 +191,31 @@ https://github.com/MattNolanLab/in_vivo_ephys_openephys/blob/add_python_post_clu
 
 * watson_session - one sample Watson test stats for HD for the whole session
 
+
+* field_corr_r : correlation betwen head direction in a field from the first and second half of the session
+* field_corr_p : p value coeesponding to field_corr_r
+* hd_correlation_first_vs_second_half : correlation between head direction between the first and second half of the session (from the entire recordings)
+* hd_correlation_first_vs_second_half_p : corresponds to r above
+* hd_hist_first_half : 'classic' hd histogram from first hald of session
+* hd_hist_second_half : 'classic' hd histogram from second half of session
+* rate_map_correlation_first_vs_second_half : correlatiin between rate maps made from the data from the first vs the second half of the session
+* percent_excluded_bins_rate_map_correlation_first_vs_second_half_p : percentage of bins excluded from the rate map correlation analysis
+
+* spike_times_after_opto : firing times after opto pulses
+* opto_latencies : list of latncies of spikes in the first 10ms after opto pulses
+* opto_latencies_mean_ms : avg latencies after opto pulses
+* opto_latencies_sd_ms : standard dev of latencies
+* random_snippets_opto : random snippet waveforms from the opto-tagging part of the recording
+* random_first_spike_snippets_opto : random snippet waveforms of spikes that happened immediately after opto pulses
+* SALT_p : SALT test p value (Kvitsiani D*, Ranade S*, Hangya B, Taniguchi H, Huang JZ, Kepecs A (2013) Distinct behavioural and network correlates of two interneuron types in prefrontal cortex. Nature 498:363?6.)
+* SALT_I : SLT test test tatistic
+* SALT_latencies : latencies tested in SALT test
+
+
 `spike_data_spatial.head()`
 
 ![image](https://user-images.githubusercontent.com/16649631/43079705-b854d6c8-8e85-11e8-949a-303653e65fbf.png)
-
+---------------------------------------------------------------------------------------------------
 ***
 ## post_process_recording
 The following section will detail what happens in each line of the part of the code that calls analyses that initialize and fill the data frames described above.
@@ -188,10 +246,10 @@ Spatial data is added to the spike data frame. For each firing time the correspo
 
 Firing rate map arrays are calculated and added to the spike data frame.
 
-`position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)`
+`position_heat_map, spatial_firing = PostSorting.open_field_.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)`
 
 
-### Example function to calculate speed
+### Example function to calculate 
 
 Calculate array 'elapsed_time' from the time column of the position data frame:
 
@@ -201,7 +259,7 @@ Calculate distance traveled based on x and y position coordinates using Pythagor
 
 `distance_travelled = np.sqrt(position_data['position_x'].diff().pow(2) + position_data['position_y'].diff().pow(2))`
 
-Calculate speed and add it to 'position_data' data frame by dividing distance traveled by elapsed time for each data point:
+Calculate and add it to 'position_data' data frame by dividing distance traveled by elapsed time for each data point:
 `position_data['speed'] = distance_travelled / elapsed_time`
 
 ***
