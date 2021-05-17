@@ -44,7 +44,7 @@ For example, if you want to analyze a folder in datastore, you just need to run:
 ```
 ./runSnake.py /mnt/datastore/Someone/data/VR/M1_D1_2021-01
 ```
- By default, it will work on the datastore files directly. Some preliminary basic test has revealed no significant difference between working in the datastore directly or first copying them to local drive first.
+ By default, it will work on the datastore files directly. Some preliminary basic test has revealed no significant difference between working in the datastore directly or copying them to local drive first.
 
 There is a `-n` option for dry-run, meaning that it will try simulate the workflow to see if there is any error without actually running it. It is always a good idea to try to use the `-n` option before you run the analysis on lots of data. i.e.
 
