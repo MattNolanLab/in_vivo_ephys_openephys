@@ -166,8 +166,8 @@ def calculate_instant_velocity(position_data, output_path):
     # use new trial indices to fix velocity around teleports
     new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
     for new_trial_indice in new_trial_indices:
-        if new_trial_indice>settings.sampling_rate/5: # ignores first trial index
-            velocity[int(new_trial_indice-settings.sampling_rate/5):int(new_trial_indice+settings.sampling_rate/5)] =np.nan
+        if new_trial_indice > sampling_points_per200ms: # ignores first trial index
+            velocity[int(new_trial_indice-sampling_points_per200ms)-100:int(new_trial_indice+sampling_points_per200ms)+100] = np.nan
 
     #now interpolate where these nan values are
     ok = ~np.isnan(velocity)
