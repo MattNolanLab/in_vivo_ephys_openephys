@@ -135,7 +135,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     total_length_seconds = raw_position_data.time_seconds.values[-1]
 
     # Process firing
-    spike_data = process_firing_properties(recording_to_process, session_type, sorter_name, dead_channels, total_length_seconds)
+    spike_data = process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds)
 
     # Curation
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
