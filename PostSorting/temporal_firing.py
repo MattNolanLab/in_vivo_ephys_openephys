@@ -18,16 +18,6 @@ def add_temporal_firing_properties_to_df(spatial_firing, total_length_seconds):
     return spatial_firing
 
 
-def get_firing_times_for_recording(paired_order, spatial_firing, cluster_index, firing_times, stitchpoint):
-    if paired_order == 1:
-        spatial_firing.firing_times.iloc[cluster_index] = firing_times[firing_times < stitchpoint[0]]
-    else:
-        bigger_than_previous_stitch = stitchpoint[paired_order - 2] < firing_times
-        smaller_than_next = firing_times < stitchpoint[paired_order - 1]
-        firing_times = firing_times[bigger_than_previous_stitch & smaller_than_next]
-
-        spatial_firing.firing_times.iloc[cluster_index] = firing_times
-    return spatial_firing
 
 
 
