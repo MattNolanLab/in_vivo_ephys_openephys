@@ -147,12 +147,14 @@ def get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_laten
     return first_spike_after_pulse, latency
 
 
-def check_if_firing_times_is_sorted(firing_times):
-    try:
-        assert np.all(np.diff(firing_times) >= 0)
-    except AssertionError as error:
-        error.args += ('The firing times array is not sorted. It has to be sorted for this function to work.', firing_times)
-        raise
+def assert_firing_times_is_sorted(firing_times):
+    """
+    Assert that the time points in firing_times are sorted. This can happen if someone is trying to use the function on
+    data that was filtered based on spatial properties (such as taking spikes from a firing field).
+    :param firing_times: List of time points when the cell fired
+    """
+    is_sorted = np.all(np.diff(firing_times) >= 0)
+    assert is_sorted, ('The firing times array is not sorted. It has to be sorted for this function to work.', firing_times)
 
 
 def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=300):
@@ -162,7 +164,7 @@ def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spi
     latencies = []
     for cluster_index, cluster in spatial_firing.iterrows():
         firing_times = cluster.firing_times_opto
-        check_if_firing_times_is_sorted(firing_times)
+        assert_firing_times_is_sorted(firing_times)
         first_spikes_times_cell = []
         latencies_cell = []
         for pulse in on_pulses:
@@ -248,6 +250,8 @@ def main():
     peristimulus_spikes = pd.read_pickle(path)
     path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing = pd.read_pickle(path)
+    spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, [11, 203, 3400],
+                                                             first_spike_latency=300000)
     sampling_rate = 30000
     prm.set_sampling_rate(30000)
     output_path = ('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')

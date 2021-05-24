@@ -44,9 +44,9 @@ def process_position_data(recording_to_process, output_path, track_length, stop_
     return raw_position_data, processed_position_data, position_data
 
 
-def process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_sampling_points, opto_tagging_start_index=None):
+def process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds, opto_tagging_start_index=None):
     spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length_sampling_points)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length_seconds)
     return spike_data
 
 
@@ -132,10 +132,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
     # Process position
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
-    total_length_sample_point = raw_position_data.time_seconds.values[-1]
+    total_length_seconds = raw_position_data.time_seconds.values[-1]
 
     # Process firing
-    spike_data = process_firing_properties(recording_to_process, session_type, sorter_name, dead_channels, total_length_sample_point)
+    spike_data = process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds)
 
     # Curation
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
