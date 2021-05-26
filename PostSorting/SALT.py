@@ -1,42 +1,153 @@
-# source: https://github.com/CINPLA/expipe-cinpla-legacy
-# import elephant
-#import neo
 import numpy as np
-#import quantities as pq
-# from exana.misc.tools import is_quantities
 
 
-def generate_salt_trials(spike_train, epoch):
-    """
-    Generate test and baseline trials from spike train and epoch for salt.
-    Test trial are trials within epoch times and durations, baseline trails
-    are between time + duration and next time.
-    Note
-    ----
-    Spikes before the first trial are disregarded in baseline trials.
+def make_baseline_latency_histogram(baseline_trials, bins, windows, binsize, nwins):
+    nbins = len(bins)   # number of bins for latency histograms
+    hlsi = np.zeros((nbins - 1, nwins))   # preallocate latency histograms
+    nhlsi = np.zeros((nbins - 1, nwins))    # preallocate latency histograms
+    for i in range(nwins - 1):   # loop through baseline windows
+        min_spike_times = []
+        for j, trial in enumerate(baseline_trials):   # loop through trials
+            mask = (trial < windows[i + 1]) & (trial > windows[i])
+            spikes_in_win = np.array(trial)[mask]
+            if len(spikes_in_win) > 0:
+                min_spike_times.append(spikes_in_win.min() - windows[i])   # latency from window
+            else:
+                min_spike_times.append(- binsize / 2)   # 0 if no spike in the window
+        hlsi[:, i], _ = np.histogram(min_spike_times, bins)   # latency histogram
+        nhlsi[:, i] = hlsi[:, i] / sum(hlsi[:, i])   # normalized latency histogram
+    return hlsi, nhlsi
+
+
+def get_js_divergence(kn, nhlsi):
+    jsd = np.zeros((kn, kn)) * np.nan
+    for k1 in range(kn):
+        D1 = nhlsi[:, k1]  # 1st latency histogram
+        for k2 in range(k1 + 1, kn):
+            D2 = nhlsi[:, k2]  # 2nd latency histogram
+            jsd[k1, k2] = np.sqrt(JSdiv(D1, D2) * 2)  # pairwise modified JS-divergence (real metric!)
+    return jsd
+
+
+def get_js_divergence_for_latency(test_trials, latency, latency_hist, latency_hist_normalized, window_size,
+                                  bin_size, number_of_windows, bins):
+    min_spike_times = []
+    for trial_index, trial in enumerate(test_trials):  # loop through trials
+        mask = (trial < latency + window_size) & (trial > latency)
+        spikes_in_win = np.array(trial)[mask]
+        if len(spikes_in_win) > 0:
+            min_spike_times.append(spikes_in_win.min() - latency)  # latency from window
+        else:
+            min_spike_times.append(- bin_size / 2)  # 0 if no spike in the window
+    latency_hist[:, number_of_windows - 1], _ = np.histogram(min_spike_times, bins)  # latency histogram
+    latency_hist_normalized[:, number_of_windows - 1] = latency_hist[:, number_of_windows - 1] / sum(
+        latency_hist[:, number_of_windows - 1])  # normalized latency histogram
+    # JS-divergence
+    jsd = get_js_divergence(number_of_windows, latency_hist_normalized)
+    return jsd
+
+
+def salt(baseline_trials, test_trials, window_size=0.01, latency_step=0.01, baseline_start=0, baseline_end=0.02,
+         test_start=0, test_end=0.02):
+    '''SALT   Stimulus-associated spike latency test.
+    Calculates a modified version of Jensen-Shannon divergence (see [1]_)
+    for spike latency histograms. Please cite [2]_ when using this program.
+
     Parameters
     ----------
-    spike_train : neo.SpikeTrain
-    epoch : neo.Epoch
+    baseline_trials (seconds) : Spike raster for stimulus-free baseline
+       period. The baseline period has to excede the window size (winsize)
+       multiple times, as the length of the baseline segment divided by the
+       window size determines the sample size of the null
+       distribution (see below).
+    test_trials (seconds): Spike raster for test period, i.e. after
+       stimulus. The test period has to excede the window size (winsize)
+       multiple times, as the length of the test period divided by the
+       latency_step size determines the number of latencies to be tested.
+    window_size (seconds) : Window size for baseline and test windows in seconds
+        (optional default, 0.01 s).
+    latency_step (seconds) : Step size for test latencies in seconds
+        (optional default, 0.01 s).
+
+
     Returns
     -------
-    out : tuple
-        (baseline_trials, test_trials)
+    latencies : list
+        latencies tested
+    p_values : list
+        Resulting P values for the Stimulus-Associated spike Latency Test.
+    I_values : list
+        Test statistic, difference between within baseline and test-to-baseline
+        information distance values.
+
+    Notes
+    -----
+    Briefly, the baseline binned spike raster (baseline_trials) is cut to
+    non-overlapping epochs (window size determined by WN) and spike latency
+    histograms for first spikes are computed within each epoch. A similar
+    histogram is constructed for the test epoch (test_trials). Pairwise
+    information distance measures are calculated for the baseline
+    histograms to form a null-hypothesis distribution of distances. The
+    distances of the test histogram and all baseline histograms are
+    calculated and the median of these values is tested against the
+    null-hypothesis distribution, resulting in a p value (P).
+
+    References
+    ----------
+    .. [1] res DM, Schindelin JE (2003) A new metric for probability
+       distributions. IEEE Transactions on Information Theory 49:1858-1860.
+
+    .. [2] Kvitsiani D*, Ranade S*, Hangya B, Taniguchi H, Huang JZ, Kepecs A
+       (2013) Distinct behavioural and network correlates of two interneuron
+       types in prefrontal cortex. Nature 498:363?6.'''
+    windows = np.arange(baseline_start, baseline_end + window_size, window_size)
+    bin_size = window_size / 20
+    bins = np.arange(- bin_size, window_size + bin_size, bin_size)
+    number_of_windows = len(windows)
+    # Latency histogram - baseline
+    latency_hist, latency_hist_normalized = make_baseline_latency_histogram(baseline_trials, bins, windows, bin_size, number_of_windows)
+    latencies = np.arange(0, test_end + latency_step, latency_step)
+    p_values = []
+    I_values = []
+    for latency in latencies:
+        jsd = get_js_divergence_for_latency(test_trials, latency, latency_hist, latency_hist_normalized, window_size, bin_size, number_of_windows, bins)
+        # Calculate p-value and information difference
+        p, I = calculate_p_value(jsd, number_of_windows)
+        p_values.append(p)
+        I_values.append(I)
+    return latencies, p_values, I_values
+
+
+def calculate_p_value(kld, kn):
     """
-    from exana.stimulus import make_spiketrain_trials
-    e = epoch
-    test_trials = make_spiketrain_trials(spike_train=spike_train,
-                                         epoch=e)
-    durations = np.array(
-        [t2 - t1 - d for t1, t2, d in zip(e.times,
-                                          e.times[1:],
-                                          e.durations)]) * e.times.units
-    times = np.array(
-        [t1 + d for t1, d in zip(e.times[:-1], e.durations[:-1])]) * e.times.units
-    baseline_epoch = neo.Epoch(times=times, durations=durations)
-    baseline_trials = make_spiketrain_trials(spike_train=spike_train,
-                                             epoch=baseline_epoch)
-    return baseline_trials, test_trials
+    Calculates p value from distance matrix.
+    """
+
+    pnhk = kld[:kn - 1, :kn - 1]
+    nullhypkld = pnhk[np.isfinite(pnhk)]   # nullhypothesis
+    testkld = np.median(kld[:kn - 1, kn - 1])  # value to test
+    sno = len(nullhypkld)   # sample size for nullhyp. distribution
+    p_value = sum(nullhypkld >= testkld) / sno
+    Idiff = testkld - np.median(nullhypkld)   # information difference between baseline and test min_spike_times
+    return p_value, Idiff
+
+
+def JSdiv(P, Q):
+    """JSDIV   Jensen-Shannon divergence.
+    Calculates the Jensen-Shannon divergence of the two
+    input distributions.
+    """
+    assert abs(sum(P)-1) < 0.00001 or abs(sum(Q)-1) < 0.00001,\
+        'Input arguments must be probability distributions.'
+
+    assert P.size == Q.size, 'Input distributions must be of the same size.'
+
+    # JS-divergence
+    M = (P + Q) / 2
+    D1 = KLdist(P, M)
+    D2 = KLdist(Q, M)
+    D = (D1 + D2) / 2
+    return D
 
 
 def KLdist(P, Q):
@@ -58,182 +169,83 @@ def KLdist(P, Q):
     return D
 
 
-def JSdiv(P, Q):
-    '''JSDIV   Jensen-Shannon divergence.
-    Calculates the Jensen-Shannon divergence of the two
-    input distributions.'''
-    assert abs(sum(P)-1) < 0.00001 or abs(sum(Q)-1) < 0.00001,\
-        'Input arguments must be probability distributions.'
-
-    assert P.size == Q.size, 'Input distributions must be of the same size.'
-
-    # JS-divergence
-    M = (P + Q) / 2
-    D1 = KLdist(P, M)
-    D2 = KLdist(Q, M)
-    D = (D1 + D2) / 2
-    return D
+def run_salt_test_on_test_data():
+    baseline_trials = [[0, 0.001], [0.002, 0.003, 0.005]]  # list of firing times for each trial (baseline)
+    test_trials = [[0.19], [0.18]]  # list of times from test trials (after light)
+    latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
+                                         test_trials=test_trials,
+                                         window_size=0.01, baseline_start=0, baseline_end=0.02, test_start=0, test_end=0.02)
+    # print(latencies)
+    # print(p_values)
 
 
-def makep(kld, kn):
-    '''Calculates p value from distance matrix.'''
-
-    pnhk = kld[:kn - 1, :kn - 1]
-    nullhypkld = pnhk[np.isfinite(pnhk)]   # nullhypothesis
-    testkld = np.median(kld[:kn - 1, kn - 1])  # value to test
-    sno = len(nullhypkld)   # sample size for nullhyp. distribution
-    p_value = sum(nullhypkld >= testkld) / sno
-    Idiff = testkld - np.median(nullhypkld)   # information difference between baseline and test min_spike_times
-    return p_value, Idiff
-
-
-def salt(baseline_trials, test_trials, winsize=0.01*pq.s,
-         latency_step=0.01*pq.s):
-    '''SALT   Stimulus-associated spike latency test.
-    Calculates a modified version of Jensen-Shannon divergence (see [1]_)
-    for spike latency histograms. Please cite [2]_ when using this program.
-    Parameters
-    ----------
-    baseline_trials : Spike raster for stimulus-free baseline
-       period. The baseline period has to excede the window size (winsize)
-       multiple times, as the length of the baseline segment divided by the
-       window size determines the sample size of the null
-       distribution (see below).
-    test_trials : Spike raster for test period, i.e. after
-       stimulus. The test period has to excede the window size (winsize)
-       multiple times, as the length of the test period divided by the
-       latency_step size determines the number of latencies to be tested.
-    winsize : quantities.Quantity
-        Window size for baseline and test windows in seconds
-        (optional default, 0.01 s).
-    latency_step : quantities.Quantity
-        Step size for test latencies in seconds
-        (optional default, 0.01 s).
-    Returns
-    -------
-    latencies : list
-        latencies tested
-    p_values : list
-        Resulting P values for the Stimulus-Associated spike Latency Test.
-    I_values : list
-        Test statistic, difference between within baseline and test-to-baseline
-        information distance values.
-    Notes
-    -----
-    Briefly, the baseline binned spike raster (baseline_trials) is cut to
-    non-overlapping epochs (window size determined by WN) and spike latency
-    histograms for first spikes are computed within each epoch. A similar
-    histogram is constructed for the test epoch (test_trials). Pairwise
-    information distance measures are calculated for the baseline
-    histograms to form a null-hypothesis distribution of distances. The
-    distances of the test histogram and all baseline histograms are
-    calculated and the median of these values is tested against the
-    null-hypothesis distribution, resulting in a p value (P).
-    References
-    ----------
-    .. [1] res DM, Schindelin JE (2003) A new metric for probability
-       distributions. IEEE Transactions on Information Theory 49:1858-1860.
-    .. [2] Kvitsiani D*, Ranade S*, Hangya B, Taniguchi H, Huang JZ, Kepecs A
-       (2013) Distinct behavioural and network correlates of two interneuron
-       types in prefrontal cortex. Nature 498:363?6.'''
-    t_start = baseline_trials[0].t_start.rescale('s')
-    t_stop = baseline_trials[0].t_stop.rescale('s')
-    winsize = winsize.rescale('s')
-    baseline_trials = [trial.rescale('s') for trial in baseline_trials]
-    test_trials = [trial.rescale('s') for trial in test_trials]
-
-    windows = np.arange(t_start, t_stop + winsize, winsize)
-    binsize = winsize / 20
-    bins = np.arange(- binsize, winsize + binsize, binsize)
-    # Latency histogram - baseline
-    nbtrials = len(baseline_trials)  # number of trials and number of baseline (pre-stim) data points
-    nbins = len(bins)   # number of bins for latency histograms
-    nwins = len(windows)
-    hlsi = np.zeros((nbins - 1, nwins))   # preallocate latency histograms
-    nhlsi = np.zeros((nbins - 1, nwins))    # preallocate latency histograms
-    for i in range(nwins - 1):   # loop through baseline windows
-        min_spike_times = []
-        for j, trial in enumerate(baseline_trials):   # loop through trials
-            mask = (trial < windows[i + 1]) & (trial > windows[i])
-            spikes_in_win = trial[mask]
-            if len(spikes_in_win) > 0:
-                min_spike_times.append(spikes_in_win.min().magnitude - windows[i])   # latency from window
-            else:
-                min_spike_times.append(- binsize / 2)   # 0 if no spike in the window
-        hlsi[:, i], _ = np.histogram(min_spike_times, bins)   # latency histogram
-        nhlsi[:, i] = hlsi[:, i] / sum(hlsi[:, i])   # normalized latency histogram
-
-    test_t_stop = test_trials[0].t_stop.rescale('s')
-    latencies = np.arange(0 * pq.s, test_t_stop + latency_step, latency_step)
-    p_values = []
-    I_values = []
-    nttrials = len(test_trials)   # number of trials
-    lsi_tt = np.zeros((nttrials, 1)) * np.nan   # preallocate latency matrix
-    for latency in latencies:
-        min_spike_times = []
-        for j, trial in enumerate(test_trials):   # loop through trials
-            mask = (trial < latency + winsize.magnitude) & (trial > latency)
-            spikes_in_win = trial[mask]
-            if len(spikes_in_win) > 0:
-                min_spike_times.append(spikes_in_win.min().magnitude - latency)   # latency from window
-            else:
-                min_spike_times.append(- binsize / 2)   # 0 if no spike in the window
-        hlsi[:, nwins - 1], _ = np.histogram(min_spike_times, bins)   # latency histogram
-        nhlsi[:, nwins - 1] = hlsi[:, nwins - 1] / sum(hlsi[:, nwins - 1])   # normalized latency histogram
-        # JS-divergence
-        kn = nwins   # number of all windows (nwins baseline win. + 1 test win.)
-        jsd = np.zeros((kn, kn)) * np.nan
-        for k1 in range(kn):
-            D1 = nhlsi[:, k1]  # 1st latency histogram
-            for k2 in range(k1+1, kn):
-                D2 = nhlsi[:, k2]   # 2nd latency histogram
-                jsd[k1, k2] = np.sqrt(JSdiv(D1, D2) * 2)  # pairwise modified JS-divergence (real metric!)
-
-        # Calculate p-value and information difference
-        p, I = makep(jsd, kn)
-        p_values.append(p)
-        I_values.append(I)
-    return latencies * pq.s, p_values, I_values
+def turn_binary_array_to_time_series(binary_array, sampling_rate=30000):
+    firing_times_list = []
+    number_of_trials = binary_array.shape[0]
+    for trial in range(number_of_trials):
+        times_trial = []
+        trial_data = binary_array[trial, :]
+        spike_indices = np.where(trial_data == 1)
+        for spike_index in spike_indices[0]:
+            firing_time = (spike_index / sampling_rate)
+            times_trial.append(firing_time)
+        firing_times_list.append(times_trial)
+    return firing_times_list
 
 
-def generate_spike_train_and_epoch():
-    from exana.stimulus import salt, generate_salt_trials
-    from exana.misc import concatenate_spiketrains
-    from elephant.spike_train_generation import homogeneous_poisson_process as hpp
-    np.random.seed(12345)
-    N_trials = 100
-    stim_duration = 100 * pq.ms
-    stim_start = 1000 * pq.ms
-    stim_latency = 50 * pq.ms
-    trial_duration = 1500 * pq.ms
-    trains = []
-    stim_onsets = []
-    for n in range(N_trials):
-        offset = trial_duration * n
-        stim_onsets.append(stim_start + offset)
-        trains.extend([hpp(rate=2 * pq.Hz,
-                           t_start=offset,
-                           t_stop=stim_start + stim_latency + offset),
-                       hpp(rate=8 * pq.Hz,
-                           t_start=stim_start + stim_latency + offset,
-                           t_stop=stim_start + stim_duration + offset),
-                       hpp(rate=2 * pq.Hz,
-                           t_start=stim_start + stim_duration + offset,
-                           t_stop=trial_duration + offset)])
-    spike_train = concatenate_spiketrains(trains)
+def convert_peristimulus_data_to_baseline_and_test(peristimulus_data):
+    middle_of_window = int((peristimulus_data.shape[1] - 2) / 2)
+    baseline_binary = peristimulus_data.values[:, 2:middle_of_window].astype(float)
+    test_binary = peristimulus_data.values[:, middle_of_window:].astype(float)
+    baseline = turn_binary_array_to_time_series(baseline_binary)
+    test = turn_binary_array_to_time_series(test_binary)
+    return baseline, test
 
-    epoch = neo.Epoch(
-        times=np.array(stim_onsets) * pq.ms,
-        durations=np.array([stim_duration] * len(stim_onsets)) * pq.ms)
-    return spike_train, epoch
+
+def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
+    """
+    This version of the SALT test slightly differs from the published MATLAB code and runs the test on multiple
+    windows after the light pulse. This could be useful when looking at longer latency responses.
+    :param spatial_firing: data frame where each row is a cell
+    :param peristimulus_data: binary matrix where each row is a trial (light pulse) and 1s represent spikes and 0s
+    no spikes
+    :return: spatial_firing: data frame where each row is a cell - now containing SALT results
+    """
+    print('I will run the SALT test now.')
+    all_latencies = []
+    all_p_values = []
+    all_i_values = []
+    for cluster_index, cluster in spatial_firing.iterrows():
+        # get relevant part of peristimulus data here
+        peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == cluster.cluster_id]
+        baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristim_cluster)
+        latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
+                                             test_trials=test_trials,
+                                             window_size=0.01, latency_step=0.01, baseline_start=0, baseline_end=0.2, test_start=0, test_end=0.2)
+
+        all_latencies.append(latencies)
+        all_p_values.append(p_values)
+        all_i_values.append(I_values)
+    spatial_firing['SALT_p'] = all_p_values
+    spatial_firing['SALT_I'] = all_i_values
+    spatial_firing['SALT_latencies'] = all_latencies
+    return spatial_firing
 
 
 def main():
-    # spike_train, epoch = generate_spike_train_and_epoch()
-    spike_train = neo.SpikeTrain(times=list(range(10)), t_stop=10, units='s')
-    # epoch = neo.Epoch(times=np.arange(0, 10, 1) * pq.s, durations=[.5] * 10 * pq.s)
-    # baseline_trials, test_trials = generate_salt_trials(spike_train, epoch)
-    latencies, p_values, I_values = salt(baseline_trials, test_trials, winsize=0.01 * pq.s, latency_step=0.01 * pq.s)
+    # run_salt_test_on_test_data()
+    import pandas as pd
+    import PostSorting.parameters
+    # recording_folder = '/Users/briannavandrey/Documents/recordings'
+    recording_folder = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2'
+    prm = PostSorting.parameters.Parameters()
+    prm.set_output_path(recording_folder + '/MountainSort')
+    prm.set_sampling_rate(30000)
+    spikes_path = prm.get_output_path() + '/DataFrames/peristimulus_spikes.pkl'
+    spikes = pd.read_pickle(spikes_path)
+    spikes_path = prm.get_output_path() + '/DataFrames/spatial_firing.pkl'
+    spatial_firing = pd.read_pickle(spikes_path)
+    run_salt_test_on_peristimulus_data(spatial_firing, spikes)
 
 
 if __name__ == '__main__':

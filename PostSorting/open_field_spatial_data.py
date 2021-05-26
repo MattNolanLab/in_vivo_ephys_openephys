@@ -240,7 +240,7 @@ def remove_position_outlier_rows(position_data):
     return position_data
 
 
-def process_position_data(recording_folder, params, do_resample=False):
+def process_position_data(recording_folder, params, do_resample=True):
     '''
     Read position data from Bonsai or axona
     '''
