@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
 import OpenEphys
+import settings
 
 import settings
 
@@ -206,6 +207,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
     if abs(lag2) < 1.5:
         # after correlation sync, the difference in lag should very small, if not it may indicate error
+
         print(f'Rising edge lag is {lag2}')
         spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
     else:

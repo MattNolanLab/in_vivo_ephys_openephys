@@ -28,9 +28,8 @@ import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 # import PostSorting.waveforms_pca
-
 import PreClustering.dead_channels
-
+import file_utility
 
 prm = PostSorting.parameters.Parameters()
 
