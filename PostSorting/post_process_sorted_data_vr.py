@@ -42,7 +42,7 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, output_path, track_length, stop_threshold):
     raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, output_path, track_length)
-    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold,track_length)
+    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold, track_length)
     return raw_position_data, processed_position_data, position_data
 
 
@@ -173,7 +173,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         print('-------------------------------------------------------------')
 
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
-        spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
+        spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, track_length)
         #spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, position_data, prm.get_vr_grid_analysis_bin_size(), prm)
         spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_data, processed_position_data, settings.vr_bin_size_cm, track_length)
         #spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
