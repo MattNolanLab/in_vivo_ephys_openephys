@@ -69,6 +69,10 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
                                                                        spike_trial_numbers=cluster_trial_numbers,
                                                                        processed_position_data=beaconed_processed_position_data,
                                                                        bins=bins))
+        else:
+            beaconed_firing_rate_map.append([])
+            beaconed_firing_rate_map_sem.append([])
+            # pass an empty list when beaconed trials are not present
 
         if len(non_beaconed_processed_position_data)>0:
             cluster_trial_x_locations = x_locations_cm[trial_types == 1]
@@ -83,6 +87,10 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
                                                                            spike_trial_numbers=cluster_trial_numbers,
                                                                            processed_position_data=non_beaconed_processed_position_data,
                                                                            bins=bins))
+        else:
+            non_beaconed_firing_rate_map.append([])
+            non_beaconed_firing_rate_map_sem.append([])
+            # pass an empty list when non_beaconed trials are not present
 
         if len(probe_processed_position_data)>0:
             cluster_trial_x_locations = x_locations_cm[trial_types == 2]
