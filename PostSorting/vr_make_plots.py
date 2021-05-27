@@ -207,7 +207,8 @@ def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     bin_centres = 0.5*(bin_edges[1:]+bin_edges[:-1])
 
     ax.plot(bin_centres, beaconed_stop_hist/len(beaconed_trials), '-', color='Black')
-    ax.plot(bin_centres, non_beaconed_stop_hist/len(non_beaconed_trials), '-', color='Red')
+    if len(non_beaconed_trials)>0:
+        ax.plot(bin_centres, non_beaconed_stop_hist/len(non_beaconed_trials), '-', color='Red')
     if len(probe_trials)>0:
         ax.plot(bin_centres, probe_stop_hist/len(probe_trials), '-', color='Blue')
 
@@ -218,8 +219,7 @@ def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, track_length)
 
-    maxes = [max(beaconed_stop_hist/len(beaconed_trials)), max(non_beaconed_stop_hist/len(non_beaconed_trials))]
-    x_max = max(maxes)+(0.1*max(maxes))
+    x_max = max(beaconed_stop_hist/len(beaconed_trials))+0.1
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(output_path + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
@@ -282,13 +282,15 @@ def plot_speed_histogram(processed_position_data, output_path, track_length=200)
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, track_length)
 
-    max_b = max(trial_averaged_beaconed_speeds)
-    max_nb = max(trial_averaged_non_beaconed_speeds)
+    x_max = max(trial_averaged_beaconed_speeds)
+
+    if len(trial_averaged_non_beaconed_speeds)>0:
+        max_nb = max(trial_averaged_non_beaconed_speeds)
+        x_max = max([x_max, max_nb])
+
     if len(trial_averaged_probe_speeds)>0:
         max_p = max(trial_averaged_probe_speeds)
-        x_max = max([max_b, max_nb, max_p])
-    else:
-        x_max = max([max_b, max_nb])
+        x_max = max([x_max, max_p])
 
     plot_utility.style_vr_plot(ax, x_max)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
@@ -363,8 +365,9 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
         avg_beaconed_spike_rate = convolve(avg_beaconed_spike_rate, gauss_kernel) # convolve and smooth beaconed
         beaconed_firing_rate_map_sem = convolve(beaconed_firing_rate_map_sem, gauss_kernel)
 
-        avg_nonbeaconed_spike_rate = convolve(avg_nonbeaconed_spike_rate, gauss_kernel) # convolve and smooth non beaconed
-        non_beaconed_firing_rate_map_sem = convolve(non_beaconed_firing_rate_map_sem, gauss_kernel)
+        if len(avg_nonbeaconed_spike_rate)>0:
+            avg_nonbeaconed_spike_rate = convolve(avg_nonbeaconed_spike_rate, gauss_kernel) # convolve and smooth non beaconed
+            non_beaconed_firing_rate_map_sem = convolve(non_beaconed_firing_rate_map_sem, gauss_kernel)
 
         if len(avg_probe_spike_rate)>0:
             avg_probe_spike_rate = convolve(avg_probe_spike_rate, gauss_kernel) # convolve and smooth probe
@@ -379,9 +382,10 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
         ax.fill_between(bin_centres, avg_beaconed_spike_rate-beaconed_firing_rate_map_sem,
                                      avg_beaconed_spike_rate+beaconed_firing_rate_map_sem, color="Black", alpha=0.5)
 
-        ax.plot(bin_centres, avg_nonbeaconed_spike_rate, '-', color='Red')
-        ax.fill_between(bin_centres, avg_nonbeaconed_spike_rate-non_beaconed_firing_rate_map_sem,
-                                     avg_nonbeaconed_spike_rate+non_beaconed_firing_rate_map_sem, color="Red", alpha=0.5)
+        if len(avg_nonbeaconed_spike_rate)>0:
+            ax.plot(bin_centres, avg_nonbeaconed_spike_rate, '-', color='Red')
+            ax.fill_between(bin_centres, avg_nonbeaconed_spike_rate-non_beaconed_firing_rate_map_sem,
+                                         avg_nonbeaconed_spike_rate+non_beaconed_firing_rate_map_sem, color="Red", alpha=0.5)
 
         if len(avg_probe_spike_rate)>0:
             ax.plot(bin_centres, avg_probe_spike_rate, '-', color='Blue')
@@ -395,12 +399,12 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
         plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
         plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
         plt.xlim(0,track_length)
-        nb_x_max = np.nanmax(avg_beaconed_spike_rate)
-        b_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
-        if b_x_max > nb_x_max:
-            plot_utility.style_vr_plot(ax, b_x_max)
-        elif b_x_max < nb_x_max:
-            plot_utility.style_vr_plot(ax, nb_x_max)
+        x_max = np.nanmax(avg_beaconed_spike_rate)
+        if len(avg_nonbeaconed_spike_rate)>0:
+            nb_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
+            if nb_x_max > x_max:
+                x_max = nb_x_max
+        plot_utility.style_vr_plot(ax, x_max)
         plot_utility.style_track_plot(ax, track_length)
         plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
 
