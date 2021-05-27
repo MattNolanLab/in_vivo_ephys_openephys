@@ -56,7 +56,7 @@ def trial_average_speed(processed_position_data):
 
     return trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds
 
-def bin_in_space(raw_position_data, processed_position_data):
+def bin_in_space(raw_position_data, processed_position_data, track_length):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/settings.vr_bin_size_cm)
 
     speeds_binned_in_space = []
@@ -67,7 +67,7 @@ def bin_in_space(raw_position_data, processed_position_data):
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
 
-        pos_bins = np.arange(min(trial_x_position_cm), max(trial_x_position_cm), settings.vr_bin_size_cm)# 1cm space bins
+        pos_bins = np.arange(0, track_length, settings.vr_bin_size_cm)# 1cm space bins
 
         if len(pos_bins)>1:
             # calculate the average speed and position in each space bin
@@ -145,10 +145,10 @@ def bin_in_time(raw_position_data, processed_position_data):
 
 
 
-def process_position(raw_position_data, stop_threshold,track_length):
+def process_position(raw_position_data, stop_threshold, track_length):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
     processed_position_data = bin_in_time(raw_position_data, processed_position_data)
-    processed_position_data = bin_in_space(raw_position_data, processed_position_data)
+    processed_position_data = bin_in_space(raw_position_data, processed_position_data, track_length)
 
     #TODO these functions should be removed and stops calculated from the time or space bins calculated above.
     #TODO speed plots will need to be changed accordingly.
