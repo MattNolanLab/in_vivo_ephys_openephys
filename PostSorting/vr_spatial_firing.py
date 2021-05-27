@@ -81,7 +81,7 @@ def bin_fr_in_time(spike_data, raw_position_data):
     return spike_data
 
 
-def bin_fr_in_space(spike_data, raw_position_data):
+def bin_fr_in_space(spike_data, raw_position_data, track_length):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/settings.vr_bin_size_cm)
 
     # make an empty list of list for all firing rates binned in time for each cluster
@@ -91,7 +91,7 @@ def bin_fr_in_space(spike_data, raw_position_data):
     for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
         trial_x_dwell_time = np.array(raw_position_data['dwell_time_ms'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
-        pos_bins = np.arange(min(trial_x_position_cm), max(trial_x_position_cm), settings.vr_bin_size_cm)# 100ms time bins
+        pos_bins = np.arange(0, track_length, settings.vr_bin_size_cm)# 100ms time bins
 
         for i, cluster_id in enumerate(spike_data.cluster_id):
             if len(pos_bins)>1:
@@ -123,7 +123,7 @@ def bin_fr_in_space(spike_data, raw_position_data):
     return spike_data
 
 
-def add_location_and_task_variables(spike_data, raw_position_data):
+def add_location_and_task_variables(spike_data, raw_position_data, track_length):
     print('I am extracting firing locations for each cluster...')
     spike_data = add_speed(spike_data, raw_position_data)
     spike_data = add_position_x(spike_data, raw_position_data)
@@ -131,7 +131,7 @@ def add_location_and_task_variables(spike_data, raw_position_data):
     spike_data = add_trial_type(spike_data, raw_position_data)
 
     spike_data = bin_fr_in_time(spike_data, raw_position_data)
-    spike_data = bin_fr_in_space(spike_data, raw_position_data)
+    spike_data = bin_fr_in_space(spike_data, raw_position_data, track_length)
     return spike_data
 
 
@@ -198,11 +198,11 @@ def split_spatial_firing_by_trial_type(spike_data):
     return spike_data
 
 
-def process_spatial_firing(spike_data, raw_position_data):
+def process_spatial_firing(spike_data, raw_position_data, track_length):
     spike_data_movement = spike_data.copy()
     spike_data_stationary = spike_data.copy()
 
-    spike_data = add_location_and_task_variables(spike_data, raw_position_data)
+    spike_data = add_location_and_task_variables(spike_data, raw_position_data, track_length)
     spike_data = split_spatial_firing_by_trial_type(spike_data)
     print('-------------------------------------------------------------')
     print('spatial firing processed')
