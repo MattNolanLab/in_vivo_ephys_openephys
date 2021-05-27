@@ -190,6 +190,9 @@ def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
 def process_waveform_pca(recording, remove_outliers):
     spatial_firing_path = recording+"/MountainSort/DataFrames/spatial_firing.pkl"
     output_folder = recording+"/MountainSort/Figures/firing_properties/waveform_pca/"
+    firing_properties_path = recording+"/MountainSort/Figures/firing_properties/"
+    if not os.path.exists(firing_properties_path):
+        os.mkdir(firing_properties_path)
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     if os.path.exists(spatial_firing_path):

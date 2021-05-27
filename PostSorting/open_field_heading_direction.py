@@ -54,7 +54,7 @@ def add_heading_direction_to_spatial_firing_data_frame(spatial_firing: pd.DataFr
         position = add_heading_direction_to_position_data_frame(position)
 
     headings = []
-    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(spatial_firing, position, avg_sampling_rate_open_ephys=ephys_sampling_rate)
+    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(spatial_firing, position, sampling_rate_ephys=ephys_sampling_rate)
     for index, cluster in spatial_firing.iterrows():
         bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
         heading = list(position.heading_direction[bonsai_indices_cluster_round])
@@ -74,7 +74,7 @@ def add_heading_direction_to_spatial_firing_data_frame_one_cluster(cluster: pd.S
         position = add_heading_direction_to_position_data_frame(position)
 
     headings = []
-    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(cluster, position, avg_sampling_rate_open_ephys=ephys_sampling_rate)
+    spatial_firing = PostSorting.open_field_spatial_firing.calculate_corresponding_indices(cluster, position, sampling_rate_ephys=ephys_sampling_rate)
     bonsai_indices_cluster_round = cluster.bonsai_indices.round(0)
     heading = list(position.heading_direction[bonsai_indices_cluster_round])
     headings.append(heading)

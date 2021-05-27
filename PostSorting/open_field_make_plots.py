@@ -479,9 +479,10 @@ def make_combined_field_analysis_figures(prm, spatial_firing):
         if number_of_firing_fields > 5:
             number_of_columns = number_of_firing_fields
         grid = plt.GridSpec(number_of_rows, number_of_columns, wspace=0.2, hspace=0.2)
-        rounded_r = [ '%.4f' % elem for elem in cluster_df['field_corr_r'].iloc[0]]
-        rounded_p = [ '%.4f' % elem for elem in cluster_df['field_corr_p'].iloc[0]]
-        plt.suptitle("r: " + str(rounded_r) + '\np: ' + str(rounded_p))
+        if 'field_corr_r' in cluster_df:
+            rounded_r = [ '%.4f' % elem for elem in cluster_df['field_corr_r'].iloc[0]]
+            rounded_p = [ '%.4f' % elem for elem in cluster_df['field_corr_p'].iloc[0]]
+            plt.suptitle("r: " + str(rounded_r) + '\np: ' + str(rounded_p))
         if os.path.exists(spike_scatter_path):
             spike_scatter = mpimg.imread(spike_scatter_path)
             spike_scatter_plot = plt.subplot(grid[0, 0])

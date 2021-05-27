@@ -65,4 +65,5 @@ opto_tagging_start_index = None
 pixel_ratio = 440
 sync_channel_suffix = 'ADC1' #channel for the sync pulse
 bonsai_sampling_rate = 30
-sync_pulse_threshold = 2
+gauss_sd_for_speed_score = 250
+

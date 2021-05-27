@@ -5,7 +5,6 @@ class Parameters:
     is_ubuntu = True
     is_windows = False
     is_stable = False
-    is_interleaved_opto = False
     delete_two_min = False
     first_half_only = False
     second_half_only = False
@@ -41,12 +40,6 @@ class Parameters:
     def __init__(self):
         return
 
-    def get_is_stable(self):
-            return Parameters.is_stable
-
-    def set_is_stable(self, is_stbl):
-        Parameters.is_stable = is_stbl
-
     def get_sorter_name(self):
             return Parameters.sorter_name
 
@@ -64,18 +57,6 @@ class Parameters:
 
     def set_second_half_only(self, is_second):
         Parameters.second_half_only = is_second
-
-    def get_is_ubuntu(self):
-        return Parameters.is_ubuntu
-
-    def set_is_ubuntu(self, is_ub):
-        Parameters.is_ubuntu = is_ub
-
-    def get_is_windows(self):
-        return Parameters.is_windows
-
-    def set_is_windows(self, is_win):
-        Parameters.is_windows = is_win
 
     def get_pixel_ratio(self):
         return Parameters.pixel_ratio
@@ -120,18 +101,6 @@ class Parameters:
     def set_downsampled_rate(self, dsr):
         Parameters.downsampled_rate = dsr
 
-    def get_opto_tagging_start_index(self):
-        return Parameters.opto_tagging_start_index
-
-    def set_opto_tagging_start_index(self, opto_start):
-        Parameters.opto_tagging_start_index = opto_start
-
-    def get_sampling_rate_rate(self):
-        return Parameters.sampling_rate_rate
-
-    def set_sampling_rate_rate(self, sr):
-        Parameters.sampling_rate_rate = sr
-
     def get_local_recording_folder_path(self):
         return Parameters.local_recording_folder_path
 
@@ -155,12 +124,6 @@ class Parameters:
 
     def set_ms_tmp_path(self, path):
         Parameters.ms_tmp_path = path
-
-    def get_total_length_sampling_points(self):
-        return Parameters.total_length_sampling_points
-
-    def set_total_length_sampling_points(self, length):
-        Parameters.total_length_sampling_points = length
 
     def get_dead_channels(self):
         return Parameters.dead_channels
@@ -230,12 +193,6 @@ class Parameters:
     def set_stop_threshold(self, st):
         Parameters.stop_threshold = st
 
-    def get_interleaved_opto(self):
-        return Parameters.is_interleaved_opto
-
-    def set_interleaved_opto(self, inter_opto):
-        Parameters.is_interleaved_opto = inter_opto
-
     def get_delete_two_minutes(self):
         return Parameters.delete_two_min
 
@@ -253,18 +210,6 @@ class Parameters:
 
     def set_goal_location_chennl(self, goal_location_channel):
         Parameters.goal_location_channel = goal_location_channel
-
-    def set_stitch_point(self, stitchpoint):
-        Parameters.stitchpoint = stitchpoint
-
-    def get_stitch_point(self):
-        return Parameters.stitchpoint
-
-    def set_paired_order(self, paired_order):
-        Parameters.paired_order = paired_order
-
-    def get_paired_order(self):
-        return Parameters.paired_order
 
     def set_vr_grid_analysis_bin_size(self, bin_size):
         Parameters.vr_grid_analysis_bin_size = bin_size

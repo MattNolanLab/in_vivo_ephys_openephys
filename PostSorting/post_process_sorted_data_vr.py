@@ -24,7 +24,6 @@ prm = PostSorting.parameters.Parameters()
 
 
 def initialize_parameters(recording_to_process):
-    prm.set_is_ubuntu(True)
     prm.set_sampling_rate(30000)
     prm.set_downsampled_rate(1000)
     prm.set_local_recording_folder_path(recording_to_process)
@@ -46,11 +45,9 @@ def process_position_data(recording_to_process, output_path, track_length, stop_
     return raw_position_data, processed_position_data, position_data
 
 
-def process_firing_properties(recording_to_process, session_type, sorter_name, dead_channels, paired_order, stitchpoint, total_length_sampling_points, opto_tagging_start_index=None):
-    # TODO: add the doc for paired_order and stitchpoint here
-    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, session_type, sorter_name, dead_channels, paired_order, stitchpoint, opto_tagging_start_index)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, stitchpoint, paired_order, total_length_sampling_points)
-    spike_data = PostSorting.temporal_firing.correct_for_stitch(spike_data, paired_order, stitchpoint) #TODO: check should really be done before calling a function, function should not do nothing
+def process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds, opto_tagging_start_index=None):
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length_seconds)
     return spike_data
 
 
@@ -111,7 +108,7 @@ def process_running_parameter_tag(running_parameter_tags):
     return stop_threshold, track_length, cue_conditioned_goal
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False,
-                           sorter_name=settings.sorterName, stitchpoint=None, paired_order=None, total_length=None):
+                           sorter_name=settings.sorterName):
 
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
@@ -120,33 +117,24 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     # Keep all parameter object reference at this level, do not pass them beyond this level
     # keep the configuration of the prm object at a single location only for easily tracking
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
-    prm.set_paired_order(paired_order)
-    prm.set_stitch_point(stitchpoint)
     prm.set_stop_threshold(stop_threshold)
     prm.set_track_length(track_length)
     prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
     ephys_channels = prm.get_ephys_channels()
 
-    dead_channel_txt_file_path = recording_to_process+settings.dead_channel_file_name
-    dead_channels = file_utility.dead_channels_from_txt_file(dead_channel_txt_file_path)
-
-    if total_length is not None:
-        prm.set_total_length_sampling_points(total_length/prm.get_sampling_rate())
-
     prm.set_sorter_name('/' + sorter_name)
-    prm.set_output_path(recording_to_process +  prm.get_sorter_name())
+    prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
     # Process LPF
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
 
     # Process position
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
-    total_length_sample_point = raw_position_data.time_seconds.values[-1]
+    total_length_seconds = raw_position_data.time_seconds.values[-1]
 
     # Process firing
-    spike_data = process_firing_properties(recording_to_process, session_type, 
-        sorter_name, dead_channels, paired_order, stitchpoint, total_length_sample_point)
+    spike_data = process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds)
 
     # Curation
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())

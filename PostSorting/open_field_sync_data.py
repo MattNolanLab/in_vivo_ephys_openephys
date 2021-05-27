@@ -8,6 +8,8 @@ import matplotlib.pylab as plt
 import OpenEphys
 import settings
 
+import settings
+
 
 def load_sync_data_ephys(recording_to_process, prm):
     is_found = False
@@ -81,7 +83,6 @@ def downsample_ephys_data(sync_data_ephys, spatial_data, prm):
     avg_sampling_rate_bonsai = float(1 / spatial_data['time_seconds'].diff().mean())
     avg_sampling_rate_open_ephys = float(1 / sync_data_ephys['time'].diff().mean())
     sampling_rate_rate = avg_sampling_rate_open_ephys/avg_sampling_rate_bonsai
-    prm.set_sampling_rate_rate(sampling_rate_rate)
     length = int(len(sync_data_ephys['time']) / sampling_rate_rate)
     indices = (np.arange(length) * sampling_rate_rate).astype(int)
     sync_data_ephys_downsampled = sync_data_ephys['time'][indices]
@@ -120,8 +121,8 @@ def detect_last_zero(signal):
     return last_zero_index
 
 
-def save_plots_of_pulses(bonsai, oe, prm, lag, name='sync_pulses'):
-    save_path = prm.get_output_path() + '/Figures/Sync_test/'
+def save_plots_of_pulses(bonsai, oe, output_path, lag, name='sync_pulses'):
+    save_path = output_path + '/Figures/Sync_test/'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     plt.figure()
@@ -134,9 +135,19 @@ def save_plots_of_pulses(bonsai, oe, prm, lag, name='sync_pulses'):
     plt.close()
 
 
-def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
+def save_plot(prm, data, name, plot_color='black'):
+    save_path = prm.get_output_path() + '/Figures/Sync_test/'
+    if os.path.exists(save_path) is False:
+        os.makedirs(save_path)
+    plt.figure()
+    plt.plot(data, color=plot_color, label=name)
+    plt.legend()
+    plt.savefig(save_path + name + '_sync_pulses.png')
+    plt.close()
 
-    '''
+
+def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
+    """
     The ephys and spatial data is synchronized based on sync pulses sent both to the open ephys and bonsai systems.
     The open ephys GUI receives TTL pulses. Bonsai detects intensity from an LED that lights up whenever the TTL is
     sent to open ephys. The pulses have 20-60 s long randomised gaps in between them. The recordings don't necessarily
@@ -160,12 +171,14 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
 
     #Note: the syncLED column must have stable sampling frequency/FPS, otherwise there will be error
 
-    '''
+    """
 
     print('I will synchronize the position and ephys data by shifting the position to match the ephys.')
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
     bonsai = spatial_data['syncLED'].values
+    save_plot(prm, bonsai, 'bonsai', plot_color='black')
     oe = sync_data_ephys_downsampled.sync_pulse.values
+    save_plot(prm, oe, 'open_ephys', plot_color='red')
     # save_plots_of_pulses(bonsai, oe, prm, name='pulses_before_processing')
     bonsai = reduce_noise(bonsai, np.median(bonsai) + 6 * np.std(bonsai))
     oe = reduce_noise(oe, 2)
@@ -190,51 +203,44 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     bonsai_rising_edge_time = trimmed_bonsai_time[bonsai_rising_edge_index]
 
     lag2 = oe_rising_edge_time - bonsai_rising_edge_time
+    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm.get_output_path(), lag2)
 
-    save_plots_of_pulses(trimmed_bonsai_pulses, trimmed_ephys_pulses, prm, lag2)
+    if abs(lag2) < 1.5:
+        # after correlation sync, the difference in lag should very small, if not it may indicate error
 
-    if abs(lag2) < settings.sync_pulse_threshold:
-        #after correlation sync, the difference in lag should very small, if not it may indicate error
         print(f'Rising edge lag is {lag2}')
         spatial_data['synced_time'] = spatial_data.synced_time_estimate + lag2
     else:
         # time difference between riring edge is too large, potential bug
-        raise ValueError('Potential sync error. Lag between bonsai and ephys edge is' + str(lag2))
-        
+        print('Lag is:' + str(lag2))
+        raise ValueError('Potential sync error.')
 
-    # plots for testing
-    # plt.plot(spatial_data.synced_time, spatial_data['syncLED'], color='cyan')
-    # trimmed_ephys_pulses2 = sync_data_ephys_downsampled.sync_pulse.values[ephys_start:]
-    # plt.plot(trimmed_ephys_time, trimmed_ephys_pulses2, color='red')
     return spatial_data
 
 
-def remove_opto_tagging_from_spatial_data(prm, spatial_data):
-    if prm.get_opto_tagging_start_index() is None:
+def remove_opto_tagging_from_spatial_data(start_of_opto_tagging, spatial_data):
+    if start_of_opto_tagging is None:
         return spatial_data
     else:
-        beginning_of_opto_tagging = prm.get_opto_tagging_start_index()
-        sampling_rate_rate = prm.get_sampling_rate_rate()
-        bonsai_start_index = int(beginning_of_opto_tagging / sampling_rate_rate)
-        spatial_data.drop(range(bonsai_start_index, len(spatial_data)), inplace=True)
+        start_of_opto_seconds = int(start_of_opto_tagging / settings.sampling_rate)
+        nearest_bonsai_index = (np.abs(spatial_data.synced_time - start_of_opto_seconds)).argmin()
+        spatial_data.drop(range(nearest_bonsai_index, len(spatial_data)), inplace=True)
     return spatial_data
 
 
-def process_sync_data(recording_to_process, prm, spatial_data):
+def process_sync_data(recording_to_process, prm, spatial_data, opto_start=None):
     sync_data, is_found = load_sync_data_ephys(recording_to_process, prm)
     sync_data_ephys = pd.DataFrame(sync_data)
     sync_data_ephys.columns = ['sync_pulse']
     sync_data_ephys = get_ephys_sync_on_and_off_times(sync_data_ephys, prm)
     spatial_data = get_video_sync_on_and_off_times(spatial_data)
-    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data,prm)
+    spatial_data = get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm)
     # synced time in seconds, x and y in cm, hd in degrees
     synced_spatial_data = spatial_data[['synced_time', 'position_x', 'position_x_pixels', 'position_y', 'position_y_pixels', 'hd', 'speed']].copy()
     # remove negative time points
     synced_spatial_data = synced_spatial_data.drop(synced_spatial_data[synced_spatial_data.synced_time < 0].index)
     synced_spatial_data = synced_spatial_data.reset_index(drop=True)
-
-    synced_spatial_data = remove_opto_tagging_from_spatial_data(prm, synced_spatial_data)
-    prm.set_total_length_sampling_points(synced_spatial_data.synced_time.values[-1]) # seconds
     total_length_sampling_points = synced_spatial_data.synced_time.values[-1]
+    synced_spatial_data = remove_opto_tagging_from_spatial_data(opto_start, synced_spatial_data)
 
     return synced_spatial_data, total_length_sampling_points, is_found
