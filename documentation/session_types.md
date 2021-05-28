@@ -34,7 +34,7 @@ The recording type can be specified in the paramters.txt file by putting 'openfi
 
 Example parmeters file:
 
--------------------------------------------------------------------------
-opto
-Klara/CA1_to_deep_MEC_in_vivo/Duplicate_depth/M3_2021-05-24_14-45-35_opto
--------------------------------------------------------------------------
+> opto
+>
+> Klara/CA1_to_deep_MEC_in_vivo/Duplicate_depth/M3_2021-05-24_14-45-35_opto
+
