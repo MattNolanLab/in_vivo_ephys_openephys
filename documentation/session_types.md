@@ -27,6 +27,15 @@ The light pulses are saved on this channel and correspond to the .continuous eph
 | ----------- | ----------- |
 | ![image](https://user-images.githubusercontent.com/16649631/119967683-88776580-bfa4-11eb-89ef-04d333ad01c8.png) | ![image](https://user-images.githubusercontent.com/16649631/119967839-ae046f00-bfa4-11eb-8625-4bf1e251609e.png)|
 
+Opto sessions have their own metadata file called opto_parameters.csv that contain the number of pulses, pulse durations and pulse intensities for each series of pulses sent. This is important to save because the LED intesity (manually set on the LED driver) does not get saved anywhere otherwise. If the metadata is missing the script will try to figure it out and assume 100% intensity.
+For example this is a series of 200 pulses at 100% intensity. Each pulse is 3ms long followed by another series of 300 pulses at 25% intensity with 5ms durations
+> pulses,intensities,duration
+> 
+> 200,100,3
+> 
+> 300, 25, 5
+
+Open field or sleep session can contain opto data (typically at the end of the recording). In these cases, the opto metadata should be added too.
 
 
 ## How to set the session type
