@@ -144,9 +144,8 @@ def set_recording_length(recording_to_process, prm):
     file_path = recording_to_process + '/' + prm.get_sync_channel()
     if os.path.exists(file_path):
         continuous_channel_data = open_ephys_IO.get_data_continuous(file_path)
-        total_length = len(continuous_channel_data)
+        total_length = len(continuous_channel_data) / settings.sampling_rate  # convert to seconds
         is_found = True
-        total_length /= settings.sampling_rate  # convert to seconds
     else:
         print('I could not load the channel and set the recording length.')
     return total_length, is_found
