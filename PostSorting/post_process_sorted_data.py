@@ -183,7 +183,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
             spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
             spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
-            spatial_firing = PostSorting.open_field_border_cells.process_corner_data(spatial_firing)
             spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
 
             if opto_is_found:
