@@ -148,7 +148,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     PreClustering.dead_channels.get_dead_channel_ids(prm)
-    dead_channels = prm.get_dead_channels()
+    dead_channel_txt_file_path = recording_to_process+"/"+settings.dead_channel_file_name
+    dead_channels = file_utility.dead_channels_from_txt_file(dead_channel_txt_file_path)
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
 
@@ -178,6 +179,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
             position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
+            spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing)
             spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
             spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
             spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
