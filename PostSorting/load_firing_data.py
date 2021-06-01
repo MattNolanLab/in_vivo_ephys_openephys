@@ -6,6 +6,7 @@ import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
 import settings
+import open_ephys_IO
 
 def get_firing_info(file_path, sorter_name):
     firing_times_path = file_path + '/Electrophysiology/' + sorter_name + '/firings.mda' # sorter name shouldn't contain path slash
@@ -52,6 +53,8 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     :return: Data frame with firing times of clusters
     """
     session_id = recording_to_process.split('/')[-1]
+    recording_length_sampling_points = len(open_ephys_IO.get_data_continuous(get_available_ephys_channels(recording_to_process)[0])) # needed for shuffling
+
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
         firing_data = spatial_firing[['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto', 'isolation', 'noise_overlap', 'peak_snr', 'mean_firing_rate', 'random_snippets', 'position_x', 'position_y', 'hd', 'position_x_pixels', 'position_y_pixels', 'speed']].copy()
@@ -60,7 +63,8 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, dead_channels)
-    firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto'], dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64])
+    firing_data = data_frame_utility.df_empty(['session_id', 'cluster_id', 'tetrode', 'primary_channel', 'firing_times', 'firing_times_opto', 'recording_length_sampling_points'],
+                                              dtypes=[str, np.uint8, np.uint8, np.uint8, np.uint64, np.uint64,  np.uint64])
     for cluster in units_list:
         cluster_firings_all = firing_times[cluster_ids == cluster]
         if opto_tagging_start_index is not None:
@@ -78,10 +82,22 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
             "tetrode": tetrode,
             "primary_channel": ch,
             "firing_times": cluster_firings,
-            "firing_times_opto": cluster_firings_opto
+            "firing_times_opto": cluster_firings_opto,
+            "recording_length_sampling_points": recording_length_sampling_points
         }, ignore_index=True)
     return firing_data
 
+def get_available_ephys_channels(recording_to_process):
+    '''
+    :param recording_to_process: absolute path of recroding to sort
+    :return: list of named channels for ephys aquisition
+    '''
+
+    shared_ephys_channel_marker = settings.data_file_prefix
+    all_files_names = [f for f in os.listdir(recording_to_process) if os.path.isfile(os.path.join(recording_to_process, f))]
+    all_ephys_file_names = [s for s in all_files_names if shared_ephys_channel_marker in s]
+
+    return all_ephys_file_names
 
 def available_ephys_channels(recording_to_process, prm):
     '''
