@@ -53,7 +53,8 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     :return: Data frame with firing times of clusters
     """
     session_id = recording_to_process.split('/')[-1]
-    recording_length_sampling_points = len(open_ephys_IO.get_data_continuous(get_available_ephys_channels(recording_to_process)[0])) # needed for shuffling
+    recording_length_sampling_points = len(open_ephys_IO.get_data_continuous(recording_to_process+"/"+get_available_ephys_channels(recording_to_process)[0])) # needed for shuffling
+
 
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
