@@ -140,22 +140,24 @@ def run_shuffle_analysis_vr(recording, n_shuffles, prm):
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
+
+    #========================FOR RUNNING LOCALLY==============================================#
+    #=========================================================================================#
     #n_shuffles = 1000
-
     # get list of all recordings in the recordings folder
-    of_recording_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/of/") if f.is_dir()]
-
+    #of_recording_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/of/") if f.is_dir()]
     #run_shuffle_analysis(of_recording_list, n_shuffles, prm)
-    recording_path = sys.argv[1:][0]
-    shuffle_id = int(sys.argv[1:][1])
+    #=========================================================================================#
+    #=========================================================================================#
 
-    #recording_path = '/mnt/datastore/Harry/Cohort8_may2021/of/M13_D5_2021-05-14_11-34-47'
-    #shuffle_id = 1
+
+    #========================FOR RUNNING ON FROM TERMINAL=====================================#
+    #=========================================================================================#
+    recording_path = os.environ['RECORDING_PATH']
+    shuffle_id = os.environ['SHUFFLE_NUMBER']
     run_shuffle_parallel(recording_path, shuffle_id)
-
-    print("dfdf")
-
-
+    #=========================================================================================#
+    #=========================================================================================#
 
 if __name__ == '__main__':
     main()
