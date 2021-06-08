@@ -5,6 +5,9 @@
 #$ -pe sharedmem 1
 #$ -P sbms_kg_grid_modelling
 
+#load the environment modules
+. /etc/profile.d/modules.sh
+
 # Load Python
 module load anaconda
 
