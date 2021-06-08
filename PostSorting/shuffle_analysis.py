@@ -7,6 +7,7 @@ import PostSorting
 import numpy as np
 import settings
 import sys
+import traceback
 
 prm = PostSorting.parameters.Parameters()
 
@@ -14,15 +15,22 @@ def run_shuffle_analysis(list_of_recordings, n_shuffles, prm):
 
     for recording in list_of_recordings:
 
-        if os.path.exists(recording+"/MountainSort/DataFrames/spatial_firing.pkl") and not \
-                os.path.exists(recording+"/MountainSort/DataFrames/spatial_firing_with_shuffled_threshold.pkl"):
-            session_type = get_session_type(recording)
+        try:
+            if os.path.exists(recording+"/MountainSort/DataFrames/spatial_firing.pkl") and not \
+                    os.path.exists(recording+"/MountainSort/DataFrames/spatial_firing_with_shuffled_threshold.pkl"):
+                session_type = get_session_type(recording)
 
-            if session_type == "openfield":
-                run_shuffle_analysis_open_field(recording, n_shuffles, prm)
+                if session_type == "openfield":
+                    run_shuffle_analysis_open_field(recording, n_shuffles, prm)
 
-            elif session_type == "vr":
-                run_shuffle_analysis_vr(recording, n_shuffles, prm)
+                elif session_type == "vr":
+                    run_shuffle_analysis_vr(recording, n_shuffles, prm)
+
+        except Exception as ex:
+            print('This is what Python says happened:')
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
 
 def run_parallel_of_shuffle(shuffle_id, shuffled_cluster_spike_data, synced_spatial_data, prm):
     prm.set_sampling_rate(30000)
