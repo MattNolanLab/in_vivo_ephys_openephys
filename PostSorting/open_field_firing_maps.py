@@ -144,6 +144,7 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     clusters = firing_data_spatial.cluster_id
 
     num_cores = int(os.environ['HEATMAP_CONCURRENCY']) if os.environ.get('HEATMAP_CONCURRENCY') else multiprocessing.cpu_count()
+    print("I have detected", str(num_cores), " cores")
     time_start = time.time()
     if try_parallel_first:
         try:
