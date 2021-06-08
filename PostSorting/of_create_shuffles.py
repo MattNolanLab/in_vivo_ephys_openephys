@@ -26,7 +26,7 @@ for recording_name in recording_list:
     print(f'Recordings copied... Submitting shuffle jobs to Eddie')
     for shuffle_number in range(N_SHUFFLES):
         print(f'Submitting shuffle job {shuffle_number}')
-        cmd = f'qsub -pe sharedmem 2 -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={shuffle_number} /home/s1228823/in_vivo_ephys_openephys/PostSorting/shuffle_analysis.py'
+        cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={shuffle_number} /home/s1228823/in_vivo_ephys_openephys/PostSorting/run_of_shuffle.sh'
         subprocess.check_call(cmd, shell=True)
 
 print("all jobs submitted, good luck!")

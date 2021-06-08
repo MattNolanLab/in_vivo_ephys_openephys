@@ -1,6 +1,6 @@
 #!/bin/sh
 $ -cwd
-$ -l h_rt=00:20:00
+$ -l h_rt=00:29:00
 $ -l h_vmem=3G
 $ -pe sharedmem 1
 $ -P sbms_kg_grid_modelling
@@ -15,4 +15,4 @@ source activate myenv
 export PYTHONPATH="/home/s1228823/in_vivo_ephys_openephys"
 
 # Run the program
-python /mnt/datastore/Harry/test_recordings /home/s1228823/in_vivo_ephys_openephys/PostSorting/of_create_shuffles.py
+python /home/s1228823/in_vivo_ephys_openephys/PostSorting/shuffle_analysis.py
