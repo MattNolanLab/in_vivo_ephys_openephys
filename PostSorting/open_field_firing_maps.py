@@ -148,8 +148,10 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     if try_parallel_first:
         try:
             if settings.use_vectorised_rate_map_function:
+                print("I am using the vectorised rate map function")
                 firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
             else:
+                print("I am using the non-vectorised rate map function")
                 firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
         except Exception as ex:
             print("calculating rate map failed using parallel, attempting one by one")
