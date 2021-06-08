@@ -3,13 +3,9 @@ import subprocess
 import sys
 import os
 
-recording_folder_to_process = sys.argv[1]
-#recording_folder_to_process = '/mnt/datastore/Harry/Cohort7_october2020/of'
-recording_folder_to_process = '/mnt/datastore/Harry/test_recordings'
+recording_folder_to_process = sys.argv[1] # something like /mnt/datastore/Harry/test_recordings or /mnt/datastore/Harry/Cohort7_october2020/of
 
 local_scratch_path = '/exports/eddie/scratch/s1228823/recordings'
-recordings_scratch_path = local_scratch_path+"/"+recording_folder_to_process.split("/")[-1]
-
 ELEANOR_HOST = 'ubuntu@172.16.49.217'
 ELEANOR_RECORDINGS_PATH = Path(recording_folder_to_process)
 LOCAL_SCRATCH_PATH = Path(local_scratch_path)
@@ -19,6 +15,7 @@ N_SHUFFLES = 1000
 subprocess.check_call(f'rsync -avP --include "*/" --include="*.pkl" --exclude="*" {ELEANOR_HOST}:{ELEANOR_RECORDINGS_PATH} {LOCAL_SCRATCH_PATH}', shell=True)
 
 # get the recording names off the scratch space
+recordings_scratch_path = local_scratch_path+"/"+recording_folder_to_process.split("/")[-1]
 recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_dir()]
 
 for recording_name in recording_list:
