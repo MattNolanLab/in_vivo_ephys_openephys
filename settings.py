@@ -66,4 +66,5 @@ pixel_ratio = 440
 sync_channel_suffix = 'ADC1' #channel for the sync pulse
 bonsai_sampling_rate = 30
 gauss_sd_for_speed_score = 250
+use_vectorised_rate_map_function = False
 
