@@ -19,7 +19,8 @@ recordings_scratch_path = local_scratch_path+"/"+recording_folder_to_process.spl
 recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_dir()]
 
 for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
-    if os.path.isfile(recordings_scratch_path+"/"+recording_name):
+    print("looking for a shuffle.pkl here, ", recordings_scratch_path+"/"+recording_name+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    if os.path.isfile(recordings_scratch_path+"/"+recording_name+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
         print("shuffle.pkl was found for ", recording_name)
     else:
         print(f'Copying spatial_firing.pkl and position.pkl from Datastore (via Eleanor) to Eddie Scratch')
