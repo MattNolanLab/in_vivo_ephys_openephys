@@ -152,7 +152,7 @@ def one_job_shuffle_parallel(recording_path):
     :param shuffle_id: integer id of a single shuffle
     '''
     time0 = time.time()
-    N_SHUFFLES = 2
+    N_SHUFFLES = 1000
 
     spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
