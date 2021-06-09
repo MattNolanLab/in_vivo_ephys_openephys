@@ -142,7 +142,7 @@ def run_shuffle_parallel(recording_path, shuffle_id):
     shuffle = shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values",
                        "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
 
-    shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(shuffle_id)+".pkl", protocol=3)
+    shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(shuffle_id)+".pkl")
 
 
 def run_shuffle_analysis_vr(recording, n_shuffles, prm):
