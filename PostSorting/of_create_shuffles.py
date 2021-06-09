@@ -9,7 +9,7 @@ local_scratch_path = '/exports/eddie/scratch/s1228823/recordings'
 ELEANOR_HOST = 'ubuntu@172.16.49.217'
 ELEANOR_RECORDINGS_PATH = Path(recording_folder_to_process)
 LOCAL_SCRATCH_PATH = Path(local_scratch_path)
-N_SHUFFLES = 1000
+N_SHUFFLES = 10
 
 # copy the recording file structure and the pickled dataframes
 subprocess.check_call(f'rsync -avP --include "*/" --include="*.pkl" --exclude="*" {ELEANOR_HOST}:{ELEANOR_RECORDINGS_PATH} {LOCAL_SCRATCH_PATH}', shell=True)
