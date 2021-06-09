@@ -144,6 +144,32 @@ def run_shuffle_parallel(recording_path, shuffle_id):
 
     shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(shuffle_id)+".pkl")
 
+def one_job_shuffle_parallel(recording_path):
+    '''
+    creates a single shuffle of each cell and saves it in recording/sorter/dataframes/shuffles/
+    :param recording_path: path to a recording folder
+    :param shuffle_id: integer id of a single shuffle
+    '''
+    N_SHUFFLES = 1000
+
+    spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
+    synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
+
+    shuffle = pd.DataFrame()
+    for i in range(N_SHUFFLES):
+        for cluster_index, cluster_id in enumerate(spike_data_spatial.cluster_id):
+            cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
+            shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
+            shuffled_cluster_spike_data = run_parallel_of_shuffle(0, shuffled_cluster_spike_data, synced_spatial_data, prm)
+            shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
+
+    if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
+        os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
+
+    shuffle = shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values",
+                       "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
+
+    shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
 
 def run_shuffle_analysis_vr(recording, n_shuffles, prm):
     return
@@ -166,7 +192,8 @@ def main():
     #=========================================================================================#
     recording_path = os.environ['RECORDING_PATH']
     shuffle_id = os.environ['SHUFFLE_NUMBER']
-    run_shuffle_parallel(recording_path, shuffle_id)
+    #run_shuffle_parallel(recording_path, shuffle_id)
+    one_job_shuffle_parallel(recording_path)
     #=========================================================================================#
     #=========================================================================================#
 
