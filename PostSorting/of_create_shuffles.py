@@ -18,6 +18,7 @@ subprocess.check_call(f'rsync -avP --include "*/" --include="*.pkl" --exclude="*
 recordings_scratch_path = local_scratch_path+"/"+recording_folder_to_process.split("/")[-1]
 recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_dir()]
 
+n_jobs_submitted = 0
 for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     print("looking for a shuffle.pkl here, ", recording_name+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
     if os.path.isfile(recording_name+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
@@ -32,5 +33,6 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
             print(f'Submitting shuffle job {shuffle_number}')
             cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={shuffle_number} /home/s1228823/in_vivo_ephys_openephys/PostSorting/run_of_shuffle.sh'
             subprocess.check_call(cmd, shell=True)
+            n_jobs_submitted += 1
 
-print("all jobs submitted, good luck!")
+print("A total of ", n_jobs_submitted, " have been submitted, good luck!")
