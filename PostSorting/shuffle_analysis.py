@@ -8,6 +8,7 @@ import numpy as np
 import settings
 import sys
 import traceback
+import time
 
 prm = PostSorting.parameters.Parameters()
 
@@ -150,6 +151,7 @@ def one_job_shuffle_parallel(recording_path):
     :param recording_path: path to a recording folder
     :param shuffle_id: integer id of a single shuffle
     '''
+    time0 = time.time()
     N_SHUFFLES = 2
 
     spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
@@ -163,6 +165,15 @@ def one_job_shuffle_parallel(recording_path):
             shuffled_cluster_spike_data = run_parallel_of_shuffle(0, shuffled_cluster_spike_data, synced_spatial_data, prm)
             shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
 
+            if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
+                finish(shuffle, recording_path)
+                return
+
+    finish(shuffle, recording_path)
+    return
+
+def finish(shuffle, recording_path):
+
     if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
 
@@ -170,6 +181,7 @@ def one_job_shuffle_parallel(recording_path):
                        "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
 
     shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+
 
 def run_shuffle_analysis_vr(recording, n_shuffles, prm):
     return
