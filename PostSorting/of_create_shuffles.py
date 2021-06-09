@@ -9,7 +9,7 @@ local_scratch_path = '/exports/eddie/scratch/s1228823/recordings'
 ELEANOR_HOST = 'ubuntu@172.16.49.217'
 ELEANOR_RECORDINGS_PATH = Path(recording_folder_to_process)
 LOCAL_SCRATCH_PATH = Path(local_scratch_path)
-N_SHUFFLES = 1
+N_JOBS_PER_CELL = 1
 
 # copy the recording file structure and the pickled dataframes
 subprocess.check_call(f'rsync -avP --include "*/" --include="*.pkl" --exclude="*" {ELEANOR_HOST}:{ELEANOR_RECORDINGS_PATH} {LOCAL_SCRATCH_PATH}', shell=True)
@@ -29,9 +29,9 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
         local_recording_path = LOCAL_SCRATCH_PATH / recording_name
 
         print(f'Recordings copied... Submitting shuffle jobs to Eddie')
-        for shuffle_number in range(N_SHUFFLES):
-            print(f'Submitting shuffle job {shuffle_number}')
-            cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={shuffle_number} /home/s1228823/in_vivo_ephys_openephys/PostSorting/run_of_shuffle.sh'
+        for job_i in range(N_JOBS_PER_CELL):
+            print(f'Submitting shuffle job {job_i}')
+            cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={job_i} /home/s1228823/in_vivo_ephys_openephys/PostSorting/run_of_shuffle.sh'
             subprocess.check_call(cmd, shell=True)
             n_jobs_submitted += 1
 
