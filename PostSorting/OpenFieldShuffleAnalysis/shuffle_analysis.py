@@ -26,6 +26,9 @@ def run_parallel_of_shuffle(shuffle_id, shuffled_cluster_spike_data, synced_spat
     single_shuffle = PostSorting.open_field_grid_cells.process_grid_data(single_shuffle)
     single_shuffle = PostSorting.open_field_border_cells.process_border_data(single_shuffle)
 
+    single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values",
+                                     "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
+
     return single_shuffle
 
 def generate_shuffled_times(cluster_firing, n_shuffles):
@@ -66,6 +69,7 @@ def one_job_shuffle_parallel(recording_path):
             cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
             shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
             shuffled_cluster_spike_data = run_parallel_of_shuffle(0, shuffled_cluster_spike_data, synced_spatial_data, prm)
+
             shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
 
             if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
@@ -79,9 +83,6 @@ def finish(shuffle, recording_path):
 
     if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
-
-    shuffle = shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values",
-                       "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
 
     shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
 
