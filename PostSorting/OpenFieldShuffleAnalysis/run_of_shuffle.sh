@@ -12,7 +12,7 @@
 module load anaconda
 
 # activate the virtual environment
-source activate myenv
+source activate py38
 
 # append the python path
 export PYTHONPATH="/home/s1228823/in_vivo_ephys_openephys"
