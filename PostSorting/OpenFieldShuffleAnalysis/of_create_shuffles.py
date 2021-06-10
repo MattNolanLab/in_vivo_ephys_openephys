@@ -31,7 +31,7 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
         print(f'Recordings copied... Submitting shuffle jobs to Eddie')
         for job_i in range(N_JOBS_PER_CELL):
             print(f'Submitting shuffle job {job_i}')
-            cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={job_i} /home/s1228823/in_vivo_ephys_openephys/PostSorting/run_of_shuffle.sh'
+            cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={job_i} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
             subprocess.check_call(cmd, shell=True)
             n_jobs_submitted += 1
 
