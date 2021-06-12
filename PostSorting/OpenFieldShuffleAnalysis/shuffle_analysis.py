@@ -9,6 +9,7 @@ import settings
 import sys
 import traceback
 import time
+import gc
 
 prm = PostSorting.parameters.Parameters()
 
@@ -72,6 +73,7 @@ def one_job_shuffle_parallel(recording_path):
 
             shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
 
+            gc.collect()
             if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
                 finish(shuffle, recording_path)
                 return
