@@ -13,11 +13,9 @@ import gc
 
 prm = PostSorting.parameters.Parameters()
 
-def run_parallel_of_shuffle(shuffle_id, shuffled_cluster_spike_data, synced_spatial_data, prm):
+def run_parallel_of_shuffle(single_shuffle, synced_spatial_data, prm):
     prm.set_sampling_rate(30000)
     prm.set_pixel_ratio(440)
-
-    single_shuffle = shuffled_cluster_spike_data[(shuffled_cluster_spike_data["shuffle_id"] == shuffle_id)]
 
     single_shuffle = PostSorting.open_field_spatial_firing.process_spatial_firing(single_shuffle, synced_spatial_data)
     single_shuffle = PostSorting.speed.calculate_speed_score(synced_spatial_data, single_shuffle, settings.gauss_sd_for_speed_score, settings.sampling_rate)
@@ -27,9 +25,7 @@ def run_parallel_of_shuffle(shuffle_id, shuffled_cluster_spike_data, synced_spat
     single_shuffle = PostSorting.open_field_grid_cells.process_grid_data(single_shuffle)
     single_shuffle = PostSorting.open_field_border_cells.process_border_data(single_shuffle)
 
-    single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values",
-                                     "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
-
+    single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values", "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
     return single_shuffle
 
 def generate_shuffled_times(cluster_firing, n_shuffles):
@@ -65,15 +61,17 @@ def one_job_shuffle_parallel(recording_path):
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
 
     shuffle = pd.DataFrame()
-    for i in range(N_SHUFFLES):
-        for cluster_index, cluster_id in enumerate(spike_data_spatial.cluster_id):
-            cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
+    for cluster_index, cluster_id in enumerate(spike_data_spatial.cluster_id):
+        cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
+
+        for i in range(N_SHUFFLES):
             shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
-            shuffled_cluster_spike_data = run_parallel_of_shuffle(0, shuffled_cluster_spike_data, synced_spatial_data, prm)
+            shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
 
             shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
+            print(i, " shuffle complete")
 
-            gc.collect()
+
             if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
                 finish(shuffle, recording_path)
                 return
@@ -98,7 +96,8 @@ def main():
 
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
-    recording_path = os.environ['RECORDING_PATH']
+    #recording_path = os.environ['RECORDING_PATH']
+    recording_path="/mnt/datastore/Harry/test_recordings/M11_D20_2021-06-04_09-58-50"
     one_job_shuffle_parallel(recording_path)
     #=========================================================================================#
     #=========================================================================================#
