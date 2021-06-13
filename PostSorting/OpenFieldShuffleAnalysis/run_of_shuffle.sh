@@ -1,8 +1,8 @@
 #!/bin/sh
 #$ -cwd
 #$ -l h_rt=47:59:00
-#$ -l h_vmem=8G
-#$ -pe sharedmem 3
+#$ -l h_vmem=3G
+#$ -pe sharedmem 1
 #$ -P sbms_kg_grid_modelling
 
 #load the environment modules
