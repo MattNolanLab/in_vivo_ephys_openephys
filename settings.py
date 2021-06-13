@@ -70,5 +70,5 @@ gauss_sd_for_speed_score = 250
 # useful for a shuffled analysis run on eddie
 use_vectorised_rate_map_function = False
 impose_num_cores = True
-fixed_num_cores = 2
+fixed_num_cores = 3
 
