@@ -143,8 +143,8 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     cluster_rows = cluster_rows.astype(int).to_numpy()
     if middle_only:
         middle = int(cluster_rows.shape[1] / 2)
-        five_ms = int(sampling_rate * 5 / 1000)
-        cluster_rows = cluster_rows[:, middle-five_ms:middle + five_ms]
+        twenty_ms = int(sampling_rate * 20 / 1000)
+        cluster_rows = cluster_rows[:, middle-twenty_ms:middle + twenty_ms]
     positions = [0, cluster_rows.shape[1]/2, cluster_rows.shape[1]]
     peristimulus_figure, ax = format_peristimulus_plot(positions, sampling_rate)
     number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
@@ -418,9 +418,9 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 def main():
     path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-04-23_15-13-50_opto3/'
-    # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
-    # path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
-    # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-07_14-41-36_opto2/'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
+    ## path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-07_14-41-36_opto2/'
     peristim_path = path + 'peristimulus_spikes.pkl'
     peristimulus_spikes = pd.read_pickle(peristim_path)
     spatial_firing_path = path + 'spatial_firing.pkl'
