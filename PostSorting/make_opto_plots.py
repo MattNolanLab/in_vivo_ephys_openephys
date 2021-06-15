@@ -137,10 +137,14 @@ def get_latencies_for_cluster(spatial_firing, cluster_id):
 
 
 def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes, cluster, session, light_pulse_duration,
-                                            save_path, sampling_rate):
+                                            save_path, sampling_rate, middle_only):
     number_of_histogram_bins = 100
     cluster_rows = get_binary_peristimulus_data_for_cluster(peristimulus_spikes, cluster)
     cluster_rows = cluster_rows.astype(int).to_numpy()
+    if middle_only:
+        middle = int(cluster_rows.shape[1] / 2)
+        five_ms = int(sampling_rate * 5 / 1000)
+        cluster_rows = cluster_rows[:, middle-five_ms:middle + five_ms]
     positions = [0, cluster_rows.shape[1]/2, cluster_rows.shape[1]]
     peristimulus_figure, ax = format_peristimulus_plot(positions, sampling_rate)
     number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
@@ -158,7 +162,10 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     plt.ylabel('Spike count', fontsize=24)
     plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + "\n" + ' SALT p = ' + str(salt_p) + ' SALT I = ' + str(salt_i))
     plt.tight_layout()
-    plt.savefig(save_path + '/peristimulus_histogram_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
+    if not middle_only:
+        plt.savefig(save_path + '/peristimulus_histogram_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
+    else:
+        plt.savefig(save_path + '/peristimulus_histogram_zoom' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
 
 
@@ -167,6 +174,7 @@ def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spike
     """
     PLots histogram of spikes from light stimulation trials around the light. The plot assumes that the stimulation
     starts in the middle of the peristimulus_spikes array.
+    :param middle_only: only plot the middle of the histogram to zoom in on the response
     :param sampling_rate: sampling rate of electrophysiology data
     :param spatial_firing: Data frame with firing data for each cluster
     :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
@@ -180,7 +188,9 @@ def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spike
     cluster_ids = np.unique(peristimulus_spikes.cluster_id)
     for cluster in cluster_ids:
         make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes, cluster, peristimulus_spikes.session_id, light_pulse_duration,
-                                                save_path, sampling_rate)
+                                                save_path, sampling_rate, middle_only=False)
+        make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes, cluster, peristimulus_spikes.session_id, light_pulse_duration,
+                                                save_path, sampling_rate, middle_only=True)
 
 
 def plot_waveforms_opto(spike_data, output_path, snippets_column_name='random_snippets_opto', title='Random snippets'):
@@ -408,8 +418,9 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 def main():
     path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-04-23_15-13-50_opto3/'
-    path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
-    path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
+    # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
+    # path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
+    # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-07_14-41-36_opto2/'
     peristim_path = path + 'peristimulus_spikes.pkl'
     peristimulus_spikes = pd.read_pickle(peristim_path)
     spatial_firing_path = path + 'spatial_firing.pkl'
