@@ -63,10 +63,12 @@ def format_peristimulus_plot(positions, sampling_rate):
     plt.cla()
     peristimulus_figure, ax = plt.subplots()
     peristimulus_figure.set_size_inches(5, 5, forward=True)
-    plt.xlabel('Time (ms)', fontsize=14)
+    plt.xlabel('Time (ms)', fontsize=24)
     labels = np.array(positions) / sampling_rate * 1000  # convert sampling points to ms
     labels = (str(int(labels[0])), str(int(labels[1])), str(int(labels[2])))
     plt.xticks(positions, labels)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     return peristimulus_figure, ax
 
 
@@ -93,7 +95,9 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plot_spikes_around_light(ax, cluster_rows, sampling_rate, light_pulse_duration, latency_window_ms)
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
-    plt.ylabel('Trial', fontsize=14)
+    plt.ylabel('Trial', fontsize=24)
+    plt.yticks(np.arange(0, cluster_rows.shape[0] + 1, 50))  # show every 50th tick only
+    plt.tight_layout()
     plt.savefig(save_path + '/peristimulus_raster_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
 
@@ -151,7 +155,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     spike_indices = np.where(cluster_rows.flatten() == 1)[0] % len(number_of_spikes_per_sampling_point)
     plt.hist(spike_indices, color='grey', alpha=0.5, bins=number_of_histogram_bins)
     plt.xlim(0, len(number_of_spikes_per_sampling_point))
-    plt.ylabel('Number of spikes', fontsize=14)
+    plt.ylabel('Spike count', fontsize=24)
     plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + "\n" + ' SALT p = ' + str(salt_p) + ' SALT I = ' + str(salt_i))
     plt.tight_layout()
     plt.savefig(save_path + '/peristimulus_histogram_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
@@ -403,13 +407,18 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 
 def main():
-    path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort/DataFrames/peristimulus_spikes.pkl'
-    peristimulus_spikes = pd.read_pickle(path)
-    path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort/DataFrames/spatial_firing.pkl'
-    spatial_firing = pd.read_pickle(path)
+    path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-04-23_15-13-50_opto3/'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
+    path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
+    peristim_path = path + 'peristimulus_spikes.pkl'
+    peristimulus_spikes = pd.read_pickle(peristim_path)
+    spatial_firing_path = path + 'spatial_firing.pkl'
+    spatial_firing = pd.read_pickle(spatial_firing_path)
     sampling_rate = 30000
-    output_path = ('C:/Users/s1466507/Documents/Work/opto/M4_2021-04-06_16-14-55_opto2/MountainSort')
-    make_optogenetics_plots(spatial_firing, output_path, sampling_rate)
+    plot_peristimulus_raster(peristimulus_spikes, path, sampling_rate, light_pulse_duration=90,
+                             latency_window_ms=10)
+    plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, path, sampling_rate,
+                                light_pulse_duration=90)
 
 
 if __name__ == '__main__':
