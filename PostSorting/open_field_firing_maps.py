@@ -241,7 +241,7 @@ def find_maximum_firing_rate(spatial_firing):
     spatial_firing['max_firing_rate'] = max_firing_rates
     return spatial_firing
 
-def calculate_spatial_information(spatial_firing):
+def calculate_spatial_information(spatial_firing, position_heatmap):
 
     '''
     Calculates the spatial information score in bits per spike as in Skaggs et al.,
@@ -257,7 +257,7 @@ def calculate_spatial_information(spatial_firing):
 
     where λj is the mean firing rate in the j-th space bin and Pj
     the occupancy ratio of the bin (in other words, the probability of finding
-    a spike in that bin), while λ is the overall
+    the animal in that bin), while λ is the overall
     mean firing rate of the cell. The Ispike metric is a normalization of Isec,
     defined as:
 
@@ -273,12 +273,13 @@ def calculate_spatial_information(spatial_firing):
 
         mean_firing_rate = cluster_df.iloc[0]["mean_firing_rate"] # λ
         firing_rate_map = cluster_df.iloc[0]["firing_maps"] # λj
-        spike_probability_map = firing_rate_map/np.sum(firing_rate_map) # Pj
+        position_heatmap[np.isnan(position_heatmap)] = 0
+        occupancy_probability_map = position_heatmap/np.sum(position_heatmap) # Pj
 
         log_term = np.log2(firing_rate_map/mean_firing_rate)
         log_term[log_term == -inf] = 0
 
-        Isec = np.sum(spike_probability_map*firing_rate_map*log_term)
+        Isec = np.sum(occupancy_probability_map*firing_rate_map*log_term)
         Ispike = Isec/mean_firing_rate
 
         spatial_information_scores.append(Ispike)

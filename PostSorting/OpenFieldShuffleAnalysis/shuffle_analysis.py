@@ -20,9 +20,9 @@ def run_parallel_of_shuffle(single_shuffle, synced_spatial_data, prm):
     single_shuffle = PostSorting.open_field_spatial_firing.process_spatial_firing(single_shuffle, synced_spatial_data)
     single_shuffle = PostSorting.speed.calculate_speed_score(synced_spatial_data, single_shuffle, settings.gauss_sd_for_speed_score, settings.sampling_rate)
     _, single_shuffle = PostSorting.open_field_head_direction.process_hd_data(single_shuffle, synced_spatial_data, prm)
-    _, single_shuffle = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, single_shuffle, prm)
-    single_shuffle = PostSorting.open_field_firing_maps.calculate_spatial_information(single_shuffle)
+    position_heatmap, single_shuffle = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, single_shuffle, prm)
     single_shuffle = PostSorting.open_field_grid_cells.process_grid_data(single_shuffle)
+    single_shuffle = PostSorting.open_field_firing_maps.calculate_spatial_information(single_shuffle, position_heatmap)
     single_shuffle = PostSorting.open_field_border_cells.process_border_data(single_shuffle)
 
     single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values", "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
