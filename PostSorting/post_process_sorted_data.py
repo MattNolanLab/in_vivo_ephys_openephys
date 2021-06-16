@@ -179,7 +179,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
             position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
-            spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing)
+            spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing, position_heat_map)
             spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
             spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
             spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
