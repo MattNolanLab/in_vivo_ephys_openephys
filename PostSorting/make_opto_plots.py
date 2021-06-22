@@ -141,8 +141,7 @@ def convert_y_axis_to_hz(cluster_rows, sampling_rate, number_of_histogram_bins, 
     bin_size_seconds = window_size_seconds / number_of_histogram_bins
     hist = hist / bin_size_seconds
     hist = hist / cluster_rows.shape[0]  # also divide by number of trials
-    y_label = 'Firing rate (Hz)'
-    return hist, y_label
+    return hist
 
 
 def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes, cluster, session, light_pulse_duration,
@@ -170,6 +169,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     y_label = 'Spike count'
     if y_axis_in_hz:
         hist, y_label = convert_y_axis_to_hz(cluster_rows, sampling_rate, number_of_histogram_bins, hist)
+        y_label = 'Firing rate (Hz)'
     width = 0.9 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
     plt.bar(center, hist, align='center', width=width, color='grey', alpha=0.5)
@@ -190,7 +190,6 @@ def plot_peristimulus_histogram(spatial_firing: pd.DataFrame, peristimulus_spike
     PLots histogram of spikes from light stimulation trials around the light. The plot assumes that the stimulation
     starts in the middle of the peristimulus_spikes array.
     :param y_axis_in_hz: instead of number of spikes, show data in spike /sec (Hz) on the y axis
-    :param middle_only: only plot the middle of the histogram to zoom in on the response
     :param sampling_rate: sampling rate of electrophysiology data
     :param spatial_firing: Data frame with firing data for each cluster
     :param peristimulus_spikes: Data frame with firing times of all clusters around the stimulus
