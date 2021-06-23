@@ -53,6 +53,7 @@ movement_channel='100_ADC2.continuous'
 first_trial_channel='100_ADC4.continuous'
 second_trial_channel='100_ADC5.continuous'
 goal_location_chennl='100_ADC7.continuous'
+vr_grid_analysis_bin_size=8
 
 ##########
 # Experiment
@@ -68,7 +69,7 @@ bonsai_sampling_rate = 30
 gauss_sd_for_speed_score = 250
 
 # useful for a shuffled analysis run on eddie
-use_vectorised_rate_map_function = False
-impose_num_cores = True
+use_vectorised_rate_map_function = True
+impose_num_cores = False
 fixed_num_cores = 1
 
