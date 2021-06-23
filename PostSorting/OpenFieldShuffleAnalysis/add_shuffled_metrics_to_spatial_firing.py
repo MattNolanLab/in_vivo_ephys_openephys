@@ -59,7 +59,7 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
 
     for recording_path in recording_list:
         print("processing ", recording_path)
-        if os.path.isfile(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl"):
+        if os.path.isfile(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
             spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
             grid_cells = []
@@ -124,7 +124,7 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    recordings_folder_to_process = r"/mnt/datastore/Harry/test_recordings"
+    recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort7_october2020/of"
     add_shuffled_cutoffs(recordings_folder_to_process)
     add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process)
 
