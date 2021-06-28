@@ -13,46 +13,50 @@ def add_shuffled_cutoffs(recordings_folder_to_process):
             shuffle = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl")
             spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
-            print("There are", int(len(shuffle)/len(spatial_firing)), "shuffles per cell")
+            if len(spatial_firing)>0:
+                print("There are", int(len(shuffle)/len(spatial_firing)), "shuffles per cell")
 
-            speed_threshold_poss = []
-            speed_threshold_negs = []
-            hd_thresholds = []
-            rayleigh_thresholds = []
-            spatial_thresholds = []
-            grid_thresholds = []
-            border_thresholds = []
+                speed_threshold_poss = []
+                speed_threshold_negs = []
+                hd_thresholds = []
+                rayleigh_thresholds = []
+                spatial_thresholds = []
+                grid_thresholds = []
+                border_thresholds = []
 
-            for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
-                cluster_shuffle_df = shuffle[(shuffle.cluster_id == cluster_id)] # dataframe for that cluster
+                for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+                    cluster_shuffle_df = shuffle[(shuffle.cluster_id == cluster_id)] # dataframe for that cluster
 
-                # calculate the 95th percentile threshold for individual clusters
-                # calculations based on z values please see https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_probability/bs704_probability10.html
-                adjusted_speed_threshold_pos = np.nanmean(cluster_shuffle_df["speed_score"]) + (np.nanstd(cluster_shuffle_df["speed_score"])*+1.960) # two tailed
-                adjusted_speed_threshold_neg = np.nanmean(cluster_shuffle_df["speed_score"]) + (np.nanstd(cluster_shuffle_df["speed_score"])*-1.960) # two tailed
-                adjusted_hd_threshold = np.nanmean(cluster_shuffle_df["hd_score"]) + (np.nanstd(cluster_shuffle_df["hd_score"])*1.645) # one tailed
-                adjusted_rayleigh_threshold = np.nanmean(cluster_shuffle_df["rayleigh_score"]) + (np.nanstd(cluster_shuffle_df["rayleigh_score"])*-1.645) # one tailed
-                adjusted_spatial_threshold = np.nanmean(cluster_shuffle_df["spatial_information_score"]) + (np.nanstd(cluster_shuffle_df["spatial_information_score"])*1.645) # one tailed
-                adjusted_grid_threshold = np.nanmean(cluster_shuffle_df["grid_score"]) + (np.nanstd(cluster_shuffle_df["grid_score"])*1.645) # one tailed
-                adjusted_border_threshold = np.nanmean(cluster_shuffle_df["border_score"]) + (np.nanstd(cluster_shuffle_df["border_score"])*1.645) # one tailed
+                    # calculate the 95th percentile threshold for individual clusters
+                    # calculations based on z values please see https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_probability/bs704_probability10.html
+                    adjusted_speed_threshold_pos = np.nanmean(cluster_shuffle_df["speed_score"]) + (np.nanstd(cluster_shuffle_df["speed_score"])*+1.960) # two tailed
+                    adjusted_speed_threshold_neg = np.nanmean(cluster_shuffle_df["speed_score"]) + (np.nanstd(cluster_shuffle_df["speed_score"])*-1.960) # two tailed
+                    adjusted_hd_threshold = np.nanmean(cluster_shuffle_df["hd_score"]) + (np.nanstd(cluster_shuffle_df["hd_score"])*1.645) # one tailed
+                    adjusted_rayleigh_threshold = np.nanmean(cluster_shuffle_df["rayleigh_score"]) + (np.nanstd(cluster_shuffle_df["rayleigh_score"])*-1.645) # one tailed
+                    adjusted_spatial_threshold = np.nanmean(cluster_shuffle_df["spatial_information_score"]) + (np.nanstd(cluster_shuffle_df["spatial_information_score"])*1.645) # one tailed
+                    adjusted_grid_threshold = np.nanmean(cluster_shuffle_df["grid_score"]) + (np.nanstd(cluster_shuffle_df["grid_score"])*1.645) # one tailed
+                    adjusted_border_threshold = np.nanmean(cluster_shuffle_df["border_score"]) + (np.nanstd(cluster_shuffle_df["border_score"])*1.645) # one tailed
 
-                speed_threshold_poss.append(adjusted_speed_threshold_pos)
-                speed_threshold_negs.append(adjusted_speed_threshold_neg)
-                hd_thresholds.append(adjusted_hd_threshold)
-                rayleigh_thresholds.append(adjusted_rayleigh_threshold)
-                spatial_thresholds.append(adjusted_spatial_threshold)
-                grid_thresholds.append(adjusted_grid_threshold)
-                border_thresholds.append(adjusted_border_threshold)
+                    speed_threshold_poss.append(adjusted_speed_threshold_pos)
+                    speed_threshold_negs.append(adjusted_speed_threshold_neg)
+                    hd_thresholds.append(adjusted_hd_threshold)
+                    rayleigh_thresholds.append(adjusted_rayleigh_threshold)
+                    spatial_thresholds.append(adjusted_spatial_threshold)
+                    grid_thresholds.append(adjusted_grid_threshold)
+                    border_thresholds.append(adjusted_border_threshold)
 
-            spatial_firing["speed_threshold_pos"] = speed_threshold_poss
-            spatial_firing["speed_threshold_neg"] = speed_threshold_negs
-            spatial_firing["hd_threshold"] = hd_thresholds
-            spatial_firing["rayleigh_threshold"] = rayleigh_thresholds
-            spatial_firing["spatial_threshold"] = spatial_thresholds
-            spatial_firing["grid_threshold"] = grid_thresholds
-            spatial_firing["border_threshold"] = border_thresholds
+                spatial_firing["speed_threshold_pos"] = speed_threshold_poss
+                spatial_firing["speed_threshold_neg"] = speed_threshold_negs
+                spatial_firing["hd_threshold"] = hd_thresholds
+                spatial_firing["rayleigh_threshold"] = rayleigh_thresholds
+                spatial_firing["spatial_threshold"] = spatial_thresholds
+                spatial_firing["grid_threshold"] = grid_thresholds
+                spatial_firing["border_threshold"] = border_thresholds
 
-            spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
+                spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
+
+            else:
+                print("There are no cells in this recordings")
 
 def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
     recording_list = [f.path for f in os.scandir(recordings_folder_to_process) if f.is_dir()]
