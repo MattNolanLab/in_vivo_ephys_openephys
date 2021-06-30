@@ -1,15 +1,9 @@
 import pandas as pd
-from joblib import Parallel, delayed
 import os
-import multiprocessing
-from control_sorting_analysis import get_session_type
 import PostSorting
 import numpy as np
 import settings
-import sys
-import traceback
 import time
-import gc
 
 prm = PostSorting.parameters.Parameters()
 
@@ -97,6 +91,7 @@ def main():
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
     recording_path = os.environ['RECORDING_PATH']
+
     one_job_shuffle_parallel(recording_path)
     #=========================================================================================#
     #=========================================================================================#
