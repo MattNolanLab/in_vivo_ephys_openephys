@@ -18,7 +18,7 @@ import PostSorting.theta_modulation
 import PostSorting.vr_grid_cells
 import PostSorting.lfp
 import settings
-import file_utility
+import PreClustering.dead_channels
 
 prm = PostSorting.parameters.Parameters()
 
@@ -113,7 +113,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     output_path = recording_to_process+'/'+settings.sorterName
-    dead_channel_txt_file_path = recording_to_process+"/"+settings.dead_channel_file_name
 
     # Keep all parameter object reference at this level, do not pass them beyond this level
     # keep the configuration of the prm object at a single location only for easily tracking
@@ -123,7 +122,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
     ephys_channels = prm.get_ephys_channels()
-    dead_channels = file_utility.dead_channels_from_txt_file(dead_channel_txt_file_path)
+    PreClustering.dead_channels.get_dead_channel_ids(prm)
+    dead_channels = prm.get_dead_channels()
 
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())

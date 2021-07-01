@@ -148,8 +148,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     PreClustering.dead_channels.get_dead_channel_ids(prm)
-    dead_channel_txt_file_path = recording_to_process+"/"+settings.dead_channel_file_name
-    dead_channels = file_utility.dead_channels_from_txt_file(dead_channel_txt_file_path)
+    dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
 

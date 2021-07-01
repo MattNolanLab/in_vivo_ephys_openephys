@@ -7,9 +7,9 @@ import matplotlib.pylab as plt
 
 def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, dead_channels):
     if len(dead_channels) != 0:
-        for dead_ch in range(len(dead_channels)):
+        for dead_ch in range(len(dead_channels[0])):
             to_insert = np.zeros(len(filtered_data[0]))
-            filtered_data = np.insert(filtered_data, int(dead_channels[dead_ch]) - 1, to_insert, 0)
+            filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
 
     if len(firing_times)<50:
         random_indices = np.arange(0, len(firing_times))
@@ -27,9 +27,9 @@ def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snip
 
 def extract_all_snippets(filtered_data, firing_times, tetrode, dead_channels):
     if len(dead_channels) != 0:
-        for dead_ch in range(len(dead_channels)):
+        for dead_ch in range(len(dead_channels[0])):
             to_insert = np.zeros(len(filtered_data[0]))
-            filtered_data = np.insert(filtered_data, int(dead_channels[dead_ch]) - 1, to_insert, 0)
+            filtered_data = np.insert(filtered_data, int(dead_channels[0][dead_ch]) - 1, to_insert, 0)
 
     if len(firing_times)<50:
         all_indices = np.arange(0, len(firing_times))
