@@ -54,11 +54,20 @@ def one_job_shuffle_parallel(recording_path):
     spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
 
-    shuffle = pd.DataFrame()
+    if os.path.isfile(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+        shuffle = pd.read(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    else:
+        shuffle = pd.DataFrame()
+
     for cluster_index, cluster_id in enumerate(spike_data_spatial.cluster_id):
         cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
 
-        for i in range(N_SHUFFLES):
+        if os.path.isfile(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+            n_shuffles_pre_computed = len(shuffle[shuffle["cluster_id"] == cluster_id])
+        else:
+            n_shuffles_pre_computed = 0
+
+        for i in range(N_SHUFFLES-n_shuffles_pre_computed):
             shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
             shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
 

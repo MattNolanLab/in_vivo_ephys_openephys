@@ -20,19 +20,15 @@ recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_di
 
 n_jobs_submitted = 0
 for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
-    print("looking for a shuffle.pkl here, ", recording_name+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
-    if os.path.isfile(recording_name+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
-        print("shuffle.pkl was found for ", recording_name)
-    else:
-        print(f'Copying spatial_firing.pkl and position.pkl from Datastore (via Eleanor) to Eddie Scratch')
-        remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
-        local_recording_path = LOCAL_SCRATCH_PATH / recording_name
+    print(f'Copying spatial_firing.pkl and position.pkl from Datastore (via Eleanor) to Eddie Scratch')
+    remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
+    local_recording_path = LOCAL_SCRATCH_PATH / recording_name
 
-        print(f'Recordings copied... Submitting shuffle jobs to Eddie')
-        for job_i in range(N_JOBS_PER_CELL):
-            print(f'Submitting shuffle job {job_i}')
-            cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={job_i} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
-            subprocess.check_call(cmd, shell=True)
-            n_jobs_submitted += 1
+    print(f'Recordings copied... Submitting shuffle jobs to Eddie')
+    for job_i in range(N_JOBS_PER_CELL):
+        print(f'Submitting shuffle job {job_i}')
+        cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={job_i} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+        subprocess.check_call(cmd, shell=True)
+        n_jobs_submitted += 1
 
 print("A total of ", n_jobs_submitted, " have been submitted, good luck!")
