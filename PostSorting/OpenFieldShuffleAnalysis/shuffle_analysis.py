@@ -4,8 +4,9 @@ import PostSorting
 import numpy as np
 import settings
 import time
+from PostSorting import parameters
 
-prm = PostSorting.parameters.Parameters()
+prm = parameters.Parameters()
 
 def run_parallel_of_shuffle(single_shuffle, synced_spatial_data, prm):
     prm.set_sampling_rate(30000)
@@ -55,7 +56,7 @@ def one_job_shuffle_parallel(recording_path):
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
 
     if os.path.isfile(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
-        shuffle = pd.read(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+        shuffle = pd.read_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
     else:
         shuffle = pd.DataFrame()
 
@@ -99,8 +100,8 @@ def main():
 
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
-    recording_path = os.environ['RECORDING_PATH']
-
+    #recording_path = os.environ['RECORDING_PATH']
+    recording_path = "/mnt/datastore/Harry/Cohort7_october2020/of/M6_D14_2020-11-15_16-11-07"
     one_job_shuffle_parallel(recording_path)
     #=========================================================================================#
     #=========================================================================================#
