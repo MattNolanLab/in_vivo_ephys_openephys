@@ -1,6 +1,11 @@
 import pandas as pd
 import os
-import PostSorting
+import PostSorting.open_field_spatial_firing
+import PostSorting.speed
+import PostSorting.open_field_head_direction
+import PostSorting.open_field_firing_maps
+import PostSorting.open_field_grid_cells
+import PostSorting.open_field_border_cells
 import numpy as np
 import settings
 import time
