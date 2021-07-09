@@ -100,8 +100,7 @@ def main():
 
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
-    #recording_path = os.environ['RECORDING_PATH']
-    recording_path = "/mnt/datastore/Harry/Cohort7_october2020/of/M6_D14_2020-11-15_16-11-07"
+    recording_path = os.environ['RECORDING_PATH']
     one_job_shuffle_parallel(recording_path)
     #=========================================================================================#
     #=========================================================================================#
