@@ -107,7 +107,7 @@ def main():
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
     recording_path = os.environ['RECORDING_PATH']
-    n_shuffles = os.environ['SHUFFLE_NUMBER']
+    n_shuffles = int(os.environ['SHUFFLE_NUMBER'])
     one_job_shuffle_parallel(recording_path, n_shuffles)
     #=========================================================================================#
     #=========================================================================================#
