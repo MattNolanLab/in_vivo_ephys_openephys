@@ -48,14 +48,13 @@ def generate_shuffled_times(cluster_firing, n_shuffles):
     shuffle_firing["shuffle_id"] = np.arange(0, n_shuffles)
     return shuffle_firing
 
-def one_job_shuffle_parallel(recording_path):
+def one_job_shuffle_parallel(recording_path, n_shuffles):
     '''
     creates a single shuffle of each cell and saves it in recording/sorter/dataframes/shuffles/
     :param recording_path: path to a recording folder
     :param shuffle_id: integer id of a single shuffle
     '''
     time0 = time.time()
-    N_SHUFFLES = 1000
 
     spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
@@ -73,17 +72,19 @@ def one_job_shuffle_parallel(recording_path):
         else:
             n_shuffles_pre_computed = 0
 
-        for i in range(N_SHUFFLES-n_shuffles_pre_computed):
-            shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
-            shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
+        shuffles_to_run = n_shuffles-n_shuffles_pre_computed
 
-            shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
-            print(i, " shuffle complete")
+        if shuffles_to_run > 1:
+            for i in range(shuffles_to_run):
+                shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
+                shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
 
+                shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
+                print(i, " shuffle complete")
 
-            if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
-                finish(shuffle, recording_path)
-                return
+                if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
+                    finish(shuffle, recording_path)
+                    return
 
     finish(shuffle, recording_path)
     return
@@ -106,7 +107,8 @@ def main():
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
     recording_path = os.environ['RECORDING_PATH']
-    one_job_shuffle_parallel(recording_path)
+    n_shuffles = os.environ['SHUFFLE_NUMBER']
+    one_job_shuffle_parallel(recording_path, n_shuffles)
     #=========================================================================================#
     #=========================================================================================#
 
