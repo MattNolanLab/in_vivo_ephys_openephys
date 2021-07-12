@@ -27,6 +27,8 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     local_recording_path = LOCAL_SCRATCH_PATH / recording_name
 
     if os.path.isfile(local_scratch_path + "/" + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+        print("shuffle dataframe found, I will only submit a job if more shuffles are required")
+        print(local_scratch_path + "/" + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
         shuffle = pd.read_pickle(local_scratch_path + "/" + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
 
         #only submit a job if the shuffle dataframe is incomplete
