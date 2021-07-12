@@ -36,5 +36,14 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
             cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
             subprocess.check_call(cmd, shell=True)
             n_jobs_submitted += 1
+        else:
+            print("No job was submitted because shuffle.pkl is complete")
+
+    else:
+        print("shuffle dataframe not found, I will submit a new shuffle job")
+        cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+        subprocess.check_call(cmd, shell=True)
+        n_jobs_submitted += 1
+
 
 print("A total of ", n_jobs_submitted, " have been submitted, good luck!")
