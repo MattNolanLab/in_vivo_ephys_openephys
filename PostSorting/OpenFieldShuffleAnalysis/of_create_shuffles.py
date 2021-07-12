@@ -26,8 +26,8 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
     local_recording_path = LOCAL_SCRATCH_PATH / recording_name
 
-    if os.path.isfile(local_recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
-        shuffle = pd.read_pickle(local_recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    if os.path.isfile(local_scratch_path + "/" + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+        shuffle = pd.read_pickle(local_scratch_path + "/" + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
 
         #only submit a job if the shuffle dataframe is incomplete
         if len(shuffle)%N_SHUFFLES != 0:
