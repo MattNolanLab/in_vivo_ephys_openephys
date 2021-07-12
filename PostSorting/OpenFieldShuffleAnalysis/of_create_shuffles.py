@@ -26,6 +26,8 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
     local_recording_path = LOCAL_SCRATCH_PATH / recording_name
 
+    print(local_scratch_path + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    
     if os.path.isfile(local_scratch_path + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
         print("shuffle dataframe found, I will only submit a job if more shuffles are required")
         shuffle = pd.read_pickle(local_scratch_path + recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
