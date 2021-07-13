@@ -72,13 +72,12 @@ def manually_curate_sorting_results(recording, output):
 
 
 def pre_process_recording_for_manual_curation(recording_server, recording_local):
-    # todo check if it is there and copy if not
+    # todo check if it is there and copy if not. also make ubuntu/manual if needed
     # shutil.copytree(recording_server, recording_local)
-    manually_curate_sorting_results(recording_local, recording_local)
     # todo check parameters and also copy any paired recordings
     # make concatenated recording that has continuous data, dead channels and spatial firing
     # call phy for the combined data
-
+    manually_curate_sorting_results(recording_local, recording_local)
 
 
 def main():
