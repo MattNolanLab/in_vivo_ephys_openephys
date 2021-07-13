@@ -71,18 +71,32 @@ def manually_curate_sorting_results(recording, output):
     create_phy(recording, spatial_firing, output_folder, sampling_rate=30000)
 
 
+def pre_process_recording_for_manual_curation(recording_server, recording_local):
+    # todo check if it is there and copy if not
+    # shutil.copytree(recording_server, recording_local)
+    manually_curate_sorting_results(recording_local, recording_local)
+    # todo check parameters and also copy any paired recordings
+    # make concatenated recording that has continuous data, dead channels and spatial firing
+    # call phy for the combined data
+
+
+
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
+    recording_name = 'M3_2021-05-26_14-19-02_of'
+    exp_folder = 'Klara/CA1_to_deep_MEC_in_vivo/analysis_test_manual/'
+    recording_server = "/mnt/datastore/" + exp_folder + recording_name
+    recording_local = "/home/ubuntu/manual/" + recording_name
 
-    # recording = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/analysis_test_manual/M3_2021-05-26_14-19-02_of"
-    # shutil.copytree(recording, '/manual/M3_2021-05-26_14-19-02_of')
-    recording = "/home/ubuntu/manual/M3_2021-05-26_14-19-02_of"
-    # recording = '//cmvm.datastore.ed.ac.uk/cmvm/sbms/groups/mnolan_NolanLab/ActiveProjects/Klara/CA1_to_deep_MEC_in_vivo/M3_2021-05-26_14-19-02_of'
-    output = recording
-    manually_curate_sorting_results(recording, output)
+    pre_process_recording_for_manual_curation(recording_server, recording_local)
+    # add a post manual curation function including these steps
+    # (manual sort)
+    # save phy output
+    # read phy output and split firing times back and save as spatial_firing_curated
+    # save output back on server (copy manual spatial firing back)
 
-    
+    ## change pipeline so it loads manual spatial firing if it exists (?)
 
 
 if __name__ == '__main__':
