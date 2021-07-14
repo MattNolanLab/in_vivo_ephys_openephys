@@ -42,12 +42,27 @@ def getDeadChannel(deadChannelFile):
     return deadChannels
 
 
-def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
-    signal = load_OpenEphysRecording(recording, data_file_prefix='100_CH', num_tetrodes=4)
-    dead_channel_path = recording +'/dead_channels.txt'
-    bad_channel = getDeadChannel(dead_channel_path)
+def shift_geometry_for_better_visualization(geom):
+    geom[:, 1] = geom[:, 1] + 200
+    geom[4:] = geom[4:] - 200
+    geom[8:] = geom[8:] - 200
+    geom[12:] = geom[12:] - 200
+    return geom
+
+
+def get_geom():
     tetrode_geom = '/home/ubuntu/to_sort/sorting_files/geom_all_tetrodes_original.csv'
     geom = pd.read_csv(tetrode_geom,header=None).values
+    # shift some channels a bit for better visualization in phy (still not perfect...)
+    geom = shift_geometry_for_better_visualization(geom)
+    return geom
+
+
+def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
+    signal = load_OpenEphysRecording(recording, data_file_prefix='100_CH', num_tetrodes=4)
+    dead_channel_path = recording + '/dead_channels.txt'
+    bad_channel = getDeadChannel(dead_channel_path)
+    geom = get_geom()
     recording = se.NumpyRecordingExtractor(signal, sampling_rate, geom)
     recording = st.preprocessing.remove_bad_channels(recording, bad_channel_ids=bad_channel)
     recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6000)
