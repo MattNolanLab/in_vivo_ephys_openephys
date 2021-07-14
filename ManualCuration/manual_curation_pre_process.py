@@ -6,6 +6,7 @@ import os
 import spikeinterface.extractors as se
 import OpenEphys
 import shutil
+import ManualCuration.manual_curation_settings
 
 
 def spatial_firing2label(spatial_firing):
@@ -62,39 +63,40 @@ def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
     print("I have created the phy output for ", recording)
 
 
-def manually_curate_sorting_results(recording, output):
-    spatial_firing_path = recording + '/MountainSort/DataFrames/spatial_firing.pkl'
+def make_phy_input_for_recording(local_path_to_recording):
+    """
+    :param local_path_to_recording: this is the path to the recording. local means that the analysis will be done here
+    (the data was copied here) so this could be your computer or an instance in the cloud
+    """
+    spatial_firing_path = local_path_to_recording + '/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing = pd.read_pickle(spatial_firing_path)
     # spatial_firing = spatial_firing[spatial_firing.number_of_spikes > 5]
 
-    output_folder = output + '/MountainSort/phy/'
-    create_phy(recording, spatial_firing, output_folder, sampling_rate=30000)
+    # this folder gets overwritten by spikeinterface every time it runs
+    output_folder = local_path_to_recording + '/MountainSort/phy/'
+    create_phy(local_path_to_recording, spatial_firing, output_folder, sampling_rate=30000)
 
 
 def pre_process_recording_for_manual_curation(recording_server, recording_local):
     # todo check if it is there and copy if not. also make ubuntu/manual if needed
-    # shutil.copytree(recording_server, recording_local)
+    if not os.path.exists(recording_local):
+        shutil.copytree(recording_server, recording_local)
     # todo check parameters and also copy any paired recordings
     # make concatenated recording that has continuous data, dead channels and spatial firing
     # call phy for the combined data
-    manually_curate_sorting_results(recording_local, recording_local)
+    make_phy_input_for_recording(recording_local)
 
 
 def main():
-    print('-------------------------------------------------------------')
-    print('-------------------------------------------------------------')
-    recording_name = 'M3_2021-05-26_14-19-02_of'
-    exp_folder = 'Klara/CA1_to_deep_MEC_in_vivo/analysis_test_manual/'
-    recording_server = "/mnt/datastore/" + exp_folder + recording_name
-    recording_local = "/home/ubuntu/manual/" + recording_name
-
+    recording_server = ManualCuration.manual_curation_settings.get_recording_path_datastore()
+    recording_local = ManualCuration.manual_curation_settings.get_local_recording_path()
+    print('This script will make the phy input files for this recording: ' + recording_server)
     pre_process_recording_for_manual_curation(recording_server, recording_local)
     # add a post manual curation function including these steps
     # (manual sort)
     # save phy output
     # read phy output and split firing times back and save as spatial_firing_curated
     # save output back on server (copy manual spatial firing back)
-
     ## change pipeline so it loads manual spatial firing if it exists (?)
 
 
