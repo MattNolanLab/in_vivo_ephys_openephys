@@ -172,7 +172,7 @@ def pre_process_recording_for_manual_curation(recording_server, recording_local)
     paired_recordings = get_list_of_paired_recordings_local(recording_local)
     # this will concatenate all the recordings that were copied
     recording_local, stitch_points = pre_process_ephys_data.stitch_recordings(recording_local, paired_recordings)
-    np.savetxt(recording_local + 'stitch_points.csv', stitch_points, delimiter=',')   # test
+    np.savetxt(recording_local + '/stitch_points.csv', stitch_points, delimiter=',')   # test
     make_combined_spatial_firing_df(recording_local, paired_recordings)
     # call phy for the combined data
     make_phy_input_for_recording(recording_local)
