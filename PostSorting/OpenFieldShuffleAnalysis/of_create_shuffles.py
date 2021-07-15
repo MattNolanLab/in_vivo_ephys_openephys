@@ -23,6 +23,7 @@ recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_di
 
 n_jobs_submitted = 0
 for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
+    print("processing ", recording_name)
     remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
     local_recording_path = LOCAL_SCRATCH_PATH / recording_name
 
