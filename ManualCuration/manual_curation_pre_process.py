@@ -1,5 +1,4 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
 import spikeinterface.toolkit as st
 import os
@@ -169,15 +168,12 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings):
 
 
 def pre_process_recording_for_manual_curation(recording_server, recording_local):
-    #copy_recordings_to_local(recording_local, recording_server)
+    copy_recordings_to_local(recording_local, recording_server)
     paired_recordings = get_list_of_paired_recordings_local(recording_local)
     # this will concatenate all the recordings that were copied
-    ''' # commented out during development uncomment
     recording_local, stitch_points = pre_process_ephys_data.stitch_recordings(recording_local, paired_recordings)
     np.savetxt(recording_local + 'stitch_points.csv', stitch_points, delimiter=',')   # test
-    '''
     make_combined_spatial_firing_df(recording_local, paired_recordings)
-    # make concatenated recording that has continuous data, dead channels and spatial firing
     # call phy for the combined data
     make_phy_input_for_recording(recording_local)
 
@@ -187,12 +183,6 @@ def main():
     recording_local = ManualCuration.manual_curation_settings.get_local_recording_path()
     print('This script will make the phy input files for this recording: ' + recording_server)
     pre_process_recording_for_manual_curation(recording_server, recording_local)
-    # add a post manual curation function including these steps
-    # (manual sort)
-    # save phy output
-    # read phy output and split firing times back and save as spatial_firing_curated
-    # save output back on server (copy manual spatial firing back)
-    ## change pipeline so it loads manual spatial firing if it exists (?)
 
 
 if __name__ == '__main__':
