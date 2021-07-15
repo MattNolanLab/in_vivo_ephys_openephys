@@ -11,6 +11,7 @@ import control_sorting_analysis
 import glob
 import multiprocessing
 from joblib import Parallel, delayed
+from PreClustering import pre_process_ephys_data
 
 
 def copy_recording_to_sort_to_local(path_server, path_local):
@@ -117,6 +118,17 @@ def make_phy_input_for_recording(local_path_to_recording):
     create_phy(local_path_to_recording, spatial_firing, output_folder, sampling_rate=30000)
 
 
+def get_list_of_paired_recordings_local(recording_local):
+    tags = control_sorting_analysis.get_tags_parameter_file(recording_local)
+    paired_recordings = control_sorting_analysis.check_for_paired(tags)
+    main_local_folder = '/'.join(recording_local.split('/')[:-1]) + '/'
+    paired_local = []
+    for paired_recording in paired_recordings:
+        paired_folder_name = paired_recording.split('/')[-1]
+        paired_local.append(main_local_folder + paired_folder_name)
+    return paired_local
+
+
 def copy_recordings_to_local(recording_local, recording_server):
     main_local_folder = '/'.join(recording_local.split('/')[:-1]) + '/'
     beginning_of_server_path = '/'.join(recording_server.split('/')[:3]) + '/'
@@ -136,7 +148,10 @@ def copy_recordings_to_local(recording_local, recording_server):
 
 def pre_process_recording_for_manual_curation(recording_server, recording_local):
     copy_recordings_to_local(recording_local, recording_server)
-
+    paired_recordings = get_list_of_paired_recordings_local(recording_local)
+    # this will concatenate all the recordings that were copied
+    recording_to_sort, stitch_points = pre_process_ephys_data.stitch_recordings(recording_local, paired_recordings)
+    # todo also need to concatenate spatial_firing!
     # make concatenated recording that has continuous data, dead channels and spatial firing
     # call phy for the combined data
     make_phy_input_for_recording(recording_local)
