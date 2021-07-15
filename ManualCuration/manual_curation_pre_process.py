@@ -85,6 +85,7 @@ def get_geom():
 
 
 def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
+    times, labels = spatial_firing2label(spatial_firing)
     signal = load_OpenEphysRecording(recording, data_file_prefix='100_CH', num_tetrodes=4)
     dead_channel_path = recording + '/dead_channels.txt'
     bad_channel = getDeadChannel(dead_channel_path)
@@ -95,7 +96,6 @@ def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
     recording = st.preprocessing.whiten(recording)
     recording = se.CacheRecordingExtractor(recording)
     # reconstruct a sorting extractor
-    times, labels = spatial_firing2label(spatial_firing)
     sorting = se.NumpySortingExtractor()
     sorting.set_times_labels(times=times, labels=labels)
     sorting.set_sampling_frequency(sampling_frequency=sampling_rate)
@@ -109,7 +109,7 @@ def make_phy_input_for_recording(local_path_to_recording):
     :param local_path_to_recording: this is the path to the recording. local means that the analysis will be done here
     (the data was copied here) so this could be your computer or an instance in the cloud
     """
-    spatial_firing_path = local_path_to_recording + '/MountainSort/DataFrames/spatial_firing.pkl'
+    spatial_firing_path = local_path_to_recording + '/MountainSort/DataFrames/spatial_firing_manual.pkl'
     spatial_firing = pd.read_pickle(spatial_firing_path)
     # spatial_firing = spatial_firing[spatial_firing.number_of_spikes > 5]
 
@@ -146,12 +146,37 @@ def copy_recordings_to_local(recording_local, recording_server):
             copy_recording_to_sort_to_local(path_server, path_local)
 
 
+def make_combined_spatial_firing_df(recording_local, paired_recordings):
+    df_path = '/MountainSort/DataFrames/spatial_firing.pkl'
+    spatial_firing_combined = pd.DataFrame()
+    spatial_firing = pd.read_pickle(recording_local + df_path)
+    spatial_firing = spatial_firing[['cluster_id', 'firing_times']]  # only keep the columns we need
+    combined_firing_times = []
+    for cluster_index, cluster in spatial_firing.iterrows():
+        firing_times_cluster = cluster.firing_times.tolist()
+        for paired_recording in paired_recordings:
+            # concatenate firing times from paired recordings to cluster
+            paired_df = paired_recording + df_path
+            spatial_firing_paired = pd.read_pickle(paired_df)
+            paired_cluster_times = spatial_firing_paired[spatial_firing_paired.cluster_id == cluster.cluster_id].firing_times
+            if len(paired_cluster_times) > 0:
+                paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
+                firing_times_cluster.extend(paired_cluster_times_list)
+        combined_firing_times.append(firing_times_cluster)
+    spatial_firing_combined['cluster_id'] = spatial_firing.cluster_id.values
+    spatial_firing_combined['firing_times'] = combined_firing_times
+    spatial_firing_combined.to_pickle(recording_local + '/MountainSort/DataFrames/spatial_firing_manual.pkl')
+
+
 def pre_process_recording_for_manual_curation(recording_server, recording_local):
-    copy_recordings_to_local(recording_local, recording_server)
+    #copy_recordings_to_local(recording_local, recording_server)
     paired_recordings = get_list_of_paired_recordings_local(recording_local)
     # this will concatenate all the recordings that were copied
-    recording_to_sort, stitch_points = pre_process_ephys_data.stitch_recordings(recording_local, paired_recordings)
-    # todo also need to concatenate spatial_firing!
+    ''' # commented out during development uncomment
+    recording_local, stitch_points = pre_process_ephys_data.stitch_recordings(recording_local, paired_recordings)
+    np.savetxt(recording_local + 'stitch_points.csv', stitch_points, delimiter=',')   # test
+    '''
+    make_combined_spatial_firing_df(recording_local, paired_recordings)
     # make concatenated recording that has continuous data, dead channels and spatial firing
     # call phy for the combined data
     make_phy_input_for_recording(recording_local)
