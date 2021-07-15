@@ -7,6 +7,31 @@ import spikeinterface.extractors as se
 import OpenEphys
 import shutil
 import ManualCuration.manual_curation_settings
+import control_sorting_analysis
+import glob
+import multiprocessing
+from joblib import Parallel, delayed
+
+
+def copy_recording_to_sort_to_local(path_server, path_local):
+    print('Copying this recording: ' + path_server)
+    if os.path.exists(path_server) is False:
+        print('This folder does not exist on the server:')
+        print(path_server)
+        return False
+    if not os.path.exists(path_local):
+        os.mkdir(path_local)
+        num_cores = multiprocessing.cpu_count()
+        Parallel(n_jobs=num_cores)(delayed(control_sorting_analysis.copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
+
+        spatial_firing_path = path_server + '/MountainSort/DataFrames/spatial_firing.pkl'
+        if os.path.isfile(spatial_firing_path) is True:
+            if not os.path.isdir(path_local + '/MountainSort/DataFrames/'):
+                os.makedirs(path_local + '/MountainSort/DataFrames/')
+            shutil.copy(spatial_firing_path, path_local + '/MountainSort/DataFrames/spatial_firing.pkl')
+    else:
+        print('There is already a folder with this name on the computer running the analysis, I will not overwrite it. '
+              'Delete (rm -r foldername on terminal) and rerun if you want it overwritten.')
 
 
 def spatial_firing2label(spatial_firing):
@@ -92,11 +117,26 @@ def make_phy_input_for_recording(local_path_to_recording):
     create_phy(local_path_to_recording, spatial_firing, output_folder, sampling_rate=30000)
 
 
-def pre_process_recording_for_manual_curation(recording_server, recording_local):
-    # todo check if it is there and copy if not. also make ubuntu/manual if needed
+def copy_recordings_to_local(recording_local, recording_server):
+    main_local_folder = '/'.join(recording_local.split('/')[:-1]) + '/'
+    beginning_of_server_path = '/'.join(recording_server.split('/')[:3]) + '/'
     if not os.path.exists(recording_local):
         shutil.copytree(recording_server, recording_local)
-    # todo check parameters and also copy any paired recordings
+    tags = control_sorting_analysis.get_tags_parameter_file(recording_local)
+    paired_recordings = control_sorting_analysis.check_for_paired(tags)
+    if paired_recordings is not None:
+        print('There are some recordings sorted together with this recording. These will be copied too. '
+              + str(paired_recordings))
+        for paired_recording in paired_recordings:
+            path_server = beginning_of_server_path + paired_recording
+            end_of_paired_path = paired_recording.split('/')[-1]
+            path_local = main_local_folder + end_of_paired_path
+            copy_recording_to_sort_to_local(path_server, path_local)
+
+
+def pre_process_recording_for_manual_curation(recording_server, recording_local):
+    copy_recordings_to_local(recording_local, recording_server)
+
     # make concatenated recording that has continuous data, dead channels and spatial firing
     # call phy for the combined data
     make_phy_input_for_recording(recording_local)
