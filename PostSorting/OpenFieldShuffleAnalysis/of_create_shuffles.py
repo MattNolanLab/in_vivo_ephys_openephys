@@ -31,6 +31,11 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     if os.path.isfile(recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
         print("shuffle dataframe found, I will only submit a job if more shuffles are required")
         shuffle = pd.read_pickle(recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
+        spatial_firing = pd.read_pickle(recording_name + "/MountainSort/DataFrames/spatial_firing.pkl")
+
+        print("I have found ", len(spatial_firing), "cells")
+        print("I have found ", len(shuffle), " shuffles")
+        print("This is ", len(shuffle)/len(spatial_firing), " shuffles per cell")
 
         #only submit a job if the shuffle dataframe is incomplete
         if len(shuffle)%N_SHUFFLES != 0:
