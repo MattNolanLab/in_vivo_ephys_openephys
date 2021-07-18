@@ -84,9 +84,12 @@ def one_job_shuffle_parallel(recording_path, n_shuffles):
 
                 if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
                     finish(shuffle, recording_path)
+                    print("shuffle analysis terminated early for ", recording_path)
+                    print("This termination was caused by the time limit")
                     return
 
     finish(shuffle, recording_path)
+    print("shuffle analysis completed for ", recording_path)
     return
 
 def finish(shuffle, recording_path):
