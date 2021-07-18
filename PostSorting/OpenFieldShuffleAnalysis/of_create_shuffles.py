@@ -24,7 +24,6 @@ recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_di
 n_jobs_submitted = 0
 for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     print("processing ", recording_name)
-    input("Press Enter to continue...")
 
     remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
     local_recording_path = LOCAL_SCRATCH_PATH / recording_name
@@ -36,6 +35,7 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
         #only submit a job if the shuffle dataframe is incomplete
         if len(shuffle)%N_SHUFFLES != 0:
             print(f'Submitting shuffle job')
+            input("Press Enter to submit...")
             cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
             subprocess.check_call(cmd, shell=True)
             n_jobs_submitted += 1
