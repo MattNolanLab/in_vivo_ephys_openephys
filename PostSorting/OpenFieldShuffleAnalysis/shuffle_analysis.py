@@ -55,6 +55,8 @@ def one_job_shuffle_parallel(recording_path, n_shuffles):
     :param shuffle_id: integer id of a single shuffle
     '''
     time0 = time.time()
+    checkpoint_interval = 30*60 # in seconds
+    checkpoint_counter = 1
 
     spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
@@ -82,23 +84,19 @@ def one_job_shuffle_parallel(recording_path, n_shuffles):
                 shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
                 print(i, " shuffle complete")
 
-                if (time.time()-time0) > 171000: # time in seconds of 47hrs 30 minutes
-                    finish(shuffle, recording_path)
-                    print("shuffle analysis terminated early for ", recording_path)
-                    print("This termination was caused by the time limit")
-                    return
+                time_elapsed = time.time()-time0
 
-    finish(shuffle, recording_path)
+                if time_elapsed > (checkpoint_interval*checkpoint_counter):
+                    checkpoint_counter += 1
+                    checkpoint(shuffle, recording_path)
+
     print("shuffle analysis completed for ", recording_path)
     return
 
-def finish(shuffle, recording_path):
-
+def checkpoint(shuffle, recording_path):
     if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
-
     shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
-
 
 def run_shuffle_analysis_vr(recording, n_shuffles, prm):
     return
