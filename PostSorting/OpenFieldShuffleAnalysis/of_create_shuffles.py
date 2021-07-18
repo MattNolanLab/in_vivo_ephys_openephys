@@ -22,16 +22,13 @@ recordings_scratch_path = local_scratch_path+"/"+recording_folder_to_process.spl
 recording_list = [f.path for f in os.scandir(recordings_scratch_path) if f.is_dir()]
 
 n_jobs_submitted = 0
-for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
-    print("processing ", recording_name)
+for recording_path in recording_list: # eg. M1_D1_2020-01-31_00-00-00
+    print("processing ", recording_path)
 
-    remote_recording_path = ELEANOR_RECORDINGS_PATH / recording_name
-    local_recording_path = LOCAL_SCRATCH_PATH / recording_name
-
-    if os.path.isfile(recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+    if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
         print("shuffle dataframe found, I will only submit a job if more shuffles are required")
-        shuffle = pd.read_pickle(recording_name + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
-        spatial_firing = pd.read_pickle(recording_name + "/MountainSort/DataFrames/spatial_firing.pkl")
+        shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
+        spatial_firing = pd.read_pickle(recording_path + "/MountainSort/DataFrames/spatial_firing.pkl")
 
         print("I have found ", len(spatial_firing), "cells")
         print("I have found ", len(shuffle), " shuffles")
@@ -40,7 +37,7 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
         if len(shuffle)%N_SHUFFLES != 0:
             print(f'Submitting shuffle job')
             input("Press Enter to submit...")
-            cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+            cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
             subprocess.check_call(cmd, shell=True)
             n_jobs_submitted += 1
         else:
@@ -48,7 +45,7 @@ for recording_name in recording_list: # eg. M1_D1_2020-01-31_00-00-00
 
     else:
         print("shuffle dataframe not found, I will submit a new shuffle job")
-        cmd = f'qsub -v RECORDING_PATH={local_recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+        cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
         subprocess.check_call(cmd, shell=True)
         n_jobs_submitted += 1
 
