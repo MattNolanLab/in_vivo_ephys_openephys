@@ -2,6 +2,7 @@ import control_sorting_analysis
 import ManualCuration.manual_curation_settings
 import numpy as np
 import pandas as pd
+import shutil
 
 
 def load_phy_output(recording_local):
@@ -79,6 +80,7 @@ def post_process_manually_curated_data(recording_server, recording_local):
     spatial_firing_combined = split_spike_times_for_clusters(spike_times, spike_clusters)
     spatial_firing_combined['manual_cluster_group'] = cluster_group.group
     split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points)
+    shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
 
 
 def main():
