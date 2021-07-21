@@ -92,6 +92,7 @@ def checkpoint(shuffle, cluster_id, recording_path):
     if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
     shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
+    print("checkpoint saved")
 
 def run_shuffle_analysis_vr(recording, n_shuffles):
     return
