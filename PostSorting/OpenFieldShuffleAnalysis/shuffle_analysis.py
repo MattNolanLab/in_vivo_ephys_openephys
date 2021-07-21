@@ -23,7 +23,8 @@ def run_parallel_of_shuffle(single_shuffle, synced_spatial_data):
     single_shuffle = PostSorting.open_field_border_cells.process_border_data(single_shuffle)
     single_shuffle = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, single_shuffle)
 
-    single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values", "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
+    single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values", "hd_score", "rayleigh_score",
+                                     "spatial_information_score", "grid_score", "border_score", "rate_map_correlation_first_vs_second_half", "percent_excluded_bins_rate_map_correlation_first_vs_second_half_p"]]
     return single_shuffle
 
 def generate_shuffled_times(cluster_firing, n_shuffles):
