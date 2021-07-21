@@ -7,19 +7,10 @@ import PostSorting.compare_rate_maps
 from scipy.stats.stats import pearsonr
 import pandas as pd
 import array_utility
-
+import settings
 
 def get_data_from_data_frame_for_cluster(spike_data, cluster_id, indices):
     cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
-
-    #spike_data_cluster = pd.DataFrame()
-    #spike_data_cluster['firing_times'] = spike_data.firing_times[cluster][indices].copy()
-    #spike_data_cluster['position_x'] = np.array(spike_data.position_x[cluster])[indices].copy()
-    #spike_data_cluster['position_y'] = np.array(spike_data.position_y[cluster])[indices].copy()
-    #spike_data_cluster['position_x_pixels'] = np.array(spike_data.position_x_pixels[cluster])[indices].copy()
-    #spike_data_cluster['position_y_pixels'] = np.array(spike_data.position_y_pixels[cluster])[indices].copy()
-    #spike_data_cluster['hd'] = np.array(spike_data.hd[cluster])[indices].copy()
-
     spike_data_cluster = pd.DataFrame()
     spike_data_cluster['firing_times'] = cluster_df['firing_times'].iloc[0][indices].copy()
     spike_data_cluster['position_x'] = np.array(cluster_df['position_x'].iloc[0])[indices].copy()
@@ -93,7 +84,7 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
     synced_spatial_data_half = None
     spike_data_half = None
     end_of_first_half_seconds = (synced_spatial_data.synced_time.max() + synced_spatial_data.synced_time.min()) / 2
-    end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * 30000
+    end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * settings.sampling_rate
 
     number_of_spikes_in_fields_cluster=[]
     number_of_samples_in_fields_cluster=[]
@@ -145,6 +136,33 @@ def get_half_of_the_data(spike_data_in, synced_spatial_data_in, half='first_half
 
     return spike_data_half, synced_spatial_data_half
 
+def get_half_of_the_data_no_firing_fields(spike_data_in, synced_spatial_data_in, half='first_half'):
+    spike_data = spike_data_in.copy()
+    synced_spatial_data = synced_spatial_data_in.copy()
+    synced_spatial_data_half = None
+    spike_data_half = pd.DataFrame()
+    end_of_first_half_seconds = (synced_spatial_data.synced_time.max() + synced_spatial_data.synced_time.min()) / 2
+    end_of_first_half_ephys_sampling_points = end_of_first_half_seconds * settings.sampling_rate
+
+    if half == 'first_half':
+        first_half_synced_data_indices = synced_spatial_data.synced_time < end_of_first_half_seconds
+        synced_spatial_data_half = synced_spatial_data[first_half_synced_data_indices].copy()
+        for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+            cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+            firing_times_first_half = cluster_df['firing_times'].iloc[0] < end_of_first_half_ephys_sampling_points
+            spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster_id, firing_times_first_half)
+            spike_data_half = pd.concat([spike_data_half, spike_data_cluster], ignore_index=True)
+
+    if half == 'second_half':
+        second_half_synced_data_indices = synced_spatial_data.synced_time >= end_of_first_half_seconds
+        synced_spatial_data_half = synced_spatial_data[second_half_synced_data_indices]
+        for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+            cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+            firing_times_second_half = cluster_df['firing_times'].iloc[0] >= end_of_first_half_ephys_sampling_points
+            spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster_id, firing_times_second_half)
+            spike_data_half = pd.concat([spike_data_half, spike_data_cluster], ignore_index=True)
+
+    return spike_data_half, synced_spatial_data_half
 
 def get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half'):
     spike_data = spike_data_in.copy()
@@ -295,11 +313,11 @@ def analyse_first_and_second_halves(synced_spatial_data, spike_data_in, prm):
 def analyse_half_session_rate_maps(synced_spatial_data, spike_data_in):
     print('---------------------------------------------------------------------------')
     print('I will get data from the first half of the recording.')
-    spike_data_first, synced_spatial_data_first = get_half_of_the_data(spike_data_in, synced_spatial_data, half='first_half')
+    spike_data_first, synced_spatial_data_first = get_half_of_the_data_no_firing_fields(spike_data_in, synced_spatial_data, half='first_half')
     position_heat_map, spike_data_first = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_first)
     print('---------------------------------------------------------------------------')
     print('I will get data from the second half of the recording.')
-    spike_data_second, synced_spatial_data_second = get_half_of_the_data(spike_data_in, synced_spatial_data, half='second_half')
+    spike_data_second, synced_spatial_data_second = get_half_of_the_data_no_firing_fields(spike_data_in, synced_spatial_data, half='second_half')
     position_heat_map, spike_data_second = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_second)
     spike_data = PostSorting.compare_rate_maps.half_session_stability(spike_data_in, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second)
     return spike_data
