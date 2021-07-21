@@ -151,6 +151,7 @@ def get_half_of_the_data_no_firing_fields(spike_data_in, synced_spatial_data_in,
             cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
             firing_times_first_half = cluster_df['firing_times'].iloc[0] < end_of_first_half_ephys_sampling_points
             spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster_id, firing_times_first_half)
+            spike_data_cluster = format2spatialfiring(spike_data_cluster, cluster_id)
             spike_data_half = pd.concat([spike_data_half, spike_data_cluster], ignore_index=True)
 
     if half == 'second_half':
@@ -160,9 +161,21 @@ def get_half_of_the_data_no_firing_fields(spike_data_in, synced_spatial_data_in,
             cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
             firing_times_second_half = cluster_df['firing_times'].iloc[0] >= end_of_first_half_ephys_sampling_points
             spike_data_cluster = get_data_from_data_frame_for_cluster(spike_data, cluster_id, firing_times_second_half)
+            spike_data_cluster = format2spatialfiring(spike_data_cluster, cluster_id)
             spike_data_half = pd.concat([spike_data_half, spike_data_cluster], ignore_index=True)
 
     return spike_data_half, synced_spatial_data_half
+
+def format2spatialfiring(spike_data_cluster, cluster_id):
+    spike_data_cluster_reformatted = pd.DataFrame()
+    spike_data_cluster_reformatted['cluster_id'] = [cluster_id]
+    spike_data_cluster_reformatted['firing_times'] = [spike_data_cluster['firing_times'].to_list()]
+    spike_data_cluster_reformatted['position_x'] = [spike_data_cluster['position_x'].to_list()]
+    spike_data_cluster_reformatted['position_y'] = [spike_data_cluster['position_y'].to_list()]
+    spike_data_cluster_reformatted['position_x_pixels'] = [spike_data_cluster['position_x_pixels'].to_list()]
+    spike_data_cluster_reformatted['position_y_pixels'] = [spike_data_cluster['position_y_pixels'].to_list()]
+    spike_data_cluster_reformatted['hd'] = spike_data_cluster['hd']
+    return spike_data_cluster_reformatted
 
 def get_half_of_the_data_cell(prm, spike_data_in, synced_spatial_data_in, half='first_half'):
     spike_data = spike_data_in.copy()
