@@ -357,7 +357,7 @@ def interpolate_nans(array_in):
 
 # find firing rate on rate map for each sampling point and add to field df
 def add_rate_map_values(spatial_firing, cell):
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     pixel_ratio = prm.get_pixel_ratio()
     spike_data = pd.DataFrame()
     spike_data['x'] = cell.trajectory_x * pixel_ratio / 100

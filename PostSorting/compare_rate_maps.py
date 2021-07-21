@@ -18,8 +18,8 @@ def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, ex
 
 
 def make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y, prm):
-    min_dwell, min_dwell_distance_cm = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory, prm)
-    bin_size_cm = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    min_dwell, min_dwell_distance_cm = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory)
+    bin_size_cm = PostSorting.open_field_firing_maps.get_bin_size()
     position_heat_map_first = PostSorting.open_field_firing_maps.get_position_heatmap_fixed_bins(trajectory_1, number_of_bins_x, number_of_bins_y, bin_size_cm, min_dwell_distance_cm, min_dwell)
     position_heat_map_second = PostSorting.open_field_firing_maps.get_position_heatmap_fixed_bins(trajectory_2, number_of_bins_x, number_of_bins_y, bin_size_cm, min_dwell_distance_cm, min_dwell)
     print('Made trajectory heatmaps for both halves.')
@@ -35,8 +35,8 @@ def make_same_sized_rate_maps(trajectory_1, trajectory_2, cluster_spatial_firing
     number_of_bins_x, number_of_bins_y = PostSorting.open_field_firing_maps.get_number_of_bins(whole_trajectory, prm)
     dt_position_ms = whole_trajectory.synced_time.diff().mean() * 1000
     smooth = 5 / 100 * prm.get_pixel_ratio()
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
-    min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory, prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
+    min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory)
     #cluster = 0
     rate_map_1 = PostSorting.open_field_firing_maps.calculate_firing_rate_for_cluster_parallel(cluster, smooth, cluster_spatial_firing_1,
                                                                                   trajectory_1.position_x_pixels.values,

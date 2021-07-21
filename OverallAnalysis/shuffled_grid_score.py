@@ -91,7 +91,7 @@ def get_position_heat_map(cell):
 
 
 def get_number_of_bins(spatial_data, prm):
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     length_of_arena_x = spatial_data.trajectory_x[~np.isnan(spatial_data.trajectory_x)].max()
     length_of_arena_y = spatial_data.trajectory_y[~np.isnan(spatial_data.trajectory_y)].max()
     number_of_bins_x = math.ceil(length_of_arena_x / bin_size_pixels)
@@ -101,9 +101,9 @@ def get_number_of_bins(spatial_data, prm):
 
 def get_rate_maps(cell, spike_x, spike_y, number_of_shuffles=200):
     dt_position_ms = cell.synced_time.diff().mean() * 1000
-    min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(cell, prm)
+    min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(cell)
     smooth = 5 / 100 * prm.get_pixel_ratio()
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     number_of_bins_x, number_of_bins_y = get_number_of_bins(cell, prm)
     firing_rate_maps = []
     for shuffle in range(number_of_shuffles):

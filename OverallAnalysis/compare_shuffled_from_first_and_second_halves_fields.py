@@ -342,7 +342,7 @@ def add_rate_map_values_to_field(spatial_firing, field):
     spike_data_field['hd'] = field.trajectory_hd[0]
     spike_data_field['synced_time'] = field.trajectory_times[0]
 
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     spike_data_field['rate_map_x'] = (field.trajectory_x[0] // bin_size_pixels).astype(int)
     spike_data_field['rate_map_y'] = (field.trajectory_y[0] // bin_size_pixels).astype(int)
     rates = []

@@ -185,7 +185,7 @@ def process_hd_data(spatial_firing, spatial_data, prm):
 
 # get HD data for a specific bin of the rate map
 def get_indices_for_bin(bin_in_field, spatial_data, prm):
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     bin_x = bin_in_field[0]
     bin_x_left_pixels = bin_x * bin_size_pixels
     bin_x_right_pixels = (bin_x+1) * bin_size_pixels

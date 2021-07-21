@@ -12,9 +12,9 @@ import settings
 
 try_parallel_first = True
 
-def get_dwell(spatial_data, prm):
+def get_dwell(spatial_data):
     min_dwell_distance_cm = 5  # from point to determine min dwell time
-    min_dwell_distance_pixels = min_dwell_distance_cm / 100 * prm.get_pixel_ratio()
+    min_dwell_distance_pixels = min_dwell_distance_cm / 100 * settings.pixel_ratio
 
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000  # average sampling interval in position data (ms)
     min_dwell_time_ms = 3 * dt_position_ms  # this is about 100 ms
@@ -22,14 +22,14 @@ def get_dwell(spatial_data, prm):
     return min_dwell, min_dwell_distance_pixels
 
 
-def get_bin_size(prm):
-    bin_size_cm = 2.5
-    bin_size_pixels = bin_size_cm / 100 * prm.get_pixel_ratio()
+def get_bin_size():
+    bin_size_cm = settings.open_field_bin_size_cm
+    bin_size_pixels = bin_size_cm / 100 * settings.pixel_ratio
     return bin_size_pixels
 
 
 def get_number_of_bins(spatial_data, prm):
-    bin_size_pixels = get_bin_size(prm)
+    bin_size_pixels = get_bin_size()
     length_of_arena_x = spatial_data.position_x_pixels[~np.isnan(spatial_data.position_x_pixels)].max()
     length_of_arena_y = spatial_data.position_y_pixels[~np.isnan(spatial_data.position_y_pixels)].max()
     number_of_bins_x = math.ceil(length_of_arena_x / bin_size_pixels)
@@ -135,9 +135,9 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_da
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000
-    min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
+    min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data)
     smooth = 5 / 100 * prm.get_pixel_ratio()
-    bin_size_pixels = get_bin_size(prm)
+    bin_size_pixels = get_bin_size()
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
     clusters = firing_data_spatial.cluster_id
 
@@ -205,8 +205,8 @@ def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bi
 
 
 def get_position_heatmap(spatial_data, prm):
-    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
-    bin_size_cm = get_bin_size(prm)
+    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data)
+    bin_size_cm = get_bin_size()
     number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
 
     position_heat_map = np.zeros((number_of_bins_x, number_of_bins_y))
