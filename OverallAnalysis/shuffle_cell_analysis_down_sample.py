@@ -783,7 +783,7 @@ def down_sample_data(spatial_firing, percentage_to_keep, prm, sampling_rate_ephy
     position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position, down_sampled)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
     prm.set_file_path(local_path + '/tmp/')
-    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position, prm)
+    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position)
 
     return spatial_firing
 
