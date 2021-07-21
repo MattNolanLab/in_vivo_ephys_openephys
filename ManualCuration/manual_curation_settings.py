@@ -12,6 +12,7 @@ post-processing part.
 
 recording_name = 'M3_2021-05-26_14-19-02_of'
 exp_folder = 'Klara/CA1_to_deep_MEC_in_vivo/analysis_test_manual/'
+tetrode_geom_file = '/home/ubuntu/in_vivo_ephys_openephys/sorting_files/geom_all_tetrodes_original.csv'
 
 
 def get_local_recording_path():
@@ -26,3 +27,7 @@ def get_local_recording_path():
 def get_recording_path_datastore():
     recording_server = "/mnt/datastore/" + exp_folder + recording_name
     return recording_server
+
+
+def get_tetrode_geom_file_path():
+    return tetrode_geom_file

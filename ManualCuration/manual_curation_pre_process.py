@@ -76,7 +76,10 @@ def shift_geometry_for_better_visualization(geom):
 
 
 def get_geom():
-    tetrode_geom = '/home/ubuntu/to_sort/sorting_files/geom_all_tetrodes_original.csv'
+    # tetrode_geom = '/home/ubuntu/to_sort/sorting_files/geom_all_tetrodes_original.csv'
+    # tetrode_geom = '/home/ubuntu/in_vivo_ephys_openephys/sorting_files/geom_all_tetrodes_original.csv'
+    tetrode_geom = ManualCuration.manual_curation_settings.get_tetrode_geom_file_path()
+    print('The code is assuming the tetrode geometry file is here: ' + tetrode_geom)
     geom = pd.read_csv(tetrode_geom,header=None).values
     # shift some channels a bit for better visualization in phy (still not perfect...)
     geom = shift_geometry_for_better_visualization(geom)
