@@ -176,8 +176,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
             # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
-            hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
-            position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
+            hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
+            position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial)
             spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing, position_heat_map)
             spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
             spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
@@ -187,7 +187,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             if opto_is_found:
                 spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
+            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing)
 
             make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
