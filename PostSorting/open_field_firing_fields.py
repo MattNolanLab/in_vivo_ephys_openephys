@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import subprocess
 import PostSorting.open_field_head_direction
+import settings
 
 import matplotlib.pylab as plt
 
@@ -242,11 +243,11 @@ def analyze_fields_r(prm, cluster):
 
 
 def analyze_hd_in_field(spatial_data, field, prm, spatial_firing, cluster_id, field_id):
-    hd_in_field_session, times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field, prm)
-    hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster_id, prm)
+    hd_in_field_session, times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_session(spatial_data, field)
+    hd_in_field_cluster, spike_times_in_field = PostSorting.open_field_head_direction.get_hd_in_firing_rate_bins_for_cluster(spatial_firing, field, cluster_id)
     save_hd_in_fields(hd_in_field_session, hd_in_field_cluster, cluster_id, field_id, prm)
     hd_hist_session = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_session)
-    hd_hist_session /= prm.get_sampling_rate()
+    hd_hist_session /= settings.sampling_rate
     hd_hist_cluster = PostSorting.open_field_head_direction.get_hd_histogram(hd_in_field_cluster)
     max_firing_rate_cluster = np.max(hd_hist_cluster.flatten())
     hd_score_cluster = PostSorting.open_field_head_direction.get_hd_score_for_cluster(hd_hist_cluster)
