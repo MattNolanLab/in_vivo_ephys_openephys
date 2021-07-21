@@ -46,7 +46,6 @@ def gaussian_kernel(kernx):
 def calculate_firing_rate_for_cluster_parallel(cluster_id, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     print(cluster_id)
-    #cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
 
     cluster_firing_data_spatial = firing_data_spatial[firing_data_spatial.cluster_id == cluster_id]
     cluster_firings = pd.DataFrame({'position_x': cluster_firing_data_spatial.position_x_pixels.iloc[0], 'position_y': cluster_firing_data_spatial.position_y_pixels.iloc[0]})
