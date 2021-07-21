@@ -187,7 +187,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             if opto_is_found:
                 spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing)
+            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing, prm)
 
             make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
