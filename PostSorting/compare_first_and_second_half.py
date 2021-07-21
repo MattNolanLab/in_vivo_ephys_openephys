@@ -333,5 +333,5 @@ def analyse_half_session_rate_maps(synced_spatial_data, spike_data_in):
     spike_data_second, synced_spatial_data_second = get_half_of_the_data_no_firing_fields(spike_data_in, synced_spatial_data, half='second_half')
     position_heat_map, spike_data_second = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_second)
     spike_data = PostSorting.compare_rate_maps.half_session_stability(spike_data_in, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second)
-    return spike_data
+    return spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second
 ####
