@@ -80,16 +80,17 @@ def split_filtered_electrophysiology_data_file(recording_to_sort: str, sorter_na
     paired_recordings = control_sorting_analysis.check_for_paired(tags)
     # this is the concatenated filtered data file
     filtered_data_path = recording_to_sort + '/Electrophysiology/' + sorter_name + '/filt.mda'
-    filtered_data = mdaio.readmda(filtered_data_path)
-    for paired_index, recording in enumerate(paired_recordings):
-        first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
-        second_half = '/' + recording.split('/')[-1]
-        paired_path_local = first_half_of_local_path + second_half
-        sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
-        # get correct part of filtered data based on stitch points
-        paired_recording_filtered = filtered_data[:, stitch_points[paired_index]:stitch_points[paired_index + 1]]
-        # save filtered data
-        mdaio.writemda16i(paired_recording_filtered, sorting_output_folder + 'filt.mda')
+    if os.path.exists(filtered_data_path):
+        filtered_data = mdaio.readmda(filtered_data_path)
+        for paired_index, recording in enumerate(paired_recordings):
+            first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
+            second_half = '/' + recording.split('/')[-1]
+            paired_path_local = first_half_of_local_path + second_half
+            sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
+            # get correct part of filtered data based on stitch points
+            paired_recording_filtered = filtered_data[:, stitch_points[paired_index]:stitch_points[paired_index + 1]]
+            # save filtered data
+            mdaio.writemda16i(paired_recording_filtered, sorting_output_folder + 'filt.mda')
 
 
 def copy_curation_information(recording_to_sort: str, sorter_name: str):
