@@ -6,24 +6,22 @@ import PostSorting.open_field_head_direction
 import PostSorting.open_field_firing_maps
 import PostSorting.open_field_grid_cells
 import PostSorting.open_field_border_cells
+import PostSorting.compare_first_and_second_half
 import numpy as np
 import settings
 import time
 from PostSorting import parameters
 
-prm = parameters.Parameters()
-
-def run_parallel_of_shuffle(single_shuffle, synced_spatial_data, prm):
-    prm.set_sampling_rate(30000)
-    prm.set_pixel_ratio(440)
+def run_parallel_of_shuffle(single_shuffle, synced_spatial_data):
 
     single_shuffle = PostSorting.open_field_spatial_firing.process_spatial_firing(single_shuffle, synced_spatial_data)
     single_shuffle = PostSorting.speed.calculate_speed_score(synced_spatial_data, single_shuffle, settings.gauss_sd_for_speed_score, settings.sampling_rate)
-    _, single_shuffle = PostSorting.open_field_head_direction.process_hd_data(single_shuffle, synced_spatial_data, prm)
-    position_heatmap, single_shuffle = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, single_shuffle, prm)
+    _, single_shuffle = PostSorting.open_field_head_direction.process_hd_data(single_shuffle, synced_spatial_data)
+    position_heatmap, single_shuffle = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, single_shuffle)
     single_shuffle = PostSorting.open_field_grid_cells.process_grid_data(single_shuffle)
     single_shuffle = PostSorting.open_field_firing_maps.calculate_spatial_information(single_shuffle, position_heatmap)
     single_shuffle = PostSorting.open_field_border_cells.process_border_data(single_shuffle)
+    single_shuffle = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, single_shuffle)
 
     single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values", "hd_score", "rayleigh_score", "spatial_information_score", "grid_score", "border_score"]]
     return single_shuffle
@@ -74,7 +72,7 @@ def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
     if shuffles_to_run > 1:
         for i in range(shuffles_to_run):
             shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
-            shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
+            shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data)
 
             shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
             print(i, " shuffle complete")
@@ -94,7 +92,7 @@ def checkpoint(shuffle, cluster_id, recording_path):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
     shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
 
-def run_shuffle_analysis_vr(recording, n_shuffles, prm):
+def run_shuffle_analysis_vr(recording, n_shuffles):
     return
 
 def main():
