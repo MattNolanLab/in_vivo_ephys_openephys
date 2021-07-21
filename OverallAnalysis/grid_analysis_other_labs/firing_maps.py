@@ -46,8 +46,8 @@ def calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spat
     firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
-            px = x * bin_size_pixels + (bin_size_pixels / 2)
-            py = y * bin_size_pixels + (bin_size_pixels / 2)
+            px = x * bin_size_pixels + bin_size_pixels
+            py = y * bin_size_pixels + bin_size_pixels
             spike_distances = np.sqrt(np.power(px - spike_positions_x, 2) + np.power(py - spike_positions_y, 2))
             spike_distances = spike_distances[~np.isnan(spike_distances)]
             occupancy_distances = np.sqrt(np.power((px - positions_x), 2) + np.power((py - positions_y), 2))
@@ -94,8 +94,8 @@ def get_position_heatmap(spatial_data, prm):
     # find value for each bin for heatmap
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
-            px = x * bin_size_cm + (bin_size_cm / 2)
-            py = y * bin_size_cm + (bin_size_cm / 2)
+            px = x * bin_size_cm + bin_size_cm
+            py = y * bin_size_cm + bin_size_cm
 
             occupancy_distances = np.sqrt(np.power((px - spatial_data.position_x.values), 2) + np.power((py - spatial_data.position_y.values), 2))
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_cm)[0])
