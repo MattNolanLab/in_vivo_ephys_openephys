@@ -1,3 +1,4 @@
+import control_sorting_analysis
 import ManualCuration.manual_curation_settings
 import numpy as np
 import pandas as pd
@@ -19,11 +20,65 @@ def load_phy_output(recording_local):
     return spike_times, spike_clusters, cluster_group
 
 
+def split_spike_times_for_clusters(spike_times, spike_clusters):
+    spatial_firing_combined = pd.DataFrame()
+    cluster_ids = np.unique(spike_clusters)
+    firing_times = []
+    for cluster in cluster_ids:
+        firing_times.append(spike_times[spike_clusters == cluster])
+
+    spatial_firing_combined['cluster_id'] = cluster_ids
+    spatial_firing_combined['firing_times'] = firing_times
+    return spatial_firing_combined
+
+
+def get_spatial_firing_for_stitch_points(spatial_firing_combined, stitch_point_1, stitch_point_2):
+    spatial_firing = pd.DataFrame()
+    firing_times = []
+    for cluster_id, cluster in spatial_firing_combined.iterrows():
+        firing_times_all = cluster.firing_times.flatten()
+        bigger_than_previous_stitch = firing_times_all > stitch_point_1
+        smaller_than_next_stitch = firing_times_all < stitch_point_2
+        in_between = bigger_than_previous_stitch & smaller_than_next_stitch
+        firing_times.append(firing_times_all[in_between])
+    spatial_firing['cluster_id'] = spatial_firing_combined.cluster_id
+    spatial_firing['manual_cluster_group'] = spatial_firing_combined.manual_cluster_group
+    spatial_firing['firing_times'] = firing_times
+    return spatial_firing
+
+
+def save_data_for_recording(spatial_firing, recording_path, beginning_of_server_path):
+    spatial_firing['session_id'] = recording_path.split('/')[-1]
+    good_clusters = spatial_firing[spatial_firing.manual_cluster_group == 'good']
+    noise_clusters = spatial_firing[spatial_firing.manual_cluster_group != 'good']
+    good_clusters.to_pickle(
+        beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_curated.pkl')
+    noise_clusters.to_pickle(
+        beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_curated_noise.pkl')
+    print('The curated data is saved here: ' + beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_curated.pkl')
+
+
+def split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points):
+    beginning_of_server_path = '/' + '/'.join(recording_server.split('/')[1:3]) + '/'
+    end_of_path = '/' + '/'.join(recording_server.split('/')[3:]) + '/'
+    tags = control_sorting_analysis.get_tags_parameter_file(recording_local)
+    paired_recordings = control_sorting_analysis.check_for_paired(tags)
+    stitch_point_1 = stitch_points.iloc[0][0]
+    spatial_firing_first = get_spatial_firing_for_stitch_points(spatial_firing_combined, 0, stitch_point_1)
+    save_data_for_recording(spatial_firing_first, end_of_path, beginning_of_server_path)
+    for recording_index, paired_recording in enumerate(paired_recordings):
+        stitch_point_1 = stitch_points.iloc[recording_index][0]
+        stitch_point_2 = stitch_points.iloc[recording_index + 1][0]
+        spatial_firing = get_spatial_firing_for_stitch_points(spatial_firing_combined, stitch_point_1, stitch_point_2)
+        save_data_for_recording(spatial_firing, paired_recording, beginning_of_server_path)
+
+
 def post_process_manually_curated_data(recording_server, recording_local):
     spike_times, spike_clusters, cluster_group = load_phy_output(recording_local)
-    # read phy output and split firing times back and save as spatial_firing_curated (also for paired recordings)
-    # save output back on server (copy manual spatial firing back)
-    ##do after this: change pipeline so it loads manual spatial firing if it exists (?)
+    stitch_points = pd.read_csv(recording_local + '/stitch_points.csv', header=None)
+    spatial_firing_combined = split_spike_times_for_clusters(spike_times, spike_clusters)
+    spatial_firing_combined['manual_cluster_group'] = cluster_group.group
+    split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points)
 
 
 def main():
