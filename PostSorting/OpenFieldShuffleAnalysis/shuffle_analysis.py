@@ -22,7 +22,7 @@ def run_parallel_of_shuffle(single_shuffle, synced_spatial_data):
     single_shuffle = PostSorting.open_field_grid_cells.process_grid_data(single_shuffle)
     single_shuffle = PostSorting.open_field_firing_maps.calculate_spatial_information(single_shuffle, position_heatmap)
     single_shuffle = PostSorting.open_field_border_cells.process_border_data(single_shuffle)
-    single_shuffle = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, single_shuffle)
+    single_shuffle, _, _, _, _ = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, single_shuffle)
     single_shuffle = single_shuffle[["cluster_id", "shuffle_id", "mean_firing_rate", "speed_score", "speed_score_p_values", "hd_score", "rayleigh_score",
                                      "spatial_information_score", "grid_score", "border_score", "rate_map_correlation_first_vs_second_half", "percent_excluded_bins_rate_map_correlation_first_vs_second_half_p"]]
     return single_shuffle
@@ -61,8 +61,8 @@ def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
     cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
 
-    if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl"):
-        shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
+    if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/"+str(int(cluster_id))+"_shuffle.pkl"):
+        shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/"+str(int(cluster_id))+"_shuffle.pkl")
         n_shuffles_pre_computed = len(shuffle)
     else:
         shuffle = pd.DataFrame()
@@ -91,7 +91,7 @@ def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
 def checkpoint(shuffle, cluster_id, recording_path):
     if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
-    shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
+    shuffle.to_pickle(recording_path + "/MountainSort/DataFrames/shuffles/"+str(int(cluster_id))+"_shuffle.pkl")
     print("checkpoint saved")
 
 def run_shuffle_analysis_vr(recording, n_shuffles):

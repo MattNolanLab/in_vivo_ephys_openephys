@@ -31,9 +31,9 @@ for recording_path in recording_list: # eg. M1_D1_2020-01-31_00-00-00
 
         for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
 
-            if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl"):
+            if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/"+str(int(cluster_id))+"_shuffle.pkl"):
                 print("shuffle dataframe found, I will only submit a job if more shuffles are required")
-                shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
+                shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/"+str(int(cluster_id))+"_shuffle.pkl")
                 print("I have found ", len(shuffle), " shuffles")
 
                 #only submit a job if the shuffle dataframe is incomplete
