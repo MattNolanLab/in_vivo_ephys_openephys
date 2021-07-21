@@ -48,7 +48,7 @@ def generate_shuffled_times(cluster_firing, n_shuffles):
     shuffle_firing["shuffle_id"] = np.arange(0, n_shuffles)
     return shuffle_firing
 
-def one_job_shuffle_parallel(recording_path, n_shuffles):
+def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
     '''
     creates a single shuffle of each cell and saves it in recording/sorter/dataframes/shuffles/
     :param recording_path: path to a recording folder
@@ -60,43 +60,39 @@ def one_job_shuffle_parallel(recording_path, n_shuffles):
 
     spike_data_spatial = pd.read_pickle(recording_path+"/MountainSort/DataFrames/spatial_firing.pkl")
     synced_spatial_data = pd.read_pickle(recording_path+"/MountainSort/DataFrames/position.pkl")
+    cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
 
-    if os.path.isfile(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
-        shuffle = pd.read_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl"):
+        shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
+        n_shuffles_pre_computed = len(shuffle)
     else:
         shuffle = pd.DataFrame()
+        n_shuffles_pre_computed = 0
 
-    for cluster_index, cluster_id in enumerate(spike_data_spatial.cluster_id):
-        cluster_spike_data = spike_data_spatial[(spike_data_spatial["cluster_id"] == cluster_id)]
+    shuffles_to_run = n_shuffles-n_shuffles_pre_computed
 
-        if os.path.isfile(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
-            n_shuffles_pre_computed = len(shuffle[shuffle["cluster_id"] == cluster_id])
-        else:
-            n_shuffles_pre_computed = 0
+    if shuffles_to_run > 1:
+        for i in range(shuffles_to_run):
+            shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
+            shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
 
-        shuffles_to_run = n_shuffles-n_shuffles_pre_computed
+            shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
+            print(i, " shuffle complete")
 
-        if shuffles_to_run > 1:
-            for i in range(shuffles_to_run):
-                shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
-                shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data, prm)
+            time_elapsed = time.time()-time0
 
-                shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
-                print(i, " shuffle complete")
+            if time_elapsed > (checkpoint_interval*checkpoint_counter):
+                checkpoint_counter += 1
+                checkpoint(shuffle, cluster_id, recording_path)
 
-                time_elapsed = time.time()-time0
-
-                if time_elapsed > (checkpoint_interval*checkpoint_counter):
-                    checkpoint_counter += 1
-                    checkpoint(shuffle, recording_path)
-
+        checkpoint(shuffle, cluster_id, recording_path)
     print("shuffle analysis completed for ", recording_path)
     return
 
-def checkpoint(shuffle, recording_path):
+def checkpoint(shuffle, cluster_id, recording_path):
     if not os.path.exists(recording_path+"/MountainSort/DataFrames/shuffles"):
         os.mkdir(recording_path+"/MountainSort/DataFrames/shuffles")
-    shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    shuffle.to_pickle(recording_path+"/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
 
 def run_shuffle_analysis_vr(recording, n_shuffles, prm):
     return
@@ -109,7 +105,8 @@ def main():
     #=========================================================================================#
     recording_path = os.environ['RECORDING_PATH']
     n_shuffles = int(os.environ['SHUFFLE_NUMBER'])
-    one_job_shuffle_parallel(recording_path, n_shuffles)
+    cluster_id = int(os.environ["CLUSTER_ID"])
+    one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles)
     #=========================================================================================#
     #=========================================================================================#
 

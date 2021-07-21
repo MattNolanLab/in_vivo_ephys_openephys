@@ -25,29 +25,31 @@ n_jobs_submitted = 0
 for recording_path in recording_list: # eg. M1_D1_2020-01-31_00-00-00
     print("processing ", recording_path)
 
-    if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/shuffle.pkl"):
-        print("shuffle dataframe found, I will only submit a job if more shuffles are required")
-        shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/shuffle.pkl")
+    if os.path.isfile(recording_path + "/MountainSort/DataFrames/spatial_firing.pkl"):
         spatial_firing = pd.read_pickle(recording_path + "/MountainSort/DataFrames/spatial_firing.pkl")
-
         print("I have found ", len(spatial_firing), "cells")
-        print("I have found ", len(shuffle), " shuffles")
 
-        #only submit a job if the shuffle dataframe is incomplete
-        if len(shuffle)%N_SHUFFLES != 0:
-            print(f'Submitting shuffle job')
-            input("Press Enter to submit...")
-            cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
-            subprocess.check_call(cmd, shell=True)
-            n_jobs_submitted += 1
-        else:
-            print("No job was submitted because shuffle.pkl is complete")
+        for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
 
-    else:
-        print("shuffle dataframe not found, I will submit a new shuffle job")
-        cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
-        subprocess.check_call(cmd, shell=True)
-        n_jobs_submitted += 1
+            if os.path.isfile(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl"):
+                print("shuffle dataframe found, I will only submit a job if more shuffles are required")
+                shuffle = pd.read_pickle(recording_path + "/MountainSort/DataFrames/shuffles/shuffle_"+str(int(cluster_id))+".pkl")
+                print("I have found ", len(shuffle), " shuffles")
+
+                #only submit a job if the shuffle dataframe is incomplete
+                if len(shuffle)%N_SHUFFLES != 0:
+                    print(f'Submitting shuffle job')
+                    cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+                    subprocess.check_call(cmd, shell=True)
+                    n_jobs_submitted += 1
+                else:
+                    print("No job was submitted because shuffle.pkl is complete")
+
+            else:
+                print("shuffle dataframe not found, I will submit a new shuffle job")
+                cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+                subprocess.check_call(cmd, shell=True)
+                n_jobs_submitted += 1
 
 
 print("A total of ", n_jobs_submitted, " have been submitted, good luck!")
