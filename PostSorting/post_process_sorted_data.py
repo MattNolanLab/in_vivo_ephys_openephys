@@ -169,7 +169,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
+            save_data_frames(spike_data, synced_spatial_data, snippet_data=None, bad_clusters=bad_clusters,lfp_data=lfp_data)
 
         else:
             snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
@@ -187,12 +187,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             if opto_is_found:
                 spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing, prm)
+            #spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing, prm)
+            spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
 
             make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 
-            save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
+            save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
 
