@@ -382,7 +382,7 @@ def check_how_much_rate_maps_correlate(first_half, second_half, position_first, 
     second = second_half.copy()
     first_pos = position_first.copy()
     second_pos = position_second.copy()
-    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first, second, first_pos, second_pos, prm)
+    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first, second, first_pos, second_pos)
     PostSorting.compare_rate_maps.plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, spatial_correlation, percentage_of_excluded_bins, save_path)
     return spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2
 

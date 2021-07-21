@@ -86,7 +86,7 @@ def get_position_heat_map(cell):
     spatial_data['position_x_pixels'] = cell.trajectory_x
     spatial_data['position_y_pixels'] = cell.trajectory_y
     spatial_data['synced_time'] = cell.synced_time
-    position_heat_map = PostSorting.open_field_firing_maps.get_position_heatmap(spatial_data, prm)
+    position_heat_map = PostSorting.open_field_firing_maps.get_position_heatmap(spatial_data)
     return position_heat_map
 
 
