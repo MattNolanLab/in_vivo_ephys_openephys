@@ -28,7 +28,7 @@ def get_bin_size():
     return bin_size_pixels
 
 
-def get_number_of_bins(spatial_data, prm):
+def get_number_of_bins(spatial_data):
     bin_size_pixels = get_bin_size()
     length_of_arena_x = spatial_data.position_x_pixels[~np.isnan(spatial_data.position_x_pixels)].max()
     length_of_arena_y = spatial_data.position_y_pixels[~np.isnan(spatial_data.position_y_pixels)].max()
@@ -132,13 +132,13 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_da
 
     return firing_rate_map
 
-def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
+def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000
     min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data)
-    smooth = 5 / 100 * prm.get_pixel_ratio()
+    smooth = 5 / 100 * settings.pixel_ratio
     bin_size_pixels = get_bin_size()
-    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
+    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data)
     clusters = firing_data_spatial.cluster_id
 
     num_cores = int(os.environ['HEATMAP_CONCURRENCY']) if os.environ.get('HEATMAP_CONCURRENCY') else multiprocessing.cpu_count()
@@ -204,10 +204,10 @@ def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bi
     return position_heat_map
 
 
-def get_position_heatmap(spatial_data, prm):
+def get_position_heatmap(spatial_data):
     min_dwell, min_dwell_distance_cm = get_dwell(spatial_data)
     bin_size_cm = get_bin_size()
-    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
+    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data)
 
     position_heat_map = np.zeros((number_of_bins_x, number_of_bins_y))
 
@@ -292,9 +292,8 @@ def calculate_spatial_information(spatial_firing, position_heatmap):
 
 
 
-def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
-    position_heat_map = get_position_heatmap(spatial_data, prm)
-    firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
-    #position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
+def make_firing_field_maps(spatial_data, firing_data_spatial):
+    position_heat_map = get_position_heatmap(spatial_data)
+    firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial)
     firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
     return position_heat_map, firing_data_spatial
