@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import subprocess
 import sys
+import settings
 
 import PostSorting.open_field_firing_maps
 
@@ -157,11 +158,11 @@ def put_stat_results_in_spatial_df(spatial_firing, prm):
     return spatial_firing
 
 
-def process_hd_data(spatial_firing, spatial_data, prm):
+def process_hd_data(spatial_firing, spatial_data):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)
-    hd_histogram /= prm.get_sampling_rate()
+    hd_histogram /= settings.sampling_rate
 
     hd_spike_histograms = []
     for index, cluster in spatial_firing.iterrows():
