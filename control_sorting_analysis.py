@@ -1,6 +1,7 @@
 from joblib import Parallel, delayed
 import datetime
 import glob
+import mdaio
 import os
 import multiprocessing
 import shutil
@@ -177,7 +178,6 @@ def call_post_sorting_for_session_type(recording_to_sort, session_type, tags):
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                         paired_recordings_to_sort, paired_session_types,
                                         stitch_points, tags):
-
     recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points)
 
     call_post_sorting_for_session_type(recording_to_sort, session_type, tags)
@@ -194,6 +194,13 @@ def copy_paired_outputs_to_server(paired_recordings_to_sort):
         server_loc = get_location_on_server(paired_recordings_to_sort)
         copy_output_to_server(paired_recordings_to_sort, server_loc)
         shutil.rmtree(paired_recordings_to_sort)
+
+
+def check_if_curated_data_is_available(recording_to_sort):
+    it_was_curated = False
+    if os.path.exists(recording_to_sort + '/MountainSort/DataFrames/spatial_firing_curated.pkl'):
+        it_was_curated = True
+    return it_was_curated
 
 
 def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None):
@@ -225,13 +232,17 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         if not skip_sorting:
             pre_process_ephys_data.pre_process_data(recording_to_sort)
 
-            print('I finished pre-processing the first recording. I will call MountainSort now.')
-            os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
+            print('I finished pre-processing the first recording.')
+            manually_curated = check_if_curated_data_is_available(recording_to_sort)
+            if manually_curated:
+                pre_process_ephys_data.save_filtered_raw_mda(recording_to_sort)
+            else:
+                os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
+                print('I will call MountainSort now.')
+                subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
+                os.remove('/home/nolanlab/to_sort/run_sorting.sh')
 
-            subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
-            os.remove('/home/nolanlab/to_sort/run_sorting.sh')
-
-            print('MS is done')
+                print('MS is done')
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
@@ -321,11 +332,15 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         Parallel(n_jobs=num_cores)(delayed(copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
 
         spatial_firing_path = path_server + '/MountainSort/DataFrames/spatial_firing.pkl'
+        spatial_firing_curated_path = path_server + '/MountainSort/DataFrames/spatial_firing_curated.pkl'
         if os.path.isfile(spatial_firing_path) is True:
             if not os.path.isdir(path_local + '/MountainSort/DataFrames/'):
                 os.makedirs(path_local + '/MountainSort/DataFrames/')
             shutil.copy(spatial_firing_path, path_local + '/MountainSort/DataFrames/spatial_firing.pkl')
-        print('Copying is done, I will attempt to sort.')
+            if os.path.isfile(spatial_firing_curated_path) is True:
+                shutil.copy(spatial_firing_curated_path, path_local + '/MountainSort/DataFrames/spatial_firing_curated.pkl')
+
+        print('Copying is done.')
 
     except Exception as ex:
         recording_to_sort = False
