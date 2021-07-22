@@ -148,7 +148,7 @@ def copy_recordings_to_local(recording_local, recording_server):
             copy_recording_to_sort_to_local(path_server, path_local)
 
 
-def make_combined_spatial_firing_df(recording_local, paired_recordings):
+def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_points):
     df_path = '/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing_combined = pd.DataFrame()
     spatial_firing = pd.read_pickle(recording_local + df_path)
@@ -156,11 +156,12 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings):
     combined_firing_times = []
     for cluster_index, cluster in spatial_firing.iterrows():
         firing_times_cluster = cluster.firing_times.tolist()
-        for paired_recording in paired_recordings:
+        for index, paired_recording in enumerate(paired_recordings):
             # concatenate firing times from paired recordings to cluster
             paired_df = paired_recording + df_path
             spatial_firing_paired = pd.read_pickle(paired_df)
             paired_cluster_times = spatial_firing_paired[spatial_firing_paired.cluster_id == cluster.cluster_id].firing_times
+            paired_cluster_times += stitch_points[index]
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
                 firing_times_cluster.extend(paired_cluster_times_list)
@@ -176,7 +177,7 @@ def pre_process_recording_for_manual_curation(recording_server, recording_local)
     # this will concatenate all the recordings that were copied
     recording_local, stitch_points = pre_process_ephys_data.stitch_recordings(recording_local, paired_recordings)
     np.savetxt(recording_local + '/stitch_points.csv', stitch_points, delimiter=',')   # test
-    make_combined_spatial_firing_df(recording_local, paired_recordings)
+    make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_points)
     # call phy for the combined data
     make_phy_input_for_recording(recording_local)
 
