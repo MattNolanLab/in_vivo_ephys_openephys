@@ -87,7 +87,7 @@ def find_primary_channel_for_each_cluster(recording_local, spatial_firing, num_c
     ephys_data_flat = np.fromfile(recording_local + '/MountainSort/phy/recording.dat')
     ephys_data = [ephys_data_flat[idx::num_channels] for idx in range(num_channels)]
     for cluster_id, cluster in spatial_firing.iterrows():
-        random_firing_times = np.random.choice(cluster.firing_times, size=500, replace=True)
+        random_firing_times = np.random.choice(cluster.firing_times.flatten(), size=500, replace=True)
         highest_ch = 0
         highest_amp = 0
         for ch in range(num_channels):
