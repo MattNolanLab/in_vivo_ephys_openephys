@@ -102,8 +102,8 @@ def plot_stops_on_track(processed_position_data, output_path, track_length=200):
 
         ax.plot(np.array(trial_row["stop_location_cm"].iloc[0]), trial_number*np.ones(len(trial_row["stop_location_cm"].iloc[0])), 'o', color=trial_stop_color, markersize=4)
 
-    plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    plt.ylabel('Stops on trials', fontsize=20, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
     plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -144,8 +144,8 @@ def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     if len(probe_trials)>0:
         ax.plot(bin_centres, probe_stop_hist/len(probe_trials), '-', color='Blue')
 
-    plt.ylabel('Stops/Trial', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    plt.ylabel('Stops/Trial', fontsize=20, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
     plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -176,8 +176,8 @@ def plot_speed_per_trial(processed_position_data, output_path, track_length=200)
     c = ax.imshow(trial_speeds, interpolation='none', cmap=cmap, vmin=0, vmax=60)
     clb = fig.colorbar(c, ax=ax, shrink=0.5)
     clb.mappable.set_clim(0, 60)
-    plt.ylabel('Trial Number', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    plt.ylabel('Trial Number', fontsize=20, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
     plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -207,8 +207,8 @@ def plot_speed_histogram(processed_position_data, output_path, track_length=200)
     if len(trial_averaged_probe_speeds)>0:
         ax.plot(bin_centres, trial_averaged_probe_speeds, '-', color='Blue')
 
-    plt.ylabel('Speed (cm/s)', fontsize=12, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+    plt.ylabel('Speed (cm/s)', fontsize=20, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
     plt.xlim(0,track_length)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -257,8 +257,8 @@ def plot_spikes_on_track(spike_data, processed_position_data, output_path, track
             if "probe" in plot_trials:
                 ax.plot(cluster_spike_data.iloc[0].probe_position_cm, cluster_spike_data.iloc[0].probe_trial_number, '|', color='Blue', markersize=4)
 
-            plt.ylabel('Spikes on trials', fontsize=12, labelpad = 10)
-            plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+            plt.ylabel('Spikes on trials', fontsize=20, labelpad = 10)
+            plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
             plt.xlim(0,track_length)
             ax.yaxis.set_ticks_position('left')
             ax.xaxis.set_ticks_position('bottom')
@@ -328,8 +328,8 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
         if track_length == 200:
             ax.locator_params(axis = 'x', nbins=3)
             ax.set_xticklabels(['0', '100', '200'])
-        plt.ylabel('Spike rate (hz)', fontsize=14, labelpad = 10)
-        plt.xlabel('Location (cm)', fontsize=14, labelpad = 10)
+        plt.ylabel('Spike rate (hz)', fontsize=20, labelpad = 10)
+        plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
         plt.xlim(0,track_length)
         x_max = np.nanmax(avg_beaconed_spike_rate)
         if len(avg_nonbeaconed_spike_rate)>0:
@@ -361,8 +361,8 @@ def plot_convolved_rates_in_time(spike_data, prm):
         speed = spike_data.loc[cluster_index].speed_rate_in_time
         x_max= np.max(firing_rate)
         ax.plot(firing_rate, speed, '|', color='Black', markersize=4)
-        plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
-        plt.xlabel('Speed (cm/sec)', fontsize=12, labelpad = 10)
+        plt.ylabel('Firing rate (Hz)', fontsize=20, labelpad = 10)
+        plt.xlabel('Speed (cm/sec)', fontsize=20, labelpad = 10)
         #plt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
@@ -380,8 +380,8 @@ def plot_convolved_rates_in_time(spike_data, prm):
         ax = spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         position = spike_data.loc[cluster_index].position_rate_in_time
         ax.plot(firing_rate, position, '|', color='Black', markersize=4)
-        plt.ylabel('Firing rate (Hz)', fontsize=12, labelpad = 10)
-        plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
+        plt.ylabel('Firing rate (Hz)', fontsize=20, labelpad = 10)
+        plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
         # ]polt.xlim(0,200)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
