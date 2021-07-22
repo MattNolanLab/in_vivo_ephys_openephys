@@ -41,7 +41,7 @@ def get_spatial_firing_for_stitch_points(spatial_firing_combined, stitch_point_1
         bigger_than_previous_stitch = firing_times_all > stitch_point_1
         smaller_than_next_stitch = firing_times_all < stitch_point_2
         in_between = bigger_than_previous_stitch & smaller_than_next_stitch
-        firing_times.append(firing_times_all[in_between])
+        firing_times.append(firing_times_all[in_between] - stitch_point_1)
     spatial_firing['cluster_id'] = spatial_firing_combined.cluster_id
     spatial_firing['manual_cluster_group'] = spatial_firing_combined.manual_cluster_group
     spatial_firing['firing_times'] = firing_times
@@ -108,7 +108,7 @@ def post_process_manually_curated_data(recording_server, recording_local):
     spatial_firing_combined['manual_cluster_group'] = cluster_group.group
     spatial_firing_combined = find_primary_channel_for_each_cluster(recording_local, spatial_firing_combined)
     split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points)
-    shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
+    #shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
 
 
 def main():
