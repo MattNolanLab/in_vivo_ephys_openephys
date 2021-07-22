@@ -45,11 +45,12 @@ def get_spatial_firing_for_stitch_points(spatial_firing_combined, stitch_point_1
     spatial_firing['cluster_id'] = spatial_firing_combined.cluster_id
     spatial_firing['manual_cluster_group'] = spatial_firing_combined.manual_cluster_group
     spatial_firing['firing_times'] = firing_times
+    spatial_firing['primary_channel'] = spatial_firing_combined.primary_channel
     return spatial_firing
 
 
 def save_data_for_recording(spatial_firing, recording_path, beginning_of_server_path):
-    spatial_firing['session_id'] = recording_path.split('/')[-1]
+    spatial_firing['session_id'] = recording_path.split('/')[-2]
     good_clusters = spatial_firing[spatial_firing.manual_cluster_group == 'good']
     noise_clusters = spatial_firing[spatial_firing.manual_cluster_group != 'good']
     good_clusters.to_pickle(
@@ -95,7 +96,7 @@ def find_primary_channel_for_each_cluster(recording_local, spatial_firing, num_c
             if sum_amplitude > highest_amp:
                 highest_ch = ch
                 highest_amp = sum_amplitude
-        primary_channels.append(highest_ch)
+        primary_channels.append(highest_ch + 1)
     spatial_firing['primary_channel'] = primary_channels
     return spatial_firing
 
