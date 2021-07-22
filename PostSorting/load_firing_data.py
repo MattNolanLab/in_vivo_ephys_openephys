@@ -79,6 +79,13 @@ def add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster,
     return firing_data
 
 
+def convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood):
+    channel_detected = firing_data.primary_channel
+    primary_ch = ((channel_detected - 1) % number_of_channels_neighborhood + 1).values
+    firing_data['primary_channel'] = primary_ch
+    return firing_data
+
+
 def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=None, number_of_channels_neighborhood=4):
     """
     :param recording_to_process: path to the folder with the recording data
@@ -93,6 +100,7 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     if isinstance(spatial_firing, pd.DataFrame):
         firing_data = spatial_firing[['session_id', 'cluster_id', 'primary_channel', 'firing_times']].copy()
         firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
+        firing_data = convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood)
         if opto_tagging_start_index is not None:
             firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
         return firing_data
@@ -100,10 +108,10 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     firing_times = firing_info[1]
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, dead_channels)
-    firing_data = data_frame_utility.df_empty(['cluster_id', 'primary_channel', 'firing_times'], dtypes=[str, np.uint8, np.uint8, np.uint64])
+    firing_data = data_frame_utility.df_empty(['cluster_id', 'primary_channel', 'firing_times'], dtypes=[np.uint8, np.uint8, np.uint64])
+    firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
     for cluster in units_list:
         firing_data = add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster, primary_channel, number_of_channels_neighborhood)
-    firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
     if opto_tagging_start_index is not None:
         firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
     firing_data['session_id'] = recording_to_process.split('/')[-1]
