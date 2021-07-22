@@ -265,7 +265,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         shutil.rmtree(recording_to_sort)
 
         if not skip_sorting:
-            shutil.rmtree(mountainsort_tmp_folder)
+            if os.path.exists(mountainsort_tmp_folder):
+                shutil.rmtree(mountainsort_tmp_folder)
     
     except Exception as ex:
         print('There is a problem with this file. '
