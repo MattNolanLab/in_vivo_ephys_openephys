@@ -1,8 +1,10 @@
+import control_sorting_analysis
 import os
 import json
 import pandas as pd
 
 ignore_curation = False
+
 
 def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
     isolations = []
@@ -42,28 +44,32 @@ def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_
 
 
 def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
-    if 'isolation' in spike_data_frame:
-        noisy_cluster = pd.DataFrame()
-        noisy_cluster['this is empty'] = 'Noisy clusters were not reloaded. Sort again if you need them.'
-        return spike_data_frame, noisy_cluster
-    spike_data_frame = load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path)
-    isolation_threshold = 0.9
-    noise_overlap_threshold = 0.05
-    peak_snr_threshold = 1
-    firing_rate_threshold = 0
+    manually_curated = control_sorting_analysis.check_if_curated_data_is_available(local_recording_folder_path)
+    if manually_curated:
+        return spike_data_frame, pd.DataFrame()
+    else:
+        if 'isolation' in spike_data_frame:
+            noisy_cluster = pd.DataFrame()
+            noisy_cluster['this is empty'] = 'Noisy clusters were not reloaded. Sort again if you need them.'
+            return spike_data_frame, noisy_cluster
+        spike_data_frame = load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path)
+        isolation_threshold = 0.9
+        noise_overlap_threshold = 0.05
+        peak_snr_threshold = 1
+        firing_rate_threshold = 0
 
-    isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
-    low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
-    high_peak_snr = spike_data_frame['peak_snr'] > peak_snr_threshold
-    high_mean_firing_rate = spike_data_frame['mean_firing_rate'] > firing_rate_threshold
+        isolated_cluster = spike_data_frame['isolation'] > isolation_threshold
+        low_noise_cluster = spike_data_frame['noise_overlap'] < noise_overlap_threshold
+        high_peak_snr = spike_data_frame['peak_snr'] > peak_snr_threshold
+        high_mean_firing_rate = spike_data_frame['mean_firing_rate'] > firing_rate_threshold
 
-    good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
-    noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
+        good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
+        noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
 
-    if ignore_curation:
-        good_cluster['Curated']=True
-        noisy_cluster['Curated']=False
-        return pd.concat([good_cluster, noisy_cluster]), pd.DataFrame()
+        if ignore_curation:
+            good_cluster['Curated']=True
+            noisy_cluster['Curated']=False
+            return pd.concat([good_cluster, noisy_cluster]), pd.DataFrame()
 
     return good_cluster, noisy_cluster
 
