@@ -80,7 +80,7 @@ def add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster,
 
 def convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood):
     channel_detected = firing_data.primary_channel
-    primary_ch = ((channel_detected - 1) % number_of_channels_neighborhood + 1).values
+    primary_ch = ((channel_detected - 1) % number_of_channels_neighborhood + 1).values.astype('int32')
     firing_data['primary_channel'] = primary_ch
     return firing_data
 
