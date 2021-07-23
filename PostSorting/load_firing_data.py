@@ -67,13 +67,12 @@ def move_opto_firings_to_separate_column(firings, opto_tagging_start_index):
     return firings
 
 
-def add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster, primary_channel, number_of_channels_neighborhood):
+def add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster, primary_channel):
     cluster_firings_all = firing_times[cluster_ids == cluster]
     channel_detected = primary_channel[cluster_ids == cluster][0]
-    ch = int((channel_detected - 1) % number_of_channels_neighborhood + 1)
     firing_data = firing_data.append({
         "cluster_id": int(cluster),
-        "primary_channel": ch,
+        "primary_channel": channel_detected,
         "firing_times": cluster_firings_all,
     }, ignore_index=True)
     return firing_data
@@ -109,12 +108,13 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     primary_channel = firing_info[0]
     primary_channel = correct_for_dead_channels(primary_channel, dead_channels)
     firing_data = data_frame_utility.df_empty(['cluster_id', 'primary_channel', 'firing_times'], dtypes=[np.uint8, np.uint8, np.uint64])
-    firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
     for cluster in units_list:
-        firing_data = add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster, primary_channel, number_of_channels_neighborhood)
+        firing_data = add_firing_data_for_cluster(firing_data, firing_times, cluster_ids, cluster, primary_channel)
     if opto_tagging_start_index is not None:
         firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
     firing_data['session_id'] = recording_to_process.split('/')[-1]
+    firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
+    firing_data = convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood)
     return firing_data
 
 
