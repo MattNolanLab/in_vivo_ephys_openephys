@@ -160,7 +160,8 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             # concatenate firing times from paired recordings to cluster
             paired_df = paired_recording + df_path
             spatial_firing_paired = pd.read_pickle(paired_df)
-            paired_cluster_times = spatial_firing_paired[spatial_firing_paired.cluster_id == cluster.cluster_id].firing_times
+            # todo TMP FIX, CLUSTER ID MISMATCH NEEDS TOBE FIXED IN PIPELINE
+            paired_cluster_times = spatial_firing_paired[spatial_firing_paired.cluster_id - 1 == cluster.cluster_id].firing_times
             paired_cluster_times += stitch_points[index]
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
