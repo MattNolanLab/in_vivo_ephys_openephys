@@ -72,7 +72,7 @@ def split_and_save_on_server(recording_local, recording_server, spatial_firing_c
         stitch_point_1 = stitch_points.iloc[recording_index][0]
         stitch_point_2 = stitch_points.iloc[recording_index + 1][0]
         spatial_firing = get_spatial_firing_for_stitch_points(spatial_firing_combined, stitch_point_1, stitch_point_2)
-        save_data_for_recording(spatial_firing, paired_recording, beginning_of_server_path)
+        save_data_for_recording(spatial_firing, paired_recording + '/', beginning_of_server_path)
 
 
 def get_sum_of_waveforms_for_channel(ch, ephys_data, times):
