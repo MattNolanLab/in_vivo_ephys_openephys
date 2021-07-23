@@ -108,7 +108,7 @@ def post_process_manually_curated_data(recording_server, recording_local):
     spatial_firing_combined['manual_cluster_group'] = cluster_group.group
     spatial_firing_combined = find_primary_channel_for_each_cluster(recording_local, spatial_firing_combined)
     split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points)
-    #shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
+    shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
 
 
 def main():
