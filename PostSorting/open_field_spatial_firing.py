@@ -18,6 +18,7 @@ def find_firing_location_indices(spike_data, spatial_data):
         cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
         bonsai_indices_cluster = cluster_df.bonsai_indices.iloc[0]
         bonsai_indices_cluster_round = bonsai_indices_cluster.round(0)
+        bonsai_indices_cluster_round = bonsai_indices_cluster_round[bonsai_indices_cluster_round<len(spatial_data.position_x)]
         spatial_firing = spatial_firing.append({
             "position_x": list(spatial_data.position_x[bonsai_indices_cluster_round]),
             "position_x_pixels": list(spatial_data.position_x_pixels[bonsai_indices_cluster_round]),
