@@ -2,7 +2,15 @@ import pandas as pd
 
 
 def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000):
-    # this is needed when multiple recordings are stitched together for sorting
+    #remove firing times outside synced time
+    clipped_firing_times = []
+    for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
+        cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
+        firing_times = cluster_df["firing_times"].iloc[0]
+        firing_times = firing_times[firing_times/sampling_rate_ephys < spatial_data['synced_time'].max()]
+        clipped_firing_times.append(firing_times)
+    spike_data["firing_times"] = clipped_firing_times
+
     firing_times = spike_data.firing_times
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     sampling_rate_rate = sampling_rate_ephys / avg_sampling_rate_bonsai
@@ -18,7 +26,6 @@ def find_firing_location_indices(spike_data, spatial_data):
         cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
         bonsai_indices_cluster = cluster_df.bonsai_indices.iloc[0]
         bonsai_indices_cluster_round = bonsai_indices_cluster.round(0)
-        bonsai_indices_cluster_round = bonsai_indices_cluster_round[bonsai_indices_cluster_round<len(spatial_data.position_x)]
         spatial_firing = spatial_firing.append({
             "position_x": list(spatial_data.position_x[bonsai_indices_cluster_round]),
             "position_x_pixels": list(spatial_data.position_x_pixels[bonsai_indices_cluster_round]),
