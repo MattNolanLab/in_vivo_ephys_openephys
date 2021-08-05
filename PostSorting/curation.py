@@ -25,11 +25,11 @@ def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_
         with open(path_to_metrics) as metrics_file:
             cluster_metrics = json.load(metrics_file)
             metrics_file.close()
-        for cluster in range(len(spike_data_frame)):
-            isolation = cluster_metrics["clusters"][cluster]["metrics"]["isolation"]
-            noise_overlap = cluster_metrics["clusters"][cluster]["metrics"]["noise_overlap"]
-            peak_snr = cluster_metrics["clusters"][cluster]["metrics"]["peak_snr"]
-            peak_amp = cluster_metrics["clusters"][cluster]["metrics"]["peak_amp"]
+        for cluster_index, cluster in spike_data_frame.iterrows():
+            isolation = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["isolation"]
+            noise_overlap = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["noise_overlap"]
+            peak_snr = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["peak_snr"]
+            peak_amp = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["peak_amp"]
 
             isolations.append(isolation)
             noise_overlaps.append(noise_overlap)
