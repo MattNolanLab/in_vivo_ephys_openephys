@@ -4,7 +4,7 @@ Manual curation of the automated spikes sorter's output is sometimes required. A
 
 You can use the pipeline to curate data by executing these steps:
 - run pipeline
-- edit settings for in manual_curation_settings.py to choose a recording you want to curate
+- edit settings for in manual_curation_settings.py to choose a recording you want to curate _(make sure to deploy if you're using a remote env but don't commit)_
 - run manual_curation_pre_proces.py
 - open spike sorting results in phy (made by the pre-processing script)
 - curate in phy
