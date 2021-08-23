@@ -75,6 +75,9 @@ It's possible to open combined phy files and they look okay:
 ![image](https://user-images.githubusercontent.com/16649631/127920932-6592dea8-30d8-4dbe-9aef-1a3e550b3a7e.png)
 
 ## Manual curation in phy
+The pre-processing script made input files for phy on Eleanor. You can find them here:
+![image](https://user-images.githubusercontent.com/16649631/130420124-af030873-558c-43b5-b70d-c3db78f211ad.png)
+
 
 Read these instructions, because the default views are unusable for our data and it explains how to do manual curation: [https://phy.readthedocs.io/en/latest/clustering/](https://phy.readthedocs.io/en/latest/clustering/)
 
