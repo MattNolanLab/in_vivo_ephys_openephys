@@ -39,7 +39,7 @@ def generate_shuffled_times(cluster_firing, n_shuffles):
 
         shuffled_firing_times = firing_times + random_firing_additions
         recording_length = int(cluster_firing["recording_length_sampling_points"].iloc[0])
-        shuffled_firing_times[shuffled_firing_times > recording_length] = shuffled_firing_times[shuffled_firing_times > recording_length] - recording_length # wrap around the firing times that exceed the length of the recording
+        shuffled_firing_times[shuffled_firing_times >= recording_length] = shuffled_firing_times[shuffled_firing_times >= recording_length] - recording_length # wrap around the firing times that exceed the length of the recording
         shuffle["firing_times"] = [shuffled_firing_times]
 
         shuffle_firing = pd.concat([shuffle_firing, shuffle], ignore_index=True)
@@ -103,9 +103,13 @@ def main():
 
     #========================FOR RUNNING ON FROM TERMINAL=====================================#
     #=========================================================================================#
-    recording_path = os.environ['RECORDING_PATH']
-    n_shuffles = int(os.environ['SHUFFLE_NUMBER'])
-    cluster_id = int(os.environ["CLUSTER_ID"])
+    #recording_path = os.environ['RECORDING_PATH']
+    #n_shuffles = int(os.environ['SHUFFLE_NUMBER'])
+    #cluster_id = int(os.environ["CLUSTER_ID"])
+
+    recording_path = "/mnt/datastore/Sarah/Data/OptoEphys_in_VR/Data/OpenEphys/_cohort5/OpenField/M2_D5_2019-06-21_14-57-20"
+    n_shuffles = 1000
+    cluster_id = 8
     one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles)
     #=========================================================================================#
     #=========================================================================================#
