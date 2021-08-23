@@ -2,19 +2,26 @@ import pandas as pd
 
 
 def calculate_corresponding_indices(spike_data, spatial_data, sampling_rate_ephys=30000):
+    avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
+    sampling_rate_rate = sampling_rate_ephys / avg_sampling_rate_bonsai
+
     #remove firing times outside synced time
     clipped_firing_times = []
+    bonsai_indices_clusters = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
         firing_times = cluster_df["firing_times"].iloc[0]
         firing_times = firing_times[firing_times/sampling_rate_ephys < spatial_data['synced_time'].max()]
-        clipped_firing_times.append(firing_times)
-    spike_data["firing_times"] = clipped_firing_times
+        bonsai_indices = firing_times/sampling_rate_rate
 
-    firing_times = spike_data.firing_times
-    avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
-    sampling_rate_rate = sampling_rate_ephys / avg_sampling_rate_bonsai
-    spike_data['bonsai_indices'] = firing_times / sampling_rate_rate
+        #filter the firing times to remove spikes within the rounding error of the bonsai indexing
+        firing_times = firing_times[bonsai_indices.round(0) < len(spatial_data)]
+        bonsai_indices = firing_times/sampling_rate_rate
+        clipped_firing_times.append(firing_times)
+        bonsai_indices_clusters.append(bonsai_indices)
+
+    spike_data["firing_times"] = clipped_firing_times
+    spike_data['bonsai_indices'] = bonsai_indices_clusters
     return spike_data
 
 
