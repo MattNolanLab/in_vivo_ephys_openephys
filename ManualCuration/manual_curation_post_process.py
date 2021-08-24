@@ -54,10 +54,10 @@ def save_data_for_recording(spatial_firing, recording_path, beginning_of_server_
     good_clusters = spatial_firing[spatial_firing.manual_cluster_group == 'good']
     noise_clusters = spatial_firing[spatial_firing.manual_cluster_group != 'good']
     good_clusters.to_pickle(
-        beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_curated.pkl')
+        beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_manually_curated.pkl')
     noise_clusters.to_pickle(
-        beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_curated_noise.pkl')
-    print('The curated data is saved here: ' + beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_curated.pkl')
+        beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_manually_curated_noise.pkl')
+    print('The curated data is saved here: ' + beginning_of_server_path + recording_path + '/MountainSort/DataFrames/spatial_firing_manually_curated.pkl')
 
 
 def split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points):
