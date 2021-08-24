@@ -195,7 +195,7 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
                 firing_times_cluster.extend(paired_cluster_times_list)
-        combined_firing_times.append(firing_times_cluster)
+        combined_firing_times.append(firing_times_cluster[0])
         cluster_ids_combined.append(cluster_index)
 
     spatial_firing_combined['cluster_id'] = cluster_ids_combined
