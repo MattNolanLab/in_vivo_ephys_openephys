@@ -148,12 +148,25 @@ def copy_recordings_to_local(recording_local, recording_server):
             copy_recording_to_sort_to_local(path_server, path_local)
 
 
+def add_clusters_that_are_only_in_the_paired_recording(combined_firing_times, cluster_ids_combined, spatial_firing, spatial_firing_paired, stitchpoint):
+    clusters_only_in_paired = np.setdiff1d(spatial_firing_paired.cluster_id, spatial_firing.cluster_id).tolist()
+    clusters_not_added_to_combined_list = np.setdiff1d(clusters_only_in_paired, cluster_ids_combined).tolist()
+    if len(clusters_not_added_to_combined_list) > 0:
+        for missing_cluster in clusters_only_in_paired:
+            paired_cluster_times = spatial_firing_paired[spatial_firing_paired.cluster_id == missing_cluster].firing_times
+            paired_cluster_times += stitchpoint
+            combined_firing_times.append(paired_cluster_times.values[0].tolist())
+            cluster_ids_combined.append(missing_cluster)
+    return combined_firing_times, cluster_ids_combined
+
+
 def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_points):
     df_path = '/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing_combined = pd.DataFrame()
     spatial_firing = pd.read_pickle(recording_local + df_path)
     spatial_firing = spatial_firing[['cluster_id', 'firing_times']]  # only keep the columns we need
     combined_firing_times = []
+    cluster_ids_combined = []
     for cluster_index, cluster in spatial_firing.iterrows():
         firing_times_cluster = cluster.firing_times.tolist()
         for index, paired_recording in enumerate(paired_recordings):
@@ -165,8 +178,16 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
                 firing_times_cluster.extend(paired_cluster_times_list)
+            combined_firing_times, cluster_ids_combined = add_clusters_that_are_only_in_the_paired_recording(combined_firing_times,
+                                                                                                             cluster_ids_combined,
+                                                                                                             spatial_firing,
+                                                                                                             spatial_firing_paired,
+                                                                                                             stitch_points[index])
+
         combined_firing_times.append(firing_times_cluster)
-    spatial_firing_combined['cluster_id'] = spatial_firing.cluster_id.values
+        cluster_ids_combined.append(cluster.cluster_id)
+
+    spatial_firing_combined['cluster_id'] = cluster_ids_combined
     spatial_firing_combined['firing_times'] = combined_firing_times
     spatial_firing_combined.to_pickle(recording_local + '/MountainSort/DataFrames/spatial_firing_manual.pkl')
 
