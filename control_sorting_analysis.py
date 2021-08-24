@@ -198,7 +198,7 @@ def copy_paired_outputs_to_server(paired_recordings_to_sort):
 
 def check_if_curated_data_is_available(recording_to_sort):
     it_was_curated = False
-    if os.path.exists(recording_to_sort + '/MountainSort/DataFrames/spatial_firing_curated.pkl'):
+    if os.path.exists(recording_to_sort + '/MountainSort/DataFrames/spatial_firing_manually_curated.pkl'):
         it_was_curated = True
     return it_was_curated
 
@@ -333,13 +333,13 @@ def copy_recording_to_sort_to_local(recording_to_sort):
         Parallel(n_jobs=num_cores)(delayed(copy_file)(filename, path_local) for filename in glob.glob(os.path.join(path_server, '*.*')))
 
         spatial_firing_path = path_server + '/MountainSort/DataFrames/spatial_firing.pkl'
-        spatial_firing_curated_path = path_server + '/MountainSort/DataFrames/spatial_firing_curated.pkl'
+        spatial_firing_curated_path = path_server + '/MountainSort/DataFrames/spatial_firing_manually_curated.pkl'
         if os.path.isfile(spatial_firing_path) is True:
             if not os.path.isdir(path_local + '/MountainSort/DataFrames/'):
                 os.makedirs(path_local + '/MountainSort/DataFrames/')
             shutil.copy(spatial_firing_path, path_local + '/MountainSort/DataFrames/spatial_firing.pkl')
             if os.path.isfile(spatial_firing_curated_path) is True:
-                shutil.copy(spatial_firing_curated_path, path_local + '/MountainSort/DataFrames/spatial_firing_curated.pkl')
+                shutil.copy(spatial_firing_curated_path, path_local + '/MountainSort/DataFrames/spatial_firing_manually_curated.pkl')
 
         print('Copying is done.')
 
