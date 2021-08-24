@@ -17,7 +17,7 @@ def get_firing_info(file_path, sorter_name):
         units_list = np.unique(firing_info[2])
     else:
         print('I could not find the MountainSort output [firing.mda] file. I will check if the data was sorted earlier.')
-        spatial_firing_path = file_path + '/MountainSort/DataFrames/spatial_firing_curated.pkl'
+        spatial_firing_path = file_path + '/MountainSort/DataFrames/spatial_firing_manually_curated.pkl'
         if os.path.exists(spatial_firing_path):
             print('There are manually curated results for the recording. I will use these.')
             spatial_firing = pd.read_pickle(spatial_firing_path)
