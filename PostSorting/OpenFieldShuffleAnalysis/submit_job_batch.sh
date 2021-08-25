@@ -1,6 +1,6 @@
 #!/bin/sh
 #$ -cwd
-#$ -l h_rt=01:00:00
+#$ -l h_rt=00:25:00
 #$ -l h_vmem=10G
 #$ -pe sharedmem 1
 #$ -P sbms_kg_grid_modelling
