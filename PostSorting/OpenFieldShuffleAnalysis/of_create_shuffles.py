@@ -4,7 +4,8 @@ import sys
 import os
 import pandas as pd
 
-recording_folder_to_process = sys.argv[1] # something like /mnt/datastore/Harry/test_recordings or /mnt/datastore/Harry/Cohort7_october2020/of
+recording_folder_to_process = os.environ['RECORDING_FOLDER_TO_PROCESS']
+#recording_folder_to_process = sys.argv[1] # something like /mnt/datastore/Harry/test_recordings or /mnt/datastore/Harry/Cohort7_october2020/of
 
 N_SHUFFLES = 1000
 local_scratch_path = '/exports/eddie/scratch/s1228823/recordings'
