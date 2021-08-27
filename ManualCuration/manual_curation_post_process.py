@@ -11,6 +11,7 @@ def load_phy_output(recording_local):
     spike_times = np.load(path_to_phy_output + 'spike_times.npy')
     spike_clusters = np.load(path_to_phy_output + 'spike_clusters.npy')
     cluster_group = pd.read_csv(path_to_phy_output + 'cluster_group.tsv', sep="\t")
+    cluster_info = pd.read_csv(path_to_phy_output + 'cluster_info.tsv', sep="\t")
     print('Clusters loaded:')
     print(cluster_group)
     if cluster_group.group.str.contains('unsorted').sum() > 0:
@@ -18,7 +19,7 @@ def load_phy_output(recording_local):
               'You should mark each cluster as good, noise or MUA during curation. You should be running this script '
               'after doing the manual curation in phy. '
               'https://phy.readthedocs.io/en/latest/clustering/')
-    return spike_times, spike_clusters, cluster_group
+    return spike_times, spike_clusters, cluster_group, cluster_info
 
 
 def split_spike_times_for_clusters(spike_times, spike_clusters):
@@ -75,38 +76,18 @@ def split_and_save_on_server(recording_local, recording_server, spatial_firing_c
         save_data_for_recording(spatial_firing, paired_recording + '/', beginning_of_server_path)
 
 
-def get_sum_of_waveforms_for_channel(ch, ephys_data, times):
-    sum_amp = 0
-    for time in range(len(times)):
-        wave = ephys_data[ch][times[time] - 15:times[time] + 15]
-        sum_amp += np.sum(np.abs(wave))
-    return sum_amp
-
-
-def find_primary_channel_for_each_cluster(recording_local, spatial_firing, num_channels=16):
-    primary_channels = []
-    ephys_data_flat = np.fromfile(recording_local + '/MountainSort/phy/recording.dat')
-    ephys_data = [ephys_data_flat[idx::num_channels] for idx in range(num_channels)]
-    for cluster_id, cluster in spatial_firing.iterrows():
-        random_firing_times = np.random.choice(cluster.firing_times.flatten(), size=500, replace=True)
-        highest_ch = 0
-        highest_amp = 0
-        for ch in range(num_channels):
-            sum_amplitude = get_sum_of_waveforms_for_channel(ch, ephys_data, random_firing_times)
-            if sum_amplitude > highest_amp:
-                highest_ch = ch
-                highest_amp = sum_amplitude
-        primary_channels.append(highest_ch + 1)
-    spatial_firing['primary_channel'] = primary_channels
-    return spatial_firing
+def add_primary_channel(spatial_firing_combined, cluster_info):
+    assert (spatial_firing_combined['cluster_id'].values != cluster_info.id.values).sum() == 0, 'The cluster ids do not match in the data frame and cluster_info.tsv'
+    spatial_firing_combined['primary_channel'] = cluster_info.ch + 1  # adding 1 to be consistent with other parts of the code
+    return spatial_firing_combined
 
 
 def post_process_manually_curated_data(recording_server, recording_local):
-    spike_times, spike_clusters, cluster_group = load_phy_output(recording_local)
+    spike_times, spike_clusters, cluster_group, cluster_info = load_phy_output(recording_local)
     stitch_points = pd.read_csv(recording_local + '/stitch_points.csv', header=None)
     spatial_firing_combined = split_spike_times_for_clusters(spike_times, spike_clusters)
     spatial_firing_combined['manual_cluster_group'] = cluster_group.group
-    spatial_firing_combined = find_primary_channel_for_each_cluster(recording_local, spatial_firing_combined)
+    spatial_firing_combined = add_primary_channel(spatial_firing_combined, cluster_info)
     split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points)
     shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
 
