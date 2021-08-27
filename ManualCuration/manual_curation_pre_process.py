@@ -150,18 +150,6 @@ def copy_recordings_to_local(recording_local, recording_server):
             copy_recording_to_sort_to_local(path_server, path_local)
 
 
-def add_clusters_that_are_only_in_the_paired_recording(combined_firing_times, cluster_ids_combined, spatial_firing, spatial_firing_paired, stitchpoint):
-    clusters_only_in_paired = np.setdiff1d(spatial_firing_paired.cluster_id, spatial_firing.cluster_id).tolist()
-    clusters_not_added_to_combined_list = np.setdiff1d(clusters_only_in_paired, cluster_ids_combined).tolist()
-    if len(clusters_not_added_to_combined_list) > 0:
-        for missing_cluster in clusters_only_in_paired:
-            paired_cluster_times = spatial_firing_paired[spatial_firing_paired.cluster_id == missing_cluster].firing_times
-            paired_cluster_times += stitchpoint
-            combined_firing_times.append(paired_cluster_times.values[0].tolist())
-            cluster_ids_combined.append(missing_cluster)
-    return combined_firing_times, cluster_ids_combined
-
-
 def get_list_of_clusters_across_all_recordings(recording_local, paired_recordings):
     df_path = '/MountainSort/DataFrames/spatial_firing.pkl'
 
@@ -187,7 +175,7 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
     cluster_ids_combined = []
     cluster_ids_all_recordings = get_list_of_clusters_across_all_recordings(recording_local, paired_recordings)
     for cluster_index in cluster_ids_all_recordings:
-        firing_times_cluster = spatial_firing[spatial_firing.cluster_id == cluster_index].firing_times.tolist()
+        firing_times_cluster = spatial_firing[spatial_firing.cluster_id == cluster_index].firing_times.tolist()[0].tolist()
         for index, paired_recording in enumerate(paired_recordings):
             # concatenate firing times from paired recordings to cluster
             paired_df = paired_recording + df_path
@@ -197,7 +185,7 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
                 firing_times_cluster.extend(paired_cluster_times_list)
-        combined_firing_times.append(firing_times_cluster[0])
+        combined_firing_times.append(firing_times_cluster)
         cluster_ids_combined.append(cluster_index)
 
     spatial_firing_combined['cluster_id'] = cluster_ids_combined
