@@ -67,22 +67,24 @@ def getDeadChannel(deadChannelFile):
     return deadChannels
 
 
-def shift_geometry_for_better_visualization(geom):
-    geom[:, 1] = geom[:, 1] + 200
-    geom[4:] = geom[4:] - 200
-    geom[8:] = geom[8:] - 200
-    geom[12:] = geom[12:] - 200
-    return geom
-
-
 def get_geom():
-    # tetrode_geom = '/home/ubuntu/to_sort/sorting_files/geom_all_tetrodes_original.csv'
-    # tetrode_geom = '/home/ubuntu/in_vivo_ephys_openephys/sorting_files/geom_all_tetrodes_original.csv'
-    tetrode_geom = ManualCuration.manual_curation_settings.get_tetrode_geom_file_path()
-    print('The code is assuming the tetrode geometry file is here: ' + tetrode_geom)
-    geom = pd.read_csv(tetrode_geom,header=None).values
-    # shift some channels a bit for better visualization in phy (still not perfect...)
-    geom = shift_geometry_for_better_visualization(geom)
+    geom = np.zeros((16, 2))
+    geom[0] = [0, 200]
+    geom[1] = [25, 200.1]
+    geom[2] = [25, 200.2]
+    geom[3] = [0, 200.3]
+    geom[4] = [0, 200.4]
+    geom[5] = [25, 200.5]
+    geom[6] = [25, 200.6]
+    geom[7] = [0, 200.7]
+    geom[8] = [0, 200.8]
+    geom[9] = [25, 200.9]
+    geom[10] = [25, 201]
+    geom[11] = [0, 201.1]
+    geom[12] = [0, 201.2]
+    geom[13] = [25, 201.3]
+    geom[14] = [25, 201.4]
+    geom[15] = [0, 201.5]
     return geom
 
 
