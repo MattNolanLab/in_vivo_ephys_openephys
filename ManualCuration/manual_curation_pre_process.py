@@ -166,11 +166,26 @@ def get_list_of_clusters_across_all_recordings(recording_local, paired_recording
     return all_unique_clusters
 
 
+def add_opto_times_to_list(spatial_firing, cluster_index, firing_times_cluster, stitchpoint=None):
+    opto_times = spatial_firing[spatial_firing.cluster_id == cluster_index].firing_times_opto
+    if len(opto_times) > 0:
+        opto_times = opto_times.tolist()[0].tolist()
+        if stitchpoint is not None:
+            opto_times += stitchpoint
+        firing_times_cluster.extend(opto_times)
+    return firing_times_cluster
+
+
 def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_points):
+    opto_session = False
     df_path = '/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing_combined = pd.DataFrame()
     spatial_firing = pd.read_pickle(recording_local + df_path)
-    spatial_firing = spatial_firing[['cluster_id', 'firing_times']]  # only keep the columns we need
+    if 'firing_times_opto' in spatial_firing:
+        spatial_firing = spatial_firing[['cluster_id', 'firing_times', 'firing_times_opto']]
+        opto_session = True
+    else:
+        spatial_firing = spatial_firing[['cluster_id', 'firing_times']]  # only keep the columns we need
     combined_firing_times = []
     cluster_ids_combined = []
     cluster_ids_all_recordings = get_list_of_clusters_across_all_recordings(recording_local, paired_recordings)
@@ -180,6 +195,8 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             firing_times_cluster = firing_times_cluster.tolist()[0].tolist()
         else:
             firing_times_cluster = []
+        if opto_session:
+            firing_times_cluster = add_opto_times_to_list(spatial_firing, cluster_index, firing_times_cluster)
         for index, paired_recording in enumerate(paired_recordings):
             # concatenate firing times from paired recordings to cluster
             paired_df = paired_recording + df_path
@@ -189,6 +206,8 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
                 firing_times_cluster.extend(paired_cluster_times_list)
+            if 'firing_times_opto' in paired_recording:
+                firing_times_cluster = add_opto_times_to_list(paired_recording, cluster_index, firing_times_cluster, stitchpoint=stitch_points[index])
         combined_firing_times.append(firing_times_cluster)
         cluster_ids_combined.append(cluster_index)
 
