@@ -175,7 +175,11 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
     cluster_ids_combined = []
     cluster_ids_all_recordings = get_list_of_clusters_across_all_recordings(recording_local, paired_recordings)
     for cluster_index in cluster_ids_all_recordings:
-        firing_times_cluster = spatial_firing[spatial_firing.cluster_id == cluster_index].firing_times.tolist()[0].tolist()
+        firing_times_cluster = spatial_firing[spatial_firing.cluster_id == cluster_index].firing_times
+        if len(firing_times_cluster) > 0:
+            firing_times_cluster = firing_times_cluster.tolist()[0].tolist()
+        else:
+            firing_times_cluster = []
         for index, paired_recording in enumerate(paired_recordings):
             # concatenate firing times from paired recordings to cluster
             paired_df = paired_recording + df_path
