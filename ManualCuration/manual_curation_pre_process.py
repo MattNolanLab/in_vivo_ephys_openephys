@@ -171,7 +171,7 @@ def add_opto_times_to_list(spatial_firing, cluster_index, firing_times_cluster, 
     if len(opto_times) > 0:
         opto_times = opto_times.tolist()[0].tolist()
         if stitchpoint is not None:
-            opto_times += stitchpoint
+            opto_times = [x + stitchpoint for x in opto_times]
         firing_times_cluster.extend(opto_times)
     return firing_times_cluster
 
@@ -206,8 +206,8 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
             if len(paired_cluster_times) > 0:
                 paired_cluster_times_list = paired_cluster_times.iloc[0].tolist()
                 firing_times_cluster.extend(paired_cluster_times_list)
-            if 'firing_times_opto' in paired_recording:
-                firing_times_cluster = add_opto_times_to_list(paired_recording, cluster_index, firing_times_cluster, stitchpoint=stitch_points[index])
+            if 'firing_times_opto' in spatial_firing_paired:
+                firing_times_cluster = add_opto_times_to_list(spatial_firing_paired, cluster_index, firing_times_cluster, stitchpoint=stitch_points[index])
         combined_firing_times.append(firing_times_cluster)
         cluster_ids_combined.append(cluster_index)
 
