@@ -216,6 +216,15 @@ def make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_p
     spatial_firing_combined.to_pickle(recording_local + '/MountainSort/DataFrames/spatial_firing_manual.pkl')
 
 
+def delete_unused_raw_data(paired_recordings):
+    for recording in paired_recordings:
+        files_in_directory = os.listdir(recording)
+        filtered_files = [file for file in files_in_directory if file.endswith(".continuous")]
+        for file in filtered_files:
+            path_to_file = os.path.join(recording, file)
+            os.remove(path_to_file)
+
+
 def pre_process_recording_for_manual_curation(recording_server, recording_local):
     copy_recordings_to_local(recording_local, recording_server)
     paired_recordings = get_list_of_paired_recordings_local(recording_local)
@@ -224,6 +233,7 @@ def pre_process_recording_for_manual_curation(recording_server, recording_local)
     np.savetxt(recording_local + '/stitch_points.csv', stitch_points, delimiter=',')   # test
     make_combined_spatial_firing_df(recording_local, paired_recordings, stitch_points)
     # call phy for the combined data
+    delete_unused_raw_data(paired_recordings)
     make_phy_input_for_recording(recording_local)
 
 

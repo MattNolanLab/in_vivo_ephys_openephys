@@ -82,6 +82,20 @@ def add_primary_channel(spatial_firing_combined, cluster_info):
     return spatial_firing_combined
 
 
+def delete_everything_in_folder(folder):
+    import os
+    import shutil
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+
 def post_process_manually_curated_data(recording_server, recording_local):
     spike_times, spike_clusters, cluster_group, cluster_info = load_phy_output(recording_local)
     stitch_points = pd.read_csv(recording_local + '/stitch_points.csv', header=None)
@@ -89,7 +103,8 @@ def post_process_manually_curated_data(recording_server, recording_local):
     spatial_firing_combined['manual_cluster_group'] = cluster_group.group
     spatial_firing_combined = add_primary_channel(spatial_firing_combined, cluster_info)
     split_and_save_on_server(recording_local, recording_server, spatial_firing_combined, stitch_points)
-    shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
+    delete_everything_in_folder('/'.join(recording_local.split('/')[:-1]))
+    # shutil.rmtree('/'.join(recording_local.split('/')[:-1]))
 
 
 def main():
