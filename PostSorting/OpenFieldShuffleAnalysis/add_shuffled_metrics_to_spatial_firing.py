@@ -1,6 +1,29 @@
 import pandas as pd
 import numpy as np
 import os
+import sys
+import traceback
+#import warnings
+#warnings.filterwarnings("ignore")
+
+def nan2val(scores, collumn):
+    scores_without_nans = []
+    for i in range(len(scores)):
+        if np.isnan(scores[i]):
+            if collumn == "speed_score":
+                scores[i] = 0
+            elif collumn == "hd_score":
+                scores[i] = 0
+            elif collumn == "rayleigh_score":
+                scores[i] = 1
+            elif collumn == "spatial_information_score":
+                scores[i] = 0
+            elif collumn == "grid_score":
+                scores[i] = 0
+            elif collumn == "border_score":
+                scores[i] = 0
+    return scores
+
 
 def add_shuffled_cutoffs(recordings_folder_to_process):
 
@@ -8,55 +31,85 @@ def add_shuffled_cutoffs(recordings_folder_to_process):
 
     for recording_path in recording_list:
         print("processing ", recording_path)
-        if os.path.isfile(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+
+        shuffle=pd.DataFrame()
+        if os.path.isdir(recording_path+r"/MountainSort/DataFrames/shuffles"):
+            shuffle_list = [f.path for f in os.scandir(recording_path+r"/MountainSort/DataFrames/shuffles") if f.is_file()]
+
+            # remove shuffle.pkl if one is found, this is a deprecated pkl.
+            if os.path.isfile(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+                shuffle_list.remove(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl")
+
+            for i in range(len(shuffle_list)):
+                cluster_shuffle = pd.read_pickle(shuffle_list[i])
+                shuffle = pd.concat([shuffle, cluster_shuffle], ignore_index=False)
             print("I have found a shuffled dataframe")
-            shuffle = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl")
-            spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
-            if len(spatial_firing)>0:
-                print("There are", int(len(shuffle)/len(spatial_firing)), "shuffles per cell")
+            if os.path.isfile(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl"):
+                spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
-                speed_threshold_poss = []
-                speed_threshold_negs = []
-                hd_thresholds = []
-                rayleigh_thresholds = []
-                spatial_thresholds = []
-                grid_thresholds = []
-                border_thresholds = []
+                if len(spatial_firing)>0:
+                    print("cluster IDs in shuffle df: ", np.unique(shuffle.cluster_id))
+                    print("cluster IDs in spatial df: ", np.unique(shuffle.cluster_id))
 
-                for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
-                    cluster_shuffle_df = shuffle[(shuffle.cluster_id == cluster_id)] # dataframe for that cluster
+                    print("There are", len(shuffle)/len(spatial_firing), "shuffles per cell")
 
-                    # calculate the 95th percentile threshold for individual clusters
-                    # calculations based on z values please see https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_probability/bs704_probability10.html
-                    adjusted_speed_threshold_pos = np.nanmean(cluster_shuffle_df["speed_score"]) + (np.nanstd(cluster_shuffle_df["speed_score"])*+1.960) # two tailed
-                    adjusted_speed_threshold_neg = np.nanmean(cluster_shuffle_df["speed_score"]) + (np.nanstd(cluster_shuffle_df["speed_score"])*-1.960) # two tailed
-                    adjusted_hd_threshold = np.nanmean(cluster_shuffle_df["hd_score"]) + (np.nanstd(cluster_shuffle_df["hd_score"])*1.645) # one tailed
-                    adjusted_rayleigh_threshold = np.nanmean(cluster_shuffle_df["rayleigh_score"]) + (np.nanstd(cluster_shuffle_df["rayleigh_score"])*-1.645) # one tailed
-                    adjusted_spatial_threshold = np.nanmean(cluster_shuffle_df["spatial_information_score"]) + (np.nanstd(cluster_shuffle_df["spatial_information_score"])*1.645) # one tailed
-                    adjusted_grid_threshold = np.nanmean(cluster_shuffle_df["grid_score"]) + (np.nanstd(cluster_shuffle_df["grid_score"])*1.645) # one tailed
-                    adjusted_border_threshold = np.nanmean(cluster_shuffle_df["border_score"]) + (np.nanstd(cluster_shuffle_df["border_score"])*1.645) # one tailed
+                    speed_threshold_poss = []
+                    speed_threshold_negs = []
+                    hd_thresholds = []
+                    rayleigh_thresholds = []
+                    spatial_thresholds = []
+                    grid_thresholds = []
+                    border_thresholds = []
+                    half_session_thresholds = []
 
-                    speed_threshold_poss.append(adjusted_speed_threshold_pos)
-                    speed_threshold_negs.append(adjusted_speed_threshold_neg)
-                    hd_thresholds.append(adjusted_hd_threshold)
-                    rayleigh_thresholds.append(adjusted_rayleigh_threshold)
-                    spatial_thresholds.append(adjusted_spatial_threshold)
-                    grid_thresholds.append(adjusted_grid_threshold)
-                    border_thresholds.append(adjusted_border_threshold)
+                    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+                        cluster_shuffle_df = shuffle[(shuffle.cluster_id == cluster_id)] # dataframe for that cluster
+                        print("For cluster", cluster_id, " there are ", len(cluster_shuffle_df), " shuffles")
 
-                spatial_firing["speed_threshold_pos"] = speed_threshold_poss
-                spatial_firing["speed_threshold_neg"] = speed_threshold_negs
-                spatial_firing["hd_threshold"] = hd_thresholds
-                spatial_firing["rayleigh_threshold"] = rayleigh_thresholds
-                spatial_firing["spatial_threshold"] = spatial_thresholds
-                spatial_firing["grid_threshold"] = grid_thresholds
-                spatial_firing["border_threshold"] = border_thresholds
+                        speed_scores = nan2val(np.array(cluster_shuffle_df["speed_score"]), collumn="speed_score")
+                        hd_scores = nan2val(np.array(cluster_shuffle_df["hd_score"]), collumn="hd_score")
+                        rayleigh_scores = nan2val(np.array(cluster_shuffle_df["rayleigh_score"]), collumn="rayleigh_score")
+                        spatial_information_scores = nan2val(np.array(cluster_shuffle_df["spatial_information_score"]), collumn="spatial_information_score")
+                        grid_score = nan2val(np.array(cluster_shuffle_df["grid_score"]), collumn="grid_score")
+                        border_score = nan2val(np.array(cluster_shuffle_df["border_score"]), collumn="border_score")
+                        half_session_score = nan2val(np.array(cluster_shuffle_df["rate_map_correlation_first_vs_second_half"]), collumn="rate_map_correlation_first_vs_second_half")
 
-                spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
+                        # calculate the 95th percentile threshold for individual clusters
+                        # calculations based on z values please see https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_probability/bs704_probability10.html
+                        adjusted_speed_threshold_pos = np.nanmean(speed_scores) + (np.nanstd(speed_scores)*+1.960) # two tailed
+                        adjusted_speed_threshold_neg = np.nanmean(speed_scores) + (np.nanstd(speed_scores)*-1.960) # two tailed
+                        adjusted_hd_threshold = np.nanmean(hd_scores) + (np.nanstd(hd_scores)*2.326) # one tailed
+                        adjusted_rayleigh_threshold = np.nanmean(rayleigh_scores) + (np.nanstd(rayleigh_scores)*-2.326) # one tailed
+                        adjusted_spatial_threshold = np.nanmean(spatial_information_scores) + (np.nanstd(spatial_information_scores)*2.326) # one tailed
+                        adjusted_grid_threshold = np.nanmean(grid_score) + (np.nanstd(grid_score)*2.326) # one tailed
+                        adjusted_border_threshold = np.nanmean(border_score) + (np.nanstd(border_score)*2.326) # one tailed
+                        adjusted_half_session_threshold = np.nanmean(half_session_score) + (np.nanstd(half_session_score)*2.326) # one tailed
 
+                        speed_threshold_poss.append(adjusted_speed_threshold_pos)
+                        speed_threshold_negs.append(adjusted_speed_threshold_neg)
+                        hd_thresholds.append(adjusted_hd_threshold)
+                        rayleigh_thresholds.append(adjusted_rayleigh_threshold)
+                        spatial_thresholds.append(adjusted_spatial_threshold)
+                        grid_thresholds.append(adjusted_grid_threshold)
+                        border_thresholds.append(adjusted_border_threshold)
+                        half_session_thresholds.append(adjusted_half_session_threshold)
+
+                    spatial_firing["speed_threshold_pos"] = speed_threshold_poss
+                    spatial_firing["speed_threshold_neg"] = speed_threshold_negs
+                    spatial_firing["hd_threshold"] = hd_thresholds
+                    spatial_firing["rayleigh_threshold"] = rayleigh_thresholds
+                    spatial_firing["spatial_threshold"] = spatial_thresholds
+                    spatial_firing["grid_threshold"] = grid_thresholds
+                    spatial_firing["border_threshold"] = border_thresholds
+                    spatial_firing["half_session_threshold"] = half_session_thresholds
+
+                    spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
+
+                else:
+                    print("There are no cells in this recordings")
             else:
-                print("There are no cells in this recordings")
+                print("No spatial firing could be found")
 
 def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
     recording_list = [f.path for f in os.scandir(recordings_folder_to_process) if f.is_dir()]
@@ -96,7 +149,8 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
                 else:
                     hd_cell_rayleigh = False
 
-                if (cluster_spatial_firing["spatial_information_score"].iloc[0] > cluster_spatial_firing["spatial_threshold"].iloc[0]):
+                if ((cluster_spatial_firing["spatial_information_score"].iloc[0] > cluster_spatial_firing["spatial_threshold"].iloc[0]) and
+                    (cluster_spatial_firing["rate_map_correlation_first_vs_second_half"].iloc[0] > cluster_spatial_firing["half_session_threshold"].iloc[0])):
                     spatial_cell = True
                 else:
                     spatial_cell = False
@@ -124,14 +178,42 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
 
             spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
+def add_spatial_classifier_based_on_classifiers(recordings_folder_to_process):
+    recording_list = [f.path for f in os.scandir(recordings_folder_to_process) if f.is_dir()]
+
+    for recording_path in recording_list:
+        print("processing ", recording_path)
+        if os.path.isfile(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+            spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
+
+            classifier = []
+            for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+                cluster_spatial_firing = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+                if (cluster_spatial_firing["grid_cell"].iloc[0] == 1):
+                    classifier.append("G")
+                elif (cluster_spatial_firing["border_cell"].iloc[0] == 1):
+                    classifier.append("B")
+                elif(cluster_spatial_firing["spatial_cell"].iloc[0] == 1):
+                    classifier.append("NG")
+                elif(cluster_spatial_firing["hd_cell"].iloc[0] == 1):
+                    classifier.append("HD")
+                else:
+                    classifier.append("NG")
+
+            spatial_firing["classifier"] = classifier
+            spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
+
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort7_october2020/of"
+    recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort8_may2021/of"
+    #recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort7_october2020/of"
+    #recordings_folder_to_process = r"/mnt/datastore/Sarah/Data/OptoEphys_in_VR/Data/OpenEphys/_cohort5/OpenField"
     add_shuffled_cutoffs(recordings_folder_to_process)
     add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process)
-
+    add_spatial_classifier_based_on_classifiers(recordings_folder_to_process)
     print("look now")
 
 if __name__ == '__main__':
