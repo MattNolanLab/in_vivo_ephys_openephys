@@ -15,7 +15,6 @@ import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
 import PostSorting.theta_modulation
-import PostSorting.vr_grid_cells
 import PostSorting.lfp
 import settings
 import PreClustering.dead_channels
@@ -177,7 +176,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      raw_position_data=raw_position_data,
                      processed_position_data=processed_position_data,
                      position_data=position_data,
-                     snippet_data=snippet_data,
+                     snippet_data=None,
                      bad_clusters=bad_clusters,
                      lfp_data=lfp_data)
     gc.collect()
