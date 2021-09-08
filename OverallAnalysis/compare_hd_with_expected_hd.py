@@ -129,10 +129,10 @@ def add_cell_types_to_data_frame(field_data):
 
 
 # get head-direction hist from bins of field
-def get_hd_in_field_spikes(rate_map_indices, spatial_data, prm):
+def get_hd_in_field_spikes(rate_map_indices, spatial_data):
     hd_in_field_hist = np.zeros((len(rate_map_indices), 40))
     for index, bin_in_field in enumerate(rate_map_indices):
-        inside_bin = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spatial_data, prm)
+        inside_bin = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spatial_data)
         hd = inside_bin.hd.values + 180
         hd_hist = np.histogram(hd, bins=40, range=(0, 360))[0]
         # hd_hist = PostSorting.open_field_head_direction.get_hd_histogram(hd)
@@ -148,11 +148,11 @@ def get_rate_map_values_for_bins(rate_map_indices, rate_map):
     return rates
 
 
-def get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data, spike_data, prm):
+def get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data, spike_data):
     rates = np.zeros((len(rate_map_indices), 1))
     for index, bin_in_field in enumerate(rate_map_indices):
-        inside_bin = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spatial_data, prm)
-        inside_bin_spikes = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spike_data, prm)
+        inside_bin = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spatial_data)
+        inside_bin_spikes = PostSorting.open_field_head_direction.get_indices_for_bin(bin_in_field, spike_data)
 
         if len(inside_bin) == 0:
             rate = 0
@@ -176,8 +176,8 @@ def get_estimated_hd(field):
     spike_data_field['synced_time'] = field.spike_times
 
     rate_map_indices = field.indices_rate_map
-    hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field, prm)
-    rates_for_bins = get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data_field, spike_data_field, prm)
+    hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field)
+    rates_for_bins = get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data_field, spike_data_field)
     weighed_hists = hd_in_field_histograms * rates_for_bins
     weighed_hist_sum = np.sum(weighed_hists, axis=0)
     # weighed_hist_sum_smooth = PostSorting.open_field_head_direction.get_rolling_sum(weighed_hist_sum, window=23) / 23
@@ -198,8 +198,8 @@ def get_estimated_hd_shuffled(field):
     spike_data_field['synced_time'] = field.spike_times[0]
 
     rate_map_indices = field.indices_rate_map[0]
-    hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field, prm)
-    rates_for_bins = get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data_field, spike_data_field, prm)
+    hd_in_field_histograms = get_hd_in_field_spikes(rate_map_indices, spatial_data_field)
+    rates_for_bins = get_rate_map_values_for_bins_raw(rate_map_indices, spatial_data_field, spike_data_field)
     weighed_hists = hd_in_field_histograms * rates_for_bins
     weighed_hist_sum = np.sum(weighed_hists, axis=0)
     # weighed_hist_sum_smooth = PostSorting.open_field_head_direction.get_rolling_sum(weighed_hist_sum, window=23) / 23

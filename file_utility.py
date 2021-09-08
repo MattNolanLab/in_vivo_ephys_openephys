@@ -133,4 +133,17 @@ def create_folder_structure(prm):
     create_behaviour_folder_structure(prm)
     create_ephys_folder_structure(prm)
 
+def dead_channels_from_txt_file(dead_channel_txt_file_path):
+    dead_channels=[]
+
+    if os.path.isfile(dead_channel_txt_file_path) is True:
+        if os.stat(dead_channel_txt_file_path).st_size == 0:
+            print("theres a dead channel file but no dead channel is given")
+        else:
+            dead_channel_reader = open(dead_channel_txt_file_path, 'r')
+            dead_channels = dead_channel_reader.readlines()
+            dead_channels = list([x.strip() for x in dead_channels])
+
+    return dead_channels
+
 

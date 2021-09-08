@@ -30,8 +30,8 @@ def main():
     spikes_second_half['cluster_id'] = 1
     spike_data_second_half['session_id'] = 'M12_04_10'
 
-    position_heat_map_first, firing_data_spatial_first = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data_first_half, spikes_first_half, prm)
-    position_heat_map_second, firing_data_spatial_second = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data_second_half, spikes_second_half, prm)
+    position_heat_map_first, firing_data_spatial_first = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data_first_half, spikes_first_half)
+    position_heat_map_second, firing_data_spatial_second = PostSorting.open_field_firing_maps.make_firing_field_maps(position_data_second_half, spikes_second_half)
     firing_data_spatial_first['session_id'] = 'M12_04_10'
     firing_data_spatial_second['session_id'] = 'M12_04_10'
     firing_data_spatial_first['firing_fields'] = [spatial_firing.firing_fields.iloc[0]]

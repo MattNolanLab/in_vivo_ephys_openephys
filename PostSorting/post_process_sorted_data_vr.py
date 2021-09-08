@@ -15,9 +15,9 @@ import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
 import PostSorting.theta_modulation
-import PostSorting.vr_grid_cells
 import PostSorting.lfp
 import settings
+import PreClustering.dead_channels
 
 prm = PostSorting.parameters.Parameters()
 
@@ -40,7 +40,7 @@ def initialize_parameters(recording_to_process):
 
 def process_position_data(recording_to_process, output_path, track_length, stop_threshold):
     raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording_to_process, output_path, track_length)
-    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold,track_length)
+    processed_position_data = PostSorting.vr_spatial_data.process_position(raw_position_data, stop_threshold, track_length)
     return raw_position_data, processed_position_data, position_data
 
 
@@ -113,7 +113,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     initialize_parameters(recording_to_process)
     output_path = recording_to_process+'/'+settings.sorterName
 
-
     # Keep all parameter object reference at this level, do not pass them beyond this level
     # keep the configuration of the prm object at a single location only for easily tracking
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
@@ -121,15 +120,16 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     prm.set_track_length(track_length)
     prm.set_vr_grid_analysis_bin_size(5)
     prm.set_cue_conditioned_goal(cue_conditioned_goal)
-
-    dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
+    PreClustering.dead_channels.get_dead_channel_ids(prm)
+    dead_channels = prm.get_dead_channels()
 
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
     # Process LPF
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
+
     # Process position
     raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
     total_length_seconds = raw_position_data.time_seconds.values[-1]
@@ -162,7 +162,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         print('-------------------------------------------------------------')
 
         spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
-        spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data)
+        spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, track_length)
         #spike_data = PostSorting.vr_grid_cells.process_vr_grid(spike_data, position_data, prm.get_vr_grid_analysis_bin_size(), prm)
         spike_data = PostSorting.vr_firing_rate_maps.make_firing_field_maps(spike_data, processed_position_data, settings.vr_bin_size_cm, track_length)
         #spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
@@ -176,7 +176,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                      raw_position_data=raw_position_data,
                      processed_position_data=processed_position_data,
                      position_data=position_data,
-                     snippet_data=snippet_data,
+                     snippet_data=None,
                      bad_clusters=bad_clusters,
                      lfp_data=lfp_data)
     gc.collect()

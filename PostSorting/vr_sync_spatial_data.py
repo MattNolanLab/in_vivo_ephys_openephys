@@ -60,7 +60,7 @@ def calculate_time(position_data):
 
 
 # for each sampling point, calculates time from last sample point
-def calculate_instant_dwell_time(position_data, pos_sampling_rate=settings.sampling_rate):
+def calculate_instant_dwell_time(position_data, pos_sampling_rate):
     print('Calculating dwell time...')
     position_data['dwell_time_ms'] = 1/pos_sampling_rate
     return position_data
@@ -70,7 +70,7 @@ def check_for_trial_restarts(trial_indices):
     new_trial_indices=[]
     for icount,i in enumerate(range(len(trial_indices)-1)):
         index_difference = trial_indices[icount] - trial_indices[icount+1]
-        if index_difference > - 15000:
+        if index_difference > - settings.sampling_rate/2:
             continue
         else:
             index = trial_indices[icount]
@@ -166,8 +166,8 @@ def calculate_instant_velocity(position_data, output_path):
     # use new trial indices to fix velocity around teleports
     new_trial_indices = np.unique(position_data["new_trial_indices"][~np.isnan(position_data["new_trial_indices"])])
     for new_trial_indice in new_trial_indices:
-        if new_trial_indice>settings.sampling_rate/5: # ignores first trial index
-            velocity[int(new_trial_indice-settings.sampling_rate/5):int(new_trial_indice+settings.sampling_rate/5)] =np.nan
+        if new_trial_indice > sampling_points_per200ms: # ignores first trial index
+            velocity[int(new_trial_indice-sampling_points_per200ms)-100:int(new_trial_indice+sampling_points_per200ms)+100] = np.nan
 
     #now interpolate where these nan values are
     ok = ~np.isnan(velocity)
@@ -237,7 +237,7 @@ def syncronise_position_data(recording_folder, output_path, track_length):
     raw_position_data = calculate_trial_numbers(raw_position_data, output_path)
     raw_position_data = calculate_trial_types(raw_position_data, recording_folder, output_path)
     raw_position_data = calculate_time(raw_position_data)
-    raw_position_data = calculate_instant_dwell_time(raw_position_data)
+    raw_position_data = calculate_instant_dwell_time(raw_position_data, pos_sampling_rate=settings.sampling_rate)
     raw_position_data = calculate_instant_velocity(raw_position_data, output_path)
     raw_position_data = get_avg_speed_200ms(raw_position_data, output_path)
     position_data = downsampled_position_data(raw_position_data)

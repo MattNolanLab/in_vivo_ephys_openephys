@@ -95,7 +95,7 @@ def process_data(analysis_path):
                 spatial_firing['position_y_pixels'] = spatial_firing.position_y
 
                 prm.set_sampling_rate(1000000)  # this is to make the histograms similar to the real data
-                hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position, prm)
+                hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position)
 
                 # if 'firing_maps' not in spatial_firing:
                 position_heat_map, spatial_firing = get_rate_maps(position, spatial_firing)

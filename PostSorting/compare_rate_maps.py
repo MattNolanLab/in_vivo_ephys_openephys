@@ -2,6 +2,7 @@ import matplotlib.pylab as plt
 import numpy as np
 from scipy.stats.stats import pearsonr
 import PostSorting.open_field_firing_maps
+import settings
 
 def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, excluded_bins, path):
     print('Plot rate maps.')
@@ -17,26 +18,26 @@ def plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, corr_score, ex
     plt.close()
 
 
-def make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y, prm):
-    min_dwell, min_dwell_distance_cm = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory, prm)
-    bin_size_cm = PostSorting.open_field_firing_maps.get_bin_size(prm)
+def make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y):
+    min_dwell, min_dwell_distance_cm = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory)
+    bin_size_cm = PostSorting.open_field_firing_maps.get_bin_size()
     position_heat_map_first = PostSorting.open_field_firing_maps.get_position_heatmap_fixed_bins(trajectory_1, number_of_bins_x, number_of_bins_y, bin_size_cm, min_dwell_distance_cm, min_dwell)
     position_heat_map_second = PostSorting.open_field_firing_maps.get_position_heatmap_fixed_bins(trajectory_2, number_of_bins_x, number_of_bins_y, bin_size_cm, min_dwell_distance_cm, min_dwell)
     print('Made trajectory heatmaps for both halves.')
     return position_heat_map_first, position_heat_map_second
 
 
-def make_same_sized_rate_maps(trajectory_1, trajectory_2, cluster_spatial_firing_1, cluster_spatial_firing_2, prm):
+def make_same_sized_rate_maps(trajectory_1, trajectory_2, cluster_spatial_firing_1, cluster_spatial_firing_2):
     #cluster_spatial_firing_1.set_index([cluster_spatial_firing_1.cluster_id - 1], inplace=True)
     #cluster_spatial_firing_2.set_index([cluster_spatial_firing_2.cluster_id - 1], inplace=True)
     whole_trajectory = trajectory_1.append(trajectory_2)
     cluster = cluster_spatial_firing_1.cluster_id.iloc[0]
 
-    number_of_bins_x, number_of_bins_y = PostSorting.open_field_firing_maps.get_number_of_bins(whole_trajectory, prm)
+    number_of_bins_x, number_of_bins_y = PostSorting.open_field_firing_maps.get_number_of_bins(whole_trajectory)
     dt_position_ms = whole_trajectory.synced_time.diff().mean() * 1000
-    smooth = 5 / 100 * prm.get_pixel_ratio()
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
-    min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory, prm)
+    smooth = 5 / 100 * settings.pixel_ratio
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
+    min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory)
     #cluster = 0
     rate_map_1 = PostSorting.open_field_firing_maps.calculate_firing_rate_for_cluster_parallel(cluster, smooth, cluster_spatial_firing_1,
                                                                                   trajectory_1.position_x_pixels.values,
@@ -54,7 +55,7 @@ def make_same_sized_rate_maps(trajectory_1, trajectory_2, cluster_spatial_firing
                                                                                   min_dwell_distance_pixels,
                                                                                   dt_position_ms)
 
-    position_heatmap_1, position_heatmap_2 = make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y, prm)
+    position_heatmap_1, position_heatmap_2 = make_trajectory_heat_maps(whole_trajectory, trajectory_1, trajectory_2, number_of_bins_x, number_of_bins_y)
 
     return rate_map_1, rate_map_2, position_heatmap_1, position_heatmap_2
 
@@ -78,7 +79,7 @@ def correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, posi
     return pearson_r, percentage_of_excluded_bins
 
 
-def calculate_spatial_correlation_between_rate_maps(first, second, position_first, position_second, prm):
+def calculate_spatial_correlation_between_rate_maps(first, second, position_first, position_second):
     """
     This function accepts two sets of data (so for example first and second halves of the recording), makes a rate map
     for both halves in a way that the rate maps correspond, and correlates these rate maps to obtain a spatial correlation
@@ -92,12 +93,12 @@ def calculate_spatial_correlation_between_rate_maps(first, second, position_firs
     position_second: position df for second rate map
     """
 
-    rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2 = make_same_sized_rate_maps(position_first, position_second, first, second, prm)
+    rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2 = make_same_sized_rate_maps(position_first, position_second, first, second)
     # possibly need to remove nans here and maybe count how many there are and return that number as well
     pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
     return pearson_r, percentage_of_excluded_bins, rate_map_first, rate_map_second
 
-def half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second, prm):
+def half_session_stability(spike_data, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second):
     pearson_rs = []
     percent_excluded_bins_all = []
 
@@ -106,7 +107,7 @@ def half_session_stability(spike_data, spike_data_first, spike_data_second, sync
         cluster_firsthalf = spike_data_first[spike_data_first.cluster_id == cluster_id]
         cluster_secondhalf = spike_data_second[spike_data_second.cluster_id == cluster_id]
 
-        rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2 = make_same_sized_rate_maps(synced_spatial_data_first, synced_spatial_data_second, cluster_firsthalf, cluster_secondhalf, prm)
+        rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2 = make_same_sized_rate_maps(synced_spatial_data_first, synced_spatial_data_second, cluster_firsthalf, cluster_secondhalf)
         pearson_r, percentage_of_excluded_bins = correlate_ratemaps(rate_map_first, rate_map_second, position_heatmap_1, position_heatmap_2)
 
         pearson_rs.append(pearson_r)
@@ -118,12 +119,8 @@ def half_session_stability(spike_data, spike_data_first, spike_data_second, sync
 
 
 def main():
-    trajectory_1 = []
-    trajectory_2 = []
-    spatial_firing_1 = []
-    spatial_firing_2 = []
-    make_same_sized_rate_maps(trajectory_1, trajectory_2, spatial_firing_1, spatial_firing_2)
-
+    print("============================================")
+    print("============================================")
 
 if __name__ == '__main__':
     main()

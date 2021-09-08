@@ -20,7 +20,7 @@ def load_ephys_channel(recording_folder, ephys_channel):
         print('Movement data was not found.')
     return channel_data
 
-def process_lfp(recording_folder, ephys_channels_list, output_path, dead_channels,sampling_rate=settings.sampling_rate):
+def process_lfp(recording_folder, ephys_channels_list, output_path, dead_channels, sampling_rate=settings.sampling_rate):
     print("I am now processing the lfp")
     lfp_df = pd.DataFrame()
 
