@@ -2,6 +2,7 @@ import PreClustering.dead_channels
 import PreClustering.make_sorting_database
 import PreClustering.parameters
 import mdaio
+import math_utility
 import numpy as np
 import OpenEphys
 import os
@@ -26,6 +27,18 @@ def init_params():
     # These are not exclusive, both can be True for the same recording - that way it'll be sorted twice
     prm.set_is_tetrode_by_tetrode(False)  # set to True if you want the spike sorting to be done tetrode by tetrode
     prm.set_is_all_tetrodes_together(True)  # set to True if you want the spike sorting done on all tetrodes combined
+
+
+def save_filtered_raw_mda(recording_path):
+    raw_mda_path = recording_path + '/Electrophysiology/MountainSort/raw.mda'
+    filtered_path = recording_path + '/Electrophysiology/MountainSort/filt.mda'
+    raw_mda = mdaio.readmda(raw_mda_path)
+    filtered = np.zeros((raw_mda.shape[0], raw_mda.shape[1]))
+    for channel in range(raw_mda.shape[0]):
+        channel_data = raw_mda[channel, :]
+        filtered_data = math_utility.butter_bandpass_filter(channel_data, lowcut=300, highcut=6000, fs=13000, order=2)
+        filtered[channel, :] = filtered_data
+    mdaio.writeMdaByChunk(filtered, filtered_path)
 
 
 def split_continuous_data(recording_to_sort, stitch_points):
@@ -80,16 +93,17 @@ def split_filtered_electrophysiology_data_file(recording_to_sort: str, sorter_na
     paired_recordings = control_sorting_analysis.check_for_paired(tags)
     # this is the concatenated filtered data file
     filtered_data_path = recording_to_sort + '/Electrophysiology/' + sorter_name + '/filt.mda'
-    filtered_data = mdaio.readmda(filtered_data_path)
-    for paired_index, recording in enumerate(paired_recordings):
-        first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
-        second_half = '/' + recording.split('/')[-1]
-        paired_path_local = first_half_of_local_path + second_half
-        sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
-        # get correct part of filtered data based on stitch points
-        paired_recording_filtered = filtered_data[:, stitch_points[paired_index]:stitch_points[paired_index + 1]]
-        # save filtered data
-        mdaio.writemda16i(paired_recording_filtered, sorting_output_folder + 'filt.mda')
+    if os.path.exists(filtered_data_path):
+        filtered_data = mdaio.readmda(filtered_data_path)
+        for paired_index, recording in enumerate(paired_recordings):
+            first_half_of_local_path = '/'.join(recording_to_sort.split('/')[:-1])
+            second_half = '/' + recording.split('/')[-1]
+            paired_path_local = first_half_of_local_path + second_half
+            sorting_output_folder = make_sorting_output_folder_for_paired_recording(paired_path_local, sorter_name)
+            # get correct part of filtered data based on stitch points
+            paired_recording_filtered = filtered_data[:, stitch_points[paired_index]:stitch_points[paired_index + 1]]
+            # save filtered data
+            mdaio.writemda16i(paired_recording_filtered, sorting_output_folder + 'filt.mda')
 
 
 def copy_curation_information(recording_to_sort: str, sorter_name: str):
@@ -217,7 +231,8 @@ def process_a_dir(dir_name):
         print('I am converting all channels into one mda file. This will take some time.')
         print('-------------------------------------------------------------------------')
         PreClustering.make_sorting_database.create_sorting_folder_structure(prm)
-        convert_open_ephys_to_mda.convert_all_tetrodes_to_mda(prm)
+        raw_mda_path = file_utility.get_raw_mda_path_all_channels(prm)
+        convert_open_ephys_to_mda.convert_all_tetrodes_to_mda(prm, raw_mda_path)
         print('The big mda file is created, it is in Electrophysiology' + prm.get_spike_sorter())
         print('***************************************************************************************')
 

@@ -62,9 +62,8 @@ def try_to_figure_out_non_default_file_names(folder_path, ch_num):
 
 
 # this is for putting all tetrodes in the same mda file
-def convert_all_tetrodes_to_mda(prm):
-    raw_mda_path = file_utility.get_raw_mda_path_all_channels(prm)
-    if os.path.isfile(raw_mda_path) is False:
+def convert_all_tetrodes_to_mda(prm, output_path):
+    if os.path.isfile(output_path) is False:
         file_utility.create_folder_structure(prm)
         PreClustering.make_sorting_database.create_sorting_folder_structure(prm)
         folder_path = prm.get_filepath()
@@ -85,14 +84,13 @@ def convert_all_tetrodes_to_mda(prm):
                     channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)  # down cast it to float 32
 
                 if is_first_channel:
-                    all_channel = np.zeros((len(live_channels),channel_data.size),np.int16)
+                    all_channel = np.zeros((len(live_channels),channel_data.size), np.int16)
                     is_first_channel = False
 
-                all_channel[channel_count,:] = channel_data
+                all_channel[channel_count, :] = channel_data
                 channel_count += 1
 
-        
-        mdaio.writeMdaByChunk(all_channel,raw_mda_path)  # load and write each channel of data here
+        mdaio.writeMdaByChunk(all_channel,output_path)  # load and write each channel of data here
 
     else:
         print('The mda file that contains all channels is already in Electrophysiology/Spike_sorting/all_tetrodes/data.'
