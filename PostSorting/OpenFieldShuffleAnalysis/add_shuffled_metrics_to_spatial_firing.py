@@ -199,7 +199,7 @@ def add_spatial_classifier_based_on_classifiers(recordings_folder_to_process):
                 elif(cluster_spatial_firing["hd_cell"].iloc[0] == 1):
                     classifier.append("HD")
                 else:
-                    classifier.append("NG")
+                    classifier.append("NS")
 
             spatial_firing["classifier"] = classifier
             spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
