@@ -25,7 +25,6 @@ def get_data_from_data_frames_fields(spike_data, spike_data_cluster, synced_spat
     cluster_df = spike_data[(spike_data.cluster_id == cluster_id)] # dataframe for that cluster
     number_of_firing_fields = len(cluster_df['firing_fields'].iloc[0])
 
-    #number_of_firing_fields = len(spike_data.firing_fields[cluster])
     number_of_spikes_in_fields = []
     number_of_samples_in_fields = []
     hd_in_fields_cluster = []
@@ -217,14 +216,13 @@ def correlate_hd_in_fields_in_two_halves(first_half, second_half, spike_data):
     print('I will now correlate the first and second halves of the recording [fields are analyzed].')
     pearson_rs = []
     ps = []
-    #for cluster in range(len(first_half)):
+
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         pearson_rs_clu = []
         ps_clu = []
 
         cluster_df_first_half = first_half[(first_half.cluster_id == cluster_id)] # dataframe for that cluster
         cluster_df_second_half = second_half[(second_half.cluster_id == cluster_id)] # dataframe for that cluster
-        #cluster = first_half.cluster_id.values[cluster] - 1
 
         number_of_firing_fields = len(cluster_df_first_half['firing_fields'].iloc[0])
         hd_in_fields_first = cluster_df_first_half['firing_fields_hd_cluster'].iloc[0]
@@ -257,10 +255,7 @@ def get_hd_hists_for_data_frame(spike_data_frame, synced_spatial_data):
     hd_session_rad = (np.array(hd_session) + 180) * np.pi / 180
     hd_session_hist = PostSorting.open_field_head_direction.get_hd_histogram(hd_session_rad)
 
-    #for cluster in range(len(spike_data_frame)):
     for cluster_index, cluster_id in enumerate(spike_data_frame.cluster_id):
-        #cluster = spike_data_frame.cluster_id.values[cluster] - 1
-        # #hd_spike = spike_data_frame.hd[cluster]
         cluster_df = spike_data_frame[(spike_data_frame.cluster_id == cluster_id)] # dataframe for that cluster
         hd_spike = cluster_df["hd"].iloc[0]
         hd_spike_rad = (np.array(hd_spike) + 180) * np.pi / 180
@@ -277,9 +272,7 @@ def correlate_hd_for_session(first_half, second_half, spike_data):
     ps = []
     hd_hists_first_half = []
     hd_hists_second_half = []
-    #for cluster in range(len(spike_data)):
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
-        #cluster = spike_data.cluster_id.values[cluster] - 1
         cluster_df_first_half = first_half[(first_half.cluster_id == cluster_id)] # dataframe for that cluster
         cluster_df_second_half = second_half[(second_half.cluster_id == cluster_id)] # dataframe for that cluster
         hd_first_half = cluster_df_first_half['hd_spike_histogram'].iloc[0]
