@@ -37,7 +37,7 @@ for recording_path in recording_list: # eg. M1_D1_2020-01-31_00-00-00
                 print("I have found ", len(shuffle), " shuffles")
 
                 #only submit a job if the shuffle dataframe is incomplete
-                if len(shuffle)%N_SHUFFLES != 0:
+                if (N_SHUFFLES - len(shuffle)) > 0:
                     print(f'Submitting shuffle job')
                     cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
                     subprocess.check_call(cmd, shell=True)
