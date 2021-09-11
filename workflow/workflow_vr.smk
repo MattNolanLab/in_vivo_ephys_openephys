@@ -89,6 +89,25 @@ rule bin_data:
         spatial_firing_vr =  '{recording}/processed/spatial_firing_vr.pkl'
     output:
         bin_data = '{recording}/processed/binned_data.pkl',
-        done = touch('{recording}/processed/snakemake.done')
     script:
         '../scripts/vr/06_bin_firing.py'
+
+
+rule calculate_ramp_score:
+    input:
+        binned_data = '{recording}/processed/binned_data.pkl'
+    output:
+        ramp_score = '{recording}/processed/ramp_score.pkl',
+        ramp_score_plot_all = '{recording}/processed/figures/ramp_score/ramp_score_plot_all.png',
+        ramp_score_plot_outbound = '{recording}/processed/figures/ramp_score/ramp_score_plot_outbound.png',
+        ramp_score_plot_homebound = '{recording}/processed/figures/ramp_score/ramp_score_plot_homebound.png',
+        done = touch('{recording}/processed/workflow/calculate_ramp_score.done')
+    script:
+        '../scripts/vr/07_rampscore_analysis.py'
+
+
+rule final:
+    input:
+        ramp_score_done = '{recording}/processed/workflow/calculate_ramp_score.done'
+    output:
+        done = touch('{recording}/processed/snakemake.done')
