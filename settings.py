@@ -66,7 +66,8 @@ position_bin = 100
 speed_bin = 20
 accel_bin = 20 
 binSize = 100 # in ms
+trackLength = 200 # TODO: should load this from the parameter file instead
 
 ############
 # Debug
-debug_folder = '/mnt/datastore/Teris/FragileX/data/OpenField/M1_D1_2021-01-11_16-14-41'
+debug_folder = '/mnt/datastore/Teris/FragileX/cohort_202108/data/VR/M3_D11_2021-08-24_09-10-11'

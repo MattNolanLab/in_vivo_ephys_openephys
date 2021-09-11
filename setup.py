@@ -22,7 +22,9 @@ setup(
         'cmocean',
         'pyyaml',
         'tqdm',
-        'spikeforest'
+        'spikeforest',
+        'palettable',
+        'imbalanced-learn'
     ],
     scripts=['runSnake']
 )

@@ -12,6 +12,8 @@ def get_spatial_info(rate_map,occ, min_dwell=3):
     # rate_map: firing rate
     # occ: occupancy in each bin (raw histogram, unnormalized)
     # min_well: minimum datapoint for which a bin is considered
+    # as in W. E. Skaggs, B. L. McNaughton, and K. M. Gothard, “An Information-Theoretic Approach to Deciphering the Hippocampal Code,” 
+
 
 
     mean_fr = rate_map.mean()

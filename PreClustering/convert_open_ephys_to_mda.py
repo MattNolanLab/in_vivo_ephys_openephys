@@ -9,7 +9,7 @@ import os
 import PreClustering.dead_channels
 import PreClustering.make_sorting_database
 import numpy as np
-from utils from utils import open_ephys_IO, file_utility, mdaio
+from utils import open_ephys_IO, file_utility, mdaio
 
 
 def convert_continuous_to_mda(prm):

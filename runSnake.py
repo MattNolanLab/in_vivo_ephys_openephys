@@ -5,7 +5,7 @@
 import argparse
 import sys
 from snakemake import snakemake
-from file_utility import parse_parameter_file, set_continuous_data_path
+from utils.file_utility import parse_parameter_file, set_continuous_data_path
 import os
 import yaml
 from pathlib import Path
@@ -32,7 +32,7 @@ parser.add_argument('--uploadresults','-u', action= 'store_true', default=False,
 parser.add_argument('--clean','-c', action= 'store_true', default=False, help='whether to delete local copy of recordings')
 parser.add_argument('--overwrite','-o', action= 'store_true', default=False, help='whether to overwrite the processed files')
 parser.add_argument('--batch_process','-b', action= 'store_true', default=False, help='whether to download all recordings first and process them together.')
-parser.add_argument('--force', action= 'store_true', default=False, help='whether to force rerun all analysis')
+parser.add_argument('--force', action= 'store_true', default=False, help='whether to force rerun all recordings even if they have been completed before')
 parser.add_argument('--skip','-s', action= 'store_true', default=False, help='whether skip processed recordings')
 parser.add_argument('--unlock',action= 'store_true', default=False, help='whether to release the snakemake file lock')
 parser.add_argument('--forcerun', '-R', nargs='*', help='whether to force run a certain rule')
