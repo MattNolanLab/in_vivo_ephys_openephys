@@ -7,12 +7,14 @@ from numba import jit
 import numpy as np
 import math
 import time
+from numpy import inf
+import settings
 
 try_parallel_first = True
 
-def get_dwell(spatial_data, prm):
+def get_dwell(spatial_data):
     min_dwell_distance_cm = 5  # from point to determine min dwell time
-    min_dwell_distance_pixels = min_dwell_distance_cm / 100 * prm.get_pixel_ratio()
+    min_dwell_distance_pixels = min_dwell_distance_cm / 100 * settings.pixel_ratio
 
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000  # average sampling interval in position data (ms)
     min_dwell_time_ms = 3 * dt_position_ms  # this is about 100 ms
@@ -20,14 +22,14 @@ def get_dwell(spatial_data, prm):
     return min_dwell, min_dwell_distance_pixels
 
 
-def get_bin_size(prm):
-    bin_size_cm = 2.5
-    bin_size_pixels = bin_size_cm / 100 * prm.get_pixel_ratio()
+def get_bin_size():
+    bin_size_cm = settings.open_field_bin_size_cm
+    bin_size_pixels = bin_size_cm / 100 * settings.pixel_ratio
     return bin_size_pixels
 
 
-def get_number_of_bins(spatial_data, prm):
-    bin_size_pixels = get_bin_size(prm)
+def get_number_of_bins(spatial_data):
+    bin_size_pixels = get_bin_size()
     length_of_arena_x = spatial_data.position_x_pixels[~np.isnan(spatial_data.position_x_pixels)].max()
     length_of_arena_y = spatial_data.position_y_pixels[~np.isnan(spatial_data.position_y_pixels)].max()
     number_of_bins_x = math.ceil(length_of_arena_x / bin_size_pixels)
@@ -44,13 +46,9 @@ def gaussian_kernel(kernx):
 def calculate_firing_rate_for_cluster_parallel(cluster_id, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
     print(cluster_id)
-    #cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
 
     cluster_firing_data_spatial = firing_data_spatial[firing_data_spatial.cluster_id == cluster_id]
     cluster_firings = pd.DataFrame({'position_x': cluster_firing_data_spatial.position_x_pixels.iloc[0], 'position_y': cluster_firing_data_spatial.position_y_pixels.iloc[0]})
-
-    #cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
-
 
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
@@ -104,11 +102,12 @@ def calculate_firing_rate_for_cluster_parallel(cluster_id, smooth, firing_data_s
 
     return np.transpose(firing_rate_map)
 
-def calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
+def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
-    print(cluster)
-    cluster_index = firing_data_spatial.cluster_id.values[cluster] - 1
-    cluster_firings = pd.DataFrame({'position_x': firing_data_spatial.position_x_pixels[cluster_index], 'position_y': firing_data_spatial.position_y_pixels[cluster_index]})
+    print(cluster_id)
+    cluster_firing_data_spatial = firing_data_spatial[firing_data_spatial.cluster_id == cluster_id]
+    cluster_firings = pd.DataFrame({'position_x': cluster_firing_data_spatial.position_x_pixels.iloc[0], 'position_y': cluster_firing_data_spatial.position_y_pixels.iloc[0]})
+
     spike_positions_x = cluster_firings.position_x.values
     spike_positions_y = cluster_firings.position_y.values
 
@@ -132,34 +131,53 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_
 
     return firing_rate_map
 
-def get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm):
+def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):
     print('I will calculate firing rate maps now.')
     dt_position_ms = spatial_data.synced_time.diff().mean()*1000
-    min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data, prm)
-    smooth = 5 / 100 * prm.get_pixel_ratio()
-    bin_size_pixels = get_bin_size(prm)
-    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
-
-    clusters = range(len(firing_data_spatial))
+    min_dwell, min_dwell_distance_pixels = get_dwell(spatial_data)
+    smooth = 5 / 100 * settings.pixel_ratio
+    bin_size_pixels = get_bin_size()
+    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data)
     clusters = firing_data_spatial.cluster_id
 
     num_cores = int(os.environ['HEATMAP_CONCURRENCY']) if os.environ.get('HEATMAP_CONCURRENCY') else multiprocessing.cpu_count()
+    print("I have detected", str(num_cores), " cores")
+    if settings.impose_num_cores:
+        num_cores = settings.fixed_num_cores
+    print("I am using ", str(num_cores), " cores")
     time_start = time.time()
     if try_parallel_first:
         try:
-            firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+            if settings.use_vectorised_rate_map_function:
+                print("I am using the vectorised rate map function")
+                firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+            else:
+                print("I am using the non-vectorised rate map function")
+                firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
         except Exception as ex:
             print("calculating rate map failed using parallel, attempting one by one")
             firing_rate_maps = []
             for cluster in clusters:
-                firing_rate_maps.append(calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial,
-                                                                                   spatial_data.position_x_pixels.values,
-                                                                                   spatial_data.position_y_pixels.values,
-                                                                                   number_of_bins_x, number_of_bins_y,
-                                                                                   bin_size_pixels, min_dwell,
-                                                                                   min_dwell_distance_pixels, dt_position_ms))
+                if settings.use_vectorised_rate_map_function:
+                    firing_rate_maps.append(calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial,
+                                                                                       spatial_data.position_x_pixels.values,
+                                                                                       spatial_data.position_y_pixels.values,
+                                                                                       number_of_bins_x, number_of_bins_y,
+                                                                                       bin_size_pixels, min_dwell,
+                                                                                       min_dwell_distance_pixels, dt_position_ms))
+                else:
+                    firing_rate_maps.append(calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial,
+                                                                                       spatial_data.position_x_pixels.values,
+                                                                                       spatial_data.position_y_pixels.values,
+                                                                                       number_of_bins_x, number_of_bins_y,
+                                                                                       bin_size_pixels, min_dwell,
+                                                                                       min_dwell_distance_pixels, dt_position_ms))
+
     else:
-        firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+        if settings.use_vectorised_rate_map_function:
+            firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+        else:
+            firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
 
     time_end = time.time()
     print('Making the rate maps took ', time_end-time_start, " seconds")
@@ -185,10 +203,10 @@ def get_position_heatmap_fixed_bins(spatial_data, number_of_bins_x, number_of_bi
     return position_heat_map
 
 
-def get_position_heatmap(spatial_data, prm):
-    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data, prm)
-    bin_size_cm = get_bin_size(prm)
-    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data, prm)
+def get_position_heatmap(spatial_data):
+    min_dwell, min_dwell_distance_cm = get_dwell(spatial_data)
+    bin_size_cm = get_bin_size()
+    number_of_bins_x, number_of_bins_y = get_number_of_bins(spatial_data)
 
     position_heat_map = np.zeros((number_of_bins_x, number_of_bins_y))
 
@@ -222,10 +240,59 @@ def find_maximum_firing_rate(spatial_firing):
     spatial_firing['max_firing_rate'] = max_firing_rates
     return spatial_firing
 
+def calculate_spatial_information(spatial_firing, position_heatmap):
 
-def make_firing_field_maps(spatial_data, firing_data_spatial, prm):
-    position_heat_map = get_position_heatmap(spatial_data, prm)
-    firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial, prm)
-    #position_heat_map = np.rot90(position_heat_map)  # to rotate map to be like matlab plots
+    '''
+    Calculates the spatial information score in bits per spike as in Skaggs et al.,
+    1996, 1993).
+
+    To estimate the spatial information contained in the
+    firing rate of each cell we used Ispike and Isec – the standard
+    approaches used for selecting place cells (Skaggs et al.,
+    1996, 1993). We computed the Isec metric from the average firing rate (over trials) in
+    the space bins using the following definition:
+
+    Isec = sum(Pj*λj*log2(λj/λ))
+
+    where λj is the mean firing rate in the j-th space bin and Pj
+    the occupancy ratio of the bin (in other words, the probability of finding
+    the animal in that bin), while λ is the overall
+    mean firing rate of the cell. The Ispike metric is a normalization of Isec,
+    defined as:
+
+    Ispike = Isec / λ
+
+    This normalization yields values in bits per spike,
+    while Isec is in bits per second.
+    '''
+
+    spatial_information_scores = []
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+
+        mean_firing_rate = cluster_df.iloc[0]["mean_firing_rate"] # λ
+        firing_rate_map = cluster_df.iloc[0]["firing_maps"] # λj
+        position_heatmap[np.isnan(position_heatmap)] = 0
+        occupancy_probability_map = position_heatmap/np.sum(position_heatmap) # Pj
+
+        log_term = np.log2(firing_rate_map/mean_firing_rate)
+        log_term[log_term == -inf] = 0
+
+        Isec = np.sum(occupancy_probability_map*firing_rate_map*log_term)
+        Ispike = Isec/mean_firing_rate
+
+        spatial_information_scores.append(Ispike)
+
+    spatial_firing["spatial_information_score"] = spatial_information_scores
+
+    return spatial_firing
+
+
+
+
+
+def make_firing_field_maps(spatial_data, firing_data_spatial):
+    position_heat_map = get_position_heatmap(spatial_data)
+    firing_data_spatial = get_spike_heatmap_parallel(spatial_data, firing_data_spatial)
     firing_data_spatial = find_maximum_firing_rate(firing_data_spatial)
     return position_heat_map, firing_data_spatial

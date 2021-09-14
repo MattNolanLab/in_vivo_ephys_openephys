@@ -28,9 +28,8 @@ import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 # import PostSorting.waveforms_pca
-
 import PreClustering.dead_channels
-
+import file_utility
 
 prm = PostSorting.parameters.Parameters()
 
@@ -170,30 +169,31 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-            save_data_frames(spike_data, synced_spatial_data, snippet_data=snippet_data, bad_clusters=bad_clusters,lfp_data=lfp_data)
+            save_data_frames(spike_data, synced_spatial_data, snippet_data=None, bad_clusters=bad_clusters,lfp_data=lfp_data)
 
         else:
             snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
             # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
-            hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data, prm)
-            position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial, prm)
+            hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
+            position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial)
+            spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing, position_heat_map)
             spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
             spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
             spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
-            spatial_firing = PostSorting.open_field_border_cells.process_corner_data(spatial_firing)
             spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
 
             if opto_is_found:
                 spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, synced_spatial_data, spatial_firing)
+            #spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing, prm)
+            spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
 
             make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 
-            save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
+            save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
 

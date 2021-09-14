@@ -38,7 +38,7 @@ def load_field_data(output_path, server_path, spike_sorter):
             spatial_firing = pd.read_pickle(spatial_firing_path)
             position = pd.read_pickle(position_path)
             prm.set_file_path(recording_folder)
-            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(prm, position, spatial_firing)
+            spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(position, spatial_firing, prm)
             if 'shuffled_data' in field_data:
                 field_data_to_combine = field_data[['session_id', 'cluster_id', 'field_id',
                                                     'field_histograms_hz', 'indices_rate_map', 'hd_in_field_spikes',

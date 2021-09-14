@@ -357,7 +357,7 @@ def interpolate_nans(array_in):
 
 # find firing rate on rate map for each sampling point and add to field df
 def add_rate_map_values(spatial_firing, cell):
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     pixel_ratio = prm.get_pixel_ratio()
     spike_data = pd.DataFrame()
     spike_data['x'] = cell.trajectory_x * pixel_ratio / 100
@@ -780,10 +780,10 @@ def down_sample_data(spatial_firing, percentage_to_keep, prm, sampling_rate_ephy
     position['position_y_pixels'] = all_y_session_pixel[0]
     position['hd'] = all_hd_session[0]
 
-    position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position, down_sampled, prm)
+    position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(position, down_sampled)
     spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
     prm.set_file_path(local_path + '/tmp/')
-    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position, prm)
+    hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spatial_firing, position)
 
     return spatial_firing
 

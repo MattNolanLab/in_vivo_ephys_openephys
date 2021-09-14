@@ -342,7 +342,7 @@ def add_rate_map_values_to_field(spatial_firing, field):
     spike_data_field['hd'] = field.trajectory_hd[0]
     spike_data_field['synced_time'] = field.trajectory_times[0]
 
-    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size(prm)
+    bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     spike_data_field['rate_map_x'] = (field.trajectory_x[0] // bin_size_pixels).astype(int)
     spike_data_field['rate_map_y'] = (field.trajectory_y[0] // bin_size_pixels).astype(int)
     rates = []
@@ -382,7 +382,7 @@ def check_how_much_rate_maps_correlate(first_half, second_half, position_first, 
     second = second_half.copy()
     first_pos = position_first.copy()
     second_pos = position_second.copy()
-    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first, second, first_pos, second_pos, prm)
+    spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2 = PostSorting.compare_rate_maps.calculate_spatial_correlation_between_rate_maps(first, second, first_pos, second_pos)
     PostSorting.compare_rate_maps.plot_two_rate_maps_with_spatial_score(rate_map_1, rate_map_2, spatial_correlation, percentage_of_excluded_bins, save_path)
     return spatial_correlation, percentage_of_excluded_bins, rate_map_1, rate_map_2
 

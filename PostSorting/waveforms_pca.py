@@ -168,6 +168,10 @@ def is_outlier(points, thresh=3.5):
     return modified_z_score > thresh
 
 def create_phy(recording, spatial_firing, output_folder, sampling_rate=30000):
+    if recording == output_folder:
+        print("You have passed the output folder as the same as the recording folder path")
+        print("This would overwrite your data, no phy files will be made until you change this")
+        return
     signal = load_OpenEphysRecording(recording, data_file_prefix='100_CH', num_tetrodes=4)
     dead_channel_path = recording +'/dead_channels.txt'
     bad_channel = getDeadChannel(dead_channel_path)
@@ -207,9 +211,9 @@ def main():
     print('-------------------------------------------------------------')
 
     recording = "/mnt/datastore/Harry/Cohort7_october2020/vr/M3_D23_2020-11-28_15-13-28"
-    process_waveform_pca(recording, remove_outliers=True)
-
-    #create_phy(recording, spatial_firing_1, output_folder, sampling_rate=30000)
+    #process_waveform_pca(recording, remove_outliers=True)
+    spatial_firing_1 = pd.read_pickle(recording+"/MountainSort/Dataframes/spatial_firing.pkl")
+    create_phy(recording, spatial_firing_1, output_folder=recording, sampling_rate=30000)
 
 
 if __name__ == '__main__':

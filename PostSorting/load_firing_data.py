@@ -6,6 +6,7 @@ import pandas as pd
 import PreClustering.dead_channels
 import data_frame_utility
 import settings
+import open_ephys_IO
 
 
 def get_firing_info(file_path, sorter_name):
@@ -96,6 +97,8 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     tetrode recordings.
     :return: Data frame with firing times of clusters
     """
+
+    recording_length_sampling_points = len(open_ephys_IO.get_data_continuous(recording_to_process+"/"+get_available_ephys_channels(recording_to_process)[0])) # needed for shuffling
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
         firing_data = spatial_firing[['session_id', 'cluster_id', 'primary_channel', 'firing_times']].copy()
@@ -114,10 +117,22 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     if opto_tagging_start_index is not None:
         firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
     firing_data['session_id'] = recording_to_process.split('/')[-1]
+    firing_data['recording_length_sampling_points'] = recording_length_sampling_points
     firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
     firing_data = convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood)
     return firing_data
 
+def get_available_ephys_channels(recording_to_process):
+    '''
+    :param recording_to_process: absolute path of recroding to sort
+    :return: list of named channels for ephys aquisition
+    '''
+
+    shared_ephys_channel_marker = settings.data_file_prefix
+    all_files_names = [f for f in os.listdir(recording_to_process) if os.path.isfile(os.path.join(recording_to_process, f))]
+    all_ephys_file_names = [s for s in all_files_names if shared_ephys_channel_marker in s]
+
+    return all_ephys_file_names
 
 def available_ephys_channels(recording_to_process, prm):
     '''

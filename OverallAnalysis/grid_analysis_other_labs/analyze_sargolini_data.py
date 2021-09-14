@@ -205,7 +205,7 @@ def process_data(folder_to_search_in):
                         firing_data = pd.DataFrame()
                         create_folder_structure(name, session_id, prm)
                         firing_data = fill_firing_data_frame(position_data, firing_data, name, folder_to_search_in, session_id)
-                        hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data, prm)
+                        hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(firing_data, position_data)
                         position_heat_map, spatial_firing = get_rate_maps(position_data, firing_data)
                         spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
                         spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, position_data, prm)
