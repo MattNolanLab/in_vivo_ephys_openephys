@@ -6,6 +6,9 @@ import numpy as np
 import settings
 import glob
 import pickle
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_recording_info(recording_info):
     with open(recording_info,'rb') as f:
@@ -288,3 +291,28 @@ def write_shell_script_to_call_matlab(file_to_sort):
     batch_writer.write('export MATLABPATH=/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/\n')
 
     batch_writer.write('matlab -r PostClusteringAuto')
+
+def get_track_info_log_file(recording_path, session_config_path):
+    '''
+    Read track length and reward location from
+    '''
+    logger.info('Reading track info from log file')
+
+    logfile_path = glob.glob(os.path.join(recording_path,'*.log'))[0]
+
+    with open(logfile_path, 'r') as f:
+        log_file = f.readlines()
+    
+    # search for the line specifying the config file
+    for l in log_file:
+        if 'Using config fle' in l:
+            session_file_name = l.split()[-1]
+            break
+    
+    # Open the session config file and load the track info
+    with open(os.path.join(session_config_path, session_file_name)) as f:
+        first_trial = f.readlines()[1].split(';')
+        reset = float(first_trial[9])*10 #conver to cm
+        reward_zone_start = float(first_trial[11])*10
+    
+    return reset, reward_zone_start

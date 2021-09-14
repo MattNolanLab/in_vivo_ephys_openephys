@@ -20,3 +20,7 @@ tests/regression/output
 ./regression
 .snakemake
 artifacts/
+
+*.RData
+*.Rhistory
+*-checkpoint.py

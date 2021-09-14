@@ -70,4 +70,4 @@ trackLength = 200 # TODO: should load this from the parameter file instead
 
 ############
 # Debug
-debug_folder = '/mnt/datastore/Teris/FragileX/cohort_202108/data/VR/M3_D11_2021-08-24_09-10-11'
+debug_folder = '/mnt/datastore/Teris/FragileX/cohort_202108/data/VR/M3_D25_2021-09-14_10-47-52'
