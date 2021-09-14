@@ -12,7 +12,7 @@ An environment file is provided for all the dependencies. Please create the cond
 conda create -f environment.yml
 ```
 
-note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first
+note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first. It is needed to compile the isosplit library for mountainsort4.
 
 Due to the folder organization, you will also need to add the project root folder to your PYTHON path.
 In the root folder of this repository i.e. `in_vivo_ephys_openephys`, execute the following. 
@@ -71,7 +71,7 @@ For structure of individual scripts and workflow, please consult the README in t
     ```
 - Batch re-run of analysis
 
-    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` option. if you want to automaticalliy skip processed recordings, you can use the `--skip` option.
+    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` option. if you want to automatically skip processed recordings, you can use the `--skip` option.
 
 
 - If your recordings is too large to fit in memory, you can either use a larger instance or you can create a larger swapfile (recommanded) to be used as a temporary memory space:
@@ -82,13 +82,6 @@ For structure of individual scripts and workflow, please consult the README in t
     sudo mkswap /swapfile
     sudo swapon /swapfile
     ```
-
-- Executing cell blocks
-
-    Each script contains sections marked by `%@@`. They indicate execution cells that can be run indepedently by supported editor like VS Code or [Pycharm via scientific mode](https://www.jetbrains.com/help/idea/matplotlib-tutorial.html#). These cell block allow you to debug and develop a specific function without rerunning the whole script. Try to utitlize it to keep yourself sane when developing new analysis.
-
-### Known issues
-- Always need to have all the files (e.g. dead_channels.txt), even if they are empty
 
 ### Other problems
 - Please file a issue for any problem that you have found. Thank you!
