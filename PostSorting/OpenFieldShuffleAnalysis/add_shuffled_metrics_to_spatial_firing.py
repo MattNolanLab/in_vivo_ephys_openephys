@@ -63,19 +63,52 @@ def add_shuffled_cutoffs(recordings_folder_to_process):
                     border_thresholds = []
                     half_session_thresholds = []
 
+                    speed_n_nans_removed_from_shuffle = []
+                    hd_n_nans_removed_from_shuffle = []
+                    rayleigh_n_nans_removed_from_shuffle = []
+                    spatial_n_nans_removed_from_shuffle = []
+                    grid_n_nans_removed_from_shuffle = []
+                    border_n_nans_removed_from_shuffle = []
+                    half_session_n_nans_removed_from_shuffle = []
+
                     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
                         cluster_shuffle_df = shuffle[(shuffle.cluster_id == cluster_id)] # dataframe for that cluster
                         print("For cluster", cluster_id, " there are ", len(cluster_shuffle_df), " shuffles")
 
-                        speed_scores = nan2val(np.array(cluster_shuffle_df["speed_score"]), collumn="speed_score")
-                        hd_scores = nan2val(np.array(cluster_shuffle_df["hd_score"]), collumn="hd_score")
-                        rayleigh_scores = nan2val(np.array(cluster_shuffle_df["rayleigh_score"]), collumn="rayleigh_score")
-                        spatial_information_scores = nan2val(np.array(cluster_shuffle_df["spatial_information_score"]), collumn="spatial_information_score")
-                        grid_score = nan2val(np.array(cluster_shuffle_df["grid_score"]), collumn="grid_score")
-                        border_score = nan2val(np.array(cluster_shuffle_df["border_score"]), collumn="border_score")
-                        half_session_score = nan2val(np.array(cluster_shuffle_df["rate_map_correlation_first_vs_second_half"]), collumn="rate_map_correlation_first_vs_second_half")
+                        speed_scores = np.array(cluster_shuffle_df["speed_score"])
+                        hd_scores = np.array(cluster_shuffle_df["hd_score"])
+                        rayleigh_scores = np.array(cluster_shuffle_df["rayleigh_score"])
+                        spatial_information_scores = np.array(cluster_shuffle_df["spatial_information_score"])
+                        grid_score = np.array(cluster_shuffle_df["grid_score"])
+                        border_score = np.array(cluster_shuffle_df["border_score"])
+                        half_session_score = np.array(cluster_shuffle_df["rate_map_correlation_first_vs_second_half"])
 
-                        # calculate the 95th percentile threshold for individual clusters
+                        # count the number of nans from the shuffled distribution
+                        speed_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(speed_scores)))
+                        hd_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(hd_scores)))
+                        rayleigh_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(rayleigh_scores)))
+                        spatial_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(spatial_information_scores)))
+                        grid_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(grid_score)))
+                        border_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(border_score)))
+                        half_session_n_nans_removed_from_shuffle.append(len(cluster_shuffle_df)-np.count_nonzero(np.isnan(half_session_score)))
+                        # print it out for people to see
+                        print("There are this many non-nan values for the grid score: ", grid_n_nans_removed_from_shuffle[cluster_index])
+                        print("There are this many non-nan values for the border score: ", border_n_nans_removed_from_shuffle[cluster_index])
+                        print("There are this many non-nan values for the half-session score: ", half_session_n_nans_removed_from_shuffle[cluster_index])
+                        print("There are this many non-nan values for the spatial score: ", spatial_n_nans_removed_from_shuffle[cluster_index])
+                        print("There are this many non-nan values for the hd score: ", hd_n_nans_removed_from_shuffle[cluster_index])
+                        print("There are this many non-nan values for the speed score: ", speed_n_nans_removed_from_shuffle[cluster_index])
+
+                        #remove the nan values
+                        speed_scores = speed_scores[~np.isnan(speed_scores)]
+                        hd_scores = hd_scores[~np.isnan(hd_scores)]
+                        rayleigh_scores = rayleigh_scores[~np.isnan(rayleigh_scores)]
+                        spatial_information_scores = spatial_information_scores[~np.isnan(spatial_information_scores)]
+                        grid_score = grid_score[~np.isnan(grid_score)]
+                        border_score = border_score[~np.isnan(border_score)]
+                        half_session_score = half_session_score[~np.isnan(half_session_score)]
+
+                        # calculate the 99th percentile threshold for individual clusters
                         # calculations based on z values please see https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_probability/bs704_probability10.html
                         adjusted_speed_threshold_pos = np.nanmean(speed_scores) + (np.nanstd(speed_scores)*+1.960) # two tailed
                         adjusted_speed_threshold_neg = np.nanmean(speed_scores) + (np.nanstd(speed_scores)*-1.960) # two tailed
@@ -103,6 +136,14 @@ def add_shuffled_cutoffs(recordings_folder_to_process):
                     spatial_firing["grid_threshold"] = grid_thresholds
                     spatial_firing["border_threshold"] = border_thresholds
                     spatial_firing["half_session_threshold"] = half_session_thresholds
+
+                    spatial_firing["speed_n_nans_removed_from_shuffle"] = speed_n_nans_removed_from_shuffle
+                    spatial_firing["hd_n_nans_removed_from_shuffle"] = hd_n_nans_removed_from_shuffle
+                    spatial_firing["rayleigh_n_nans_removed_from_shuffle"] = rayleigh_n_nans_removed_from_shuffle
+                    spatial_firing["spatial_n_nans_removed_from_shuffle"] = spatial_n_nans_removed_from_shuffle
+                    spatial_firing["grid_n_nans_removed_from_shuffle"] = grid_n_nans_removed_from_shuffle
+                    spatial_firing["border_n_nans_removed_from_shuffle"] = border_n_nans_removed_from_shuffle
+                    spatial_firing["half_session_n_nans_removed_from_shuffle"] = half_session_n_nans_removed_from_shuffle
 
                     spatial_firing.to_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
@@ -134,7 +175,8 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
                 else:
                     grid_cell = False
 
-                if (cluster_spatial_firing["border_score"].iloc[0] > cluster_spatial_firing["border_threshold"].iloc[0]):
+                if ((cluster_spatial_firing["border_score"].iloc[0] > cluster_spatial_firing["border_threshold"].iloc[0]) and
+                    (cluster_spatial_firing["rate_map_correlation_first_vs_second_half"].iloc[0] > cluster_spatial_firing["half_session_threshold"].iloc[0])):
                     border_cell = True
                 else:
                     border_cell = False
