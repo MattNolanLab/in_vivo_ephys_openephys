@@ -3,7 +3,6 @@
 #$ -l h_rt=24:00:00
 #$ -l h_vmem=10G
 #$ -pe sharedmem 1
-#$ -P sbms_kg_grid_modelling
 
 #load the environment modules
 . /etc/profile.d/modules.sh
