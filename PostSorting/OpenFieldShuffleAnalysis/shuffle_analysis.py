@@ -72,7 +72,7 @@ def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
 
     if shuffles_to_run > 1:
         for i in range(shuffles_to_run):
-            if len(cluster_spike_data["firing_times"]) > 0:
+            if len(cluster_spike_data["firing_times"]) == 0:
                 shuffled_cluster_spike_data = pd.DataFrame(np.nan, index=[0], columns=["cluster_id", "shuffle_id",
                                                                                        "mean_firing_rate", "speed_score",
                                                                                        "speed_score_p_values", "hd_score",
