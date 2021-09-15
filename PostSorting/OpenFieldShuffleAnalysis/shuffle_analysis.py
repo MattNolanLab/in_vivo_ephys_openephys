@@ -70,10 +70,21 @@ def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
 
     shuffles_to_run = n_shuffles-n_shuffles_pre_computed
 
-    if (shuffles_to_run > 1) and (len(cluster_spike_data["firing_times"]) > 0):
+    if shuffles_to_run > 1:
         for i in range(shuffles_to_run):
-            shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
-            shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data)
+            if len(cluster_spike_data["firing_times"]) > 0:
+                shuffled_cluster_spike_data = pd.DataFrame(np.nan, index=[0], columns=["cluster_id", "shuffle_id",
+                                                                                       "mean_firing_rate", "speed_score",
+                                                                                       "speed_score_p_values", "hd_score",
+                                                                                       "rayleigh_score",
+                                                                                       "spatial_information_score",
+                                                                                       "grid_score", "border_score",
+                                                                                       "rate_map_correlation_first_vs_second_half",
+                                                                                       "percent_excluded_bins_rate_map_correlation_first_vs_second_half_p"])
+
+            else:
+                shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
+                shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data)
 
             shuffle = pd.concat([shuffle, shuffled_cluster_spike_data], ignore_index=True)
             print(i, " shuffle complete")
