@@ -70,7 +70,7 @@ def one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles):
 
     shuffles_to_run = n_shuffles-n_shuffles_pre_computed
 
-    if shuffles_to_run > 1:
+    if (shuffles_to_run > 1) and (len(cluster_spike_data["firing_times"]) > 0):
         for i in range(shuffles_to_run):
             shuffled_cluster_spike_data = generate_shuffled_times(cluster_spike_data, n_shuffles=1)
             shuffled_cluster_spike_data = run_parallel_of_shuffle(shuffled_cluster_spike_data, synced_spatial_data)
