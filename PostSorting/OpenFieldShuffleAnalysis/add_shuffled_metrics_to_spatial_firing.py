@@ -249,8 +249,12 @@ def add_spatial_classifier_based_on_classifiers(recordings_folder_to_process):
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
+    print('The shuffled analysis scripts (on Eddie) used python 3.8 to make the data frames. If you run this and '
+          'get an error about pickle protocols, try to make a new python 3.8 virtual environment on Eleanor '
+          '(conda create -n environmentname python=3.8) and use that. (The pipeline currently needs 3.6, so do not '
+          'change that.')
 
-    recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort8_may2021/of"
+    recordings_folder_to_process = '' #r"/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo"
     #recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort7_october2020/of"
     #recordings_folder_to_process = r"/mnt/datastore/Sarah/Data/OptoEphys_in_VR/Data/OpenEphys/_cohort5/OpenField"
     add_shuffled_cutoffs(recordings_folder_to_process)

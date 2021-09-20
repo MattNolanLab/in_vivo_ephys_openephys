@@ -102,6 +102,7 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
     if isinstance(spatial_firing, pd.DataFrame):
         firing_data = spatial_firing[['session_id', 'cluster_id', 'primary_channel', 'firing_times']].copy()
+        firing_data['recording_length_sampling_points'] = recording_length_sampling_points
         firing_data = add_tetrode_based_on_primary_channel(firing_data, number_of_channels_neighborhood)
         firing_data = convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood)
         if opto_tagging_start_index is not None:
