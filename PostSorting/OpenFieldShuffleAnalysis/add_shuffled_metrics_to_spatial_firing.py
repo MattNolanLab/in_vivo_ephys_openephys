@@ -157,7 +157,7 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
 
     for recording_path in recording_list:
         print("processing ", recording_path)
-        if os.path.isfile(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+        if os.path.exists(recording_path+r"/MountainSort/DataFrames/shuffles/"):
             spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
             grid_cells = []
@@ -225,7 +225,7 @@ def add_spatial_classifier_based_on_classifiers(recordings_folder_to_process):
 
     for recording_path in recording_list:
         print("processing ", recording_path)
-        if os.path.isfile(recording_path+r"/MountainSort/DataFrames/shuffles/shuffle.pkl"):
+        if os.path.exists(recording_path+r"/MountainSort/DataFrames/shuffles/"):
             spatial_firing = pd.read_pickle(recording_path+r"/MountainSort/DataFrames/spatial_firing.pkl")
 
             classifier = []
