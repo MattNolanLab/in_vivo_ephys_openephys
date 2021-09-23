@@ -9,6 +9,7 @@ recording_folder_to_process = sys.argv[1] # something like /mnt/datastore/Harry/
 N_SHUFFLES = 1000
 local_scratch_path = '/exports/eddie/scratch/s1228823/recordings'
 ELEANOR_HOST = 'ubuntu@172.16.49.217'
+RUN_SHUFFLE_PATH = '/home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
 ELEANOR_RECORDINGS_PATH = Path(recording_folder_to_process)
 LOCAL_SCRATCH_PATH = Path(local_scratch_path)
 
@@ -39,7 +40,7 @@ for recording_path in recording_list: # eg. M1_D1_2020-01-31_00-00-00
                 #only submit a job if the shuffle dataframe is incomplete
                 if (N_SHUFFLES - len(shuffle)) > 0:
                     print(f'Submitting shuffle job')
-                    cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+                    cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} {RUN_SHUFFLE_PATH}'
                     subprocess.check_call(cmd, shell=True)
                     n_jobs_submitted += 1
                 else:
@@ -47,7 +48,7 @@ for recording_path in recording_list: # eg. M1_D1_2020-01-31_00-00-00
 
             else:
                 print("shuffle dataframe not found, I will submit a new shuffle job")
-                cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/run_of_shuffle.sh'
+                cmd = f'qsub -v RECORDING_PATH={recording_path} -v SHUFFLE_NUMBER={N_SHUFFLES} -v CLUSTER_ID={cluster_id} {RUN_SHUFFLE_PATH}'
                 subprocess.check_call(cmd, shell=True)
                 n_jobs_submitted += 1
 
