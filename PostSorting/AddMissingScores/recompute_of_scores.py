@@ -16,7 +16,6 @@ import warnings
 import sys
 import settings
 
-prm = pt.Parameters()
 
 def recompute_scores(spike_data, synced_spatial_data, recompute_speed_score=True, recompute_hd_score=True,
                      recompute_grid_score=True, recompute_spatial_score=True, recompute_border_score=True, recompute_stability_score=True):
