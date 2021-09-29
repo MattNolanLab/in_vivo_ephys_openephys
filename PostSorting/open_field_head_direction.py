@@ -273,7 +273,7 @@ def process_hd_data(spatial_firing, spatial_data):
     avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
     hd_histogram /= avg_sampling_rate_bonsai
 
-    spatial_firing = calculate_hd_spike_histogram(spatial_firing)
+    spatial_firing = calculate_hd_spike_histogram(spatial_firing, hd_histogram)
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
     spatial_firing = calculate_hd_information_score(spatial_firing, hd_histogram)
