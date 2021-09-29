@@ -7,6 +7,8 @@ import pandas as pd
 import subprocess
 import sys
 import settings
+from numpy import inf
+from scipy import stats
 
 import PostSorting.open_field_firing_maps
 
@@ -34,6 +36,7 @@ def get_hd_histogram(angles, window_size=23):
     theta = np.linspace(0, 2*np.pi, 361)  # x axis
     binned_hd, _, _ = plt.hist(angles, theta)
     smooth_hd = get_rolling_sum(binned_hd, window=window_size)
+    smooth_hd = smooth_hd/window_size
     plt.close()
     return smooth_hd
 
@@ -97,6 +100,27 @@ def add_rayleigh_score_for_all_clusters(spatial_firing: pd.DataFrame) -> pd.Data
     spatial_firing['rayleigh_score'] = np.array(rayleigh_ps)
     return spatial_firing
 
+def calculate_hd_information_score(spatial_firing, hd_histogram):
+    '''
+    Calculates the spatial information score in bits per spike as in Skaggs et al.,
+    1996, 1993). see calculate_spatial_information(spatial_firing)
+    '''
+    hd_information_scores = []
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        mean_firing_rate = cluster_df.iloc[0]["mean_firing_rate"] # λ
+        hd_hist = cluster_df.hd_spike_histogram.iloc[0].copy()
+        hd_histogram[np.isnan(hd_histogram)] = 0
+        occupancy_probability_map = hd_histogram/np.sum(hd_histogram) # Pj
+        log_term = np.log2(hd_hist/mean_firing_rate)
+        log_term[log_term == -inf] = 0
+        Isec = np.sum(occupancy_probability_map*hd_hist*log_term)
+        Ispike = Isec/mean_firing_rate
+        hd_information_scores.append(Ispike)
+
+    spatial_firing['hd_information_score'] = hd_information_scores
+    return spatial_firing
+
 
 def calculate_hd_score(spatial_firing):
     hd_scores = []
@@ -157,29 +181,106 @@ def put_stat_results_in_spatial_df(spatial_firing, prm):
         spatial_firing['watson_session'] = df_stats.Watson_Session.values
     return spatial_firing
 
+def split_spatial_data_into_quadrants(spatial_data):
+    x_midline = (np.max(spatial_data["position_x"]) - np.min(spatial_data["position_x"]))/2
+    y_midline = (np.max(spatial_data["position_y"]) - np.min(spatial_data["position_y"]))/2
+    quadA = spatial_data[(spatial_data["position_x"] < x_midline) & (spatial_data["position_y"] < y_midline)]
+    quadB = spatial_data[(spatial_data["position_x"] > x_midline) & (spatial_data["position_y"] < y_midline)]
+    quadC = spatial_data[(spatial_data["position_x"] < x_midline) & (spatial_data["position_y"] > y_midline)]
+    quadD = spatial_data[(spatial_data["position_x"] > x_midline) & (spatial_data["position_y"] > y_midline)]
+    return quadA, quadB, quadC, quadD, x_midline, y_midline
+
+def split_spatial_firing_into_quadrants(cluster_spatial_firing, x_midline, y_midline):
+    x_positions_spikes = np.asarray(cluster_spatial_firing["position_x"].iloc[0])
+    y_positions_spikes = np.asarray(cluster_spatial_firing["position_y"].iloc[0])
+
+    A_mask = (x_positions_spikes < x_midline) & (y_positions_spikes < y_midline)
+    B_mask = (x_positions_spikes > x_midline) & (y_positions_spikes < y_midline)
+    C_mask = (x_positions_spikes < x_midline) & (y_positions_spikes > y_midline)
+    D_mask = (x_positions_spikes > x_midline) & (y_positions_spikes > y_midline)
+
+    quad_A = cluster_spatial_firing.copy()
+    quad_B = cluster_spatial_firing.copy()
+    quad_C = cluster_spatial_firing.copy()
+    quad_D = cluster_spatial_firing.copy()
+
+    quad_A["hd"].iloc[0] = np.asarray(cluster_spatial_firing["hd"].iloc[0])[A_mask].tolist()
+    quad_B["hd"].iloc[0] = np.asarray(cluster_spatial_firing["hd"].iloc[0])[B_mask].tolist()
+    quad_C["hd"].iloc[0] = np.asarray(cluster_spatial_firing["hd"].iloc[0])[C_mask].tolist()
+    quad_D["hd"].iloc[0] = np.asarray(cluster_spatial_firing["hd"].iloc[0])[D_mask].tolist()
+
+    return quad_A, quad_B, quad_C, quad_D
+
+
+def calculate_spatial_stability(spatial_firing, spatial_data):
+    """
+    calculates the stability of the hd preference as in Giocomo 2014
+     "Topography of head direction cells in medial entorhinal cortex"
+    (1) spatial data is split into 4 equal quadrants
+    (2) spike data is plit into 4 equal quadrants
+    (3) each quadrants hd preference is calculated
+    (4) each combination of quadrants hd preference is correlated
+    (5) all correlations are averaged, this averaged correlation is the hd stability score
+    """
+    spatial_quadA, spatial_quadB, spatial_quadC, spatial_quadD, \
+    x_midline, y_midline = split_spatial_data_into_quadrants(spatial_data)
+
+    hd_stability_scores = []
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        cluster_quad_A, cluster_quad_B, cluster_quad_C, cluster_quad_D = split_spatial_firing_into_quadrants(cluster_df, x_midline, y_midline)
+
+        hd_histogram_A = get_hd_histogram((np.array(spatial_quadA.hd) + 180) * np.pi / 180)
+        hd_histogram_B = get_hd_histogram((np.array(spatial_quadB.hd) + 180) * np.pi / 180)
+        hd_histogram_C = get_hd_histogram((np.array(spatial_quadC.hd) + 180) * np.pi / 180)
+        hd_histogram_D = get_hd_histogram((np.array(spatial_quadD.hd) + 180) * np.pi / 180)
+
+        hd_spike_histogram_A = get_hd_histogram((np.array(cluster_quad_A.hd.iloc[0]) + 180) * np.pi / 180)
+        hd_spike_histogram_B = get_hd_histogram((np.array(cluster_quad_B.hd.iloc[0]) + 180) * np.pi / 180)
+        hd_spike_histogram_C = get_hd_histogram((np.array(cluster_quad_C.hd.iloc[0]) + 180) * np.pi / 180)
+        hd_spike_histogram_D = get_hd_histogram((np.array(cluster_quad_D.hd.iloc[0]) + 180) * np.pi / 180)
+
+        hd_preference_A = hd_spike_histogram_A/hd_histogram_A
+        hd_preference_B = hd_spike_histogram_B/hd_histogram_B
+        hd_preference_C = hd_spike_histogram_C/hd_histogram_C
+        hd_preference_D = hd_spike_histogram_D/hd_histogram_D
+
+        AB_corr = stats.pearsonr(hd_preference_A, hd_preference_B)[0]
+        AC_corr = stats.pearsonr(hd_preference_A, hd_preference_C)[0]
+        AD_corr = stats.pearsonr(hd_preference_A, hd_preference_D)[0]
+        BC_corr = stats.pearsonr(hd_preference_B, hd_preference_C)[0]
+        BD_corr = stats.pearsonr(hd_preference_B, hd_preference_D)[0]
+        CD_corr = stats.pearsonr(hd_preference_C, hd_preference_D)[0]
+
+        hd_stability = np.mean([AB_corr, AC_corr, AD_corr, BC_corr, BD_corr, CD_corr])
+        hd_stability_scores.append(hd_stability)
+    spatial_firing["hd_stability_score"] = hd_stability_scores
+    return spatial_firing
+
+
+def calculate_hd_spike_histogram(spatial_firing, hd_histogram):
+    hd_spike_histograms = []
+    for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
+        cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
+        angles_spike = (np.array(cluster_df["hd"].iloc[0]) + 180) * np.pi / 180
+        hd_spike_histogram = get_hd_histogram(angles_spike)
+        hd_spike_histogram = hd_spike_histogram / hd_histogram
+        hd_spike_histograms.append(hd_spike_histogram)
+    spatial_firing['hd_spike_histogram'] = hd_spike_histograms
+    return spatial_firing
 
 def process_hd_data(spatial_firing, spatial_data):
     print('I will process head-direction data now.')
     angles_whole_session = (np.array(spatial_data.hd) + 180) * np.pi / 180
     hd_histogram = get_hd_histogram(angles_whole_session)
-    hd_histogram /= settings.sampling_rate
+    avg_sampling_rate_bonsai = float(1 / spatial_data['synced_time'].diff().mean())
+    hd_histogram /= avg_sampling_rate_bonsai
 
-    hd_spike_histograms = []
-    for index, cluster in spatial_firing.iterrows():
-        # cluster = spatial_firing.cluster_id.values[index] - 1
-        try:
-            angles_spike = (cluster.hd + 180) * np.pi / 180
-        except:
-            angles_spike = (np.array(cluster.hd) + 180) * np.pi / 180
-
-        hd_spike_histogram = get_hd_histogram(angles_spike)
-        hd_spike_histogram = hd_spike_histogram / hd_histogram
-        hd_spike_histograms.append(hd_spike_histogram)
-
-    # spatial_firing = put_stat_results_in_spatial_df(spatial_firing, prm)
-    spatial_firing['hd_spike_histogram'] = hd_spike_histograms
+    spatial_firing = calculate_hd_spike_histogram(spatial_firing, hd_histogram)
     spatial_firing = get_max_firing_rate(spatial_firing)
     spatial_firing = calculate_hd_score(spatial_firing)
+    spatial_firing = calculate_hd_information_score(spatial_firing, hd_histogram)
+    spatial_firing = calculate_spatial_stability(spatial_firing, spatial_data)
     spatial_firing = add_rayleigh_score_for_all_clusters(spatial_firing)
     return hd_histogram, spatial_firing
 
@@ -231,11 +332,7 @@ def get_hd_in_field(rate_map_indices, spatial_data):
 
 # return array of HD in subfield when cell fired for cluster
 def get_hd_in_firing_rate_bins_for_cluster(spatial_firing, rate_map_indices, cluster_id):
-    #cluster_id = np.arange(len(spatial_firing.firing_times[cluster]))
     cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
-
-
-    # TODO rename spatial_firing_cluster more appropriately, doe not have same structure as spatial firing
     spatial_firing_cluster = pd.DataFrame(np.arange(len(cluster_df['firing_times'].iloc[0])))
 
     if type(cluster_df['position_x_pixels'].iloc[0]) is np.ndarray:
