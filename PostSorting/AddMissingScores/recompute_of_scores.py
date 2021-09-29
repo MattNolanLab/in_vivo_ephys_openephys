@@ -39,7 +39,6 @@ def process_dir(recording_folder_path, recompute_speed_score=True, recompute_hd_
                 recompute_spatial_score=True, recompute_border_score=True, recompute_stability_score=True):
     # get list of all recordings in the recordings folder
     recording_list = [f.path for f in os.scandir(recording_folder_path) if f.is_dir()]
-    recording_list = ["/mnt/datastore/Harry/Cohort8_may2021/of/M11_D40_2021-07-02_12-11-42"]
 
     # loop over recordings and add spatial firing to the concatenated frame, add the paths to processed position
     for recording in recording_list:
@@ -67,7 +66,7 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    process_dir(recording_folder_path= "",
+    process_dir(recording_folder_path= "/mnt/datastore/Harry/Cohort8_may2021/of/",
                 recompute_speed_score=False, recompute_hd_score=True, recompute_grid_score=False,
                 recompute_spatial_score=False, recompute_border_score=False, recompute_stability_score=False)
     print("were done for now ")
