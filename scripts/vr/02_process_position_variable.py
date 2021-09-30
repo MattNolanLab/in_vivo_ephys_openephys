@@ -55,6 +55,8 @@ raw_position_data = calculate_instant_velocity(raw_position_data, soutput.speed_
 raw_position_data = get_avg_speed_200ms(raw_position_data, soutput.mean_speed_plot, settings.location_ds_rate,0.1)
 
 #%% save data
+raw_position_data['track_length'] = track_length
+raw_position_data['reward_loc'] = reward_loc
 raw_position_data.to_pickle(soutput.raw_position_data)
 
 #%% bin the position data over trials
