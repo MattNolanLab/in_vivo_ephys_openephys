@@ -36,9 +36,5 @@ spatial_data, position_was_found = ppsd.process_position_data(sinput.recording_t
 synced_spatial_data, total_length_sample_point, ephys_sync_data, is_found = open_field_sync_data.process_sync_data(sinput.recording_to_sort, 
     spatial_data,opto_tagging_start_index, soutput.sync_pulse)
 
-
-#%% Save
-
+#%% save
 synced_spatial_data.to_pickle(soutput.synced_spatial_data)
-
-# %%
