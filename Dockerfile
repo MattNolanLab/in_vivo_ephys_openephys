@@ -6,8 +6,8 @@ RUN apt-get install -y --no-install-recommends wget bzip2 software-properties-co
 
 # Conda
 ENV PATH /opt/conda/bin:$PATH
-RUN wget https://repo.anaconda.com/miniconda/Miniconda2-4.7.10-Linux-x86_64.sh -O miniconda.sh && \
-    [ "3bc6ffc6cda8efa467926dfd92a30bca" = "$(md5sum miniconda.sh | cut -f 1 -d ' ')" ] && \
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh -O miniconda.sh && \
+    [ "b4e46fcc8029e2cfa731b788f25b1d36" = "$(md5sum miniconda.sh | cut -f 1 -d ' ')" ] && \
     bash miniconda.sh -b -p /opt/conda/ && \
     ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
