@@ -191,13 +191,13 @@ dependencies:
     - sphinxcontrib-jsmath==1.0.1
     - sphinxcontrib-qthelp==1.0.3
     - sphinxcontrib-serializinghtml==1.1.4
-    - spikecomparison==0.3.1
-    - spikeextractors==0.9.3
+    - spikecomparison==0.3.3
+    - spikeextractors==0.9.8
     - spikefeatures==0.1.1
-    - spikeinterface==0.11.0
-    - spikemetrics==0.2.3
-    - spikesorters==0.4.3
-    - spikewidgets==0.5.1
+    - spikeinterface==0.13.0
+    - spikemetrics==0.2.4
+    - spikesorters==0.4.5
+    - spikewidgets==0.5.4
     - statsmodels==0.12.2
     - stopit==1.1.2
     - termcolor==1.1.0
