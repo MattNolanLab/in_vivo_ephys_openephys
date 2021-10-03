@@ -19,3 +19,5 @@ RUN conda env create -f environment.yml && \
     find /opt/conda/ -follow -type f -name '*.a' -delete && \
     find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
     /opt/conda/bin/conda clean -afy
+
+RUN mkdir -p /home/ubuntu/to_sort/recordings  # Lazy convenience folder to match Eleanor
