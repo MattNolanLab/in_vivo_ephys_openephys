@@ -114,6 +114,7 @@ dependencies:
     - imagecodecs==2020.2.18
     - imageio==2.8.0
     - imagesize==1.2.0
+    - imbalanced-learn==0.8.1
     - immutables==0.15
     - importlib-metadata==1.6.0
     - ipykernel==5.3.0
@@ -157,6 +158,7 @@ dependencies:
     - pexpect==4.8.0
     - pickleshare==0.7.5
     - pillow==7.1.2
+    - palettable==3.3.0
     - prometheus-client==0.7.1
     - prompt-toolkit==3.0.5
     - psutil==5.7.0
@@ -174,7 +176,7 @@ dependencies:
     - ratelimiter==1.2.0.post0
     - requests==2.23.0
     - scikit-image==0.17.2
-    - scikit-learn==0.23.1
+    - scikit-learn==0.24.2
     - scipy==1.5.4
     - seaborn==0.11.1
     - send2trash==1.5.0
