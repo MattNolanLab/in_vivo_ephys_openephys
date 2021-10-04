@@ -89,21 +89,21 @@ def shuffle_data(dataset, shufflefield,keepfield=None):
 
 def mergeSeriesOnIndex(data, index):
     # merge the data together based on the index, keep the last one for duplicate
-
+    # Merge the data based on the index, which usually is the firing time
     if len(data) > 1:
+        series_list = []
+
         for i, tt in enumerate(data):
             tt = np.array(tt)
             dataLength = min(tt.shape[0], index.iloc[i].shape[0])
-            if i == 0:
-                # sometimes the cell may stil fire after the trial end
-                series = pd.Series(tt[:dataLength], index=index.iloc[i][:dataLength])
-            else:
-                s = pd.Series(tt[:dataLength], index=index.iloc[i][:dataLength])
-                series.append(s)
-                uniqueIdx = series.index.drop_duplicates(
-                    keep="last"
-                )  # remove duplicate time indices
-                series = series[uniqueIdx]
+            series_list.append(pd.Series(tt[:dataLength], index=index.iloc[i][:dataLength]))
+
+        series = pd.concat(series_list)
+        uniqueIdx = series.index.drop_duplicates(
+            keep="last"
+        )  # remove duplicate time indices
+        series = series[uniqueIdx]
+        series = series.sort_index()
 
     else:
         data = np.array(data.iloc[0])
