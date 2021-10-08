@@ -74,7 +74,7 @@ def resample_position_data(pos,fs, fixna=True):
         pos = pos.dropna(axis=0)
 
     t = pos.time_seconds.values
-    t2 = np.arange(0,t[-1],1/fs) #set end to t[-1] to avoid extrapolation, which may lead to error
+    t2 = np.arange(t[0],t[-1],1/fs) #set both ends to be within the origin time series to avoid extrapolation, which may lead to error
     df = {}
     for col in pos.columns:
         f = interp1d(t,pos[col].values)
@@ -109,6 +109,7 @@ def calculate_speed(position_data):
 
 
 def calculate_central_speed(position_data):
+    # Calculate the linear speed of the animal
     elapsed_time = position_data['time_seconds'].diff()
     distance_travelled = np.sqrt(position_data['position_x'].diff().pow(2) + position_data['position_y'].diff().pow(2))
     position_data['speed'] = distance_travelled / elapsed_time
