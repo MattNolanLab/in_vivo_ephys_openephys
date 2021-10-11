@@ -9,7 +9,7 @@ Snakemake pipeline for processing open-ephys data. This pipeline relies heavily 
 ### Installation
 An environment file is provided for all the dependencies. Please create the conda environment by 
 ```
-conda create -f environment.yml
+conda env create -f environment.yml
 ```
 
 note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first. It is needed to compile the isosplit library for mountainsort4.
