@@ -12,7 +12,9 @@ An environment file is provided for all the dependencies. Please create the cond
 conda env create -f environment.yml
 ```
 
-note: make sure you have gcc installed, if not please do `sudo apt-get install gcc` first. It is needed to compile the isosplit library for mountainsort4.
+After creating the new enviroment. Remember to do `conda init` and then `conda actviate ms4` to switch to the new environment. If set correctly, you should see the name of the environment in front of your command prompt.
+
+Also plesae make sure you have gcc installed, if not please do `sudo apt-get install gcc` first. It is needed to compile the isosplit library for mountainsort4.
 
 Due to the folder organization, you will also need to add the project root folder to your PYTHON path.
 In the root folder of this repository i.e. `in_vivo_ephys_openephys`, execute the following. 
@@ -33,7 +35,13 @@ At a minimum, the `parameters.yaml` file should contain the experimental type of
 
 ### How to use
 
-For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. 
+
+For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. You probably will need to change its permissible to be executable first.
+
+```
+sudo chmod +x runSnake.py
+```
+
 You can get the list of argument to `runSnake` by 
 ```
 ./runSnake.py --help
@@ -52,8 +60,6 @@ There is a `-n` option for dry-run, meaning that it will try simulate the workfl
 ./runSnake.py -n /mnt/datastore/Someone/data/VR/M1_D1_2021-01
 ```
 
-If the pipeline detected that the recordings have already been processed before (by the presence of a `snakemake.done` file), it will ask you if you want to process it again.
-
 `runSnake` supports wild card in the folder name. Suppose your recordings are stored in `data/VR` and `data/openfield`, the following command will run the analysis on all experiment types, all animals, and all training day. The exact workflow to use for each recording will be determined by the `parameters.yaml` in the folder or its parent folder. **Remember** to use `-n` to double check first before doing analysis on lots of recording.
 
 ```
@@ -71,7 +77,7 @@ For structure of individual scripts and workflow, please consult the README in t
     ```
 - Batch re-run of analysis
 
-    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` option. if you want to automatically skip processed recordings, you can use the `--skip` option.
+    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` flag. if you want to automatically skip processed recordings, you can use the `--skip` flag.
 
 
 - If your recordings is too large to fit in memory, you can either use a larger instance or you can create a larger swapfile (recommanded) to be used as a temporary memory space:
