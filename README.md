@@ -36,7 +36,7 @@ At a minimum, the `parameters.yaml` file should contain the experimental type of
 For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. 
 You can get the list of argument to `runSnake` by 
 ```
-./runSnake --help
+./runSnake.py --help
 ```
 
 For example, if you want to analyze a folder in datastore, you just need to run:
