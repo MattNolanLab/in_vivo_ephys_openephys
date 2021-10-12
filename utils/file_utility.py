@@ -315,4 +315,4 @@ def get_track_info_log_file(recording_path, session_config_path):
         reset = float(first_trial[9])*10 #conver to cm
         reward_zone_start = float(first_trial[11])*10
     
-    return reset, reward_zone_start, session_file_name
+    return reset, reward_zone_start

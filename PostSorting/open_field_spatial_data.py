@@ -57,7 +57,7 @@ def convert_time_to_seconds(position_data):
     return position_data
 
 
-def resample_position_data(pos,fs, fixna=True, time_col='time_seconds', skip_cols=None):
+def resample_position_data(pos,fs, fixna=True):
     ''' 
     Resample position data so that they are of exact sampling rate. Sometimes the FPS of the camera is not stable,
     which may lead to error in syncing. 
@@ -66,11 +66,6 @@ def resample_position_data(pos,fs, fixna=True, time_col='time_seconds', skip_col
 
     fixna: whether to interpolate the missing values. Although later interpolation may happen again during position calculation,
     resampling may have increased the number of NaN. It may be better to interpolate the missing value at this step
-
-    time_col: the name of the column that contains the timestamp in second
-
-    skip_cols: a list of column name for which no interpolation will be done, the nearest value will be used instead. It will be good for 
-    categorical variables
     '''
     print('I will now resample the data')
 
@@ -78,25 +73,14 @@ def resample_position_data(pos,fs, fixna=True, time_col='time_seconds', skip_col
         print('I will try to fix the missing values now')
         pos = pos.dropna(axis=0)
 
-    t = pos[time_col].values
+    t = pos.time_seconds.values
     t2 = np.arange(t[0],t[-1],1/fs) #set both ends to be within the origin time series to avoid extrapolation, which may lead to error
     df = {}
-
-    col2interp = pos.columns
-
-    if skip_cols is not None:
-        col2interp = np.setdiff1d(col2interp, skip_cols)
-
-        # copy the nearest value instead of linear interpolation
-        for col in skip_cols:
-            f = interp1d(t, pos[col].values, kind='nearest')
-            df[col] = f(t2)
-
-    for col in col2interp:
+    for col in pos.columns:
         f = interp1d(t,pos[col].values)
         df[col] = f(t2)
-    
-    df[time_col] = t2
+
+    df['time_seconds'] = t2
     df2return = pd.DataFrame(df)
 
     return df2return

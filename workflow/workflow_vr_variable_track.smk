@@ -39,9 +39,6 @@ rule process_position:
         speed_plot = '{recording}/processed/figures/behaviour/speed.png',
         mean_speed_plot = '{recording}/processed/figures/behaviour/speed_mean.png',
         raw_position_plot = '{recording}/processed/figures/position.png',
-        blender_sync_plot = '{recording}/processed/figures/blender_sync.png',
-        blender_pos = '{recording}/processed/figures/blender_pos.pkl',
-        blender_trial_info = '{recording}/processed/figures/blender_trial_info.pkl',
         speed_heat_map = '{recording}/processed/figures/behaviour/speed_heat_map.png'
     script:
         '../scripts/vr/02_process_position_variable.py'
