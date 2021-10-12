@@ -11,8 +11,10 @@ import PostSorting.vr_make_plots
 import PostSorting.vr_cued
 import settings
 from utils.file_utility import load_openephys_file
-
+import glob
+from PostSorting.open_field_spatial_data import resample_position_data
 from scipy import signal
+import matplotlib.pylab as plt
 
 def downsample(x,downsample_factor):
     """downsample data
@@ -66,7 +68,6 @@ def calculate_track_location(position_data, recorded_location, track_length):
     distance_unit = recorded_track_length/track_length  # Obtain distance unit (cm) by dividing recorded track length to actual track length
     location_in_cm = (recorded_location - recorded_startpoint) / distance_unit
     position_data['x_position_cm'] = np.asarray(location_in_cm, dtype=np.float16) # fill in dataframe
-
     return position_data
 
 
@@ -151,6 +152,81 @@ def load_second_trial_channel(recording_folder, second_trial_channel = settings.
     return np.asarray(second, dtype=np.uint8).ravel()
 
 
+
+
+def calculate_trial_types_from_csv(raw_position_data, recording_to_sort, sync_figure_path):
+    '''
+    Synchronize the position data from Blender and Open Ephys, then return the synchornized dataframe
+    and the dataframe containing the information for each trial
+    '''
+    print('I am synchronizing Blender position data with Open ephys')
+
+    ########
+    # Load blender position file
+    log_csv = glob.glob(os.path.join(recording_to_sort, '*.csv'))
+
+    col_name = ['time_seconds', 'x_position', 'speed', 'speed_gain_adjusted', 'reward_was_received', 'reward_was_failed',
+                    'lick_detected', 'tone_played', 'y_position', 'trial_number', 'gain_mod', 'rz_start', 'rz_stop','sync_pulse']
+
+    blender_pos = pd.read_csv(log_csv[0], header=3, sep = ';',names=col_name)
+    blender_pos['x_position_cm'] = blender_pos['x_position'] * 10
+
+    ##########
+    # Align the blender position with the open ephys position
+
+    # downsample the original for faster correlation calculate later on
+    ephys_pos_data = raw_position_data[['x_position_cm','trial_number']].copy()
+    ephys_pos_data['time_seconds'] = np.arange(len(raw_position_data))/settings.location_ds_rate
+    ephys_pos_data_sync = resample_position_data(ephys_pos_data,60)
+
+    # resample the blender so that it is of stable sampling rate
+    col2skip = list(blender_pos.columns)
+    col2skip.remove('x_position_cm') #only interpolate the x_position
+    blender_pos_sync = resample_position_data(blender_pos, 60, skip_cols=col2skip) 
+    blender_pos_sync.trial_number 
+
+    # Find the lag between the Blender and open ephys data
+    corr = np.correlate(ephys_pos_data_sync.x_position_cm, blender_pos_sync.x_position_cm, 'full')
+    lag = (np.argmax(corr) - (blender_pos_sync.x_position_cm.size-1)) /60 # in second
+
+    blender_pos_sync['time_seconds'] += lag
+    blender_pos_sync = blender_pos_sync[blender_pos_sync.time_seconds>=0].reset_index() # drop the data before open ephys starts
+
+    # align the trial number
+    blender_pos_sync['trial_number'] = blender_pos_sync['trial_number'] - blender_pos_sync['trial_number'].iloc[0] +1
+    blender_pos_sync.trial_number.plot() 
+    ephys_pos_data_sync.trial_number.plot()
+    plt.savefig(sync_figure_path)
+
+    # get per trial information
+    blender_trial_info = blender_pos_sync.groupby('trial_number').max()
+    blender_trial_info.drop(['x_position_cm', 'x_position','index', 'time_seconds', 'speed', 'speed_gain_adjusted', 'sync_pulse'],
+        axis=1, inplace=True)
+    blender_trial_info.reset_index(inplace=True)
+    
+
+    return blender_pos_sync, blender_trial_info
+
+def clean_up_blender_trial_info(blender_trial_info, track_length):
+    '''
+     add trial type and reward loc so that it works with raw_position_data
+    
+    trial type number: 0: beaconed 1: non-beaconed 2: probe
+    '''
+
+    # the track with new environment is at 30,40,50
+    blender_trial_info['trial_type'] = blender_trial_info.y_position.apply(lambda x: (x%30)/10)
+    blender_trial_info['track_type'] = blender_trial_info.y_position.apply(lambda x: int(x >= 30))
+    blender_trial_info['reward_loc'] = (blender_trial_info.rz_start)*10
+
+    if 'reset' in blender_trial_info.columns:
+        blender_trial_info['track_length'] = blender_trial_info.reset
+    else:
+        blender_trial_info['track_length'] = track_length
+    return blender_trial_info
+
+
+
 def calculate_trial_types(position_data, first_ch, second_ch, output_path):
     print('Loading trial types from continuous...')
     PostSorting.vr_make_plots.plot_trial_channels(first_ch, second_ch, output_path)
@@ -173,7 +249,7 @@ def calculate_trial_types(position_data, first_ch, second_ch, output_path):
         if second > 2 and first > 2: # if probe
             trial_type[new_trial_index:next_trial_index] = int(2)
     position_data['trial_type'] = np.asarray(trial_type, dtype=np.uint8)
-    return (position_data,first_ch,second_ch)
+    return position_data
 
 def calculate_instant_velocity(position_data, output_path, sampling_rate, speed_win, lowpass=False):
     #speed_win: time window in second to smooth the speed
