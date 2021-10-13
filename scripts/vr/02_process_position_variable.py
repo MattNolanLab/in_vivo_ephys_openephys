@@ -42,7 +42,7 @@ second_ch_ds = downsample(second_ch, ds_ratio)
 
 #%% Process position data
 raw_position_data = pd.DataFrame()
-track_length, reward_loc = get_track_info_log_file(sinput.recording_to_sort, sinput.recording_to_sort+'/../../../Session_Parameters/')
+track_length, reward_loc = get_track_info_log_file(sinput.recording_to_sort, sinput.recording_to_sort+'/../../Session_Parameters/')
 raw_position_data = calculate_track_location(raw_position_data, recorded_location_ds, track_length)
 raw_position_data = calculate_trial_numbers(raw_position_data, soutput.trial_figure)
 
