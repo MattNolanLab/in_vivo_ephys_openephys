@@ -6,6 +6,7 @@ channels:
 dependencies:
   - _libgcc_mutex=0.1=main
   - _r-mutex=1.0.0=anacondar_1
+  - attrs=19.3.0=py_0
   - binutils_impl_linux-64=2.33.1=he6710b0_7
   - binutils_linux-64=2.33.1=h9595d00_15
   - bwidget=1.9.11=1
@@ -78,6 +79,7 @@ dependencies:
   - tzlocal=2.1=py36_0
   - wheel=0.34.2=py36_0
   - xz=5.2.5=h7b6447c_0
+  - zipp=3.1.0=py_0
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.5=h9ceee32_0
   - pip:
@@ -89,7 +91,6 @@ dependencies:
     - argon2-cffi==20.1.0
     - astropy==4.0.1.post1
     - async-generator==1.10
-    - attrs==19.3.0
     - babel==2.8.0
     - backcall==0.1.0
     - bleach==3.1.5
@@ -114,6 +115,7 @@ dependencies:
     - imagecodecs==2020.2.18
     - imageio==2.8.0
     - imagesize==1.2.0
+    - imbalanced-learn==0.8.1
     - immutables==0.15
     - importlib-metadata==1.6.0
     - ipykernel==5.3.0
@@ -136,7 +138,7 @@ dependencies:
     - kiwisolver==1.2.0
     - llvmlite==0.32.1
     - matplotlib==3.2.1
-    - meautility==1.4.6
+    - meautility==1.5.0
     - mistune==0.8.4
     - ml-ms4alg==0.3.2
     - mountainlab-pytools==0.7.5
@@ -150,6 +152,7 @@ dependencies:
     - numpy==1.19.5
     - numpydoc==0.9.2
     - packaging==20.4
+    - palettable==3.3.0
     - pandas==1.1.5
     - pandocfilters==1.4.2
     - parso==0.7.0
@@ -174,7 +177,7 @@ dependencies:
     - ratelimiter==1.2.0.post0
     - requests==2.23.0
     - scikit-image==0.17.2
-    - scikit-learn==0.23.1
+    - scikit-learn==0.24.2
     - scipy==1.5.4
     - seaborn==0.11.1
     - send2trash==1.5.0
@@ -191,13 +194,14 @@ dependencies:
     - sphinxcontrib-jsmath==1.0.1
     - sphinxcontrib-qthelp==1.0.3
     - sphinxcontrib-serializinghtml==1.1.4
-    - spikecomparison==0.3.1
-    - spikeextractors==0.9.3
+    - spikecomparison==0.3.3
+    - spikeextractors==0.9.8
     - spikefeatures==0.1.1
-    - spikeinterface==0.11.0
-    - spikemetrics==0.2.3
-    - spikesorters==0.4.3
-    - spikewidgets==0.5.1
+    - spikeinterface==0.13.0
+    - spikemetrics==0.2.4
+    - spikesorters==0.4.5
+    - spiketoolkit==0.7.6
+    - spikewidgets==0.5.4
     - statsmodels==0.12.2
     - stopit==1.1.2
     - termcolor==1.1.0
@@ -219,6 +223,4 @@ dependencies:
     - widgetsnbextension==3.5.1
     - wrapt==1.12.1
     - xarray==0.16.2
-    - zipp==3.1.0
-prefix: /home/ubuntu/miniconda3/envs/ms4
 
