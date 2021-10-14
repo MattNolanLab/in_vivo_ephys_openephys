@@ -65,7 +65,11 @@ recording = st.preprocessing.bandpass_filter(recording, freq_min=300, freq_max=6
 recording = st.preprocessing.whiten(recording, seed=0) #must do whitening first, otherwise the waveforms used to calculate cluster metrics will be very noisy
 
 # create a temp file for caching
-tmpdir = tempfile.TemporaryDirectory(dir='/mnt/tmpdrive/tmp') #specify the location of the temp files
+if 'TEMP_FOLDER' in os.environ:
+    tmpdir = tempfile.TemporaryDirectory(dir=os.environ['TEMP_FOLDER']) #specify the location of the temp files
+else:
+    tmpdir = tempfile.TemporaryDirectory() # use the defaul location. Make sure location disk have enough space
+    
 recording = se.CacheRecordingExtractor(recording,verbose=True, chunk_mb=2000, save_path=tmpdir.name+'/processed_data.dat') # cache recording for speedup
 
 recording.dump_to_pickle(soutput.recording_info)

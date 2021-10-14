@@ -29,7 +29,14 @@ import re
 #%%  Add positions
 raw_position = pd.read_pickle(sinput.raw_position)
 spatial_firing = pd.read_pickle(sinput.spatial_firing_vr)
-track_length = spatial_firing['track_length'][0]
+
+try:
+    track_length = raw_position['track_length'][0]
+    reward_loc = raw_position['reward_loc'][0]
+except IndexError:
+    # no cell detected
+    track_length = 0
+    reward_loc = 0
 
 #%% Add position
 binPeriod = f"{settings.binSize}ms"
@@ -184,7 +191,7 @@ binned_data.attrs.update({k: v for k, v in settings.__dict__.items() if k in var
 
 # need to go after storing the default setting, otherwise will be overwritten
 binned_data.attrs['track_length'] = track_length
-binned_data.attrs['reward_loc'] = spatial_firing.reward_loc[0]
+binned_data.attrs['reward_loc'] = reward_loc
 
 #%% Save data
 with open(soutput.bin_data, "wb") as f:
