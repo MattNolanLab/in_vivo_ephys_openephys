@@ -298,7 +298,13 @@ def get_track_info_log_file(recording_path, session_config_path):
     '''
     logger.info('Reading track info from log file')
 
-    logfile_path = glob.glob(os.path.join(recording_path,'*.log'))[0]
+    logfile_path = glob.glob(os.path.join(recording_path,'*.log'))
+
+    if len(logfile_path) == 0:
+        raise FileNotFoundError("Cannot found the log file. Have you copied it to the recording folder?")
+    else:
+        logfile_path = logfile_path[0]
+    
 
     with open(logfile_path, 'r') as f:
         log_file = f.readlines()
