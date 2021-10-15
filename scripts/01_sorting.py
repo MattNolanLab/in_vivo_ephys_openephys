@@ -68,7 +68,7 @@ recording = st.preprocessing.whiten(recording, seed=0) #must do whitening first,
 if 'TEMP_FOLDER' in os.environ:
     tmpdir = tempfile.TemporaryDirectory(dir=os.environ['TEMP_FOLDER']) #specify the location of the temp files
 else:
-    tmpdir = tempfile.TemporaryDirectory() # use the defaul location. Make sure location disk have enough space
+    tmpdir = tempfile.TemporaryDirectory() # use the defaul location. Make sure local disk have enough space
     
 recording = se.CacheRecordingExtractor(recording,verbose=True, chunk_mb=2000, save_path=tmpdir.name+'/processed_data.dat') # cache recording for speedup
 
