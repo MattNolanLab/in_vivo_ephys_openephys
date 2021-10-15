@@ -37,7 +37,7 @@ At a minimum, the `parameters.yaml` file should contain the experimental type of
 ### How to use
 
 
-For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. You probably will need to change its permissible to be executable first.
+For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. You probably will need to change its permission to be executable first.
 
 ```
 sudo chmod +x runSnake.py
