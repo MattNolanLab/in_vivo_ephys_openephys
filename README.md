@@ -21,6 +21,7 @@ In the root folder of this repository i.e. `in_vivo_ephys_openephys`, execute th
 
 ```export PYTHONPATH=$PYTHONPATH:$PWD``` 
 
+You may want to add this into your `~/.bashrc` if you don't want to execute it everything you login your instance.
 
 ### Folder structure
 A workflow is defined in a snakefile. Currently, two snakefiles are provided, namely `vr_workflow.smk` and `op_workflow.smk` for VR and openfield experiment respectively. The script files are in the `workflow` folder.
