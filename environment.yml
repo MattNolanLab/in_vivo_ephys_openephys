@@ -160,6 +160,7 @@ dependencies:
     - pexpect==4.8.0
     - pickleshare==0.7.5
     - pillow==7.1.2
+    - palettable==3.3.0
     - prometheus-client==0.7.1
     - prompt-toolkit==3.0.5
     - psutil==5.7.0
@@ -200,7 +201,6 @@ dependencies:
     - spikeinterface==0.13.0
     - spikemetrics==0.2.4
     - spikesorters==0.4.5
-    - spiketoolkit==0.7.6
     - spikewidgets==0.5.4
     - statsmodels==0.12.2
     - stopit==1.1.2
