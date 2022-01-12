@@ -21,6 +21,7 @@ In the root folder of this repository i.e. `in_vivo_ephys_openephys`, execute th
 
 ```export PYTHONPATH=$PYTHONPATH:$PWD``` 
 
+You may want to add this into your `~/.bashrc` if you don't want to execute it everything you login your instance.
 
 ### Folder structure
 A workflow is defined in a snakefile. Currently, two snakefiles are provided, namely `vr_workflow.smk` and `op_workflow.smk` for VR and openfield experiment respectively. The script files are in the `workflow` folder.
@@ -36,7 +37,7 @@ At a minimum, the `parameters.yaml` file should contain the experimental type of
 ### How to use
 
 
-For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. You probably will need to change its permissible to be executable first.
+For typical use, the entry point of analysis is via the commandline interface defined in `runSnake.py`. You probably will need to change its permission to be executable first.
 
 ```
 sudo chmod +x runSnake.py
@@ -77,7 +78,7 @@ For structure of individual scripts and workflow, please consult the README in t
     ```
 - Batch re-run of analysis
 
-    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` flag. if you want to automatically skip processed recordings, you can use the `--skip` flag.
+    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` flag. if you want to automatically skip processed recordings, you can use the `--skip` flag. If you have changed some rules and just want to rerun that particular and all subsequent rules that depends on it use the `-R` option with the name of the rule e.g. `-R process_position`
 
 
 - If your recordings is too large to fit in memory, you can either use a larger instance or you can create a larger swapfile (recommanded) to be used as a temporary memory space:
