@@ -12,7 +12,8 @@ import spikeinterface as si
 import yaml
 from pathlib import Path
 import settings
-from scipy.signal import butter
+from scipy.signal import butter, filtfilt
+from tqdm import tqdm
 
 
 def get_sorting_range(max_signal_length, param_file_location):
@@ -42,10 +43,10 @@ def get_sorting_range(max_signal_length, param_file_location):
     return (start,end)
 
 
-def filterRecording(recording, sampling_freq, lp_freq=300,hp_freq=6000,order=3):
+def filterRecording(recording, sampling_freq, hp_freq=300, lp_freq=6000,order=3):
     # Do the filtering manually instead of using spikeinterface for speed
     fn = sampling_freq / 2.
-    band = np.array([lp_freq, hp_freq]) / fn
+    band = np.array([hp_freq, lp_freq]) / fn
 
     b, a = butter(order, band, btype='bandpass')
 
