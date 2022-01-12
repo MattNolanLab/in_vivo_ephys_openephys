@@ -1,6 +1,7 @@
 snakefiles:
-  VR: workflow/workflow_vr_variable_track.smk
+  VR: workflow/workflow_vr.smk
   openfield: workflow/workflow_of.smk
+  VR_variable_track: workflow/workflow_vr_variable_track.smk
 local_recording_folder: /home/ubuntu/to_sort/recordings/ #location where the recordings are stored locally
 result_folder: processed #folder where the processed results are stored
 cores: 8
