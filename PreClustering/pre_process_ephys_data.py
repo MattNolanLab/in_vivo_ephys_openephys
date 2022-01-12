@@ -61,6 +61,9 @@ def filterRecording(recording, sampling_freq, hp_freq=300, lp_freq=6000,order=3)
         for i in tqdm(range(parent_recording._timeseries.shape[0])):
             parent_recording._timeseries[i,:] = filtfilt(b,a,parent_recording._timeseries[i,:])
         recording._parent_recording = parent_recording
+    elif type(recording) is np.ndarray:
+        assert recording.shape[1] > recording.shape[0], 'Recording must be in format channel x time'
+        recording = filtfilt(b,a,recording)
     else:
         raise TypeError("Recording type not supported")
     return recording

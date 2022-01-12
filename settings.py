@@ -68,7 +68,14 @@ accel_bin = 20
 binSize = 100 # in ms
 trackLength = 200 # TODO: should load this from the parameter file instead
 
+###################
+# LFP
+lfp_lp = 400 # low pass filter in Hz
+lfp_hp = 10 # high pass filter
+lfp_fs = 1000 # sampling frequency of the lfp signal
+
 ############
 # Debug
 # debug_folder = '/mnt/datastore/Teris/FragileX/cohort_202108/data/openfield/M3_D27_2021-09-16_12-59-00'
-debug_folder = '/mnt/datastore/Teris/FragileX/cohort_202108/data/VR/M3_D36_2021-10-11_12-36-06'
+# debug_folder = '/mnt/datastore/Teris/FragileX/cohort_202108/data/VR/M3_D36_2021-10-11_12-36-06'
+debug_folder = '/mnt/datastore/Sarah/Data/OptoEphys_in_VR/Data/OpenEphys/_cohort3/VirtualReality/M1_D20_2018-10-15_11-51-45'

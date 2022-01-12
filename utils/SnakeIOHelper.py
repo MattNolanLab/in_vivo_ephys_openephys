@@ -1,6 +1,7 @@
 # a simple helper class to make working with snake input and output easier in a script
 import os
 from pathlib import Path
+import pathlib
 import snakemake
 import sys
 from pathlib import Path
@@ -37,6 +38,12 @@ def getSnake(locals:dict,snakefile:str, targets:list, rule:str, createFolder:boo
     # determine the running environment and return the snake object appropriately
 
     if 'snakemake' not in locals: 
+        # not running in a snakemake envirnoment
+        curDir = Path(os.getcwd())
+        if curDir.parts[-1] == 'scripts':
+            os.chdir('..')
+            print(f'Working folder changed to be {os.getcwd()}')
+
         parser = IOParser(snakefile, targets)
         io = parser.getInputOutput4rule(rule)
         if createFolder:

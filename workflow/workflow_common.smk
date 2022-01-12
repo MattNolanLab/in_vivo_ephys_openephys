@@ -28,3 +28,11 @@ rule curate_clusters:
         waveform_figure_curated =directory(sorterPrefix + '/waveform/curated/')
     script:
         '../scripts/01b_curation.py'
+
+rule generate_lfp:
+    input:
+        recording_to_sort= '{recording}',
+    output:
+        lfp_file ='{recording}/processed/lfp.npy'
+    script:
+        '../scripts/01c_lfp.py'
