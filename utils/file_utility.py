@@ -62,9 +62,10 @@ def load_openephys_file(fname,search4match=True, auto_concat=True):
     return x
 
 
-def load_OpenEphysRecording(folder, auto_concat=True):
+def load_OpenEphysRecording(folder, auto_concat=True, correct_data_length=True):
     '''
     auto_concat: automatically concat two consecutive recordings produced by openephys together e.g. 101_ADC1, 101_ADC1_2
+    correct_data_length: whether to trunciate to the shortest data file if the data length of the files are not the same
     '''
 
     signal = []
@@ -77,7 +78,20 @@ def load_OpenEphysRecording(folder, auto_concat=True):
         if i==0:
             #preallocate array on first run
             signal = np.zeros((settings.num_tetrodes*4,x.shape[0]))
-        signal[i,:] = x
+
+        if correct_data_length:
+            # attempt to correct for signal length difference
+            if len(x) > signal.shape[1]:
+                signal[i,:] = x[:signal.shape[1]]
+                print('Warning: Channel data length not matched. Some data are truncated')
+            elif len(x) < signal.shape[1]:
+                signal = signal[:,:len(x)]
+                signal[i,:] = x
+                print('Warning: Channel data length not matched. Some data are truncated')
+            else:
+                signal[i,:] = x
+        else:
+            signal[i,:] = x
     return signal
 
 def getDeadChannel(deadChannelFile):
