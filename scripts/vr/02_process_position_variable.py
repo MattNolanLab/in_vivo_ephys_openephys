@@ -93,10 +93,16 @@ processed_position_data = vr_stop_analysis.calculate_average_stops(processed_pos
 processed_position_data = vr_stop_analysis.calculate_first_stops(processed_position_data)
 processed_position_data = vr_stop_analysis.calculate_rewarded_stops(processed_position_data)
 processed_position_data =vr_stop_analysis.calculate_rewarded_trials(processed_position_data)
-processed_position_data['track_length'] = track_length
-processed_position_data['reward_loc'] = reward_loc
+
+# merge the track length and reward location from blender file
+if 'r10_r20' in config_file_name:
+    processed_position_data = processed_position_data.merge(blender_trial_info[['trial_number','track_length','reward_loc']], on='trial_number')
+else:
+    processed_position_data['track_length'] = track_length
+    processed_position_data['reward_loc'] = reward_loc
 
 #%% plotting position data
+
 vr_make_plots.plot_stops_on_track(processed_position_data, soutput.stop_raster, track_length)
 vr_make_plots.plot_stop_histogram(processed_position_data, soutput.stop_histogram, track_length)
 vr_make_plots.plot_speed_histogram(processed_position_data, soutput.speed_histogram, track_length)

@@ -13,7 +13,7 @@ import pandas as pd
 from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
 import settings
 import tqdm
-
+import matplotlib.patches as patches
 
 # plot the raw movement channel to check all is good
 def plot_movement_channel(location, figure_path):
@@ -68,9 +68,15 @@ def get_trial_color(trial_type):
         print("invalid trial-type passed to get_trial_color()")
 
 def plot_stops_on_track(processed_position_data, output_path, track_length=200):
-    print('I am plotting stop rasta...')
+    print('I am plotting stop raster...')
     stops_on_track = plt.figure(figsize=(6,6))
     ax = stops_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
+
+    # if there is track length in process_position_data, use that instead
+    if 'track_length' in processed_position_data.columns:
+        track_length = processed_position_data.track_length.max()
+
+    total_trial = processed_position_data.trial_number.max()
 
     for index, trial_row in processed_position_data.iterrows():
         trial_row = trial_row.to_frame().T.reset_index(drop=True)
@@ -79,6 +85,16 @@ def plot_stops_on_track(processed_position_data, output_path, track_length=200):
         trial_stop_color = get_trial_color(trial_type)
 
         ax.plot(np.array(trial_row["stop_location_cm"].iloc[0]), trial_number*np.ones(len(trial_row["stop_location_cm"].iloc[0])), 'o', color=trial_stop_color, markersize=4)
+
+
+        # if there are two reward location, plot them in different colours
+        if ('reward_loc' in processed_position_data.columns and
+            len(processed_position_data.reward_loc.unique())>1):
+            # draw the reward location
+            reward_loc = trial_row.reward_loc.iloc[0]
+            # print(reward_loc, trial_number)
+            rect = patches.Rectangle((reward_loc, trial_number), 22, 1, facecolor='y')
+            ax.add_patch(rect)
 
     plt.ylabel('Stops on trials', fontsize=12, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=12, labelpad = 10)
