@@ -20,21 +20,23 @@ def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_
             if filename.startswith('output_metrics_out'):
                 print(filename)
                 path_to_metrics = ms_tmp_path + '/prvbucket/_mountainprocess/' + filename
-
+                
     if os.path.exists(path_to_metrics):
         with open(path_to_metrics) as metrics_file:
             cluster_metrics = json.load(metrics_file)
             metrics_file.close()
         for cluster_index, cluster in spike_data_frame.iterrows():
-            isolation = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["isolation"]
-            noise_overlap = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["noise_overlap"]
-            peak_snr = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["peak_snr"]
-            peak_amp = cluster_metrics["clusters"][cluster.cluster_id - 1]["metrics"]["peak_amp"]
+            for cluster_metric_index in range(len(cluster_metrics["clusters"])):
+                if cluster_metrics["clusters"][cluster_metric_index]["label"] == cluster.cluster_id:
+                    isolation = cluster_metrics["clusters"][cluster_metric_index]["metrics"]["isolation"]
+                    noise_overlap = cluster_metrics["clusters"][cluster_metric_index]["metrics"]["noise_overlap"]
+                    peak_snr = cluster_metrics["clusters"][cluster_metric_index]["metrics"]["peak_snr"]
+                    peak_amp = cluster_metrics["clusters"][cluster_metric_index]["metrics"]["peak_amp"]
 
-            isolations.append(isolation)
-            noise_overlaps.append(noise_overlap)
-            signal_to_noise_ratios.append(peak_snr)
-            peak_amplitudes.append(peak_amp)
+                    isolations.append(isolation)
+                    noise_overlaps.append(noise_overlap)
+                    signal_to_noise_ratios.append(peak_snr)
+                    peak_amplitudes.append(peak_amp)
 
         spike_data_frame['isolation'] = isolations
         spike_data_frame['noise_overlap'] = noise_overlaps
