@@ -47,13 +47,17 @@ def calculate_first_stops(processed_position_data):
     processed_position_data["first_stop_location_cm"] = first_stop_location_cm
     return processed_position_data
 
-def calculate_rewarded_stops(processed_position_data):
-    reward_stop_location_cm = []
+def calculate_rewarded_stops(processed_position_data, track_length):
+    # this function assumes the reward zone is located
+    # at specific coordinates relative to the track length
+    reward_zone_start = track_length-60-30-20
+    reward_zone_end = track_length-60-30
 
+    reward_stop_location_cm = []
     for index, trial_row in processed_position_data.iterrows():
         trial_row = trial_row.to_frame().T.reset_index(drop=True)
         stop_location_cm = np.array(trial_row["stop_location_cm"].iloc[0])
-        reward_locations = stop_location_cm[(stop_location_cm > settings.reward_start) & (stop_location_cm < settings.reward_end)]
+        reward_locations = stop_location_cm[(stop_location_cm > reward_zone_start) & (stop_location_cm < reward_zone_end)]
 
         if len(reward_locations)==0:
             reward_locations = []
@@ -76,11 +80,11 @@ def calculate_rewarded_trials(processed_position_data):
     processed_position_data["rewarded"] = rewarded_trials
     return processed_position_data
 
-def process_stops(processed_position_data,stop_threshold):
+def process_stops(processed_position_data,stop_threshold, track_length):
     processed_position_data = get_stops_from_binned_speed(processed_position_data, stop_threshold)
     processed_position_data = calculate_average_stops(processed_position_data)
     processed_position_data = calculate_first_stops(processed_position_data)
-    processed_position_data = calculate_rewarded_stops(processed_position_data)
+    processed_position_data = calculate_rewarded_stops(processed_position_data, track_length)
     processed_position_data = calculate_rewarded_trials(processed_position_data)
     return processed_position_data
 
