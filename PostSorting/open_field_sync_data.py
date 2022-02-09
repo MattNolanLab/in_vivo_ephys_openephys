@@ -177,6 +177,7 @@ def get_synchronized_spatial_data(sync_data_ephys, spatial_data, prm):
     sync_data_ephys_downsampled = downsample_ephys_data(sync_data_ephys, spatial_data, prm)
     bonsai = spatial_data['syncLED'].values
     save_plot(prm, bonsai, 'bonsai', plot_color='black')
+    bonsai = np.append(0, np.diff(spatial_data['syncLED'].values)) # step to remove human error-caused light intensity jumps
     oe = sync_data_ephys_downsampled.sync_pulse.values
     save_plot(prm, oe, 'open_ephys', plot_color='red')
     # save_plots_of_pulses(bonsai, oe, prm, name='pulses_before_processing')
