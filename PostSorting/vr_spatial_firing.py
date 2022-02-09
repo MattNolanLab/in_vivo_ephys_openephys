@@ -82,45 +82,56 @@ def bin_fr_in_time(spike_data, raw_position_data):
 
 
 def bin_fr_in_space(spike_data, raw_position_data, track_length):
-    gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/settings.vr_bin_size_cm)
+    vr_bin_size_cm = settings.vr_bin_size_cm
+    gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/vr_bin_size_cm)
 
     # make an empty list of list for all firing rates binned in time for each cluster
     fr_binned_in_space = [[] for x in range(len(spike_data))]
     fr_binned_in_space_bin_centres = [[] for x in range(len(spike_data))]
 
-    for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
-        trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
-        trial_x_dwell_time = np.array(raw_position_data['dwell_time_ms'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
-        pos_bins = np.arange(0, track_length, settings.vr_bin_size_cm)# 100ms time bins
+    elapsed_distance_bins = np.arange(0, (track_length*max(raw_position_data["trial_number"]))+1, vr_bin_size_cm) # might be buggy with anything but 1cm space bins
+    trial_numbers_raw = np.array(raw_position_data['trial_number'], dtype=np.int64)
+    x_position_elapsed_cm = (track_length*(trial_numbers_raw-1))+np.array(raw_position_data['x_position_cm'], dtype="float64")
+    x_dwell_time = np.array(raw_position_data['dwell_time_ms'], dtype="float64")
 
-        for i, cluster_id in enumerate(spike_data.cluster_id):
-            if len(pos_bins)>1:
-                x_position_cm = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["x_position_cm"].iloc[0])
-                trial_numbers = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["trial_number"].iloc[0])
-                trial_firing_locations = x_position_cm[trial_numbers == trial_number]
+    for i, cluster_id in enumerate(spike_data.cluster_id):
+        if len(elapsed_distance_bins)>1:
+            spikes_x_position_cm = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["x_position_cm"].iloc[0])
+            trial_numbers = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["trial_number"].iloc[0])
 
-                # count the spikes in each space bin and normalise by the total time spent in that bin for the trial
-                fr_hist, bin_edges = np.histogram(trial_firing_locations, pos_bins)
-                fr_hist = fr_hist/(np.histogram(trial_x_position_cm, pos_bins, weights=trial_x_dwell_time)[0])
+            # convert spike locations into elapsed distance
+            spikes_x_position_elapsed_cm = (track_length*(trial_numbers-1))+spikes_x_position_cm
 
-                # get location bin centres
-                bin_centres = 0.5*(bin_edges[1:]+bin_edges[:-1])
+            # count the spikes in each space bin and normalise by the total time spent in that bin for the trial
+            fr_hist, bin_edges = np.histogram(spikes_x_position_elapsed_cm, elapsed_distance_bins)
+            fr_hist = fr_hist/(np.histogram(x_position_elapsed_cm, elapsed_distance_bins, weights=x_dwell_time)[0])
 
-                # nans to zero and smooth
-                fr_hist[np.isnan(fr_hist)] = 0
-                fr_hist = convolve(fr_hist, gauss_kernel)
+            # get location bin centres and ascribe them to their trial numbers
+            bin_centres = 0.5*(bin_edges[1:]+bin_edges[:-1])
+            bin_centres_trial_numbers = (bin_centres//track_length).astype(np.int64)+1
 
-                # append the binned firing for each cluster at each trial
-                fr_binned_in_space[i].append(fr_hist.tolist())
-                fr_binned_in_space_bin_centres[i].append(bin_centres.tolist())
-            else:
-                fr_binned_in_space[i].append([])
-                fr_binned_in_space_bin_centres[i].append([])
+            # nans to zero and smooth
+            fr_hist[np.isnan(fr_hist)] = 0
+            fr_hist = convolve(fr_hist, gauss_kernel)
+
+            # fill in firing rate array by trial
+            fr_binned_in_space_cluster = []
+            fr_binned_in_space_bin_centres_cluster = []
+            for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
+                fr_binned_in_space_cluster.append(fr_hist[bin_centres_trial_numbers==trial_number].tolist())
+                fr_binned_in_space_bin_centres_cluster.append(bin_centres[bin_centres_trial_numbers==trial_number].tolist())
+
+            fr_binned_in_space[i] = fr_binned_in_space_cluster
+            fr_binned_in_space_bin_centres[i] = fr_binned_in_space_bin_centres_cluster
+        else:
+            fr_binned_in_space[i] = []
+            fr_binned_in_space_bin_centres[i] = []
 
     spike_data["fr_binned_in_space"] = fr_binned_in_space
     spike_data["fr_binned_in_space_bin_centres"] = fr_binned_in_space_bin_centres
 
     return spike_data
+
 
 
 def add_location_and_task_variables(spike_data, raw_position_data, track_length):
