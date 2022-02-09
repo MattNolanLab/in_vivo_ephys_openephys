@@ -154,7 +154,7 @@ def process_position(raw_position_data, stop_threshold, track_length):
     #TODO speed plots will need to be changed accordingly.
     processed_position_data = PostSorting.vr_speed_analysis.process_speed(raw_position_data, processed_position_data, track_length)
     processed_position_data = PostSorting.vr_time_analysis.process_time(raw_position_data, processed_position_data,track_length)
-    processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, stop_threshold)
+    processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, stop_threshold, track_length)
     gc.collect()
 
     processed_position_data["new_trial_indices"] = raw_position_data["new_trial_indices"].dropna()
