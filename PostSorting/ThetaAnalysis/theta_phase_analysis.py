@@ -56,7 +56,7 @@ def load_all_channels(path, just_load_one=False):
                 is_loaded = True
             all_channels[channel_count, :] = channel_data
             channel_count += 1
-        return all_channels, is_loaded
+    return all_channels, is_loaded
 
 
 def plot_results(channel_data, filtered_data, angle):
@@ -88,11 +88,16 @@ def plot_results(channel_data, filtered_data, angle):
 
 
 def analyse_theta_modulation(recording_folder_path):
-    file_path = recording_folder_path + '100_CH1.continuous'  # test
-    channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)  # this is the raw voltage data
-    filtered_data = bandpass_filter(channel_data, low=5, high=9)  # filtered in theta range
-    analytic_signal = hilbert(filtered_data)  # hilbert transform https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html
-    angle = np.angle(analytic_signal)  # this is the theta angle (radians)
+    all_channels, is_loaded = load_all_channels(recording_folder_path, just_load_one=False)
+    # file_path = recording_folder_path + '100_CH1.continuous'  # test
+    # channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)  # this is the raw voltage data
+    for channel in range(all_channels.shape[0]):
+        channel_data = all_channels[channel, :]
+
+        filtered_data = bandpass_filter(channel_data, low=5, high=9)  # filtered in theta range
+        analytic_signal = hilbert(filtered_data)  # hilbert transform https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html
+        angle = np.angle(analytic_signal)  # this is the theta angle (radians)
+        np.save(recording_folder_path + 'channel_angle_' + str(channel) + '.npy', angle)  # save array with angles
     # instantaneous_phase = np.unwrap(angle)
     # down sample
     # save
