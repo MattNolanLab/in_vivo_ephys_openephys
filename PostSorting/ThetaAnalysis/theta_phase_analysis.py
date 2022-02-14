@@ -25,14 +25,14 @@ def sort_folder_names(list_of_names):
     return list_of_names
 
 
-def bandpass_filter(data, low=5, high=9):
+def bandpass_filter(data, low=5, high=9, fs=30000):
     if len(data.shape) == 1:
-        filtered_data = butter_bandpass_filter(data, lowcut=low, highcut=high, fs=13000, order=2)
+        filtered_data = butter_bandpass_filter(data, lowcut=low, highcut=high, fs=fs, order=2)
 
     else:
         filtered_data = np.zeros((data.shape[0], data.shape[1]))
         for channel in range(data.shape[0]):
-            filtered_data[channel] = butter_bandpass_filter(data[channel, :], lowcut=low, highcut=high, fs=13000, order=2)
+            filtered_data[channel] = butter_bandpass_filter(data[channel, :], lowcut=low, highcut=high, fs=fs, order=2)
     return filtered_data
 
 
@@ -59,10 +59,9 @@ def load_all_channels(path, just_load_one=False):
         return all_channels, is_loaded
 
 
-def plot_results(channel_data, filtered_data, hilbert_transformed, instantaneous_phase):
+def plot_results(channel_data, filtered_data, angle):
     plt.plot(channel_data[:200000], color='grey', label='raw voltage')
     plt.plot(filtered_data[:200000], color='skyblue', label='theta filtered')
-    plt.plot(hilbert_transformed[:200000], color='red', label='hilbert transformed', alpha=0.5)
     plt.legend()
     plt.show()
     plt.cla()
@@ -76,16 +75,14 @@ def plot_results(channel_data, filtered_data, hilbert_transformed, instantaneous
     plt.legend()
     plt.show()
 
-    # plot theta and hilbert transformed signal
-    plt.plot(filtered_data[150000:200000], color='skyblue', label='theta filtered')
-    plt.plot(hilbert_transformed[150000:200000], color='red', label='hilbert transformed', alpha=0.5)
-    plt.plot(instantaneous_phase[150000:200000], label='instantaneous phase', color='black')
-    plt.legend()
-    plt.show()
 
     plt.cla()
-    plt.plot(hilbert_transformed[150000:160000], color='red', label='hilbert transformed')
-    plt.plot(instantaneous_phase[150000:160000], color='black', label='angle')
+    plt.plot(channel_data[200000:210000], color='grey', label='raw voltage')
+    plt.plot(filtered_data[200000:210000], color='skyblue', label='theta filtered')
+    plt.plot(angle[200000:210000] * 10, color='red', label='angle')
+    plt.xlabel('Time (sampling points)')
+    plt.ylabel('Voltage (mV)')
+    # plt.plot(hilbert_transformed[:200000], color='red', label='hilbert transformed', alpha=0.5)
     plt.legend()
     plt.show()
 
