@@ -34,8 +34,7 @@ def generate_shuffled_times(cluster_firing, n_shuffles):
     for i in range(n_shuffles):
         shuffle = cluster_firing.copy()
         firing_times = shuffle["firing_times"].to_numpy()[0]
-        random_firing_additions = np.random.randint(low=int(20*settings.sampling_rate),
-                                                    high=int(580*settings.sampling_rate), size=len(firing_times))
+        random_firing_additions = np.random.randint(low=int(20*settings.sampling_rate), high=int(580*settings.sampling_rate))
 
         shuffled_firing_times = firing_times + random_firing_additions
         recording_length = int(cluster_firing["recording_length_sampling_points"].iloc[0])
