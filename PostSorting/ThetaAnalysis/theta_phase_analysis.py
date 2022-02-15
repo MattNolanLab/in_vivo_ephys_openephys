@@ -3,6 +3,7 @@ import os
 import open_ephys_IO
 import matplotlib.pylab as plt
 import numpy as np
+import pandas as pd
 from scipy.signal import butter, lfilter, hilbert
 
 
@@ -60,6 +61,7 @@ def load_all_channels(path, just_load_one=False):
 
 
 def plot_results(channel_data, filtered_data, angle):
+    # this is not executed but useful for testing and debugging so I will leave them here for now
     plt.plot(channel_data[:200000], color='grey', label='raw voltage')
     plt.plot(filtered_data[:200000], color='skyblue', label='theta filtered')
     plt.legend()
@@ -75,7 +77,6 @@ def plot_results(channel_data, filtered_data, angle):
     plt.legend()
     plt.show()
 
-
     plt.cla()
     plt.plot(channel_data[200000:210000], color='grey', label='raw voltage')
     plt.plot(filtered_data[200000:210000], color='skyblue', label='theta filtered')
@@ -87,10 +88,9 @@ def plot_results(channel_data, filtered_data, angle):
     plt.show()
 
 
-def analyse_theta_modulation(recording_folder_path):
+def calculate_and_save_theta_phase_angles(recording_folder_path):
+    print('I will calculate theta phase angles and save them.')
     all_channels, is_loaded = load_all_channels(recording_folder_path, just_load_one=False)
-    # file_path = recording_folder_path + '100_CH1.continuous'  # test
-    # channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)  # this is the raw voltage data
     for channel in range(all_channels.shape[0]):
         channel_data = all_channels[channel, :]
 
@@ -98,9 +98,28 @@ def analyse_theta_modulation(recording_folder_path):
         analytic_signal = hilbert(filtered_data)  # hilbert transform https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html
         angle = np.angle(analytic_signal)  # this is the theta angle (radians)
         np.save(recording_folder_path + 'channel_angle_' + str(channel) + '.npy', angle)  # save array with angles
-    # instantaneous_phase = np.unwrap(angle)
-    # down sample
-    # save
+
+
+def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_channels=16):
+    position_df_path = recording_folder_path + 'MountainSort/DataFrames/position.pkl'
+    if os.path.exists(position_df_path):
+        position_data = pd.read_pickle(position_df_path)
+    else:
+        print('There is no position data for this recoriding: ' + recording_folder_path)
+        return False
+    for channel in range(number_of_channels):
+        ch_angle = np.load(recording_folder_path + 'channel_angle_' + str(channel) + '.npy')
+        # downsample and add to df
+
+
+
+
+def analyse_theta_modulation(recording_folder_path):
+    # calculate_and_save_theta_phase_angles(recording_folder_path)
+    add_down_sampled_angle_to_position_df(recording_folder_path)
+    # down sample and add to position df (make another position df)
+    # add to spatial firing df (corresponding spike times) / just make example for now
+
 
 
 
