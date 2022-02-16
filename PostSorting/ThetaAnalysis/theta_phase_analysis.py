@@ -4,7 +4,7 @@ import open_ephys_IO
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-from scipy.signal import butter, lfilter, hilbert
+from scipy.signal import butter, lfilter, hilbert, resample
 
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
@@ -100,27 +100,73 @@ def calculate_and_save_theta_phase_angles(recording_folder_path):
         np.save(recording_folder_path + 'channel_angle_' + str(channel) + '.npy', angle)  # save array with angles
 
 
-def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_channels=16):
+def down_sample_ephys_data(ephys_data, position_data):
+    # indices = np.round(np.linspace(0, len(ephys_data) - 1, len(position_data))).astype(int)
+    # ephys_downsampled = ephys_data[indices]
+    ephys_downsampled = resample(ephys_data, len(position_data))
+    return ephys_downsampled
+
+
+def up_sample_position_data(position_data, upsample_factor):
+    position_data = position_data.reset_index()
+    position_data.index = range(0, upsample_factor * len(position_data), upsample_factor)
+    position_data_with_nans = position_data.reindex(index=range(upsample_factor * len(position_data)))
+    interpolated = position_data_with_nans.interpolate()
+    # todo test this!!!
+    # plt.plot(interpolated.position_x[:100], interpolated.position_y[:100])
+    # plt.show()
+    return interpolated
+
+
+def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_channels=16, upsample_factor=4):
+    print('Add downsampled angle to upsampled position data and save (position_theta.pkl)')
     position_df_path = recording_folder_path + 'MountainSort/DataFrames/position.pkl'
     if os.path.exists(position_df_path):
         position_data = pd.read_pickle(position_df_path)
+        position_data_theta = up_sample_position_data(position_data, upsample_factor=upsample_factor)
+
     else:
-        print('There is no position data for this recoriding: ' + recording_folder_path)
+        print('There is no position data for this recording: ' + recording_folder_path)
         return False
     for channel in range(number_of_channels):
         ch_angle = np.load(recording_folder_path + 'channel_angle_' + str(channel) + '.npy')
-        # downsample and add to df
+        ch_angle_downsampled = down_sample_ephys_data(ch_angle, position_data_theta)
+        position_data_theta['theta_angle_' + str(channel)] = ch_angle_downsampled
+
+    position_data_theta.to_pickle(recording_folder_path + 'MountainSort/DataFrames/position_theta.pkl')
 
 
+def add_theta_phase_to_firing_data(recording_folder_path):
+    """
+
+    """
+    spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
+    if os.path.exists(spatial_firing_path):
+        spatial_firing = pd.read_pickle(spatial_firing_path)
+        spatial_firing_theta = spatial_firing
+
+    else:
+        print('There is no spatial firing data for this recording: ' + recording_folder_path)
+        return False
+
+    for index, cell in spatial_firing.iterrows():
+        pass
+
+    """
+    for channel in range(number_of_channels):
+        ch_angle = np.load(recording_folder_path + 'channel_angle_' + str(channel) + '.npy')
+        ch_angle_downsampled = down_sample_ephys_data(ch_angle, position_data)
+        position_data_theta['theta_angle_' + str(channel)] = ch_angle_downsampled
+    """
+    spatial_firing_theta.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing_theta.pkl')
 
 
 def analyse_theta_modulation(recording_folder_path):
     # calculate_and_save_theta_phase_angles(recording_folder_path)
-    add_down_sampled_angle_to_position_df(recording_folder_path)
-    # down sample and add to position df (make another position df)
+    add_down_sampled_angle_to_position_df(recording_folder_path, upsample_factor=4)  # upsample position data (120 Hz)
+    add_theta_phase_to_firing_data(recording_folder_path)
     # add to spatial firing df (corresponding spike times) / just make example for now
-
-
+    # make separate df for example cell
 
 
 def main():
