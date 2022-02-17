@@ -22,3 +22,9 @@ Steps of analysis
 5. Load theta phase angles and downsample to 120Hz to match the position data and save a combined data frame with the upsampled position data and downsampled theta angles.
 6. Load spatial_firing.pkl and find the corresponding theta angles for each spike of each cell and save in spatial_firing_theta.pkl. (Use the theta angle of the primary channel / the channel where the cell had the highest amplitude).
 (7.) Save data for an example cell. Load position and spike data for an example cell and save data as a feather file.
+To open the feather files in R, something like this should work:
+```
+install.packages("feather")
+library(feather)
+theta_position <- read_feather("C:/file/path/spatial_firing_theta_cluster_7.feather")
+```
