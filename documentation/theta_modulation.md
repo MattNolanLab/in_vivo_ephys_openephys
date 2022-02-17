@@ -24,7 +24,12 @@ Steps of analysis
 (7.) Save data for an example cell. Load position and spike data for an example cell and save data as a feather file.
 To open the feather files in R, something like this should work:
 ```
-install.packages("feather")
-library(feather)
-theta_position <- read_feather("C:/file/path/spatial_firing_theta_cluster_7.feather")
+install.packages('arrow')
+library(arrow)
+
+
+theta_position <- read_feather(file.path(getwd(), "test_data", "position_theta_cluster_7.feather"))
+print(theta_position)
+theta_firing <- read_feather(file.path(getwd(), "test_data", "spatial_firing_theta_cluster_7.feather"))
+print(theta_firing)
 ```
