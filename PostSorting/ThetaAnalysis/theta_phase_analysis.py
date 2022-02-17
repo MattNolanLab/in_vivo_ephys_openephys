@@ -164,7 +164,7 @@ def save_example_firing_data_for_cell(recording_folder_path, df_path, cluster_id
     cell_data_frame['position_y'] = data_for_example_cell.position_y.values[0]
     cell_data_frame['theta_angle'] = data_for_example_cell.theta_phase_angle.values[0]
     # cell_data_frame.to_feather(recording_folder_path + df_path + '/spatial_firing_theta_cluster_' + str(cluster_id) + '.feather')
-    feather.write_feather(cell_data_frame, recording_folder_path + df_path + '/spatial_firing_theta_cluster_' + str(cluster_id) + '.feather', version=1)
+    feather.write_feather(cell_data_frame, recording_folder_path + df_path + '/spatial_firing_theta_cluster_' + str(cluster_id) + '.feather')
     return data_for_example_cell
 
 
@@ -175,7 +175,7 @@ def save_example_position_data_for_cell(data_for_example_cell, recording_folder_
     theta_channel_name = "theta_angle_" + str(primary_channel)
     position_to_save = position_theta[["synced_time", "position_x", "position_y", "hd", "speed", theta_channel_name]]
     # position_to_save.to_feather(recording_folder_path + df_path + '/position_theta_cluster_' + str(cluster_id) + '.feather')
-    feather.write_feather(position_to_save, recording_folder_path + df_path + '/position_theta_cluster_' + str(cluster_id) + '.feather', version=1)
+    feather.write_feather(position_to_save, recording_folder_path + df_path + '/position_theta_cluster_' + str(cluster_id) + '.feather')
 
 
 def save_data_for_example_cell(recording_folder_path, cluster_id=7, df_path='MountainSort/DataFrames'):
@@ -188,9 +188,9 @@ def save_data_for_example_cell(recording_folder_path, cluster_id=7, df_path='Mou
 
 
 def analyse_theta_modulation(recording_folder_path):
-    #calculate_and_save_theta_phase_angles(recording_folder_path)
-    #add_down_sampled_angle_to_position_df(recording_folder_path, upsample_factor=4)  # upsample position data (120 Hz)
-    #add_theta_phase_to_firing_data(recording_folder_path)  # find theta phase for each spike
+    calculate_and_save_theta_phase_angles(recording_folder_path)
+    add_down_sampled_angle_to_position_df(recording_folder_path, upsample_factor=4)  # upsample position data (120 Hz)
+    add_theta_phase_to_firing_data(recording_folder_path)  # find theta phase for each spike
     # make separate df for example cell and save for R as a feather file
     save_data_for_example_cell(recording_folder_path, cluster_id=7)
 
