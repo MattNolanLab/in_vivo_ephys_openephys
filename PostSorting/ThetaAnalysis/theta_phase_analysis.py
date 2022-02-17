@@ -138,8 +138,10 @@ def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_chann
 
 def add_theta_phase_to_firing_data(recording_folder_path):
     """
-
+    Loads theta phase angles and finds the angle that corresponds to each spike. This function currently saves a new
+    spatial_firing data frame with the theta phase angle added to it.
     """
+    print('Find theta phase for each action potential.')
     spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
@@ -148,24 +150,22 @@ def add_theta_phase_to_firing_data(recording_folder_path):
     else:
         print('There is no spatial firing data for this recording: ' + recording_folder_path)
         return False
-
+    angles_at_spikes = []
     for index, cell in spatial_firing.iterrows():
-        pass
-
-    """
-    for channel in range(number_of_channels):
-        ch_angle = np.load(recording_folder_path + 'channel_angle_' + str(channel) + '.npy')
-        ch_angle_downsampled = down_sample_ephys_data(ch_angle, position_data)
-        position_data_theta['theta_angle_' + str(channel)] = ch_angle_downsampled
-    """
+        # load theta angle for primary channel (the ch where the cell had the highest amplitude
+        primary_channel = ((cell.tetrode - 1) * 4 + cell.primary_channel) - 1  # numbering is from 1 in this df
+        corresponding_theta_angle = np.load(recording_folder_path + 'channel_angle_' + str(primary_channel) + '.npy')
+        phase_angles_at_spikes = corresponding_theta_angle[cell.firing_times.astype(int)]
+        angles_at_spikes.append(phase_angles_at_spikes)
+        # plt.hist(phase_angles_at_spikes)
+    spatial_firing_theta['theta_phase_angle'] = angles_at_spikes
     spatial_firing_theta.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing_theta.pkl')
 
 
 def analyse_theta_modulation(recording_folder_path):
     # calculate_and_save_theta_phase_angles(recording_folder_path)
-    add_down_sampled_angle_to_position_df(recording_folder_path, upsample_factor=4)  # upsample position data (120 Hz)
-    add_theta_phase_to_firing_data(recording_folder_path)
-    # add to spatial firing df (corresponding spike times) / just make example for now
+    # add_down_sampled_angle_to_position_df(recording_folder_path, upsample_factor=4)  # upsample position data (120 Hz)
+    add_theta_phase_to_firing_data(recording_folder_path)  # find theta phase for each spike
     # make separate df for example cell
 
 
