@@ -62,18 +62,11 @@ def load_all_channels(path, just_load_one=False):
 
 def plot_results(channel_data, filtered_data, angle):
     # this is not executed but useful for testing and debugging so I will leave them here for now
-    plt.plot(channel_data[:200000], color='grey', label='raw voltage')
-    plt.plot(filtered_data[:200000], color='skyblue', label='theta filtered')
-    plt.legend()
-    plt.show()
-    plt.cla()
-
     plt.cla()
     plt.plot(channel_data[200000:400000], color='grey', label='raw voltage')
     plt.plot(filtered_data[200000:400000], color='skyblue', label='theta filtered')
     plt.xlabel('Time (sampling points)')
-    plt.ylabel('Voltage (mV)')
-    # plt.plot(hilbert_transformed[:200000], color='red', label='hilbert transformed', alpha=0.5)
+    plt.ylabel('Voltage (uV)')
     plt.legend()
     plt.show()
 
@@ -82,8 +75,7 @@ def plot_results(channel_data, filtered_data, angle):
     plt.plot(filtered_data[200000:210000], color='skyblue', label='theta filtered')
     plt.plot(angle[200000:210000] * 10, color='red', label='angle')
     plt.xlabel('Time (sampling points)')
-    plt.ylabel('Voltage (mV)')
-    # plt.plot(hilbert_transformed[:200000], color='red', label='hilbert transformed', alpha=0.5)
+    plt.ylabel('Voltage (uV)')
     plt.legend()
     plt.show()
 
@@ -112,7 +104,6 @@ def up_sample_position_data(position_data, upsample_factor):
     position_data.index = range(0, upsample_factor * len(position_data), upsample_factor)
     position_data_with_nans = position_data.reindex(index=range(upsample_factor * len(position_data)))
     interpolated = position_data_with_nans.interpolate()
-    # todo test this!!!
     # plt.plot(interpolated.position_x[:100], interpolated.position_y[:100])
     # plt.show()
     return interpolated
