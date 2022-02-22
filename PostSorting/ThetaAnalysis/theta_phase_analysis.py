@@ -6,7 +6,7 @@ import open_ephys_IO
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-from scipy.signal import butter, lfilter, hilbert, resample
+from scipy.signal import butter, lfilter, hilbert, decimate
 
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
@@ -97,7 +97,7 @@ def calculate_and_save_theta_phase_angles(recording_folder_path):
 def down_sample_ephys_data(ephys_data, position_data):
     # indices = np.round(np.linspace(0, len(ephys_data) - 1, len(position_data))).astype(int)
     # ephys_downsampled = ephys_data[indices]
-    ephys_downsampled = resample(ephys_data, len(position_data))
+    ephys_downsampled = decimate(ephys_data, len(position_data))
     return ephys_downsampled
 
 
