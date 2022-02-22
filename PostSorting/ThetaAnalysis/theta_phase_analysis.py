@@ -98,13 +98,6 @@ def calculate_and_save_theta_phase_angles(recording_folder_path, theta_low=5, th
         np.save(recording_folder_path + 'channel_angle_' + str(channel) + '.npy', angle)  # save array with angles
 
 
-def down_sample_ephys_data(ephys_data, position_data):
-    # indices = np.round(np.linspace(0, len(ephys_data) - 1, len(position_data))).astype(int)
-    # ephys_downsampled = ephys_data[indices]
-    ephys_downsampled = decimate(ephys_data, len(position_data))
-    return ephys_downsampled
-
-
 def up_sample_position_data(position_data, upsample_factor):
     position_data = position_data.reset_index()
     position_data.index = range(0, upsample_factor * len(position_data), upsample_factor)
@@ -115,7 +108,7 @@ def up_sample_position_data(position_data, upsample_factor):
     return interpolated
 
 
-def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_channels=16, upsample_factor=4):
+def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_channels=16, upsample_factor=4, ephys_sampling=30000):
     print('Add downsampled angle to upsampled position data and save (position_theta.pkl)')
     position_df_path = recording_folder_path + 'MountainSort/DataFrames/position.pkl'
     if os.path.exists(position_df_path):
@@ -127,7 +120,7 @@ def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_chann
         return False
     for channel in range(number_of_channels):
         ch_angle = np.load(recording_folder_path + 'channel_angle_' + str(channel) + '.npy')
-        ch_angle_downsampled = down_sample_ephys_data(ch_angle, position_data_theta)
+        ch_angle_downsampled = ch_angle[(position_data_theta.synced_time * ephys_sampling).astype(int)]
         position_data_theta['theta_angle_' + str(channel)] = ch_angle_downsampled
 
     position_data_theta.to_pickle(recording_folder_path + 'MountainSort/DataFrames/position_theta.pkl')
@@ -135,6 +128,8 @@ def add_down_sampled_angle_to_position_df(recording_folder_path, number_of_chann
 
 def get_theta_phase_for_spikes(spatial_firing, recording_folder_path):
     if not os.path.exists(recording_folder_path + 'channel_angle_0.npy'):
+        print('Warning: you did not have the theta angles saved before trying to load them. I will try to generate '
+              'them now.')
         # this function uses the theta angles saved as npy files
         calculate_and_save_theta_phase_angles(recording_folder_path, theta_low=5, theta_high=9)
     angles_at_spikes = []
@@ -201,7 +196,7 @@ def save_data_for_example_cell(recording_folder_path, cluster_id=7, df_path='Mou
 
 
 def analyse_theta_modulation(recording_folder_path):
-    calculate_and_save_theta_phase_angles(recording_folder_path, theta_low=5, theta_high=9)
+    # calculate_and_save_theta_phase_angles(recording_folder_path, theta_low=5, theta_high=9)
     add_down_sampled_angle_to_position_df(recording_folder_path, upsample_factor=4)  # upsample position data (120 Hz)
     add_theta_phase_to_firing_data(recording_folder_path)  # find theta phase for each spike
     # make separate df for example cell and save for R as a feather file
