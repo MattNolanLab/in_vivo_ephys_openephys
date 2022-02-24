@@ -69,11 +69,19 @@ There is a `-n` option for dry-run, meaning that it will try simulate the workfl
 ```
 For structure of individual scripts and workflow, please consult the README in the `scripts` and `workflow` folders respectively.
 
-### Only rerun a certain analysis
-There are different analyzes defined as rule in the snakemake file. You can force it to rerun a certain analysis by using the `-R` option. If the analysis has already been completed fore, it will ask you to confirm if you really want to go forward. You can override this with the `--force` option
+### Batch re-run of analysis
+
+The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` flag. if you want to automatically skip processed recordings, you can use the `--skip` flag. If you have changed some rules and just want to rerun that particular and all subsequent rules that depends on it use the `-R` option with the name of the rule e.g. `-R process_position`
+
 
 ```
 ./runSnake.py /mnt/datastore/Junji/Data/2021cohort2/vr/M4_D44_2021-12-06_16-08-18 -R process_position --force
+```
+
+**Note**: when you batch re-run analysis, snakemake will check the date of the output and input files to determine if an analysis needs to be run again. This will lead to a problem if you clone the repo AFTER you have completed some earlier analysis, because some config files (specially those in `sorting_files`) are treated as input will have a newer date than the analysis output and thus snakemake will rerun the whole pipeline again. You can avoid this by updating the date of your output files using the `--touch` option, e.g.
+
+```
+./runSnake.py /mnt/datastore/Junji/Data/2021cohort2/vr/M4_D44_2021-12-06_16-08-18 --touch --force
 ```
 
 ## Tips and tricks
@@ -84,10 +92,8 @@ There are different analyzes defined as rule in the snakemake file. You can forc
     ```
     ./runSnake.py --touch /mnt/datastore/Someone/data/VR/M1_D1_2021-01
     ```
-- Batch re-run of analysis
 
-    The pipeline will skip recording that has alreay been processed. It will ask you if you want to re-run analysis on them, if you want to force re-run all analysis, you can use the `--force` flag. if you want to automatically skip processed recordings, you can use the `--skip` flag. If you have changed some rules and just want to rerun that particular and all subsequent rules that depends on it use the `-R` option with the name of the rule e.g. `-R process_position`
-
+```
 
 - If your recordings is too large to fit in memory, you can either use a larger instance or you can create a larger swapfile (recommanded) to be used as a temporary memory space:
 
