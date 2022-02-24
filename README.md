@@ -6,7 +6,7 @@ Analysis for in vivo electrophysiology recordings saved in open ephys format.
 Snakemake pipeline for processing open-ephys data. This pipeline relies heavily on mountainsort4 and spikeinterface for sorting.
 
 
-### Installation
+## Installation
 An environment file is provided for all the dependencies. Please create the conda environment by 
 ```
 conda env create -f environment.yml
