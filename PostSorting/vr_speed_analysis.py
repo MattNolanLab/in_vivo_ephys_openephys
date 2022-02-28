@@ -19,7 +19,7 @@ def calculate_binned_speed(raw_position_data, processed_position_data, track_len
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_speeds = np.array(raw_position_data['speed_per200ms'][np.array(raw_position_data['trial_number']) == trial_number])
 
-        bins = np.arange(0, track_length, bin_size_cm)
+        bins = np.arange(0, track_length+1, bin_size_cm)
         bin_centres = 0.5*(bins[1:]+bins[:-1])
 
         # this calculates the average speed within the bin i.e. all speeds in bin summated and then divided by the number of datapoints within the bin

@@ -12,7 +12,7 @@ def calculate_binned_time(raw_position_data,processed_position_data, track_lengt
         trial_x_position_cm = np.array(raw_position_data['x_position_cm'][np.array(raw_position_data['trial_number']) == trial_number])
         trial_times = np.array(raw_position_data['dwell_time_ms'][np.array(raw_position_data['trial_number']) == trial_number])
 
-        bins = np.arange(0, track_length, bin_size_cm)
+        bins = np.arange(0, track_length+1, bin_size_cm)
         bin_times = np.histogram(trial_x_position_cm, bins, weights=trial_times)[0]
 
         times_binned.append(bin_times)
