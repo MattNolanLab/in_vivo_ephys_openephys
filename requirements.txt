@@ -1,13 +1,9 @@
-mountainlab
-mountainlab_pytools
-ml_ephys
-ml_ms3
 ml_ms4alg
-ml_pyms
 pandas
 joblib
 scipy
 matplotlib
+numpy
 numba
 xlrd
 rpy2
@@ -19,6 +15,12 @@ spikeforest
 pandas      
 pytest
 elephant
-spikeinterface
+spikeinterface == 0.13
 xarray
 bottleneck
+snakemake >=7.0
+imbalanced-learn==0.8.1
+astropy
+palettable==3.3.0
+scikit-learn==0.24.2
+git+https://github.com/teristam/snakehelper.git
