@@ -223,4 +223,5 @@ dependencies:
     - widgetsnbextension==3.5.1
     - wrapt==1.12.1
     - xarray==0.16.2
+    - skelearn
 

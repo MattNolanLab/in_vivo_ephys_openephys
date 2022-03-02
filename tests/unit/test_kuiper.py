@@ -3,7 +3,7 @@ import numpy as np
 import scipy.stats
 from numpy.testing import assert_array_almost_equal
 
-import kuiper
+from utils import kuiper
 
 def seed(n=0):
     """Seed the random number generator before running a test."""
