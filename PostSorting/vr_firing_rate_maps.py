@@ -41,7 +41,7 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
     non_beaconed_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 1]
     probe_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 2]
 
-    bins = np.arange(0, track_length, bin_size_cm)
+    bins = np.arange(0, track_length+1, bin_size_cm)
 
     beaconed_firing_rate_map = []
     non_beaconed_firing_rate_map = []
