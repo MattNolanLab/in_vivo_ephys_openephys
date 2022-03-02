@@ -3,7 +3,7 @@ import numpy as np
 import scipy.stats
 from numpy.testing import assert_array_almost_equal
 
-import kuiper
+from utils import kuiper
 
 def seed(n=0):
     """Seed the random number generator before running a test."""
@@ -148,7 +148,7 @@ def test_histogram():
     b, w = kuiper.fold_intervals([(a,b,1./(b-a))])
 
     h = kuiper.histogram_intervals(16,b,w)
-    nn, bb = np.histogram(s, bins=len(h), range=(0,1), new=True)
+    nn, bb = np.histogram(s, bins=len(h), range=(0,1))
 
     uu = np.sqrt(nn)
     nn, uu = len(h)*nn/h/len(s), len(h)*uu/h/len(s)

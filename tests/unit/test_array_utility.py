@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 sys.path.append("..")
-import array_utility
+from utils import array_utility
 
 
 def test_shift():

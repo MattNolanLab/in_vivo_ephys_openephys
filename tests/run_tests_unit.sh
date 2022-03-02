@@ -1,1 +1,1 @@
-conda activate env && python3 -m pytest --junitxml=junit.xml tests/unit
+conda activate ms4 && python3 -m pytest --junitxml=junit.xml tests/unit

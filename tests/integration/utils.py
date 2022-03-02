@@ -72,7 +72,7 @@ def set_up(raw_output_path: str, raw_base_sorting_path: str, data_url: str, data
     # the test should be able to run locally as well as through github action
 
     try:
-        subprocess.check_call('bash -lc "conda activate env && python3 control_sorting_analysis.py"', env=env,
+        subprocess.check_call('bash -lc "conda activate ms4 && python3 control_sorting_analysis.py"', env=env,
                               shell=True)
     except subprocess.CalledProcessError as ex:
         raise Exception('Failed to successfully run the sorting pipeline') from ex
