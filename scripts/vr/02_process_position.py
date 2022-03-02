@@ -36,7 +36,7 @@ raw_position_data = calculate_track_location(raw_position_data, recorded_locatio
 raw_position_data = calculate_trial_numbers(raw_position_data, soutput.trial_figure)
 
 #%% Calculate trial-related information
-(raw_position_data,first_ch,second_ch) = calculate_trial_types(raw_position_data, first_ch_ds, second_ch_ds, soutput.trial_type_plot_folder)
+raw_position_data = calculate_trial_types(raw_position_data, first_ch_ds, second_ch_ds, soutput.trial_type_plot_folder)
 raw_position_data = calculate_time(raw_position_data, settings.location_ds_rate)
 raw_position_data = calculate_instant_dwell_time(raw_position_data, settings.location_ds_rate)
 raw_position_data = calculate_instant_velocity(raw_position_data, soutput.speed_plot, 
