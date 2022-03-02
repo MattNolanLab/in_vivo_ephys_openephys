@@ -53,7 +53,17 @@ def calculate_rewarded_stops(processed_position_data):
     for index, trial_row in processed_position_data.iterrows():
         trial_row = trial_row.to_frame().T.reset_index(drop=True)
         stop_location_cm = np.array(trial_row["stop_location_cm"].iloc[0])
-        reward_locations = stop_location_cm[(stop_location_cm > settings.reward_start) & (stop_location_cm < settings.reward_end)]
+
+        if ('reward_loc' in processed_position_data.columns and len(processed_position_data.reward_loc.unique())>1):
+            reward_start = int(processed_position_data.at[index, 'reward_loc'])
+            reward_end = reward_start + 22
+            print('reward_start:',reward_start)
+            reward_locations = stop_location_cm[(stop_location_cm > reward_start) & (stop_location_cm < reward_end)]
+            print(reward_locations)
+        else:
+            reward_locations = stop_location_cm[(stop_location_cm > settings.reward_start) & (stop_location_cm < settings.reward_end)]
+        
+        
 
         if len(reward_locations)==0:
             reward_locations = []
