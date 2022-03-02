@@ -9,10 +9,12 @@ def get_total_bin_times(binned_times_collumn):
     # this function adds all the binned times per trial to give the total
     # time spent in a location bin for a given processed_position_data-like dataframe
     total_bin_times = np.zeros(len(binned_times_collumn.iloc[0]))
+
     for i in range(len(binned_times_collumn)):
         dwell_time = binned_times_collumn.iloc[i]
         assert not np.any(np.isnan(dwell_time)), f'invalid dwell time encountered {dwell_time}' #make sure the time is valid
         total_bin_times += dwell_time
+
     return total_bin_times
 
 def calculate_rate_map_sem(spike_locations, spike_trial_numbers, processed_position_data, bins):
@@ -42,6 +44,7 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
     probe_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 2]
 
     bins = np.arange(0, track_length+1, bin_size_cm)
+    print(bins,len(bins))
 
     beaconed_firing_rate_map = []
     non_beaconed_firing_rate_map = []
@@ -63,6 +66,7 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
             cluster_trial_x_locations = x_locations_cm[trial_types == 0]
             cluster_trial_numbers = trial_numbers[trial_types == 0]
             beaconed_bin_counts = np.histogram(cluster_trial_x_locations, bins)[0]
+            print(beaconed_bin_counts,len(beaconed_bin_counts))
             binned_times = get_total_bin_times(beaconed_processed_position_data["times_binned"])
             normalised_rate_map = beaconed_bin_counts/binned_times
             beaconed_firing_rate_map.append(normalised_rate_map.tolist())
