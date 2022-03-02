@@ -1,8 +1,8 @@
-import math_utility
+from utils import math_utility
 import numpy as np
 import pandas as pd
 import PostSorting.open_field_spatial_firing
-import data_frame_utility
+from utils import data_frame_utility
 
 
 def calculate_heading_direction(position_x, position_y, pad_first_value=True):
