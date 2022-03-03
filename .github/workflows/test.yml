@@ -29,10 +29,9 @@ jobs:
         run: |
           docker run -t -v ${PWD}:/code -w /code $DOCKER_IMG /bin/bash -l ./tests/run_tests_unit.sh
 
-      # Disable integration tests as the code structure has changed
-      # - name: Run integration tests
-      #   run: |
-      #     docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh
+      - name: Run integration tests
+        run: |
+          docker run -t -v ${PWD}:/home/nolanlab/in_vivo_ephys_openephys -w /home/nolanlab/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh 
 
       # - name: Prepare results data for upload
       #   run: |
