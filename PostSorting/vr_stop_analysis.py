@@ -58,7 +58,6 @@ def calculate_rewarded_stops(processed_position_data):
             reward_start = int(processed_position_data.at[index, 'reward_loc'])
             reward_end = reward_start + settings.reward_zone_size
             reward_locations = stop_location_cm[(stop_location_cm > reward_start) & (stop_location_cm < reward_end)]
-            print(reward_locations)
         else:
             reward_locations = stop_location_cm[(stop_location_cm > settings.reward_start) & (stop_location_cm < settings.reward_end)]
         
