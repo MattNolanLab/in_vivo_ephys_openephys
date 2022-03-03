@@ -37,7 +37,7 @@ def set_up(raw_output_path: str, data_url: str, test_data_name:str) -> None:
         raise Exception(f'Encountered an error while fetching the integration test data') from ex
 
     try:
-        subprocess.check_call(f'bash -lc "./runSnake.py {output_path}/{test_data_name} --force"', 
+        subprocess.check_call(f'bash -lc "./runSnake.py {output_path}/{test_data_name}"', 
         shell=True)
     except subprocess.CalledProcessError as ex:
         raise Exception('Failed to successfully run the sorting pipeline') from ex
