@@ -87,7 +87,7 @@ The pipeline will skip recording that has alreay been processed. It will ask you
 ### Running tests
 It is recommended to run tests locally first to make sure all tests pass before submitting a pull request. You can run test by
 `pytests test`
-It will automatically run all the unit and integration test.
+It will automatically run all the unit and integration tests.
 
 ## Tips and tricks
 - Snakemake insists on re-running the spike sorting
