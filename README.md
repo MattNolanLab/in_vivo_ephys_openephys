@@ -84,6 +84,11 @@ The pipeline will skip recording that has alreay been processed. It will ask you
 ./runSnake.py /mnt/datastore/Junji/Data/2021cohort2/vr/M4_D44_2021-12-06_16-08-18 --touch --force
 ```
 
+### Running tests
+It is recommended to run tests locally first to make sure all tests pass before submitting a pull request. You can run test by
+`pytests test`
+It will automatically run all the unit and integration test.
+
 ## Tips and tricks
 - Snakemake insists on re-running the spike sorting
  
