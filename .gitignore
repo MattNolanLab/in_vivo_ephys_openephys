@@ -25,3 +25,4 @@ artifacts/
 *.Rhistory
 *-checkpoint.py
 .coverage
+tests/data/
