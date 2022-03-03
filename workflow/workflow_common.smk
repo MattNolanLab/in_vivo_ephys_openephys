@@ -3,9 +3,9 @@ sorterPrefix = '{recording}/processed/'+settings.sorterName
 
 rule sort_spikes:
     input:
-        probe_file = 'sorting_files/tetrode_16.prb',
-        sort_param = 'sorting_files/params.json',
-        tetrode_geom = 'sorting_files/geom_all_tetrodes_original.csv',
+        probe_file = ancient('sorting_files/tetrode_16.prb'),
+        sort_param = ancient('sorting_files/params.json'),
+        tetrode_geom = ancient('sorting_files/geom_all_tetrodes_original.csv'),
         recording_to_sort = '{recording}',
     threads: workflow.cores
     output:
