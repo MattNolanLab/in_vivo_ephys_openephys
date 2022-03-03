@@ -1,5 +1,5 @@
 # in_vivo_ephys_openephys
-![master](https://github.com/MattNolanLab/in_vivo_ephys_openephys/actions/workflows/test.yml/badge.svg)
+![master](https://github.com/teristam/in_vivo_ephys_openephys/actions/workflows/test.yml/badge.svg)
 
 Analysis for in vivo electrophysiology recordings saved in open ephys format. 
 
