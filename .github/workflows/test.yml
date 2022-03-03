@@ -31,7 +31,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh
+          docker run -t -v ${PWD}:/home/nolanlab/in_vivo_ephys_openephys -w /home/nolanlab/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh 
 
       # - name: Prepare results data for upload
       #   run: |
