@@ -11,7 +11,6 @@ import PostSorting.make_plots
 import PostSorting.vr_sync_spatial_data
 import PostSorting.vr_firing_rate_maps
 import PostSorting.vr_FiringMaps_InTime
-import PostSorting.vr_speed_analysis
 import gc
 import PostSorting.vr_cued
 import PostSorting.theta_modulation
