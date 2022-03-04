@@ -19,7 +19,7 @@ def load_recording_info(recording_info):
 def search4File(fname, expected_num_file=1):
     file = glob.glob(fname)
     if not len(file) == expected_num_file:
-        raise FileNotFoundError(f'Error, cannot find exact files, candidate: {file}')
+        raise FileNotFoundError(f'Error, cannot find exact files for {fname}, candidate: {file}')
     
     return file[0]
 

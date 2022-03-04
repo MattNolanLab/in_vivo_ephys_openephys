@@ -1,5 +1,5 @@
 # in_vivo_ephys_openephys
-![master](https://github.com/MattNolanLab/in_vivo_ephys_openephys/actions/workflows/test.yml/badge.svg)
+![master](https://github.com/teristam/in_vivo_ephys_openephys/actions/workflows/test.yml/badge.svg)
 
 Analysis for in vivo electrophysiology recordings saved in open ephys format. 
 
@@ -83,6 +83,11 @@ The pipeline will skip recording that has alreay been processed. It will ask you
 ```
 ./runSnake.py /mnt/datastore/Junji/Data/2021cohort2/vr/M4_D44_2021-12-06_16-08-18 --touch --force
 ```
+
+### Running tests
+It is recommended to run tests locally first to make sure all tests pass before submitting a pull request. You can run test by
+`pytests test`
+It will automatically run all the unit and integration tests.
 
 ## Tips and tricks
 - Snakemake insists on re-running the spike sorting

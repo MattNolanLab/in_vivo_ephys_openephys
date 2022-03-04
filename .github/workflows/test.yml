@@ -6,7 +6,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     env:
-      DOCKER_IMG: 'teristam/ephys_ms3'
+      DOCKER_IMG: 'teristam/ephys_ms3:20220302'
     steps:
       - uses: actions/checkout@v1
       - name: Configure environment
@@ -31,17 +31,17 @@ jobs:
 
       - name: Run integration tests
         run: |
-          docker run -t -v ${PWD}:/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys -w /home/nolanlab/PycharmProjects/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh
+          docker run -t -v ${PWD}:/home/nolanlab/in_vivo_ephys_openephys -w /home/nolanlab/in_vivo_ephys_openephys $DOCKER_IMG /bin/bash -l ./tests/run_tests_integration.sh 
 
-      - name: Prepare results data for upload
-        run: |
-          zip -P ${{ secrets.ARTIFACT_PASSWORD }} -r artifacts.zip artifacts
+      # - name: Prepare results data for upload
+      #   run: |
+      #     zip -P ${{ secrets.ARTIFACT_PASSWORD }} -r artifacts.zip artifacts
 
-      - uses: actions/upload-artifact@master
-        with:
-          name: data
-          path: artifacts.zip
-          retention-days: 1
+      # - uses: actions/upload-artifact@master
+      #   with:
+      #     name: data
+      #     path: artifacts.zip
+      #     retention-days: 1
 
       - name: Run code coverage
         run: |
