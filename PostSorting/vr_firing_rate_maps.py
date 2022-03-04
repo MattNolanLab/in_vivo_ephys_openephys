@@ -44,7 +44,6 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
     probe_processed_position_data = processed_position_data[processed_position_data["trial_type"] == 2]
 
     bins = np.arange(0, track_length+1, bin_size_cm)
-    print(bins,len(bins))
 
     beaconed_firing_rate_map = []
     non_beaconed_firing_rate_map = []
@@ -66,7 +65,6 @@ def make_firing_field_maps(spike_data, processed_position_data, bin_size_cm, tra
             cluster_trial_x_locations = x_locations_cm[trial_types == 0]
             cluster_trial_numbers = trial_numbers[trial_types == 0]
             beaconed_bin_counts = np.histogram(cluster_trial_x_locations, bins)[0]
-            print(beaconed_bin_counts,len(beaconed_bin_counts))
             binned_times = get_total_bin_times(beaconed_processed_position_data["times_binned"])
             normalised_rate_map = beaconed_bin_counts/binned_times
             beaconed_firing_rate_map.append(normalised_rate_map.tolist())
