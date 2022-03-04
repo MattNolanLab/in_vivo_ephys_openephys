@@ -7,31 +7,6 @@ import pandas as pd
 from scipy.signal import butter, lfilter, hilbert, decimate
 
 
-def butter_bandpass(lowcut, highcut, fs, order=5):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype='band')
-    return b, a
-
-
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
-    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
-
-
-def bandpass_filter(data, low=300, high=6000, fs=30000):
-    if len(data.shape) == 1:
-        filtered_data = butter_bandpass_filter(data, lowcut=low, highcut=high, fs=fs, order=2)
-
-    else:
-        filtered_data = np.zeros((data.shape[0], data.shape[1]))
-        for channel in range(data.shape[0]):
-            filtered_data[channel] = butter_bandpass_filter(data[channel, :], lowcut=low, highcut=high, fs=fs, order=2)
-    return filtered_data
-
-
 def remove_outlier_waveforms(all_waveforms):
     # remove snippets that have data points > 3 standard dev away from mean
     mean = all_waveforms.mean(axis=1)
@@ -78,43 +53,6 @@ def visualize_peak_to_trough_detection(spatial_firing):
         plt.axvline(cell.snippet_peak_position, color='red')
         plt.axvline(cell.snippet_trough_position, color='red')
         plt.show()
-
-
-def sort_folder_names(list_of_names):
-    list_of_names.sort(key=lambda x: int(x.split('CH')[1].split('.')[0]))
-    return list_of_names
-
-
-def load_all_channels(path):
-    """
-    Function to laod all channels in folder.
-    """
-    sorted_list_of_folders = sort_folder_names(glob.glob(path + '/*CH*continuous'))
-    all_channels = False
-    is_loaded = False
-    is_first = True
-    channel_count = 0
-    for file_path in sorted_list_of_folders:
-        if os.path.exists(file_path):
-            channel_data = open_ephys_IO.get_data_continuous(file_path).astype(np.int16)
-            if is_first:
-                all_channels = np.zeros((len(list(glob.glob(path + '/*CH*continuous'))), channel_data.size), np.int16)
-                is_first = False
-                is_loaded = True
-            all_channels[channel_count, :] = channel_data
-            channel_count += 1
-    return all_channels, is_loaded
-
-
-def add_filtered_big_snippets_to_data(recording_folder_path, spatial_firing):
-    # reproduce MS pipeline and take out a bigger snippet
-    raw_ephys_data, is_loaded = load_all_channels(recording_folder_path)
-    for index, cell in spatial_firing.iterrows():
-        primary_channel = cell.primary_channel - 1
-        raw_data = raw_ephys_data[primary_channel, :]
-        filtered_data = bandpass_filter(raw_data, low=300, high=6000)  # filtered in spike range TODO FIX THIS
-
-    return spatial_firing
 
 
 def analyse_waveform_shapes(recording_folder_path):
