@@ -87,12 +87,6 @@ processed_position_data = vr_speed_analysis.calculate_binned_speed(raw_position_
 processed_position_data = vr_time_analysis.calculate_binned_time(raw_position_data,processed_position_data, track_length)
 
 #%% Analysis stops
-#TODO: load stop threshold from parameter file
-processed_position_data = vr_stop_analysis.get_stops_from_binned_speed(processed_position_data, 4.7)
-processed_position_data = vr_stop_analysis.calculate_average_stops(processed_position_data)
-processed_position_data = vr_stop_analysis.calculate_first_stops(processed_position_data)
-processed_position_data = vr_stop_analysis.calculate_rewarded_stops(processed_position_data)
-processed_position_data =vr_stop_analysis.calculate_rewarded_trials(processed_position_data)
 
 # merge the track length and reward location from blender file
 if 'r10_r20' in config_file_name:
@@ -100,6 +94,15 @@ if 'r10_r20' in config_file_name:
 else:
     processed_position_data['track_length'] = track_length
     processed_position_data['reward_loc'] = reward_loc
+
+#TODO: load stop threshold from parameter file
+processed_position_data = vr_stop_analysis.get_stops_from_binned_speed(processed_position_data, 4.7)
+processed_position_data = vr_stop_analysis.calculate_average_stops(processed_position_data)
+processed_position_data = vr_stop_analysis.calculate_first_stops(processed_position_data)
+processed_position_data = vr_stop_analysis.calculate_rewarded_stops(processed_position_data)
+processed_position_data =vr_stop_analysis.calculate_rewarded_trials(processed_position_data)
+
+
 
 #%% plotting position data
 

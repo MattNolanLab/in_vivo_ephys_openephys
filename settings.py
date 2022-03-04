@@ -42,6 +42,7 @@ first_trial_channel_suffix = f'ADC4' #channel for the start of trial
 second_trial_channel_suffix = f'ADC5' #channel for the stp of trial
 reward_start = 88 #position for the reward
 reward_end = 110 #position for the reward
+reward_zone_size = 22 #from the start to the end of the reward zone
 vr_bin_size_cm = 1
 movement_threshold = 2.5
 goal_location_chennl_suffix=f'ADC7'
