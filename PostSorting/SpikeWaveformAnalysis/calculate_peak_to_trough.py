@@ -21,6 +21,18 @@ def remove_outlier_waveforms(all_waveforms, max_deviations=3):
     return all_waveforms[:, ~outliers]
 
 
+def get_peak_and_trough_positions(mean_waveform):
+    peak = np.argmax(np.absolute(mean_waveform))
+    if peak < len(mean_waveform):
+        if mean_waveform[peak] < 0:
+            trough = np.argmax(mean_waveform[peak:]) + peak
+        else:  # this happens when the spike is 'upside down' because if the tetrode position relative to the neuron
+            trough = np.argmin(mean_waveform[peak:]) + peak
+    else:
+        trough = np.argmin(mean_waveform)
+    return peak, trough
+
+
 def add_trough_to_peak_to_df(spatial_firing):
     peak_to_trough = []
     snippet_peak_position = []
@@ -30,14 +42,7 @@ def add_trough_to_peak_to_df(spatial_firing):
         all_waveforms_with_noise = cell.random_snippets[primary_channel]
         all_waveforms = remove_outlier_waveforms(all_waveforms_with_noise)
         mean_waveform = all_waveforms.mean(axis=1)
-        peak = np.argmax(np.absolute(mean_waveform))
-        if peak < len(mean_waveform):
-            if mean_waveform[peak] < 0:
-                trough = np.argmax(mean_waveform[peak:]) + peak
-            else:  # this happens when the spike is 'upside down' because if the tetrode position relative to the neuron
-                trough = np.argmin(mean_waveform[peak:]) + peak
-        else:
-            trough = np.argmin(mean_waveform)
+        peak, trough = get_peak_and_trough_positions(mean_waveform)
         snippet_peak_position.append(peak)
         snippet_trough_position.append(trough)
         peak_to_trough.append(np.abs(peak-trough))
