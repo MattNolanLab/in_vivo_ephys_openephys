@@ -3,81 +3,105 @@ import numpy as np
 import pandas as pd
 import settings
 from astropy.convolution import convolve, Gaussian1DKernel
+import control_sorting_analysis
+import PostSorting.vr_sync_spatial_data
+import traceback
+import os
+import sys
 
 prm = PostSorting.parameters.Parameters()
 
-def add_speed(spike_data, raw_position_data):
-    speed_per200ms = []
 
+def get_stop_threshold_and_track_length(recording_path):
+    parameter_file_path = control_sorting_analysis.get_tags_parameter_file(recording_path)
+    stop_threshold, track_length, _ = PostSorting.post_process_sorted_data_vr.process_running_parameter_tag(parameter_file_path)
+    return stop_threshold, track_length
+
+def add_speed(spike_data, raw_position_data):
+    raw_speed_per200ms = np.array(raw_position_data["speed_per200ms"])
+
+    speed_per200ms = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        speed_per200ms.append(raw_position_data["speed_per200ms"][cluster_firing_indices].to_list())
+        speed_per200ms.append(raw_speed_per200ms[cluster_firing_indices].to_list())
 
     spike_data["speed_per200ms"] = speed_per200ms
     return spike_data
 
 
 def add_position_x(spike_data, raw_position_data):
-    x_position_cm = []
+    raw_x_position_cm = np.array(raw_position_data["x_position_cm"])
 
+    x_position_cm = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        x_position_cm.append(raw_position_data["x_position_cm"][cluster_firing_indices].to_list())
+        x_position_cm.append(raw_x_position_cm[cluster_firing_indices].to_list())
 
     spike_data["x_position_cm"] = x_position_cm
     return spike_data
 
 
 def add_trial_number(spike_data, raw_position_data):
-    trial_number = []
+    raw_trial_number = np.array(raw_position_data["trial_number"])
 
+    trial_number = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        trial_number.append(raw_position_data["trial_number"][cluster_firing_indices].to_list())
+        trial_number.append(raw_trial_number[cluster_firing_indices].to_list())
 
     spike_data["trial_number"] = trial_number
     return spike_data
 
 
 def add_trial_type(spike_data, raw_position_data):
+    raw_trial_type = np.array(raw_position_data["trial_type"])
+
     trial_type = []
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        trial_type.append(raw_position_data["trial_type"][cluster_firing_indices].to_list())
+        trial_type.append(raw_trial_type[cluster_firing_indices].to_list())
 
     spike_data["trial_type"] = trial_type
     return spike_data
 
+
 def bin_fr_in_time(spike_data, raw_position_data):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_time_seconds/settings.time_bin_size)
+    n_trials = max(raw_position_data["trial_number"])
 
     # make an empty list of list for all firing rates binned in time for each cluster
     fr_binned_in_time = [[] for x in range(len(spike_data))]
 
-    for trial_number in range(1, max(raw_position_data["trial_number"]+1)):
-        trial_times = np.array(raw_position_data['time_seconds'][np.array(raw_position_data['trial_number']) == trial_number], dtype="float64")
-        time_bins = np.arange(min(trial_times), max(trial_times), settings.time_bin_size)# 100ms time bins
+    # extract spatial variables from raw position
+    times = np.array(raw_position_data['time_seconds'], dtype="float64")
+    trial_numbers_raw = np.array(raw_position_data['trial_number'], dtype=np.int64)
 
-        for i, cluster_id in enumerate(spike_data.cluster_id):
-            if len(time_bins)>1:
-                firing_times = spike_data[spike_data["cluster_id"] == cluster_id]["firing_times"].iloc[0]
-                trial_numbers = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["trial_number"].iloc[0])
-                trial_firing_times = firing_times[trial_numbers == trial_number]
+    # calculate the average fr in each 100ms time bin
+    time_bins = np.arange(min(times), max(times), settings.time_bin_size) # 100ms time bins
+    tn_time_bin_means = (np.histogram(times, time_bins, weights = trial_numbers_raw)[0] / np.histogram(times, time_bins)[0]).astype(np.int64)
 
-                # convert spike indices to spike times, count the spikes in each time bin and divide by time bin size to get fr
-                fr_hist = np.histogram(trial_firing_times/settings.sampling_rate, time_bins)[0]/settings.time_bin_size
+    for i, cluster_id in enumerate(spike_data.cluster_id):
+        if len(time_bins)>1:
+            spike_times = np.array(spike_data[spike_data["cluster_id"] == cluster_id]["firing_times"].iloc[0])
+            spike_times = spike_times/settings.sampling_rate # convert to seconds
 
-                # and smooth
-                fr_hist = convolve(fr_hist, gauss_kernel)
+            # count the spikes in each time bin and normalise to seconds
+            fr_time_bin_means, bin_edges = np.histogram(spike_times, time_bins)
+            fr_time_bin_means = fr_time_bin_means/settings.time_bin_size
 
-                # append the binned firing for each cluster at each trial
-                fr_binned_in_time[i].append(fr_hist.tolist())
-            else:
-                fr_binned_in_time[i].append([])
+            # and smooth
+            fr_time_bin_means = convolve(fr_time_bin_means, gauss_kernel)
+
+            # fill in firing rate array by trial
+            fr_binned_in_time_cluster = []
+            for trial_number in range(1, n_trials+1):
+                fr_binned_in_time_cluster.append(fr_time_bin_means[tn_time_bin_means == trial_number].tolist())
+            fr_binned_in_time[i] = fr_binned_in_time_cluster
+        else:
+            fr_binned_in_time[i] = []
 
     spike_data["fr_time_binned"] = fr_binned_in_time
-
     return spike_data
 
 
@@ -220,3 +244,57 @@ def process_spatial_firing(spike_data, raw_position_data, track_length):
     print('-------------------------------------------------------------')
     return spike_data_movement, spike_data_stationary, spike_data
 
+
+def process_recordings(vr_recording_path_list):
+    vr_recording_path_list.sort()
+
+    for recording in vr_recording_path_list:
+        print("processing ", recording)
+        try:
+            output_path = recording+'/'+settings.sorterName
+            stop_threshold, track_length = get_stop_threshold_and_track_length(recording)
+            #spike_data = pd.read_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
+            spike_data = pd.read_pickle(recording+"/MountainSort_sorted_together/DataFrames/spatial_firing.pkl")
+
+            raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording, output_path, track_length)
+            spike_data = bin_fr_in_time(spike_data, raw_position_data)
+            spike_data = bin_fr_in_space(spike_data, raw_position_data, track_length)
+            #spike_data.to_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
+            spike_data.to_pickle(recording+"/MountainSort_sorted_together/DataFrames/spatial_firing.pkl")
+            print("successfully processed on "+recording)
+
+        except Exception as ex:
+            print('This is what Python says happened:')
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
+            print("couldn't process vr_grid analysis on "+recording)
+
+
+
+#  for testing
+def main():
+    print('-------------------------------------------------------------')
+
+    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/test_recording") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
+    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()]
+    process_recordings(vr_path_list)
+
+    print("spatial_firing dataframes have been remade")
+
+if __name__ == '__main__':
+    main()
