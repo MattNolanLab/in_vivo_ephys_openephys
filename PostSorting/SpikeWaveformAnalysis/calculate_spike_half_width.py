@@ -38,7 +38,7 @@ def extract_mean_spike_width_for_channel(mean_snippet):
     intercept = find_intercept(mean_snippet, intercept_line)
     try:
         width = np.max(np.diff(intercept))  # to avoid detecting the line crossing small peaks before the depol peak
-    except IndexError:
+    except (IndexError, ValueError):
         width = 0
     # plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width)
     return width
