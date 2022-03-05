@@ -1,18 +1,22 @@
-import glob
 import matplotlib.pylab as plt
 import numpy as np
 import os
-import open_ephys_IO
 import pandas as pd
-from scipy.signal import butter, lfilter, hilbert, decimate
+
+"""
+## the following code calculates the distance between the peak and trough of snippets
+1. extract snippets
+2. calculate mean snippet
+3. identify peak and trough position and calculate distance
+4. insert into dataframe
+"""
 
 
-def remove_outlier_waveforms(all_waveforms):
+def remove_outlier_waveforms(all_waveforms, max_deviations=3):
     # remove snippets that have data points > 3 standard dev away from mean
     mean = all_waveforms.mean(axis=1)
     sd = all_waveforms.std(axis=1)
     distance_from_mean = all_waveforms.T - mean
-    max_deviations = 3
     outliers = np.sum(distance_from_mean > max_deviations * sd, axis=1) > 0
     return all_waveforms[:, ~outliers]
 
@@ -61,9 +65,8 @@ def analyse_waveform_shapes(recording_folder_path):
     spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
-        # spatial_firing = add_filtered_big_snippets_to_data(recording_folder_path, spatial_firing)
         spatial_firing = add_trough_to_peak_to_df(spatial_firing)
-        visualize_peak_to_trough_detection(spatial_firing)
+        # visualize_peak_to_trough_detection(spatial_firing)
         spatial_firing.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl')
 
     else:
@@ -83,7 +86,8 @@ def main():
     # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/M10_2021-12-10_08-37-27_of/'
 
     recording_list = []
-    recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
+    folder_path = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/"
+    recording_list.extend([f.path for f in os.scandir(folder_path) if f.is_dir()])
     # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of/'
     # analyse_waveform_shapes(recording_folder_path)
 

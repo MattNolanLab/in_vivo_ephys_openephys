@@ -3,6 +3,15 @@ import numpy as np
 import os
 import pandas as pd
 
+"""
+## the following code calculates the mean spike width for each cluster
+1. extract snippets
+2. calculate mean snippet
+3. calculate half width of mean snippet
+4. insert into dataframe
+https://github.com/MattNolanLab/Ramp_analysis/blob/master/Python_PostSorting/SpikeWidth.py
+"""
+
 
 def plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width):
     plt.plot(mean_snippet)
@@ -32,12 +41,11 @@ def extract_mean_spike_width_for_channel(mean_snippet):
     return width
 
 
-def remove_outlier_waveforms(all_waveforms):
+def remove_outlier_waveforms(all_waveforms, max_deviations=3):
     # remove snippets that have data points > 3 standard dev away from mean
     mean = all_waveforms.mean(axis=1)
     sd = all_waveforms.std(axis=1)
     distance_from_mean = all_waveforms.T - mean
-    max_deviations = 3
     outliers = np.sum(distance_from_mean > max_deviations * sd, axis=1) > 0
     return all_waveforms[:, ~outliers]
 
@@ -61,7 +69,6 @@ def analyse_waveform_shapes(recording_folder_path):
     spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
-        # spatial_firing = add_filtered_big_snippets_to_data(recording_folder_path, spatial_firing)
         spatial_firing = add_spike_half_width_to_df(spatial_firing)
         spatial_firing.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl')
 
@@ -81,8 +88,12 @@ def main():
     # recording_folder_path = '/mnt/datastore/Klara/Open_field_opto_tagging_p038/M13_2018-05-14_09-37-33_of/'
     # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/M10_2021-12-10_08-37-27_of/'
 
+    # this will run the code on all the recordings in the folder
     recording_list = []
-    recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
+    folder_path = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/"
+    recording_list.extend([f.path for f in os.scandir(folder_path) if f.is_dir()])
+
+    # use this to just run it on one recording:
     # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of/'
     # analyse_waveform_shapes(recording_folder_path)
 
