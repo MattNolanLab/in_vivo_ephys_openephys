@@ -32,8 +32,9 @@ def extract_mean_spike_width_for_channel(mean_snippet):
     peak, trough = peak_to_trough.get_peak_and_trough_positions(mean_snippet)
     mean_snippet = mean_snippet * -1
     # snippet_height = np.max(mean_snippet) - np.min(mean_snippet)
-    half_height = (mean_snippet[peak] + mean_snippet[trough]) / 2
-    intercept_line = np.repeat(half_height/2, mean_snippet.shape[0])
+    first_peak_location = min(peak, trough)
+    half_height = (mean_snippet[first_peak_location] + mean_snippet[0]) / 2
+    intercept_line = np.repeat(half_height, mean_snippet.shape[0])
     intercept = find_intercept(mean_snippet, intercept_line)
     try:
         width = np.max(np.diff(intercept))  # to avoid detecting the line crossing small peaks before the depol peak
