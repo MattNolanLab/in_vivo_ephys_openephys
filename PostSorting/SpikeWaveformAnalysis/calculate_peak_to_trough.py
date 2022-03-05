@@ -32,7 +32,10 @@ def add_trough_to_peak_to_df(spatial_firing):
         mean_waveform = all_waveforms.mean(axis=1)
         peak = np.argmax(np.absolute(mean_waveform))
         if peak < len(mean_waveform):
-            trough = np.argmax(mean_waveform[peak:]) + peak
+            if mean_waveform[peak] < 0:
+                trough = np.argmax(mean_waveform[peak:]) + peak
+            else:  # this happens when the spike is 'upside down' because if the tetrode position relative to the neuron
+                trough = np.argmin(mean_waveform[peak:]) + peak
         else:
             trough = np.argmin(mean_waveform)
         snippet_peak_position.append(peak)
@@ -62,12 +65,13 @@ def visualize_peak_to_trough_detection(spatial_firing):
 
 def analyse_waveform_shapes(recording_folder_path):
     print('Calculate peak to trough distance for each cell.')
-    spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
+    print(recording_folder_path)
+    spatial_firing_path = recording_folder_path + '/MountainSort/DataFrames/spatial_firing.pkl'
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
         spatial_firing = add_trough_to_peak_to_df(spatial_firing)
         # visualize_peak_to_trough_detection(spatial_firing)
-        spatial_firing.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl')
+        spatial_firing.to_pickle(recording_folder_path + '/MountainSort/DataFrames/spatial_firing.pkl')
 
     else:
         print('There is no spatial firing data for this recording: ' + recording_folder_path)
@@ -88,7 +92,8 @@ def main():
     recording_list = []
     folder_path = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/"
     recording_list.extend([f.path for f in os.scandir(folder_path) if f.is_dir()])
-    # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of/'
+    process_recordings(recording_list)
+    # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of'
     # analyse_waveform_shapes(recording_folder_path)
 
 
