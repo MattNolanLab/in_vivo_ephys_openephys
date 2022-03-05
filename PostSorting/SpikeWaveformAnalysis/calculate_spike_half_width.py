@@ -14,9 +14,9 @@ https://github.com/MattNolanLab/Ramp_analysis/blob/master/Python_PostSorting/Spi
 """
 
 
-def plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width):
+def plot_snippet_method(mean_snippet, half_height, intercept_line, width):
     plt.plot(mean_snippet)
-    plt.plot(snippet_height, 'o', color='r', markersize=5)
+    # plt.plot(snippet_height, 'o', color='r', markersize=5)
     plt.plot(half_height, 'o', color='b', markersize=5)
     plt.plot(intercept_line, '-', color='r', markersize=5)
     plt.title('width= ' + str(np.round(width)))
@@ -32,15 +32,14 @@ def extract_mean_spike_width_for_channel(mean_snippet):
     peak, trough = peak_to_trough.get_peak_and_trough_positions(mean_snippet)
     mean_snippet = mean_snippet * -1
     # snippet_height = np.max(mean_snippet) - np.min(mean_snippet)
-    snippet_height = mean_snippet[peak] - mean_snippet[trough]
-    half_height = snippet_height / 2
+    half_height = (mean_snippet[peak] + mean_snippet[trough]) / 2
     intercept_line = np.repeat(half_height/2, mean_snippet.shape[0])
     intercept = find_intercept(mean_snippet, intercept_line)
     try:
         width = np.max(np.diff(intercept))  # to avoid detecting the line crossing small peaks before the depol peak
     except (IndexError, ValueError):
         width = 0
-    # plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width)
+    # plot_snippet_method(mean_snippet, half_height, intercept_line, width)
     return width
 
 
