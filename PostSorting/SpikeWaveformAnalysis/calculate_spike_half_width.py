@@ -70,12 +70,21 @@ def analyse_waveform_shapes(recording_folder_path):
         return False
 
 
+def process_recordings(recording_list):
+    for recording in recording_list:
+        analyse_waveform_shapes(recording)
+    print("all recordings processed")
+
+
 def main():
     # there are 2 grid cells in this recording and one of them (#7) looks theta modulated
     # recording_folder_path = '/mnt/datastore/Klara/Open_field_opto_tagging_p038/M13_2018-05-14_09-37-33_of/'
     # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/M10_2021-12-10_08-37-27_of/'
-    recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of/'
-    analyse_waveform_shapes(recording_folder_path)
+
+    recording_list = []
+    recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
+    # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of/'
+    # analyse_waveform_shapes(recording_folder_path)
 
 
 if __name__ == '__main__':
