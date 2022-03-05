@@ -37,7 +37,7 @@ def extract_mean_spike_width_for_channel(mean_snippet):
         width = intercept[1]-intercept[0]
     except IndexError:
         width = 0
-    plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width)
+    # plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width)
     return width
 
 
@@ -66,11 +66,12 @@ def add_spike_half_width_to_df(spatial_firing):
 
 def analyse_waveform_shapes(recording_folder_path):
     print('Calculate spike half width.')
-    spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
+    print(recording_folder_path)
+    spatial_firing_path = recording_folder_path + '/MountainSort/DataFrames/spatial_firing.pkl'
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
         spatial_firing = add_spike_half_width_to_df(spatial_firing)
-        spatial_firing.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl')
+        spatial_firing.to_pickle(recording_folder_path + '/MountainSort/DataFrames/spatial_firing.pkl')
 
     else:
         print('There is no spatial firing data for this recording: ' + recording_folder_path)
@@ -92,6 +93,7 @@ def main():
     recording_list = []
     folder_path = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/"
     recording_list.extend([f.path for f in os.scandir(folder_path) if f.is_dir()])
+    process_recordings(recording_list)
 
     # use this to just run it on one recording:
     # recording_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo_extras/PSAM/M10_2021-11-26_16-07-10_of/'
