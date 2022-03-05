@@ -1,10 +1,35 @@
-import glob
 import matplotlib.pylab as plt
 import numpy as np
 import os
-import open_ephys_IO
 import pandas as pd
-from scipy.signal import butter, lfilter, hilbert, decimate
+
+
+def plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width):
+    plt.plot(mean_snippet)
+    plt.plot(snippet_height, 'o', color='r', markersize=5)
+    plt.plot(half_height, 'o', color='b', markersize=5)
+    plt.plot(intercept_line, '-', color='r', markersize=5)
+    plt.title('width= ' + str(np.round(width)))
+    plt.show()
+
+
+def find_intercept(mean_snippet, intercept_line):
+    idx = np.argwhere(np.diff(np.sign(mean_snippet - intercept_line))).flatten()
+    return idx
+
+
+def extract_mean_spike_width_for_channel(mean_snippet):
+    mean_snippet = mean_snippet * -1
+    snippet_height = np.max(mean_snippet) - np.min(mean_snippet)
+    half_height = snippet_height/2
+    intercept_line = np.repeat(half_height/2, mean_snippet.shape[0])
+    intercept = find_intercept(mean_snippet, intercept_line)
+    try:
+        width = intercept[1]-intercept[0]
+    except IndexError:
+        width = 0
+    plot_snippet_method(mean_snippet, snippet_height, half_height, intercept_line, width)
+    return width
 
 
 def remove_outlier_waveforms(all_waveforms):
@@ -17,53 +42,27 @@ def remove_outlier_waveforms(all_waveforms):
     return all_waveforms[:, ~outliers]
 
 
-def add_trough_to_peak_to_df(spatial_firing):
-    peak_to_trough = []
-    snippet_peak_position = []
-    snippet_trough_position = []
+def add_spike_half_width_to_df(spatial_firing):
+    spike_width = []
     for index, cell in spatial_firing.iterrows():
         primary_channel = cell.primary_channel - 1
         all_waveforms_with_noise = cell.random_snippets[primary_channel]
         all_waveforms = remove_outlier_waveforms(all_waveforms_with_noise)
         mean_waveform = all_waveforms.mean(axis=1)
-        peak = np.argmax(np.absolute(mean_waveform))
-        if peak < len(mean_waveform):
-            trough = np.argmax(mean_waveform[peak:]) + peak
-        else:
-            trough = np.argmin(mean_waveform)
-        snippet_peak_position.append(peak)
-        snippet_trough_position.append(trough)
-        peak_to_trough.append(np.abs(peak-trough))
+        width = extract_mean_spike_width_for_channel(mean_waveform)
+        spike_width.append(width)
 
-    spatial_firing['peak_to_trough'] = peak_to_trough
-    spatial_firing['snippet_peak_position'] = snippet_peak_position
-    spatial_firing['snippet_trough_position'] = snippet_trough_position
+    spatial_firing['spike_width'] = spike_width
     return spatial_firing
 
 
-def visualize_peak_to_trough_detection(spatial_firing):
-    for index, cell in spatial_firing.iterrows():
-        primary_channel = cell.primary_channel - 1
-        all_waveforms_with_noise = cell.random_snippets[primary_channel]
-        all_waveforms = remove_outlier_waveforms(all_waveforms_with_noise)
-        mean_waveform = all_waveforms.mean(axis=1)
-        # plt.plot(all_waveforms_with_noise, color='grey', alpha=0.6)
-        plt.plot(all_waveforms, color='skyblue', alpha=0.8)
-        plt.plot(mean_waveform, linewidth=3, color='navy')
-        plt.title(str(np.round(cell.mean_firing_rate,2)) + ' Hz')
-        plt.axvline(cell.snippet_peak_position, color='red')
-        plt.axvline(cell.snippet_trough_position, color='red')
-        plt.show()
-
-
 def analyse_waveform_shapes(recording_folder_path):
-    print('Calculate peak to trough distance for each cell.')
+    print('Calculate spike half width.')
     spatial_firing_path = recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl'
     if os.path.exists(spatial_firing_path):
         spatial_firing = pd.read_pickle(spatial_firing_path)
         # spatial_firing = add_filtered_big_snippets_to_data(recording_folder_path, spatial_firing)
-        spatial_firing = add_trough_to_peak_to_df(spatial_firing)
-        visualize_peak_to_trough_detection(spatial_firing)
+        spatial_firing = add_spike_half_width_to_df(spatial_firing)
         spatial_firing.to_pickle(recording_folder_path + 'MountainSort/DataFrames/spatial_firing.pkl')
 
     else:
