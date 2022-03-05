@@ -23,7 +23,7 @@ def add_speed(spike_data, raw_position_data):
     speed_per200ms = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        speed_per200ms.append(raw_speed_per200ms[cluster_firing_indices].to_list())
+        speed_per200ms.append(raw_speed_per200ms[cluster_firing_indices].tolist())
 
     spike_data["speed_per200ms"] = speed_per200ms
     return spike_data
@@ -35,7 +35,7 @@ def add_position_x(spike_data, raw_position_data):
     x_position_cm = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        x_position_cm.append(raw_x_position_cm[cluster_firing_indices].to_list())
+        x_position_cm.append(raw_x_position_cm[cluster_firing_indices].tolist())
 
     spike_data["x_position_cm"] = x_position_cm
     return spike_data
@@ -47,7 +47,7 @@ def add_trial_number(spike_data, raw_position_data):
     trial_number = []
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        trial_number.append(raw_trial_number[cluster_firing_indices].to_list())
+        trial_number.append(raw_trial_number[cluster_firing_indices].tolist())
 
     spike_data["trial_number"] = trial_number
     return spike_data
@@ -60,7 +60,7 @@ def add_trial_type(spike_data, raw_position_data):
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        trial_type.append(raw_trial_type[cluster_firing_indices].to_list())
+        trial_type.append(raw_trial_type[cluster_firing_indices].tolist())
 
     spike_data["trial_type"] = trial_type
     return spike_data
