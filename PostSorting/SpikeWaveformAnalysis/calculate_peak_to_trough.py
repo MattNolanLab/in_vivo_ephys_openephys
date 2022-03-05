@@ -50,6 +50,7 @@ def visualize_peak_to_trough_detection(spatial_firing):
         # plt.plot(all_waveforms_with_noise, color='grey', alpha=0.6)
         plt.plot(all_waveforms, color='skyblue', alpha=0.8)
         plt.plot(mean_waveform, linewidth=3, color='navy')
+        plt.title(str(np.round(cell.mean_firing_rate,2)) + ' Hz')
         plt.axvline(cell.snippet_peak_position, color='red')
         plt.axvline(cell.snippet_trough_position, color='red')
         plt.show()
