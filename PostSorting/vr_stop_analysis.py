@@ -11,8 +11,8 @@ def get_stops_from_binned_speed(processed_position_data, stop_threshold):
 
     for index, trial_row in processed_position_data.iterrows():
         trial_row = trial_row.to_frame().T.reset_index(drop=True)
-        speeds = np.array(trial_row["speeds_binned_in_time"].iloc[0])
-        locations = np.array(trial_row["pos_binned_in_time"].iloc[0])
+        speeds = np.array(trial_row["speeds_binned_in_time_not_smoothened"].iloc[0])
+        locations = np.array(trial_row["pos_binned_in_time_not_smoothened"].iloc[0])
         stop_locations_on_trial = locations[speeds < stop_threshold]
         stop_location_cm.append(stop_locations_on_trial)
 
