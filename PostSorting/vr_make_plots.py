@@ -8,6 +8,7 @@ import PostSorting.vr_cued_make_plots
 import PostSorting.vr_spatial_data
 from numpy import inf
 import gc
+from scipy import stats
 import matplotlib.ticker as ticker
 import pandas as pd
 from astropy.convolution import convolve, Gaussian1DKernel, Box1DKernel
@@ -157,25 +158,37 @@ def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     plt.savefig(output_path + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()
 
+
+def min_max_normalize(x):
+    """
+        argument
+            - x: input image data in numpy array [32, 32, 3]
+        return
+            - normalized x
+    """
+    min_val = np.min(x)
+    max_val = np.max(x)
+    x = (x-min_val) / (max_val-min_val)
+    return x
+
 def plot_speed_per_trial(processed_position_data, output_path, track_length=200):
     print('plotting speed heatmap...')
     save_path = output_path + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     x_max = len(processed_position_data)
-    if x_max>100:
-        fig = plt.figure(figsize=(4,(x_max/32)))
-    else:
-        fig = plt.figure(figsize=(4,(x_max/20)))
+    fig = plt.figure(figsize=(4,(x_max/32)))
     ax = fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-
-    trial_speeds = plot_utility.pandas_collumn_to_2d_numpy_array(processed_position_data["speeds_binned"])
+    trial_speeds = plot_utility.pandas_collumn_to_2d_numpy_array(processed_position_data["speeds_binned_in_space"])
+    where_are_NaNs = np.isnan(trial_speeds)
+    trial_speeds[where_are_NaNs] = 0
+    locations = np.arange(0, len(trial_speeds[0]))
+    ordered = np.arange(0, len(trial_speeds), 1)
+    X, Y = np.meshgrid(locations, ordered)
     cmap = plt.cm.get_cmap("jet")
-    cmap.set_bad(color='white')
-    trial_speeds = np.clip(trial_speeds, a_min=0, a_max=60)
-    c = ax.imshow(trial_speeds, interpolation='none', cmap=cmap, vmin=0, vmax=60)
-    clb = fig.colorbar(c, ax=ax, shrink=0.5)
-    clb.mappable.set_clim(0, 60)
+    pcm = ax.pcolormesh(X, Y, trial_speeds, cmap=cmap, shading="auto")
+    cbar = fig.colorbar(pcm, ax=ax, fraction=0.046, pad=0.04)
+    cbar.mappable.set_clim(0, np.max(trial_speeds))
     plt.ylabel('Trial Number', fontsize=20, labelpad = 10)
     plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
     plt.xlim(0,track_length)
@@ -186,48 +199,41 @@ def plot_speed_per_trial(processed_position_data, output_path, track_length=200)
     plt.savefig(output_path + '/Figures/behaviour/speed_heat_map' + '.png', dpi=200)
     plt.close()
 
-def plot_speed_histogram(processed_position_data, output_path, track_length=200):
-    trial_averaged_beaconed_speeds, trial_averaged_non_beaconed_speeds, trial_averaged_probe_speeds = \
-        PostSorting.vr_spatial_data.trial_average_speed(processed_position_data)
 
-    print('plotting speed histogram...')
+
+def plot_speed_histogram(processed_position_data, output_path, track_length=200):
     save_path = output_path + '/Figures/behaviour'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
     speed_histogram = plt.figure(figsize=(6,4))
     ax = speed_histogram.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-    bin_centres = np.array(processed_position_data["position_bin_centres"].iloc[0])
 
-    if len(trial_averaged_beaconed_speeds)>0:
-        ax.plot(bin_centres, trial_averaged_beaconed_speeds, '-', color='Black')
+    for tt, c in zip([0,1,2], ["black", "red", "blue"]):
+        tt_processed_position_data = processed_position_data[processed_position_data["trial_type"] == tt]
+        if len(tt_processed_position_data)>0:
+            trial_speeds = plot_utility.pandas_collumn_to_2d_numpy_array(tt_processed_position_data["speeds_binned_in_space"])
+            trial_speeds_sem = stats.sem(trial_speeds, axis=0, nan_policy="omit")
+            trial_speeds_avg = np.nanmean(trial_speeds, axis=0)
+            bin_centres = np.array(processed_position_data["position_bin_centres"].iloc[0])
+            ax.plot(bin_centres, trial_speeds_avg, color=c, linewidth=4)
 
-    if len(trial_averaged_non_beaconed_speeds)>0:
-        ax.plot(bin_centres, trial_averaged_non_beaconed_speeds, '-', color='Red')
-
-    if len(trial_averaged_probe_speeds)>0:
-        ax.plot(bin_centres, trial_averaged_probe_speeds, '-', color='Blue')
-
-    plt.ylabel('Speed (cm/s)', fontsize=20, labelpad = 10)
-    plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
+    plt.ylabel('Speed (cm/s)', fontsize=25, labelpad = 10)
+    plt.xlabel('Location (cm)', fontsize=25, labelpad = 10)
     plt.xlim(0,track_length)
+    ax.set_yticks([0, 50, 100])
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, track_length)
-
-    x_max = max(trial_averaged_beaconed_speeds)
-
-    if len(trial_averaged_non_beaconed_speeds)>0:
-        max_nb = max(trial_averaged_non_beaconed_speeds)
-        x_max = max([x_max, max_nb])
-
-    if len(trial_averaged_probe_speeds)>0:
-        max_p = max(trial_averaged_probe_speeds)
-        x_max = max([x_max, max_p])
-
-    plot_utility.style_vr_plot(ax, x_max)
+    tick_spacing = 100
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+    plot_utility.style_vr_plot(ax, x_max=115)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(output_path + '/Figures/behaviour/speed_histogram' + '.png', dpi=200)
     plt.close()
+
+
 
 
 def plot_spikes_on_track(spike_data, processed_position_data, output_path, track_length=200,
@@ -278,70 +284,53 @@ def plot_spikes_on_track(spike_data, processed_position_data, output_path, track
 
 
 def plot_firing_rate_maps(spike_data, processed_position_data, output_path, track_length=200):
-    gauss_kernel = Gaussian1DKernel(2)
     print('I am plotting firing rate maps...')
     save_path = output_path + '/Figures/spike_rate'
     if os.path.exists(save_path) is False:
         os.makedirs(save_path)
+
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
-        cluster_spike_data = spike_data[(spike_data["cluster_id"] == cluster_id)]
+        cluster_spike_data = spike_data[spike_data["cluster_id"] == cluster_id]
+        firing_times_cluster = np.array(cluster_spike_data["firing_times"].iloc[0])
 
-        avg_beaconed_spike_rate = np.array(cluster_spike_data["beaconed_firing_rate_map"].to_list()[0])
-        avg_nonbeaconed_spike_rate = np.array(cluster_spike_data["non_beaconed_firing_rate_map"].to_list()[0])
-        avg_probe_spike_rate = np.array(cluster_spike_data["probe_firing_rate_map"].to_list()[0])
+        if len(firing_times_cluster)>1:
+            fr_binned_in_space = np.array(cluster_spike_data["fr_binned_in_space"].iloc[0])
+            fr_binned_in_space_bin_centres = np.array(cluster_spike_data['fr_binned_in_space_bin_centres'].iloc[0])[0]
 
-        beaconed_firing_rate_map_sem = np.array(cluster_spike_data["beaconed_firing_rate_map_sem"].to_list()[0])
-        non_beaconed_firing_rate_map_sem = np.array(cluster_spike_data["non_beaconed_firing_rate_map_sem"].to_list()[0])
-        probe_firing_rate_map_sem = np.array(cluster_spike_data["probe_firing_rate_map_sem"].to_list()[0])
+            spikes_on_track = plt.figure()
+            spikes_on_track.set_size_inches(5, 5, forward=True)
+            ax = spikes_on_track.add_subplot(1, 1, 1)
+            plot_utility.style_track_plot(ax, track_length)
+            y_max=0
 
-        avg_beaconed_spike_rate = convolve(avg_beaconed_spike_rate, gauss_kernel) # convolve and smooth beaconed
-        beaconed_firing_rate_map_sem = convolve(beaconed_firing_rate_map_sem, gauss_kernel)
+            for tt, c in zip([0, 1, 2], ["black", "red", "blue"]):
+                tt_processed_position_data = processed_position_data[processed_position_data["trial_type"] == tt]
+                tt_trial_numbers = np.asarray(tt_processed_position_data["trial_number"])
+                tt_fr_binned_in_space = fr_binned_in_space[tt_trial_numbers-1]
+                ax.fill_between(fr_binned_in_space_bin_centres, np.nanmean(tt_fr_binned_in_space, axis=0)-stats.sem(tt_fr_binned_in_space, axis=0), np.nanmean(tt_fr_binned_in_space, axis=0)+stats.sem(tt_fr_binned_in_space, axis=0), color=c, alpha=0.3)
+                ax.plot(fr_binned_in_space_bin_centres, np.nanmean(tt_fr_binned_in_space, axis=0), color=c)
 
-        if len(avg_nonbeaconed_spike_rate)>0:
-            avg_nonbeaconed_spike_rate = convolve(avg_nonbeaconed_spike_rate, gauss_kernel) # convolve and smooth non beaconed
-            non_beaconed_firing_rate_map_sem = convolve(non_beaconed_firing_rate_map_sem, gauss_kernel)
+                fr_max = max(np.nanmean(tt_fr_binned_in_space, axis=0)+stats.sem(tt_fr_binned_in_space, axis=0))
+                y_max = max([y_max, fr_max])
+                y_max = np.ceil(y_max)
 
-        if len(avg_probe_spike_rate)>0:
-            avg_probe_spike_rate = convolve(avg_probe_spike_rate, gauss_kernel) # convolve and smooth probe
-            probe_firing_rate_map_sem = convolve(probe_firing_rate_map_sem, gauss_kernel)
+            plt.ylabel('Firing Rate (Hz)', fontsize=20, labelpad = 20)
+            plt.xlabel('Location (cm)', fontsize=20, labelpad = 20)
+            plt.xlim(0, track_length)
+            tick_spacing = 100
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+            ax.yaxis.set_ticks_position('left')
+            ax.xaxis.set_ticks_position('bottom')
+            plot_utility.style_vr_plot(ax, x_max=y_max)
+            ax.set_yticks([0, np.round(ax.get_ylim()[1], 2)])
+            plt.locator_params(axis = 'y', nbins  = 4)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
+            plt.tight_layout()
+            plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_rate_map_Cluster_' + str(cluster_id) + '.png', dpi=300)
+            plt.close()
 
-        avg_spikes_on_track = plt.figure(figsize=(6,4))
-        ax = avg_spikes_on_track.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
-        bin_centres = np.array(processed_position_data["position_bin_centres"].iloc[0])
-
-        #plotting the rates are filling with the standard error around the mean
-        ax.plot(bin_centres, avg_beaconed_spike_rate, '-', color='Black')
-        ax.fill_between(bin_centres, avg_beaconed_spike_rate-beaconed_firing_rate_map_sem,
-                                     avg_beaconed_spike_rate+beaconed_firing_rate_map_sem, color="Black", alpha=0.5)
-
-        if len(avg_nonbeaconed_spike_rate)>0:
-            ax.plot(bin_centres, avg_nonbeaconed_spike_rate, '-', color='Red')
-            ax.fill_between(bin_centres, avg_nonbeaconed_spike_rate-non_beaconed_firing_rate_map_sem,
-                                         avg_nonbeaconed_spike_rate+non_beaconed_firing_rate_map_sem, color="Red", alpha=0.5)
-
-        if len(avg_probe_spike_rate)>0:
-            ax.plot(bin_centres, avg_probe_spike_rate, '-', color='Blue')
-            ax.fill_between(bin_centres, avg_probe_spike_rate-probe_firing_rate_map_sem,
-                                         avg_probe_spike_rate+probe_firing_rate_map_sem, color="Blue", alpha=0.5)
-
-        #plotting jargon
-        if track_length == 200:
-            ax.locator_params(axis = 'x', nbins=3)
-            ax.set_xticklabels(['0', '100', '200'])
-        plt.ylabel('Spike rate (hz)', fontsize=20, labelpad = 10)
-        plt.xlabel('Location (cm)', fontsize=20, labelpad = 10)
-        plt.xlim(0,track_length)
-        x_max = np.nanmax(avg_beaconed_spike_rate)
-        if len(avg_nonbeaconed_spike_rate)>0:
-            nb_x_max = np.nanmax(avg_nonbeaconed_spike_rate)
-            if nb_x_max > x_max:
-                x_max = nb_x_max
-        plot_utility.style_vr_plot(ax, x_max)
-        plot_utility.style_track_plot(ax, track_length)
-        plt.subplots_adjust(hspace=.35, wspace=.35, bottom=0.15, left=0.12, right=0.87, top=0.92)
-
-        plt.savefig(save_path + '/' + spike_data.session_id.iloc[cluster_index] + '_rate_map_Cluster_' + str(cluster_id) + '.png', dpi=200)
-        plt.close()
+    return spike_data
 
 '''
 plot gaussian convolved firing rate in time against similarly convolved speed and location. 
