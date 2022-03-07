@@ -118,6 +118,19 @@ def style_vr_plot_offset(ax, x_max):
 
     return ax
 
+def pandas_collumn_to_2d_numpy_array(pandas_series):
+    new_array = []
+    for i in range(len(pandas_series)):
+        element = pandas_series.iloc[i]
+
+        if len(np.shape(element)) == 0:
+            new_array.append([element])
+        else:
+            new_array.append(element)
+
+    return np.array(new_array)
+
+
 def style_vr_plot(ax, x_max=None):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
