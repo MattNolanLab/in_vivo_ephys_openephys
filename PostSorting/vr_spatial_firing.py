@@ -18,49 +18,44 @@ def get_stop_threshold_and_track_length(recording_path):
     return stop_threshold, track_length
 
 def add_speed(spike_data, raw_position_data):
-    raw_speed_per200ms = np.array(raw_position_data["speed_per200ms"])
-
     speed_per200ms = []
+
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        speed_per200ms.append(raw_speed_per200ms[cluster_firing_indices].tolist())
+        speed_per200ms.append(raw_position_data["speed_per200ms"][cluster_firing_indices].to_list())
 
     spike_data["speed_per200ms"] = speed_per200ms
     return spike_data
 
 
 def add_position_x(spike_data, raw_position_data):
-    raw_x_position_cm = np.array(raw_position_data["x_position_cm"])
-
     x_position_cm = []
+
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        x_position_cm.append(raw_x_position_cm[cluster_firing_indices].tolist())
+        x_position_cm.append(raw_position_data["x_position_cm"][cluster_firing_indices].to_list())
 
     spike_data["x_position_cm"] = x_position_cm
     return spike_data
 
 
 def add_trial_number(spike_data, raw_position_data):
-    raw_trial_number = np.array(raw_position_data["trial_number"])
-
     trial_number = []
+
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        trial_number.append(raw_trial_number[cluster_firing_indices].tolist())
+        trial_number.append(raw_position_data["trial_number"][cluster_firing_indices].to_list())
 
     spike_data["trial_number"] = trial_number
     return spike_data
 
 
 def add_trial_type(spike_data, raw_position_data):
-    raw_trial_type = np.array(raw_position_data["trial_type"])
-
     trial_type = []
 
     for cluster_index, cluster_id in enumerate(spike_data.cluster_id):
         cluster_firing_indices = np.asarray(spike_data[spike_data.cluster_id == cluster_id].firing_times)[0]
-        trial_type.append(raw_trial_type[cluster_firing_indices].tolist())
+        trial_type.append(raw_position_data["trial_type"][cluster_firing_indices].to_list())
 
     spike_data["trial_type"] = trial_type
     return spike_data
@@ -253,14 +248,13 @@ def process_recordings(vr_recording_path_list):
         try:
             output_path = recording+'/'+settings.sorterName
             stop_threshold, track_length = get_stop_threshold_and_track_length(recording)
-            #spike_data = pd.read_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
-            spike_data = pd.read_pickle(recording+"/MountainSort_sorted_together/DataFrames/spatial_firing.pkl")
+            spike_data = pd.read_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
 
             raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording, output_path, track_length)
             spike_data = bin_fr_in_time(spike_data, raw_position_data)
             spike_data = bin_fr_in_space(spike_data, raw_position_data, track_length)
-            #spike_data.to_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
-            spike_data.to_pickle(recording+"/MountainSort_sorted_together/DataFrames/spatial_firing.pkl")
+            spike_data.to_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
+
             print("successfully processed on "+recording)
 
         except Exception as ex:
@@ -279,20 +273,27 @@ def main():
     vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/test_recording") if f.is_dir()]
     #process_recordings(vr_path_list)
 
+
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/vr") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr") if f.is_dir()]
+    #process_recordings(vr_path_list)
+
     #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()]
     #process_recordings(vr_path_list)
 
     #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality") if f.is_dir()]
     #process_recordings(vr_path_list)
 
-    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()]
+    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()]
     #process_recordings(vr_path_list)
 
     #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()]
     #process_recordings(vr_path_list)
 
     #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()]
-    process_recordings(vr_path_list)
+    #process_recordings(vr_path_list)
 
     print("spatial_firing dataframes have been remade")
 
