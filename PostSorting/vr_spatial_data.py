@@ -192,9 +192,6 @@ def process_recordings(vr_recording_path_list):
             raw_position_data = smooth_raw_x_position(raw_position_data)
             processed_position_data = process_position(raw_position_data, stop_threshold, track_length)
 
-            #processed_position_data.to_pickle(recording+"/Mountainsort_original/DataFrames/processed_position_data.pkl")
-            #position_data.to_pickle(recording+"/MountainSort_sorted_together/DataFrames/position_data.pkl")
-
             processed_position_data.to_pickle(recording+"/MountainSort/DataFrames/processed_position_data.pkl")
             position_data.to_pickle(recording+"/MountainSort/DataFrames/position_data.pkl")
             print("successfully processed on "+recording)
