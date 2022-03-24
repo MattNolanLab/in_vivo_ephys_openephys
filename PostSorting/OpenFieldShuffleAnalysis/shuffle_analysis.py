@@ -28,7 +28,6 @@ def run_parallel_of_shuffle(single_shuffle, synced_spatial_data):
     return single_shuffle
 
 def generate_shuffled_times(cluster_firing, n_shuffles):
-    np.random.seed(2022)  # make the analysis reproducible
     cluster_firing = cluster_firing[["cluster_id", "firing_times", "mean_firing_rate", "recording_length_sampling_points"]]
     recording_length = int(cluster_firing["recording_length_sampling_points"].iloc[0])
     minimum_shift = int(20 * settings.sampling_rate)  # 20 seconds
