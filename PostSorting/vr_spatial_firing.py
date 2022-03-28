@@ -61,7 +61,7 @@ def add_trial_type(spike_data, raw_position_data):
     return spike_data
 
 
-def bin_fr_in_time(spike_data, raw_position_data):
+def bin_fr_in_time(spike_data, raw_position_data, smoothen=True):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_time_seconds/settings.time_bin_size)
     n_trials = max(raw_position_data["trial_number"])
 
@@ -86,7 +86,8 @@ def bin_fr_in_time(spike_data, raw_position_data):
             fr_time_bin_means = fr_time_bin_means/settings.time_bin_size
 
             # and smooth
-            fr_time_bin_means = convolve(fr_time_bin_means, gauss_kernel)
+            if smoothen:
+                fr_time_bin_means = convolve(fr_time_bin_means, gauss_kernel)
 
             # fill in firing rate array by trial
             fr_binned_in_time_cluster = []
@@ -100,7 +101,7 @@ def bin_fr_in_time(spike_data, raw_position_data):
     return spike_data
 
 
-def bin_fr_in_space(spike_data, raw_position_data, track_length):
+def bin_fr_in_space(spike_data, raw_position_data, track_length, smoothen=True):
     vr_bin_size_cm = settings.vr_bin_size_cm
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/vr_bin_size_cm)
 
@@ -131,7 +132,8 @@ def bin_fr_in_space(spike_data, raw_position_data, track_length):
 
             # nans to zero and smooth
             fr_hist[np.isnan(fr_hist)] = 0
-            fr_hist = convolve(fr_hist, gauss_kernel)
+            if smoothen:
+                fr_hist = convolve(fr_hist, gauss_kernel)
 
             # fill in firing rate array by trial
             fr_binned_in_space_cluster = []
@@ -251,8 +253,8 @@ def process_recordings(vr_recording_path_list):
             spike_data = pd.read_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
 
             raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording, output_path, track_length)
-            spike_data = bin_fr_in_time(spike_data, raw_position_data)
-            spike_data = bin_fr_in_space(spike_data, raw_position_data, track_length)
+            spike_data = bin_fr_in_time(spike_data, raw_position_data, smoothen=False)
+            spike_data = bin_fr_in_space(spike_data, raw_position_data, track_length, smoothen=False)
             spike_data.to_pickle(recording+"/MountainSort/DataFrames/spatial_firing.pkl")
 
             print("successfully processed on "+recording)
