@@ -40,7 +40,7 @@ def calculate_total_trial_numbers(raw_position_data,processed_position_data):
     return processed_position_data
 
 
-def bin_in_space(raw_position_data, processed_position_data, track_length):
+def bin_in_space(raw_position_data, processed_position_data, track_length, smoothen=True):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_space_cm/settings.vr_bin_size_cm)
     n_trials = max(raw_position_data["trial_number"])
 
@@ -57,8 +57,9 @@ def bin_in_space(raw_position_data, processed_position_data, track_length):
     tn_space_bin_means = (((0.5*(spatial_bins[1:]+spatial_bins[:-1]))//track_length)+1).astype(np.int64) # uncomment to get nan values for portions of first and last trial
 
     # and smooth
-    speed_space_bin_means = convolve(speed_space_bin_means, gauss_kernel)
-    pos_space_bin_means = convolve(pos_space_bin_means, gauss_kernel)
+    if smoothen:
+        speed_space_bin_means = convolve(speed_space_bin_means, gauss_kernel)
+        pos_space_bin_means = convolve(pos_space_bin_means, gauss_kernel)
 
     # calculate the acceleration from the smoothed speed
     acceleration_space_bin_means = np.diff(np.array(speed_space_bin_means))
@@ -82,7 +83,7 @@ def bin_in_space(raw_position_data, processed_position_data, track_length):
     return processed_position_data
 
 
-def bin_in_time(raw_position_data, processed_position_data, track_length):
+def bin_in_time(raw_position_data, processed_position_data, track_length, smoothen=True):
     gauss_kernel = Gaussian1DKernel(settings.guassian_std_for_smoothing_in_time_seconds/settings.time_bin_size)
     n_trials = max(raw_position_data["trial_number"])
 
@@ -99,8 +100,12 @@ def bin_in_time(raw_position_data, processed_position_data, track_length):
     tn_time_bin_means = (np.histogram(times, time_bins, weights = trial_numbers_raw)[0] / np.histogram(times, time_bins)[0]).astype(np.int64)
 
     # and smooth
-    speed_time_bin_means_smoothened = convolve(speed_time_bin_means, gauss_kernel)
-    pos_time_bin_means_smoothened = convolve(pos_time_bin_means, gauss_kernel)
+    if smoothen:
+        speed_time_bin_means_smoothened = convolve(speed_time_bin_means, gauss_kernel)
+        pos_time_bin_means_smoothened = convolve(pos_time_bin_means, gauss_kernel)
+    else:
+        speed_time_bin_means_smoothened = speed_time_bin_means
+        pos_time_bin_means_smoothened = pos_time_bin_means
 
     # calculate the acceleration from the smoothed speed
     acceleration_time_bin_means = np.diff(np.array(speed_time_bin_means_smoothened))
@@ -149,11 +154,11 @@ def add_trial_variables(raw_position_data, processed_position_data, track_length
     return processed_position_data
 
 
-def process_position(raw_position_data, stop_threshold, track_length):
+def process_position(raw_position_data, stop_threshold, track_length, smoothen=True):
     processed_position_data = pd.DataFrame() # make dataframe for processed position data
     processed_position_data = add_trial_variables(raw_position_data, processed_position_data, track_length)
-    processed_position_data = bin_in_time(raw_position_data, processed_position_data, track_length)
-    processed_position_data = bin_in_space(raw_position_data, processed_position_data, track_length)
+    processed_position_data = bin_in_time(raw_position_data, processed_position_data, track_length, smoothen=smoothen)
+    processed_position_data = bin_in_space(raw_position_data, processed_position_data, track_length, smoothen=smoothen)
     processed_position_data = PostSorting.vr_stop_analysis.process_stops(processed_position_data, stop_threshold, track_length)
     gc.collect()
 
@@ -171,6 +176,8 @@ def moving_sum(array, window):
     return ret[window:]
 
 def smooth_raw_x_position(raw_position_data):
+    # this function remakes the raw position data by smoothening the blender output
+    # this is important when a mice run very fast and and can skip bins due to the 60Hz blender sampling rate
     rpd = np.asarray(raw_position_data["x_position_cm"])
     gauss_kernel = Gaussian1DKernel(stddev=200)
     rpd = convolve(rpd, gauss_kernel)
@@ -187,11 +194,9 @@ def process_recordings(vr_recording_path_list):
         try:
             output_path = recording+'/'+settings.sorterName
             stop_threshold, track_length = get_stop_threshold_and_track_length(recording)
-
             raw_position_data, position_data = PostSorting.vr_sync_spatial_data.syncronise_position_data(recording, output_path, track_length)
             raw_position_data = smooth_raw_x_position(raw_position_data)
-            processed_position_data = process_position(raw_position_data, stop_threshold, track_length)
-
+            processed_position_data = process_position(raw_position_data, stop_threshold, track_length, smoothen=False)
             processed_position_data.to_pickle(recording+"/MountainSort/DataFrames/processed_position_data.pkl")
             position_data.to_pickle(recording+"/MountainSort/DataFrames/position_data.pkl")
             print("successfully processed on "+recording)
@@ -207,29 +212,15 @@ def process_recordings(vr_recording_path_list):
 #  for testing
 def main():
     print('-------------------------------------------------------------')
-
-    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/test_recording") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/vr") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()]
+    vr_path_list = []
+    vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/vr") if f.is_dir()])
+    vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr") if f.is_dir()])
+    vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort9_Junji/vr") if f.is_dir()])
+    vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()])
     process_recordings(vr_path_list)
 
     print("processed_position_data dataframes have been remade")
