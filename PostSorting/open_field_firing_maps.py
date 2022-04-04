@@ -8,6 +8,10 @@ import numpy as np
 import math
 import time
 from numpy import inf
+import os
+import sys
+import traceback
+import warnings
 import settings
 
 try_parallel_first = True
@@ -100,7 +104,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster_id, smooth, firing_data_s
     firing_rate_map = np.divide(xy_spikes, xy_locs)
     firing_rate_map = firing_rate_map*occupancies # occupancies is a mask
 
-    return np.transpose(firing_rate_map), np.transpose(occupancies)
+    return (np.transpose(firing_rate_map), np.transpose(occupancies))
 
 def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
@@ -132,7 +136,19 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_da
                 firing_rate_map[x, y] = 0
     #firing_rate_map = np.rot90(firing_rate_map)
 
-    return np.transpose(firing_rate_map), np.transpose(occupancy_map)
+    return (np.transpose(firing_rate_map), np.transpose(occupancy_map))
+
+def unpack_from_parallel(firing_rate_maps_and_occupancy_maps):
+    if len(firing_rate_maps_and_occupancy_maps) == 1:
+        return firing_rate_maps_and_occupancy_maps[0][0], firing_rate_maps_and_occupancy_maps[0][1]
+    else:
+        firing_rate_maps = []
+        occupancy_maps = []
+        for i in range(len(firing_rate_maps_and_occupancy_maps)):
+            firing_rate_maps.append(firing_rate_maps_and_occupancy_maps[i][0])
+            occupancy_maps.append(firing_rate_maps_and_occupancy_maps[i][1])
+        return firing_rate_maps, occupancy_maps
+
 
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):
     print('I will calculate firing rate maps now.')
@@ -153,19 +169,26 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):
         try:
             if settings.use_vectorised_rate_map_function:
                 print("I am using the vectorised rate map function")
-                firing_rate_maps, occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+                firing_rate_maps_and_occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
             else:
                 print("I am using the non-vectorised rate map function")
-                firing_rate_maps, occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+                firing_rate_maps_and_occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+            firing_rate_maps, occupancy_maps = unpack_from_parallel(firing_rate_maps_and_occupancy_maps)
+
         except Exception as ex:
-            print("calculating rate map failed using parallel, attempting one by one")
+            print('This is what Python says happened:')
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
+            print("calculating rate map failed using parallel, attempting one by one") # when memory ceiling is hit
             firing_rate_maps = []
             occupancy_maps = []
             for cluster in clusters:
                 if settings.use_vectorised_rate_map_function:
-                    firing_rate_map, occupancy_map = calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
+                    firing_rate_maps_and_occupancy_maps = calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
                 else:
-                    firing_rate_map, occupancy_map = calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial,spatial_data.position_x_pixels.values,spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
+                    firing_rate_maps_and_occupancy_maps = calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial,spatial_data.position_x_pixels.values,spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
+                firing_rate_map, occupancy_map = unpack_from_parallel(firing_rate_maps_and_occupancy_maps)
                 firing_rate_maps.append(firing_rate_map)
                 occupancy_maps.append(occupancy_map)
     else:
