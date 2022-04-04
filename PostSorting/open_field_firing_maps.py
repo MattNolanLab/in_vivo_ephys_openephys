@@ -100,7 +100,7 @@ def calculate_firing_rate_for_cluster_parallel(cluster_id, smooth, firing_data_s
     firing_rate_map = np.divide(xy_spikes, xy_locs)
     firing_rate_map = firing_rate_map*occupancies # occupancies is a mask
 
-    return np.transpose(firing_rate_map)
+    return np.transpose(firing_rate_map), np.transpose(occupancies)
 
 def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_data_spatial, positions_x, positions_y, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms):
     print('Started another cluster')
@@ -112,6 +112,7 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_da
     spike_positions_y = cluster_firings.position_y.values
 
     firing_rate_map = np.zeros((number_of_bins_x, number_of_bins_y))
+    occupancy_map = np.zeros((number_of_bins_x, number_of_bins_y))
     for x in range(number_of_bins_x):
         for y in range(number_of_bins_y):
             px = x * bin_size_pixels + (bin_size_pixels / 2)
@@ -123,13 +124,15 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_da
             bin_occupancy = len(np.where(occupancy_distances < min_dwell_distance_pixels)[0])
 
             if bin_occupancy >= min_dwell:
+                occupancy_map[x,y] = 1
                 firing_rate_map[x, y] = sum(gaussian_kernel(spike_distances/smooth)) / (sum(gaussian_kernel(occupancy_distances/smooth)) * (dt_position_ms/1000))
 
             else:
+                occupancy_map[x,y] = 0
                 firing_rate_map[x, y] = 0
     #firing_rate_map = np.rot90(firing_rate_map)
 
-    return firing_rate_map
+    return np.transpose(firing_rate_map), np.transpose(occupancy_map)
 
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):
     print('I will calculate firing rate maps now.')
@@ -150,38 +153,31 @@ def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):
         try:
             if settings.use_vectorised_rate_map_function:
                 print("I am using the vectorised rate map function")
-                firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+                firing_rate_maps, occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
             else:
                 print("I am using the non-vectorised rate map function")
-                firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+                firing_rate_maps, occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
         except Exception as ex:
             print("calculating rate map failed using parallel, attempting one by one")
             firing_rate_maps = []
+            occupancy_maps = []
             for cluster in clusters:
                 if settings.use_vectorised_rate_map_function:
-                    firing_rate_maps.append(calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial,
-                                                                                       spatial_data.position_x_pixels.values,
-                                                                                       spatial_data.position_y_pixels.values,
-                                                                                       number_of_bins_x, number_of_bins_y,
-                                                                                       bin_size_pixels, min_dwell,
-                                                                                       min_dwell_distance_pixels, dt_position_ms))
+                    firing_rate_map, occupancy_map = calculate_firing_rate_for_cluster_parallel(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
                 else:
-                    firing_rate_maps.append(calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial,
-                                                                                       spatial_data.position_x_pixels.values,
-                                                                                       spatial_data.position_y_pixels.values,
-                                                                                       number_of_bins_x, number_of_bins_y,
-                                                                                       bin_size_pixels, min_dwell,
-                                                                                       min_dwell_distance_pixels, dt_position_ms))
-
+                    firing_rate_map, occupancy_map = calculate_firing_rate_for_cluster_parallel_old(cluster, smooth, firing_data_spatial,spatial_data.position_x_pixels.values,spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms)
+                firing_rate_maps.append(firing_rate_map)
+                occupancy_maps.append(occupancy_map)
     else:
         if settings.use_vectorised_rate_map_function:
-            firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+            firing_rate_maps, occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
         else:
-            firing_rate_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
+            firing_rate_maps, occupancy_maps = Parallel(n_jobs=num_cores)(delayed(calculate_firing_rate_for_cluster_parallel_old)(cluster, smooth, firing_data_spatial, spatial_data.position_x_pixels.values, spatial_data.position_y_pixels.values, number_of_bins_x, number_of_bins_y, bin_size_pixels, min_dwell, min_dwell_distance_pixels, dt_position_ms) for cluster in clusters)
 
     time_end = time.time()
     print('Making the rate maps took ', time_end-time_start, " seconds")
     firing_data_spatial['firing_maps'] = firing_rate_maps
+    firing_data_spatial['occupancy_maps'] = occupancy_maps
 
     return firing_data_spatial
 

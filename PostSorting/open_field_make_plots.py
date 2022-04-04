@@ -80,12 +80,16 @@ def plot_firing_rate_maps(spatial_firing, prm):
     for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
         cluster_df = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
         firing_rate_map_original = cluster_df['firing_maps'].iloc[0]
+        occupancy_map = cluster_df['occupancy_maps'].iloc[0]
+        firing_rate_map_original[occupancy_map==0] = np.nan
         firing_rate_map = np.rot90(firing_rate_map_original)
         firing_rate_map_fig = plt.figure()
         firing_rate_map_fig.set_size_inches(5, 5, forward=True)
         ax = firing_rate_map_fig.add_subplot(1, 1, 1)  # specify (nrows, ncols, axnum)
         ax = plot_utility.style_open_field_plot(ax)
-        rate_map_img = ax.imshow(firing_rate_map, cmap='jet', interpolation='nearest')
+        cmap = plt.get_cmap('jet')
+        cmap.set_bad("white")
+        rate_map_img = ax.imshow(firing_rate_map, cmap=cmap, interpolation='nearest')
         firing_rate_map_fig.colorbar(rate_map_img)
         plt.title('Firing rate map \n max fr: ' + str(round(cluster_df['max_firing_rate'].iloc[0], 2)) +
                   ' Hz \n HS r: ' + str(round(cluster_df['rate_map_correlation_first_vs_second_half'].iloc[0], 2)) +
