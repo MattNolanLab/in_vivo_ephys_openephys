@@ -271,31 +271,16 @@ def process_recordings(vr_recording_path_list):
 #  for testing
 def main():
     print('-------------------------------------------------------------')
-
-    vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/test_recording") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/vr") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
-
-    #vr_path_list = [f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()]
-    #process_recordings(vr_path_list)
+    vr_path_list = []
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/vr") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort9_Junji/vr") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()])
+    #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()])
+    process_recordings(vr_path_list)
 
     print("spatial_firing dataframes have been remade")
 
