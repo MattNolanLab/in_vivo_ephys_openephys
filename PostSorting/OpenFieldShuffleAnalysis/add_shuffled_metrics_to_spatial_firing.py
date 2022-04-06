@@ -170,18 +170,21 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
             for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
                 cluster_spatial_firing = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
 
-                if (cluster_spatial_firing["grid_score"].iloc[0] > cluster_spatial_firing["grid_threshold"].iloc[0]):
+                if ((cluster_spatial_firing["spatial_information_score"].iloc[0] > cluster_spatial_firing["spatial_threshold"].iloc[0]) and
+                        (cluster_spatial_firing["grid_score"].iloc[0] > cluster_spatial_firing["grid_threshold"].iloc[0])):
                     grid_cell = True
                 else:
                     grid_cell = False
 
-                if ((cluster_spatial_firing["border_score"].iloc[0] > cluster_spatial_firing["border_threshold"].iloc[0]) and
-                    (cluster_spatial_firing["rate_map_correlation_first_vs_second_half"].iloc[0] > cluster_spatial_firing["half_session_threshold"].iloc[0])):
+                if (((cluster_spatial_firing["border_score"].iloc[0] > 0.5) and
+                     (cluster_spatial_firing["border_score"].iloc[0] > cluster_spatial_firing["border_threshold"].iloc[0]) and
+                     (cluster_spatial_firing["rate_map_correlation_first_vs_second_half"].iloc[0] > cluster_spatial_firing["half_session_threshold"].iloc[0]))):
                     border_cell = True
                 else:
                     border_cell = False
 
-                if (cluster_spatial_firing["hd_score"].iloc[0] > cluster_spatial_firing["hd_threshold"].iloc[0]):
+                if ((cluster_spatial_firing["hd_score"].iloc[0] > 0.2) and
+                        (cluster_spatial_firing["hd_score"].iloc[0] > cluster_spatial_firing["hd_threshold"].iloc[0])):
                     hd_cell = True
                 else:
                     hd_cell = False
