@@ -170,7 +170,8 @@ def add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process):
             for cluster_index, cluster_id in enumerate(spatial_firing.cluster_id):
                 cluster_spatial_firing = spatial_firing[(spatial_firing.cluster_id == cluster_id)] # dataframe for that cluster
 
-                if (cluster_spatial_firing["grid_score"].iloc[0] > cluster_spatial_firing["grid_threshold"].iloc[0]):
+                if ((cluster_spatial_firing["grid_score"].iloc[0] > cluster_spatial_firing["grid_threshold"].iloc[0]) and
+                    (cluster_spatial_firing["rate_map_correlation_first_vs_second_half"].iloc[0] > cluster_spatial_firing["half_session_threshold"].iloc[0])):
                     grid_cell = True
                 else:
                     grid_cell = False
@@ -254,12 +255,20 @@ def main():
           '(conda create -n environmentname python=3.8) and use that. (The pipeline currently needs 3.6, so do not '
           'change that.')
 
-    recordings_folder_to_process = '' #r"/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo"
-    #recordings_folder_to_process = r"/mnt/datastore/Harry/Cohort7_october2020/of"
-    #recordings_folder_to_process = r"/mnt/datastore/Sarah/Data/OptoEphys_in_VR/Data/OpenEphys/_cohort5/OpenField"
-    add_shuffled_cutoffs(recordings_folder_to_process)
-    add_spatial_classifier_based_on_cutoffs(recordings_folder_to_process)
-    add_spatial_classifier_based_on_classifiers(recordings_folder_to_process)
+    folders = []
+    folders.append("/mnt/datastore/Harry/Cohort9_Junji/of")
+    folders.append("/mnt/datastore/Harry/Cohort7_october2020/of")
+    #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/OpenField")
+    #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/OpenFeild")
+    #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/OpenFeild")
+    #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/OpenField")
+    folders.append("/mnt/datastore/Harry/Cohort6_july2020/of")
+    folders.append("/mnt/datastore/Harry/Cohort8_may2021/of")
+
+    for folder in folders:
+        #add_shuffled_cutoffs(folder)
+        add_spatial_classifier_based_on_cutoffs(folder)
+        add_spatial_classifier_based_on_classifiers(folder)
     print("look now")
 
 if __name__ == '__main__':
