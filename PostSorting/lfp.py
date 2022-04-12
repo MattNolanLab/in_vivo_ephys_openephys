@@ -10,6 +10,7 @@ import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
 import re
 import settings
+from scipy import stats
 
 def load_ephys_channel(recording_folder, ephys_channel):
     print('Extracting ephys data')
@@ -86,7 +87,7 @@ def plot_lfp(lfp_df, output_path):
     plt.savefig(output_path + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
     plt.close()
 
-def process_batch_lfp(recordings, redirect=""):
+def process_batch_lfp(recordings):
 
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
@@ -98,10 +99,7 @@ def process_batch_lfp(recordings, redirect=""):
     for recording in recordings:
 
         prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process=recording, prm=prm))
-        if redirect is not "":
-            directed_path = redirect+recording.split("/datastore/")[-1]
-        else:
-            directed_path = recording
+        directed_path = recording
 
         # flag dead channels
         prm.set_file_path(recording)
@@ -179,7 +177,7 @@ def correct_dead_channel(lfp_df, dead_channel_path):
         lfp_df["dead_channel"] = dead_channel
     return lfp_df
 
-def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode=True):
+def batch_summary_lfp(recordings, add_to=None, average_over_tetrode=True):
 
     lfp_summary_df = pd.DataFrame()
     mice_ids = []
@@ -191,19 +189,14 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
     trial_numbers = []
 
     for recording in recordings:
-        if redirect is not "":
-            lfp_data_path = redirect+recording.split("datastore/")[-1]+"/MountainSort/DataFrames/lfp_data.pkl"
-        else:
-            lfp_data_path = recording+"/MountainSort/DataFrames/lfp_data.pkl"
+        lfp_data_path = recording+"/MountainSort/DataFrames/lfp_data.pkl"
 
         # look for processed position data if the recording is a vr recording
         processed_position_data_path = recording+"/MountainSort/DataFrames/processed_position_data.pkl"
         n_trials=0
         if os.path.exists(processed_position_data_path):
             processed_position_data = pd.read_pickle(processed_position_data_path)
-            n_trials = processed_position_data.beaconed_total_trial_number.iloc[0]+\
-                       processed_position_data.nonbeaconed_total_trial_number.iloc[0]+\
-                       processed_position_data.probe_total_trial_number.iloc[0]
+            n_trials = len(processed_position_data)
 
         dead_channel_path = recording+"/dead_channels.txt"
 
@@ -235,7 +228,7 @@ def batch_summary_lfp(recordings, redirect="", add_to=None, average_over_tetrode
                     time_stamp = re.findall("\d+", time_stamp)
                     time_stamp = "".join(time_stamp)
 
-                    if time_stamp is not "":
+                    if time_stamp != "":
                         trial_numbers.append(n_trials)
                         mice_ids.append(mouse_id)
                         timestamps.append(time_stamp)
@@ -269,7 +262,6 @@ def plot_lfp_summary(mouse_lfp_summary_df):
     save_path_tmp1 = mouse_lfp_summary_df.lfp_path.iloc[0].split("/")[-4]
     save_path = mouse_lfp_summary_df.lfp_path.iloc[0].split(save_path_tmp1)[0]
 
-    max_power = 1000
     # order by time
     mouse_lfp_summary_df = mouse_lfp_summary_df.sort_values(by=["timestamp"], ascending=True)
 
@@ -278,31 +270,37 @@ def plot_lfp_summary(mouse_lfp_summary_df):
         mouse_tetrode_lfp_summary_df = mouse_lfp_summary_df[(mouse_lfp_summary_df.tetrode == tetrode)]
         freqs = stack_collumn_into_np(mouse_tetrode_lfp_summary_df, collumn="freqs")
         pwr_specs = stack_collumn_into_np(mouse_tetrode_lfp_summary_df, collumn="pwr_specs").T
+        # z score per data to see the relative power
+        for i in range(len(pwr_specs[0])):
+            pwr_specs[:, i] = stats.zscore(pwr_specs[:, i], nan_policy='omit')
 
-        max_pwr_shown=max_power
-        pwr_specs = np.clip(pwr_specs, a_min=None, a_max=max_pwr_shown)
-
-        cmap = plt.cm.get_cmap("jet")
+        cmap = plt.cm.get_cmap("inferno")
         cmap.set_bad(color='white')
         fig = plt.figure(figsize=(10,5))
         ax = fig.add_subplot(1, 1, 1)
-        c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=max_pwr_shown, origin='lower')
+        c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, origin='lower')
         clb = fig.colorbar(c, ax=ax, shrink=0.8)
-        clb.mappable.set_clim(0, max_pwr_shown)
-        clb.set_label(label='Power',size=20)
-        clb.set_ticks([0, max_power])
-        clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
+        clb.mappable.set_clim(np.min(pwr_specs), np.max(pwr_specs))
+        clb.set_label(label='Z-scored Power',size=20)
+        clb.set_ticks([np.min(pwr_specs),  np.max(pwr_specs)])
+        #clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
         clb.ax.tick_params(labelsize=15)
-
         plt.ylabel('Frequency (Hz)', fontsize=20, labelpad = 10)
         plt.xlabel('Recording Session', fontsize=20, labelpad = 10)
         #plt.xlim(0,20)
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
-        plt.yticks(ticks=np.arange(0, len(pwr_specs), 5, dtype=np.int), labels=np.arange(0, len(pwr_specs), 5, dtype=np.int), fontsize=15)
-        plt.xticks(ticks=np.arange(4, len(pwr_specs[0]), 5, dtype=np.int), labels=np.arange(5, len(pwr_specs[0]), 5, dtype=np.int), fontsize=15)
+        ax.set_yticks([1, 10, 20])
+        ax.set_yticklabels(["1", "10", "20"])
+        ax.set_xticks([0, 5, 10, 15, 20, 25, 30, 35, 40])
+        ax.set_xticklabels(["1", "5", "10", "15", "20", "25", "30", "35", "40"])
+        ax.set_xlim(0, len(pwr_specs[0,:])-1)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
         plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-        plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_' + str(tetrode)+'moving.png', dpi=300)
+        path= save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_' + str(tetrode)+'moving.png'
+        if not np.any(np.isnan(pwr_specs)):
+            plt.savefig(path, dpi=300)
         plt.close()
 
         spec_per_tetrode.append(pwr_specs)
@@ -310,25 +308,31 @@ def plot_lfp_summary(mouse_lfp_summary_df):
     # plot average across all tetrodes
     spec_per_tetrode = np.array(spec_per_tetrode)
     pwr_specs = np.nanmean(spec_per_tetrode, axis=0)
-    cmap = plt.cm.get_cmap("jet")
+    # z score per data to see the relative power
+    for i in range(len(pwr_specs[0])):
+        pwr_specs[:, i] = stats.zscore(pwr_specs[:, i])
+    cmap = plt.cm.get_cmap("inferno")
     cmap.set_bad(color='white')
     fig = plt.figure(figsize=(10,5))
     ax = fig.add_subplot(1, 1, 1)
-    #c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=60)
-    c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, vmin=0, vmax=max_pwr_shown, origin='lower')
+    c = ax.imshow(pwr_specs, interpolation='none', cmap=cmap, origin='lower')
     clb = fig.colorbar(c, ax=ax, shrink=0.8)
-    clb.mappable.set_clim(0, max_pwr_shown)
+    clb.mappable.set_clim(np.min(pwr_specs), np.max(pwr_specs))
     clb.set_label(label='Power',size=20)
-    clb.set_ticks([0, max_power])
-    clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
+    clb.set_ticks([np.min(pwr_specs), np.max(pwr_specs)])
+    #clb.set_ticklabels(["0", r'$\geq$'+str(max_power)])
     clb.ax.tick_params(labelsize=15)
-
     plt.ylabel('Frequency (Hz)', fontsize=20, labelpad = 10)
     plt.xlabel('Recording Session', fontsize=20, labelpad = 10)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    plt.yticks(ticks=np.arange(0, len(pwr_specs), 5, dtype=np.int), labels=np.arange(0, len(pwr_specs), 5, dtype=np.int), fontsize=15)
-    plt.xticks(ticks=np.arange(4, len(pwr_specs[0]), 5, dtype=np.int), labels=np.arange(5, len(pwr_specs[0]), 5, dtype=np.int), fontsize=15)
+    ax.set_yticks([1, 10, 20])
+    ax.set_yticklabels(["1", "10", "20"])
+    ax.set_xticks([0, 5, 10, 15, 20, 25, 30, 35, 40])
+    ax.set_xticklabels(["1", "5", "10", "15", "20", "25", "30", "35", "40"])
+    ax.set_xlim(0, len(pwr_specs[0,:])-1)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(save_path +mouse_tetrode_lfp_summary_df.mice_id.iloc[0] +'_lfp_tetrode_avg_moving.png', dpi=300)
     plt.close()
