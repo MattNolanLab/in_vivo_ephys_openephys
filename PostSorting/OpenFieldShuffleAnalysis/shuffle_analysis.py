@@ -29,19 +29,17 @@ def run_parallel_of_shuffle(single_shuffle, synced_spatial_data):
 
 def generate_shuffled_times(cluster_firing, n_shuffles):
     cluster_firing = cluster_firing[["cluster_id", "firing_times", "mean_firing_rate", "recording_length_sampling_points"]]
-
+    recording_length = int(cluster_firing["recording_length_sampling_points"].iloc[0])
+    minimum_shift = int(20 * settings.sampling_rate)  # 20 seconds
+    maximum_shift = int(recording_length - 20 * settings.sampling_rate)  # full length - 20 sec
     shuffle_firing = pd.DataFrame()
     for i in range(n_shuffles):
         shuffle = cluster_firing.copy()
         firing_times = shuffle["firing_times"].to_numpy()[0]
-        random_firing_additions = np.random.randint(low=int(20*settings.sampling_rate),
-                                                    high=int(580*settings.sampling_rate), size=len(firing_times))
-
+        random_firing_additions = np.random.randint(low=minimum_shift, high=maximum_shift)
         shuffled_firing_times = firing_times + random_firing_additions
-        recording_length = int(cluster_firing["recording_length_sampling_points"].iloc[0])
-        shuffled_firing_times[shuffled_firing_times >= recording_length] = shuffled_firing_times[shuffled_firing_times >= recording_length] - recording_length # wrap around the firing times that exceed the length of the recording
+        shuffled_firing_times[shuffled_firing_times >= recording_length] = shuffled_firing_times[shuffled_firing_times >= recording_length] - recording_length  # wrap around the firing times that exceed the length of the recording
         shuffle["firing_times"] = [shuffled_firing_times]
-
         shuffle_firing = pd.concat([shuffle_firing, shuffle], ignore_index=True)
 
     shuffle_firing["shuffle_id"] = np.arange(0, n_shuffles)
@@ -117,7 +115,6 @@ def main():
     recording_path = os.environ['RECORDING_PATH']
     n_shuffles = int(os.environ['SHUFFLE_NUMBER'])
     cluster_id = int(os.environ["CLUSTER_ID"])
-
     one_job_shuffle_parallel(recording_path, cluster_id, n_shuffles)
     #=========================================================================================#
     #=========================================================================================#
