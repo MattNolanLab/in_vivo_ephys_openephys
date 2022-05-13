@@ -34,13 +34,23 @@ def add_recording_length_to_spatial_firing(recording_to_process):
         print(path_to_spatial_firing)
         print(len(spatial_firing))
         try:
-
-            if not "recording_length_sampling_points" in list(spatial_firing):
+            if len(spatial_firing) > 0:
                 recording_length_sampling_points = len(get_data_continuous(recording_to_process + "/" + get_available_ephys_channels(recording_to_process)[0])) # needed for shuffling
 
-                if len(spatial_firing) > 0:
-                    spatial_firing["recording_length_sampling_points"] = np.repeat(recording_length_sampling_points, len(spatial_firing)).tolist()
-                    spatial_firing.to_pickle(recording_to_process+"/MountainSort/DataFrames/spatial_firing.pkl")
+                # add recording_length if not found
+                if not "recording_length_sampling_points" in list(spatial_firing):
+                        spatial_firing["recording_length_sampling_points"] = np.repeat(recording_length_sampling_points, len(spatial_firing)).tolist()
+                        spatial_firing.to_pickle(recording_to_process+"/MountainSort/DataFrames/spatial_firing.pkl")
+
+                # check recording_length is correct if there
+                else:
+                    recording_length_sampling_points_in_spatial_firing = spatial_firing["recording_length_sampling_points"].iloc[0]
+                    if recording_length_sampling_points != recording_length_sampling_points_in_spatial_firing:
+                        spatial_firing["recording_length_sampling_points"] = np.repeat(recording_length_sampling_points, len(spatial_firing)).tolist()
+                        spatial_firing.to_pickle(recording_to_process+"/MountainSort/DataFrames/spatial_firing.pkl")
+
+
+
         except:
             print("stop here")
 
@@ -57,10 +67,10 @@ def main():
 
     # get list of all recordings in the recordings folder
     recording_list = []
-    recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
+    #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/of/") if f.is_dir()])
-    #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr/") if f.is_dir()])
+    recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/of/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort6_july2020/vr/") if f.is_dir()])
 

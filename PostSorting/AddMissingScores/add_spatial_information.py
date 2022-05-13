@@ -36,7 +36,7 @@ def main():
 
     # get list of all recordings in the recordings folder
     recording_list = []
-    recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
+    #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort8_may2021/vr/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/of/") if f.is_dir()])
     #recording_list.extend([f.path for f in os.scandir("/mnt/datastore/Harry/Cohort7_october2020/vr/") if f.is_dir()])

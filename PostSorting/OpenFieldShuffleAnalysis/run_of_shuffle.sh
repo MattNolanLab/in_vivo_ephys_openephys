@@ -17,4 +17,4 @@ source activate myenv
 export PYTHONPATH="/home/s1228823/in_vivo_ephys_openephys"
 
 # Run the program
-python /home/s1228823/in_vivo_ephys_openephys/PostSorting/OpenFieldShuffleAnalysis/shuffle_analysis.py
+python /home/s1228823/in_vivo_ephys_openephys/PostSorting/FieldShuffleAnalysis/shuffle_analysis.py
