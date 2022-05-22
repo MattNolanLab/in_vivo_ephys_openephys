@@ -294,7 +294,11 @@ def plot_firing_rate_maps(spike_data, processed_position_data, output_path, trac
         firing_times_cluster = np.array(cluster_spike_data["firing_times"].iloc[0])
 
         if len(firing_times_cluster)>1:
-            fr_binned_in_space = np.array(cluster_spike_data["fr_binned_in_space"].iloc[0])
+            if "fr_binned_in_space" in list(cluster_spike_data):
+                fr_column = "fr_binned_in_space"
+            elif "fr_binned_in_space_smoothed" in list(cluster_spike_data):
+                fr_column = "fr_binned_in_space_smoothed"
+            fr_binned_in_space = np.array(cluster_spike_data[fr_column].iloc[0])
             fr_binned_in_space_bin_centres = np.array(cluster_spike_data['fr_binned_in_space_bin_centres'].iloc[0])[0]
 
             spikes_on_track = plt.figure()
