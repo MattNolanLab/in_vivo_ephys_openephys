@@ -17,14 +17,14 @@ def optionalFile(path):
     else:
         return [None]
 
-recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
+# recordings = getRecording2sort('/home/ubuntu/to_sort/recordings')
 figure_prefix = '{recording}/processed/figures'
 sorterPrefix = '{recording}/processed/'+settings.sorterName
 
 
-rule all:
-    input:
-        result=expand('{recording}/processed/snakemake.done',recording=recordings)
+# rule all:
+#     input:
+#         result=expand('{recording}/processed/snakemake.done',recording=recordings)
 
 
 include: 'workflow_common.smk'
