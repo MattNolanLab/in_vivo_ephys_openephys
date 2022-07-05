@@ -168,7 +168,7 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     hist, bins = np.histogram(spike_indices, bins=number_of_histogram_bins)
     y_label = 'Spike count'
     if y_axis_in_hz:
-        hist, y_label = convert_y_axis_to_hz(cluster_rows, sampling_rate, number_of_histogram_bins, hist)
+        hist = convert_y_axis_to_hz(cluster_rows, sampling_rate, number_of_histogram_bins, hist)
         y_label = 'Firing rate (Hz)'
     width = 0.9 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
@@ -433,12 +433,14 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 def main():
     path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-04-23_15-13-50_opto3/'
+    server_folder_path = '/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/'
+    path = server_folder_path + 'M3_2021-05-10_14-38-02_opto'
     # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
     ## path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
     # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-07_14-41-36_opto2/'
-    peristim_path = path + 'peristimulus_spikes.pkl'
+    peristim_path = path + '/MountainSort/DataFrames/peristimulus_spikes.pkl'
     peristimulus_spikes = pd.read_pickle(peristim_path)
-    spatial_firing_path = path + 'spatial_firing.pkl'
+    spatial_firing_path = path + '/MountainSort/DataFrames/spatial_firing.pkl'
     spatial_firing = pd.read_pickle(spatial_firing_path)
     sampling_rate = 30000
     plot_peristimulus_raster(peristimulus_spikes, path, sampling_rate, light_pulse_duration=90,
