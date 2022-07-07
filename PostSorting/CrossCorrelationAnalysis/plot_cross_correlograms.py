@@ -64,7 +64,8 @@ def main():
     # all the recordings in this folder will be processed
     experiment_folder = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/"
     # adjust parameters here (not the sampling rate)
-    process_recordings(experiment_folder, sampling_rate=30000, binsize=0.02, windowsize=0.5, color='midnightblue')
+    # process_recordings(experiment_folder, sampling_rate=30000, binsize=0.02, windowsize=0.5, color='midnightblue')
+    process_recordings(experiment_folder, sampling_rate=30000, binsize=0.002, windowsize=0.1, color='midnightblue')
     # if you just want to make it for a single recording:
     # recording_path = "/mnt/datastore/Klara/CA1_to_deep_MEC_in_vivo/M3_2021-06-16_14-10-45_of/"
     # identify_interneurons(recording_path)
