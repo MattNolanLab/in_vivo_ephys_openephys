@@ -54,8 +54,7 @@ def plot_cross_correlograms(recording_path, sampling_rate=30000, binsize=0.02, w
 def process_recordings(experiment_folder, sampling_rate=30000, binsize=0.02, windowsize=0.5, color='midnightblue'):
     print('I will plot cross-correlograms for all the recordings within tetrodes from this folder: ' + experiment_folder)
     print('The results will be in MountainSort/Figures/cross_correlograms/ for each recording')
-    recording_list = []
-    recording_list.extend([f.path for f in os.scandir(experiment_folder) if f.is_dir()])
+    recording_list = [f.path for f in os.scandir(experiment_folder) if f.is_dir()]
     for recording in recording_list:
         plot_cross_correlograms(recording, sampling_rate=sampling_rate, binsize=binsize, windowsize=windowsize, color=color)
 
