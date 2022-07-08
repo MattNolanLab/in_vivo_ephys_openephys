@@ -39,7 +39,7 @@ def make_same_sized_rate_maps(trajectory_1, trajectory_2, cluster_spatial_firing
     bin_size_pixels = PostSorting.open_field_firing_maps.get_bin_size()
     min_dwell, min_dwell_distance_pixels = PostSorting.open_field_firing_maps.get_dwell(whole_trajectory)
     #cluster = 0
-    rate_map_1 = PostSorting.open_field_firing_maps.calculate_firing_rate_for_cluster_parallel(cluster, smooth, cluster_spatial_firing_1,
+    rate_map_1, _ = PostSorting.open_field_firing_maps.calculate_firing_rate_for_cluster_parallel(cluster, smooth, cluster_spatial_firing_1,
                                                                                   trajectory_1.position_x_pixels.values,
                                                                                   trajectory_1.position_y_pixels.values,
                                                                                   number_of_bins_x, number_of_bins_y,
@@ -47,7 +47,7 @@ def make_same_sized_rate_maps(trajectory_1, trajectory_2, cluster_spatial_firing
                                                                                   min_dwell_distance_pixels,
                                                                                   dt_position_ms)
 
-    rate_map_2 = PostSorting.open_field_firing_maps.calculate_firing_rate_for_cluster_parallel(cluster, smooth, cluster_spatial_firing_2,
+    rate_map_2, _ = PostSorting.open_field_firing_maps.calculate_firing_rate_for_cluster_parallel(cluster, smooth, cluster_spatial_firing_2,
                                                                                   trajectory_2.position_x_pixels.values,
                                                                                   trajectory_2.position_y_pixels.values,
                                                                                   number_of_bins_x, number_of_bins_y,

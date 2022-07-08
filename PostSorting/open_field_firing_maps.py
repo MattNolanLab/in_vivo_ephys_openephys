@@ -136,18 +136,15 @@ def calculate_firing_rate_for_cluster_parallel_old(cluster_id, smooth, firing_da
                 firing_rate_map[x, y] = 0
     #firing_rate_map = np.rot90(firing_rate_map)
 
-    return (np.transpose(firing_rate_map), np.transpose(occupancy_map))
+    return (firing_rate_map, occupancy_map)
 
 def unpack_from_parallel(firing_rate_maps_and_occupancy_maps):
-    if len(firing_rate_maps_and_occupancy_maps) == 1:
-        return firing_rate_maps_and_occupancy_maps[0][0], firing_rate_maps_and_occupancy_maps[0][1]
-    else:
-        firing_rate_maps = []
-        occupancy_maps = []
-        for i in range(len(firing_rate_maps_and_occupancy_maps)):
-            firing_rate_maps.append(firing_rate_maps_and_occupancy_maps[i][0])
-            occupancy_maps.append(firing_rate_maps_and_occupancy_maps[i][1])
-        return firing_rate_maps, occupancy_maps
+    firing_rate_maps = []
+    occupancy_maps = []
+    for i in range(len(firing_rate_maps_and_occupancy_maps)):
+        firing_rate_maps.append(firing_rate_maps_and_occupancy_maps[i][0])
+        occupancy_maps.append(firing_rate_maps_and_occupancy_maps[i][1])
+    return firing_rate_maps, occupancy_maps
 
 
 def get_spike_heatmap_parallel(spatial_data, firing_data_spatial):

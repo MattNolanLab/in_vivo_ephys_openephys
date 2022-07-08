@@ -291,6 +291,11 @@ def main():
     #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/VirtualReality") if f.is_dir()])
     #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality") if f.is_dir()])
     #vr_path_list.extend([f.path for f in os.scandir("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/VirtualReality") if f.is_dir()])
+    vr_path_list = ["/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality/M1_D31_2018-11-01_12-28-25",
+                    "/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/VirtualReality/M1_D18_2018-10-13_12-13-31",
+                    "/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/VirtualReality/M1_D5_2019-06-21_13-33-50",
+                    "/mnt/datastore/Harry/Cohort7_october2020/vr/M7_D12_2020-11-13_16-20-54"]
+    vr_path_list = ["/mnt/datastore/Harry/Cohort7_october2020/vr/M7_D12_2020-11-13_16-20-54"]
     process_recordings(vr_path_list)
 
     print("spatial_firing dataframes have been remade")
