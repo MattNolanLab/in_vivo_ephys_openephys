@@ -59,9 +59,11 @@ def main():
     import PostSorting.parameters
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
+    path = ('/Users/briannavandrey/Desktop/1474_08_31/')
     peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/peristimulus_spikes.pkl')
     spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/spatial_firing.pkl')
     spatial_firing = run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
+    spatial_firing.to_pickle(path + 'spatial_firing_with_inhibition.pkl')
 
 
 if __name__ == '__main__':
