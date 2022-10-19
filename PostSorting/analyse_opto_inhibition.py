@@ -17,10 +17,18 @@ def get_salt_p_values(peristimulus_spikes, spatial_firing):
     return salt_df
 
 
-def calculate_duration_of_activation(peristimulus_data):
+def calculate_window_size_in_ms(peristimulus_data, sampling_rate):
+    # calculate size of whole window
+    sampling_points_in_window = peristimulus_data.shape[1] - 2
+    sampling_points_per_ms = sampling_rate/1000
+    window_ms = sampling_points_in_window/sampling_points_per_ms
+    return window_ms
+
+
+def calculate_duration_of_activation(peristimulus_data, num_bins):
     baseline, test = convert_peristimulus_data_to_baseline_and_test(peristimulus_data)
-    hist_baseline, bins_bl = np.histogram(np.concatenate(baseline), bins=100)
-    hist_test, bins_t = np.histogram(np.concatenate(test), bins=100)
+    hist_baseline, bins_bl = np.histogram(np.concatenate(baseline), bins=num_bins)
+    hist_test, bins_t = np.histogram(np.concatenate(test), bins=num_bins)
     increased_activity_threshold = np.mean(hist_baseline) + 2 * np.std(hist_baseline)   # calculate baseline mean + 2sd
     increased_activity_in_test_window = hist_test > increased_activity_threshold  # check where test is above bl
     start_of_pulse = np.argmax(increased_activity_in_test_window)  # beginning of increased activity (ms)
@@ -41,9 +49,12 @@ def calculate_duration_of_activation(peristimulus_data):
     return duration, start_of_pulse  # returns duration in ms
 
 
-def find_end_of_activation(peristimulus_data, cluster_id):
+def find_end_of_activation(peristimulus_data, cluster_id, sampling_rate):
     peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == cluster_id]
-    duration, start_of_response = calculate_duration_of_activation(peristim_cluster)
+    # calculate whole window size so that bins will correspond to 1 ms -- usually 200 ms
+    window_size = calculate_window_size_in_ms(peristimulus_data, sampling_rate)
+    num_bins = int(window_size/2)  # ms per side of stimulus
+    duration, start_of_response = calculate_duration_of_activation(peristim_cluster, num_bins)
     end_of_response = start_of_response + duration
 
     return end_of_response
@@ -52,7 +63,7 @@ def find_end_of_activation(peristimulus_data, cluster_id):
 def get_number_of_spikes_around_light(peristimulus_spikes, salt_p_values, window_ms=20, sampling_rate=30000,
                                       salt_p_threshold=0.01):
     # get number of spikes before and after light pulse from each light trial
-    window = int(sampling_rate/1000) * window_ms  # default is 20 ms
+    window = int(sampling_rate/1000) * window_ms  # 30 sampling points per ms
     spikes_before_light = []
     spikes_after_light = []
     cluster_ids = peristimulus_spikes.cluster_id.unique()
@@ -67,7 +78,7 @@ def get_number_of_spikes_around_light(peristimulus_spikes, salt_p_values, window
 
         # for cells with direct activation, start counting after activation window
         if salt_p < salt_p_threshold:
-            shifted_middle = find_end_of_activation(peristimulus_spikes, cluster_id)  # in ms
+            shifted_middle = find_end_of_activation(peristimulus_spikes, cluster_id, sampling_rate)  # in ms
             shifted_middle = int(sampling_rate/1000) * shifted_middle  # convert to sampling points
             after_light_and_activation = spikes[:, middle + shifted_middle: middle + shifted_middle + window]
             spikes_after_light.append(np.sum(after_light_and_activation, axis=1))
@@ -127,9 +138,9 @@ def main():
     import PostSorting.parameters
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
-    path = '/Users/briannavandrey/Desktop/test/'
-    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/test/peristimulus_spikes.pkl')
-    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/test/spatial_firing.pkl')
+    path = '/Users/briannavandrey/Desktop/1474_08_31/'
+    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/peristimulus_spikes.pkl')
+    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/spatial_firing.pkl')
     spatial_firing = run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
     spatial_firing.to_pickle(path + 'spatial_firing_with_inhibition.pkl')
 
