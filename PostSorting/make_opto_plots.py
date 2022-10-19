@@ -161,11 +161,8 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
     salt_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].SALT_p.iloc[0][0], 4)
     salt_i = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].SALT_I.iloc[0][0], 4)
-    try:
-        mwu_u = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].inhibition_MW_U[0], 4)
-        mwu_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].inhibition_MW_p[0], 4)
-    except KeyError:  # handle NaN values if cell does not reduce firing
-        mwu_u = 'NaN'; mwu_p = 'NaN'
+    mwu_u = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].iloc[0]['inhibition_MW_U'], 4)
+    mwu_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].iloc[0]['inhibition_MW_p'], 4)
 
     ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5,
                color='lightblue')
