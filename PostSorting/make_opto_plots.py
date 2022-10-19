@@ -440,9 +440,9 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 def main():
 
-    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/peristimulus_spikes.pkl')
-    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/spatial_firing_with_inhibition.pkl')
-    save_path = '/Users/briannavandrey/Desktop/1474_08_31/'
+    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/test/peristimulus_spikes.pkl')
+    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/test/spatial_firing_with_inhibition.pkl')
+    save_path = '/Users/briannavandrey/Desktop/test/'
     sampling_rate = 30000
     plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, save_path, sampling_rate,
                                 light_pulse_duration=90, y_axis_in_hz=True)
