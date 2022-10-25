@@ -15,6 +15,7 @@ from PostSorting import post_process_sorted_data
 from PostSorting import post_process_sorted_data_vr
 from PostSorting import post_process_sorted_data_sleep
 from PostSorting import post_process_sorted_data_opto
+from PostSorting import post_process_sorted_data_openfield_opto
 
 # set this to true if you want to skip the spike sorting step and use ths data from the server
 skip_sorting = False
@@ -173,6 +174,8 @@ def call_post_sorting_for_session_type(recording_to_sort, session_type, tags):
         post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags)
     elif session_type == "opto":
         post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags)
+    elif session_type == "openfield_opto":
+        post_process_sorted_data_openfield_opto.post_process_recording(recording_to_sort, 'openfield_opto', running_parameter_tags=tags)
 
 
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
