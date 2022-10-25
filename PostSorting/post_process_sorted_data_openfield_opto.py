@@ -82,11 +82,25 @@ def process_running_parameter_tag(running_parameter_tags):
     return unexpected_tag, pixel_ratio, stimulation_type
 
 
+def process_opto_data(recording_to_process, opto_channel):
+    opto_on = opto_off = None
+    opto_data, is_found = PostSorting.open_field_light_data.load_opto_data(recording_to_process, opto_channel)
+    first_opto_pulse_index = None
+    last_opto_pulse_index = None
+    if is_found:
+        opto_on, opto_off = PostSorting.open_field_light_data.get_ons_and_offs(opto_data)
+        if not np.asarray(opto_on).size:
+            is_found = False
+        else:
+            first_opto_pulse_index = min(opto_on[0])
+            last_opto_pulse_index = max(opto_on[0])
+    return opto_on, opto_off, is_found, first_opto_pulse_index, last_opto_pulse_index
+
+
 def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
+    opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
     if is_found:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
-        opto_end_index = opto_off[(len(opto_on)) - 1]  # index of end of last opto pulse
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
         opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
@@ -279,15 +293,9 @@ def main():
     import PostSorting.parameters
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
-    opto_pulses = pd.read_pickle('/Users/briannavandrey/Desktop/1474_2022-10-19_10/opto_pulses.pkl')
-    opto_on = opto_pulses.opto_start_times.values
-    opto_off = opto_pulses.opto_end_times.values
-    opto_start = opto_on[0]
-    opto_end = opto_off[(len(opto_off)) - 1]
-    position = pd.read_pickle('/Users/briannavandrey/Desktop/1474_2022-10-19_10/position.pkl')
-    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/1474_2022-10-19_10/spatial_firing.pkl')
-    position, length_recording = remove_exploration_without_opto(opto_start, opto_end, position, prm.sampling_rate)
-    remove_spikes_without_opto(spatial_firing, position, prm.sampling_rate)
+    prm.set_opto_channel('100_ADC3.continuous')
+    recording_to_process = '/Users/briannavandrey/Desktop/1474_2022-10-17_20'
+    opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
     print('break')
 
 
