@@ -93,7 +93,7 @@ def process_light_stimulation(recording_to_process, prm):
     return opto_on, opto_off, is_found, opto_start_index, opto_end_index
 
 
-def remove_exploration_without_opto(start_of_opto, end_of_opto, spatial_data, sampling_rate):
+def remove_exploration_without_opto(start_of_opto, end_of_opto, spatial_data, sampling_rate=30000):
     # removes data points from before first pulse and after last pulse with 1s buffer on either side
     # TODO calculate different buffers for continuous versus interleaved stimulation
     if start_of_opto is None:
@@ -114,7 +114,7 @@ def remove_exploration_without_opto(start_of_opto, end_of_opto, spatial_data, sa
     return spatial_data, total_length_seconds
 
 
-def remove_spikes_without_opto(spike_data, spatial_firing, sampling_rate):
+def remove_spikes_without_opto(spike_data, spatial_firing, sampling_rate=30000):
     # remove firing times from before and after start of opto stimulation
     spikes_during_opto = []
     opto_start = int((spatial_firing.synced_time.values[0]) * sampling_rate)  # in sampling points
@@ -232,8 +232,8 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
         synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
         spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels)
         # remove position and spike data before and after stimulation period
-        synced_spatial_data, length_of_recording_sec = remove_exploration_without_opto(opto_on, opto_off, synced_spatial_data, prm.sampling_rate)
-        spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
+        synced_spatial_data, length_of_recording_sec = remove_exploration_without_opto(opto_on, opto_off, synced_spatial_data)
+        spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data)
         # add temporal firing properties and curate clusters
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
