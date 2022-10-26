@@ -27,6 +27,7 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
+
 import PreClustering.dead_channels
 
 prm = PostSorting.parameters.Parameters()
@@ -54,7 +55,7 @@ def initialize_parameters(recording_to_process):
     prm.set_ephys_channels(PostSorting.load_firing_data.available_ephys_channels(recording_to_process, prm))
     prm.set_sampling_rate(30000)
     prm.set_local_recording_folder_path(recording_to_process)
-    prm.set_file_path(recording_to_process)  # todo clean this
+    prm.set_file_path(recording_to_process)
     prm.set_ms_tmp_path('/tmp/mountainlab/')
 
 
@@ -292,24 +293,23 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
-    # analyse opto data if it was found, otherwise save spatial dataframes and plots without opto
+
+    # analyse opto data, if it was found
     if opto_is_found:
-        prm.set_output_path(output_path + '/OptoAnalysis')  # set new output folder for peristimulus spike analysis
+        prm.set_output_path(output_path + '/Opto')  # set new output folder for peristimulus spike analysis
         output_path_opto = prm.get_output_path()
         save_copy_of_opto_pulses(output_path, output_path_opto)  # save copy of opto_pulses.pkl in new folder
         try:
             frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
-            print('Stimulation frequency is', frequency)
-            print('Pulse width is', pulse_width_ms)
+            print('Stimulation frequency is', frequency, 'where each pulse is', pulse_width_ms, 'ms')
             print('I will use a window of', window_ms, 'ms')
         except:
             print('Optical stimulation frequency cannot be determined.')
-            print(
-                'Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
+            print('Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
 
-        if stimulation_type is 'continuous':
-            spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
-            make_opto_plots(spatial_firing, output_path, prm)
+        print('I will now process the peristimulus spikes. This will take some time for high frequency stimulations in the open-field.')
+        spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
+        make_opto_plots(spatial_firing, output_path, prm)
 
 
 def main():
