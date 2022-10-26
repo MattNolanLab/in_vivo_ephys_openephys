@@ -210,8 +210,13 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
-def save_copy_of_opto_pulses(of_output_path, opto_output_path):
-    pass
+def save_copy_of_opto_pulses(of_output_path, prm):
+    # saves copy of .pkl containing opto_pulses to OptoAnalysis folder
+    # this was written used as an alternative to making changes to the opto-analysis script
+    pulses = pd.read_pickle(of_output_path + '/DataFrames/opto_pulses.pkl')
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    pulses.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
 
 
 def make_opto_plots(spatial_firing, output_path, prm):
@@ -291,7 +296,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
     if opto_is_found:
         prm.set_output_path(output_path + '/OptoAnalysis')  # set new output folder for peristimulus spike analysis
         output_path_opto = prm.get_output_path()
-        save_copy_of_opto_pulses(output_path, output_path_opto) # save copy of opto_pulses.pkl in new folder
+        save_copy_of_opto_pulses(output_path, output_path_opto)  # save copy of opto_pulses.pkl in new folder
         try:
             frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
             print('Stimulation frequency is', frequency)
