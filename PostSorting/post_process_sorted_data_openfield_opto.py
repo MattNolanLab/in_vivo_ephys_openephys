@@ -309,7 +309,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
 
         print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations in the open-field.')
         spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
-        make_opto_plots(spatial_firing, output_path, prm)
+        make_opto_plots(spatial_firing, output_path_opto, prm)
 
         if stimulation_type == 'interleaved':
             print('I will now call scripts to process interleaved opto stimulation.')
