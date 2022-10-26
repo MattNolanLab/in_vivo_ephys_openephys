@@ -160,7 +160,6 @@ def make_openfield_plots(position_data, spatial_firing, position_heat_map, hd_hi
     PostSorting.open_field_make_plots.plot_polar_head_direction_histogram(hd_histogram, spatial_firing, prm)
     PostSorting.open_field_make_plots.plot_hd_for_firing_fields(spatial_firing, position_data, prm)
     PostSorting.open_field_make_plots.plot_spikes_on_firing_fields(spatial_firing, prm)
-   # PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
@@ -210,6 +209,15 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
+def make_opto_plots(spatial_firing, output_path, prm):
+    PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
+    PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
+    # PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
+    PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
+    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
+    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
+
+
 def post_process_recording(recording_to_process, stimulation_type, running_parameter_tags=False, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
@@ -220,6 +228,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
+    output_path_opto = output_path + '/Figures_Opto'
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
@@ -280,7 +289,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
     if opto_is_found:
         if stimulation_type is 'continuous':
             try:
-                frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, opto_off, prm.sampling_rate)
+                frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
                 print('Stimulation frequency is', frequency)
                 print('Pulse width is', pulse_width_ms)
                 print('I will use a window of', window_ms, 'ms')
@@ -288,7 +297,8 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
                 print('Optical stimulation frequency cannot be determined.')
                 print('Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
 
- #           spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
+            spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
+            make_opto_plots(spatial_firing, prm.get_output_path(), prm)
 
 
 def main():
