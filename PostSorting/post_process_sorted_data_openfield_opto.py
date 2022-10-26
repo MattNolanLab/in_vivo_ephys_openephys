@@ -215,7 +215,6 @@ def make_opto_plots(spatial_firing, output_path, prm):
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
-    PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
 def post_process_recording(recording_to_process, stimulation_type, running_parameter_tags=False, sorter_name='MountainSort'):
@@ -228,7 +227,6 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
-    output_path_opto = output_path + '/Figures_Opto'
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
@@ -287,6 +285,8 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
 
     # analyse opto data if it was found, otherwise save spatial dataframes and plots without opto
     if opto_is_found:
+        prm.set_output_path(recording_to_process + prm.get_sorter_name()) + '/OptoAnalysis' # new output folder for peristimulus spikes
+        output_path = prm.get_output_path()
         if stimulation_type is 'continuous':
             try:
                 frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
@@ -298,7 +298,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
                 print('Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
 
             spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
-            make_opto_plots(spatial_firing, output_path_opto, prm)
+            make_opto_plots(spatial_firing, output_path, prm)
 
 
 def main():
