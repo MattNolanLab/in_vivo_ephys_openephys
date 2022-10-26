@@ -141,6 +141,7 @@ def remove_spikes_without_opto(spike_data, spatial_firing, sampling_rate):
         spikes_during_opto.append(firing_times_during_opto)
 
     spike_data['firing_times'] = spikes_during_opto  # replace with firing times during opto
+    spike_data['firing_times_opto'] = spikes_during_opto  # this col name is required for opto analysis scripts
     spike_data['recording_length_sampling_points'] = int(recording_length)  # replace with opto recording length
 
     return spike_data
@@ -212,9 +213,8 @@ def find_stimulation_frequency(opto_on, sampling_rate):
 def make_opto_plots(spatial_firing, output_path, prm):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
-    # PostSorting.make_plots.plot_firing_rate_vs_speed(spatial_firing, position_data, prm)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
-    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, prm.get_output_path(), prm.get_sampling_rate())
+    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
     PostSorting.open_field_make_plots.make_combined_figure(prm, spatial_firing)
 
 
@@ -298,7 +298,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
                 print('Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
 
             spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
-            make_opto_plots(spatial_firing, prm.get_output_path(), prm)
+            make_opto_plots(spatial_firing, output_path_opto, prm)
 
 
 def main():
@@ -313,9 +313,6 @@ def main():
     frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
    # position, total_length_seconds = remove_exploration_without_opto(opto_start_index, opto_end_index, position, prm.sampling_rate)
    # spatial_firing = remove_spikes_without_opto(spikes, position, prm.sampling_rate)
-
-
-    print('break')
 
 
 if __name__ == '__main__':
