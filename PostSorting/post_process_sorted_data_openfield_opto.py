@@ -194,16 +194,19 @@ def find_window_size(stimulation_frequency):
     else:
         window_size = 1000 / stimulation_frequency
 
-    return window_size
+    return int(window_size)
 
 
-def find_stimulation_frequency(opto_on, opto_off, sampling_rate):
+def find_stimulation_frequency(opto_on, sampling_rate):
     # calculate stimulation frequency from time between pulses, return pulse width (ms) and frequency (Hz)
-    pulse_width_ms = int((opto_off[0] - opto_on[0]) / sampling_rate) * 1000
-    between_pulses_ms = int(((opto_on[1] - opto_off[0]) / sampling_rate) * 1000)
-    stimulation_window_ms = (pulse_width_ms + between_pulses_ms)
-    stimulation_frequency = 1000/stimulation_window_ms
+    opto_end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0])
+    opto_start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
+    opto_start_times = np.append(opto_on[0][0], opto_start_times_from_second)
+    pulse_width_ms = int(((opto_end_times[0] - opto_start_times[0]) / sampling_rate) * 1000)
+    between_pulses_ms = int(((opto_start_times[1] - opto_end_times[0]) / sampling_rate) * 1000)
+    stimulation_frequency = int(1000/ (pulse_width_ms + between_pulses_ms))
     window_size_for_plots = find_window_size(stimulation_frequency)
+
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
@@ -297,8 +300,9 @@ def main():
     position = pd.read_pickle(recording_to_process + '/DataFrames/position.pkl')
     spikes = pd.read_pickle(recording_to_process + '/DataFrames/spatial_firing.pkl')
     opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
-    position, total_length_seconds = remove_exploration_without_opto(opto_start_index, opto_end_index, position, prm.sampling_rate)
-    spatial_firing = remove_spikes_without_opto(spikes, position, prm.sampling_rate)
+    frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
+   # position, total_length_seconds = remove_exploration_without_opto(opto_start_index, opto_end_index, position, prm.sampling_rate)
+   # spatial_firing = remove_spikes_without_opto(spikes, position, prm.sampling_rate)
 
 
     print('break')
