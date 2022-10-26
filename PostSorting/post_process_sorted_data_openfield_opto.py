@@ -210,6 +210,10 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
+def save_copy_of_opto_pulses(of_output_path, opto_output_path):
+    pass
+
+
 def make_opto_plots(spatial_firing, output_path, prm):
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
@@ -286,17 +290,19 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
     # analyse opto data if it was found, otherwise save spatial dataframes and plots without opto
     if opto_is_found:
         prm.set_output_path(output_path + '/OptoAnalysis')  # set new output folder for peristimulus spike analysis
-        output_path = prm.get_output_path()
-        if stimulation_type is 'continuous':
-            try:
-                frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
-                print('Stimulation frequency is', frequency)
-                print('Pulse width is', pulse_width_ms)
-                print('I will use a window of', window_ms, 'ms')
-            except:
-                print('Optical stimulation frequency cannot be determined.')
-                print('Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
+        output_path_opto = prm.get_output_path()
+        save_copy_of_opto_pulses(output_path, output_path_opto) # save copy of opto_pulses.pkl in new folder
+        try:
+            frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
+            print('Stimulation frequency is', frequency)
+            print('Pulse width is', pulse_width_ms)
+            print('I will use a window of', window_ms, 'ms')
+        except:
+            print('Optical stimulation frequency cannot be determined.')
+            print(
+                'Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
 
+        if stimulation_type is 'continuous':
             spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
             make_opto_plots(spatial_firing, output_path, prm)
 
