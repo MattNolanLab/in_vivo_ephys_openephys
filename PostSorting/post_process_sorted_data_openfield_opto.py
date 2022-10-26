@@ -212,13 +212,13 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
-def save_copy_of_opto_pulses(of_output_path, prm):
+def save_copy_of_opto_pulses(of_output_path, opto_output_path):
     # saves copy of .pkl containing opto_pulses to OptoAnalysis folder
     # this was written used as an alternative to making changes to the opto-analysis script
     pulses = pd.read_pickle(of_output_path + '/DataFrames/opto_pulses.pkl')
-    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
-        os.makedirs(prm.get_output_path() + '/DataFrames')
-    pulses.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
+    if os.path.exists(opto_output_path + '/DataFrames') is False:
+        os.makedirs(opto_output_path + '/DataFrames')
+    pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')
 
 
 def make_opto_plots(spatial_firing, output_path, prm):
