@@ -27,6 +27,7 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
+import PostSorting.open_field_interleaved_opto
 
 import PreClustering.dead_channels
 
@@ -293,7 +294,6 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
-
     # analyse opto data, if it was found
     if opto_is_found:
         prm.set_output_path(output_path + '/Opto')  # set new output folder for peristimulus spike analysis
@@ -304,27 +304,13 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
             print('Stimulation frequency is', frequency, 'where each pulse is', pulse_width_ms, 'ms')
             print('I will use a window of', window_ms, 'ms')
         except:
-            print('Optical stimulation frequency cannot be determined.')
-            print('Default window size of 200 ms will be used. This will not be appropriate for stimulation frequencies > 5 Hz.')
+            print('Stimulation frequency cannot be determined.')
+            print('Default window size of 200 ms will be used. This is not appropriate for stimulation frequencies > 5 Hz.')
 
-        print('I will now process the peristimulus spikes. This will take some time for high frequency stimulations in the open-field.')
+        print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations in the open-field.')
         spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
         make_opto_plots(spatial_firing, output_path, prm)
 
-
-def main():
-    import PostSorting.parameters
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    prm.set_opto_channel('100_ADC3.continuous')
-    recording_to_process = '/Users/briannavandrey/Desktop/1474_2022-10-17_20'
-    position = pd.read_pickle(recording_to_process + '/DataFrames/position.pkl')
-    spikes = pd.read_pickle(recording_to_process + '/DataFrames/spatial_firing.pkl')
-    opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
-    frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
-   # position, total_length_seconds = remove_exploration_without_opto(opto_start_index, opto_end_index, position, prm.sampling_rate)
-   # spatial_firing = remove_spikes_without_opto(spikes, position, prm.sampling_rate)
-
-
-if __name__ == '__main__':
-    main()
+        if stimulation_type == 'interleaved':
+            print('I will now call scripts to process interleaved opto stimulation.')
+            PostSorting.open_field_interleaved_opto.analyse_interleaved_stimulation(spatial_firing, opto_on, frequency)
