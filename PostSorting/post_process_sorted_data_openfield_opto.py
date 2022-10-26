@@ -109,7 +109,6 @@ def process_light_stimulation(recording_to_process, prm):
 
 def remove_exploration_without_opto(start_of_opto, end_of_opto, spatial_data, sampling_rate):
     # removes data points from before first pulse and after last pulse with 1s buffer on either side
-    # TODO calculate different buffers for continuous versus interleaved stimulation
     if start_of_opto is None:
         return spatial_data
 
@@ -123,7 +122,7 @@ def remove_exploration_without_opto(start_of_opto, end_of_opto, spatial_data, sa
         spatial_data.drop(range(0, nearest_bonsai_index_opto_start), inplace=True)
         spatial_data.drop(range(nearest_bonsai_index_opto_end, spatial_data.index[-1]), inplace=True)
         spatial_data = spatial_data.iloc[:-1, :]  # drop last row
-        total_length_seconds = spatial_data.synced_time.values[-1]  # new recording length seconds
+        total_length_seconds = spatial_data.synced_time.values[-1] - spatial_data.synced_time.values[0] # new recording length seconds
 
     return spatial_data, total_length_seconds
 
@@ -295,7 +294,13 @@ def main():
     prm.set_sampling_rate(30000)
     prm.set_opto_channel('100_ADC3.continuous')
     recording_to_process = '/Users/briannavandrey/Desktop/1474_2022-10-17_20'
+    position = pd.read_pickle(recording_to_process + '/DataFrames/position.pkl')
+    spikes = pd.read_pickle(recording_to_process + '/DataFrames/spatial_firing.pkl')
     opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
+    position, total_length_seconds = remove_exploration_without_opto(opto_start_index, opto_end_index, position, prm.sampling_rate)
+    spatial_firing = remove_spikes_without_opto(spikes, position, prm.sampling_rate)
+
+
     print('break')
 
 
