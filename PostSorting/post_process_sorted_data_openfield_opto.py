@@ -285,7 +285,7 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
 
     # analyse opto data if it was found, otherwise save spatial dataframes and plots without opto
     if opto_is_found:
-        prm.set_output_path(recording_to_process + prm.get_sorter_name()) + '/OptoAnalysis' # new output folder for peristimulus spikes
+        prm.set_output_path(output_path + '/OptoAnalysis')  # set new output folder for peristimulus spike analysis
         output_path = prm.get_output_path()
         if stimulation_type is 'continuous':
             try:
