@@ -266,8 +266,9 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
         synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
         spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels)
         # remove position and spike data before and after stimulation period
-        synced_spatial_data, length_of_recording_sec = remove_exploration_without_opto(opto_start_index, opto_end_index, synced_spatial_data, prm.sampling_rate)
-        spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
+        if opto_is_found:
+            synced_spatial_data, length_of_recording_sec = remove_exploration_without_opto(opto_start_index, opto_end_index, synced_spatial_data, prm.sampling_rate)
+            spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
         # add temporal firing properties and curate clusters
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
@@ -314,3 +315,19 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
         if stimulation_type == 'interleaved':
             print('I will now call scripts to process interleaved opto stimulation.')
             PostSorting.open_field_interleaved_opto.analyse_interleaved_stimulation(spatial_firing, opto_on, frequency)
+
+
+def main():
+    import PostSorting.parameters
+    prm = PostSorting.parameters.Parameters()
+    prm.set_sampling_rate(30000)
+
+    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/Opto/DataFrames/peristimulus_spikes.pkl')
+    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/Opto/DataFrames/spatial_firing.pkl')
+    save_path = '/Users/briannavandrey/Desktop/Opto/'
+
+    make_opto_plots(spatial_firing, save_path, prm)
+
+
+if __name__ == '__main__':
+    main()
