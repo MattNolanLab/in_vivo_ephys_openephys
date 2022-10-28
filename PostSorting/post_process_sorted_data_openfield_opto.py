@@ -27,7 +27,6 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
-import PostSorting.open_field_interleaved_opto
 
 import PreClustering.dead_channels
 
