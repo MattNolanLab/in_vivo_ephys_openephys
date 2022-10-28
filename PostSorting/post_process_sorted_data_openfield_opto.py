@@ -223,7 +223,7 @@ def make_opto_plots(spatial_firing, output_path, prm):
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
 
 
-def post_process_recording(recording_to_process, running_parameter_tags=False, sorter_name='MountainSort'):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
