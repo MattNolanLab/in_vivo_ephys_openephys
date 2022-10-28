@@ -63,25 +63,21 @@ def initialize_parameters(recording_to_process):
 def process_running_parameter_tag(running_parameter_tags):
     """
     Process tags from parameters.txt metadata file. These are in the third line of the file.
-    stimulation_type: continuous or interleaved
     """
     unexpected_tag = False
     pixel_ratio = False
-    stimulation_type = False
 
     if not running_parameter_tags:
-        return unexpected_tag, pixel_ratio, stimulation_type
+        return unexpected_tag, pixel_ratio
 
     tags = [x.strip() for x in running_parameter_tags.split('*')]
     for tag in tags:
         if tag.startswith('pixel_ratio'):
             pixel_ratio = int(tag.split('=')[1])  # put pixel ratio value in pixel_ratio
-        elif tag.startswith('stimulation_type'):
-            stimulation_type = str(tag.split('=')[1])
         else:
             print('Unexpected or missing tag in the third line of parameters file: ' + str(unexpected_tag))
             unexpected_tag = True
-    return unexpected_tag, pixel_ratio, stimulation_type
+    return unexpected_tag, pixel_ratio
 
 
 def process_opto_data(recording_to_process, opto_channel):
@@ -228,10 +224,10 @@ def make_opto_plots(spatial_firing, output_path, prm):
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
 
 
-def post_process_recording(recording_to_process, stimulation_type, running_parameter_tags=False, sorter_name='MountainSort'):
+def post_process_recording(recording_to_process, running_parameter_tags=False, sorter_name='MountainSort'):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    unexpected_tag, pixel_ratio, stimulation_type = process_running_parameter_tag(running_parameter_tags)
+    unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     PreClustering.dead_channels.get_dead_channel_ids(prm)
@@ -243,17 +239,6 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
         print('Default pixel ratio (440) is used.')
     else:
         prm.set_pixel_ratio(pixel_ratio)
-
-    if stimulation_type is False:
-        print('No stimulation type specified. Default stimulation type is continuous.')
-        stimulation_type = 'continuous'
-    elif stimulation_type == 'continuous':
-        print('Stimulation type is', stimulation_type)
-    elif stimulation_type == 'interleaved':
-        print('Stimulation type is', stimulation_type)
-    else:
-        print('Unexpected stimulation type specified. Default stimulation type is continuous.')
-        stimulation_type = 'continuous'
 
     # process position and spike data, check for opto data and extract pulses if found
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
@@ -297,37 +282,23 @@ def post_process_recording(recording_to_process, stimulation_type, running_param
 
     # analyse opto data, if it was found
     if opto_is_found:
+        print("---------------------------------------------------------")
+        print("I will now process opto data from this openfield session.")
+        print("---------------------------------------------------------")
         prm.set_output_path(output_path + '/Opto')  # set new output folder for peristimulus spike analysis
         output_path_opto = prm.get_output_path()
         save_copy_of_opto_pulses(output_path, output_path_opto)  # save copy of opto_pulses.pkl in new folder
         try:
             frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
-            print('Stimulation frequency is', frequency, 'where each pulse is', pulse_width_ms, 'ms')
-            print('I will use a window of', window_ms, 'ms')
+            print('Stimulation frequency is', frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
+            print('I will use a window of', window_ms, 'ms for plotting.')
         except:
             print('Stimulation frequency cannot be determined.')
-            print('Default window size of 200 ms will be used. This is not appropriate for stimulation frequencies > 5 Hz.')
+            print('Default window size of 200 ms will be used for plotting...')
+            print('Default window size will not be appropriate for stimulation frequencies > 5 Hz.')
 
-        print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations in the open-field.')
+        print('I will now process the peristimulus spikes')
+        print('This will take a while for high frequency stimulations.')
         spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
         make_opto_plots(spatial_firing, output_path_opto, prm)
 
-        if stimulation_type == 'interleaved':
-            print('I will now call scripts to process interleaved opto stimulation.')
-            PostSorting.open_field_interleaved_opto.analyse_interleaved_stimulation(spatial_firing, opto_on, frequency)
-
-
-def main():
-    import PostSorting.parameters
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-
-    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/Opto/DataFrames/peristimulus_spikes.pkl')
-    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/Opto/DataFrames/spatial_firing.pkl')
-    save_path = '/Users/briannavandrey/Desktop/Opto/'
-
-    make_opto_plots(spatial_firing, save_path, prm)
-
-
-if __name__ == '__main__':
-    main()
