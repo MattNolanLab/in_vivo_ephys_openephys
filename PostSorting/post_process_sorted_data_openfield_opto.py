@@ -22,7 +22,6 @@ import PostSorting.open_field_light_data
 import PostSorting.open_field_make_plots
 import PostSorting.open_field_spatial_data
 import PostSorting.open_field_spatial_firing
-import PostSorting.open_field_sync_data
 import PostSorting.parameters
 import PostSorting.speed
 import PostSorting.temporal_firing
@@ -101,7 +100,7 @@ def process_opto_data(recording_to_process, opto_channel):
 def process_light_stimulation(recording_to_process, prm):
     opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
     if is_found:
-        opto_data_frame = open_field_light_data.make_opto_data_frame(opto_on)
+        opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
         opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
