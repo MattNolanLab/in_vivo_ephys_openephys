@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import settings
+import matplotlib.pylab as plt
 
 import PostSorting.compare_first_and_second_half
 import PostSorting.curation
@@ -82,6 +83,9 @@ def process_running_parameter_tag(running_parameter_tags):
 def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
     opto_data, is_found = PostSorting.open_field_light_data.load_opto_data(recording_to_process, opto_channel)
+    opto_data_chopped = opto_data[1300000:1500000]
+    plt.plot(opto_data_chopped)
+
     first_opto_pulse_index = None
     last_opto_pulse_index = None
     if is_found:
@@ -97,7 +101,7 @@ def process_opto_data(recording_to_process, opto_channel):
 def process_light_stimulation(recording_to_process, prm):
     opto_on, opto_off, is_found, opto_start_index, opto_end_index = process_opto_data(recording_to_process, prm.get_opto_channel())
     if is_found:
-        opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
+        opto_data_frame = open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
         opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
@@ -201,7 +205,7 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     opto_start_times = np.append(opto_on[0][0], opto_start_times_from_second)
     pulse_width_ms = int(((opto_end_times[0] - opto_start_times[0]) / sampling_rate) * 1000)
     between_pulses_ms = int(((opto_start_times[1] - opto_end_times[0]) / sampling_rate) * 1000)
-    stimulation_frequency = int(1000/ (pulse_width_ms + between_pulses_ms))
+    stimulation_frequency = 1000 / (pulse_width_ms + between_pulses_ms)
     window_size_for_plots = find_window_size(stimulation_frequency)
 
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
@@ -301,3 +305,12 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
         make_opto_plots(spatial_firing, output_path_opto, prm)
 
+def main():
+    prm = PostSorting.parameters.Parameters()
+    prm.set_sampling_rate(30000)
+    prm.set_opto_channel('100_ADC3.continuous')
+    recording = '/Users/briannavandrey/Desktop/hf_test'
+
+
+if __name__ == '__main__':
+    main()
