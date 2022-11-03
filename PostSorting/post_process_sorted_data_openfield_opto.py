@@ -228,6 +228,12 @@ def save_copy_of_opto_pulses(of_output_path, prm):
     pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')
 
 
+def save_spatial_firing_with_opto(spatial_firing, prm):
+    if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
+        os.makedirs(prm.get_output_path() + '/DataFrames')
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')
+
+
 def make_opto_plots(spatial_firing, prm):
     output_path = prm.get_output_path()
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
@@ -253,6 +259,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     print('I will now process the peristimulus spikes')
     print('This will take a while for high frequency stimulations.')
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
+    save_spatial_firing_with_opto(spatial_firing, prm) # save a copy of the spatial firing df with opto stats
     make_opto_plots(spatial_firing, prm)
 
 
@@ -309,14 +316,11 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
             make_openfield_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
+            save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
+            save_data_for_plots(position_heat_map, hd_histogram, prm)
 
     # analyse opto data, if it was found
     if opto_is_found:
         prm.set_output_path(output_path + '/Opto')  # set new output folder for peristimulus spike analysis
         save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
         analyse_opto_data(opto_on, spatial_firing, prm)
-        prm.set_output_path(output_path)  # return to original output folder
-
-    # save dataframes - will include opto stats in spatial firing df if opto was found
-    save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
-    save_data_for_plots(position_heat_map, hd_histogram, prm)
