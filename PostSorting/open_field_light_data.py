@@ -105,7 +105,7 @@ def get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate):
     return on_pulses, window_size_sampling_rate
 
 
-def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path, save_df):
+def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path):
     print('Make peristimulus data frame.')
     start_time = time.time()
     peristimulus_spikes_path = output_path + '/DataFrames/peristimulus_spikes.pkl'
@@ -123,9 +123,7 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, o
             peristimulus_spikes_binary[row_number_in_binary_array] = spikes_in_window_binary
             row_number_in_binary_array += 1
     peristimulus_spikes.iloc[:, 2:] = peristimulus_spikes_binary
-    if save_df:
-        print('I am saving the peristimulus dataframe')
-        peristimulus_spikes.to_pickle(peristimulus_spikes_path)
+    peristimulus_spikes.to_pickle(peristimulus_spikes_path)
     elapsed_time = time.time() - start_time
     print('making the peristimulus df took:' + str(elapsed_time))
     return peristimulus_spikes
@@ -228,14 +226,14 @@ def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, windo
         opto_parameters.to_pickle(output_path + save_path)
 
 
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10, save_df=True):
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10):
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
     print('I will process opto data.')
     path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
     opto_parameters, opto_params_is_found = get_opto_parameters(path_to_recording, opto_file_name='opto_parameters.csv')
     save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms)
     on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate)
-    peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path, save_df)
+    peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)
     first_spike_latency_sampling_points = sampling_rate / 1000 * first_spike_latency_ms
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency_sampling_points)
     spatial_firing = analyse_latencies(spatial_firing, sampling_rate)

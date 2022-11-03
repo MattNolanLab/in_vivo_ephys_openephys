@@ -218,13 +218,22 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
+def save_copy_of_opto_pulses(of_output_path, prm):
+    # saves copy of .pkl containing opto_pulses to OptoAnalysis folder
+    # this was written used as an alternative to making changes to the opto-analysis script
+    opto_output_path = prm.get_output_path()
+    pulses = pd.read_pickle(of_output_path + '/DataFrames/opto_pulses.pkl')
+    if os.path.exists(opto_output_path + '/DataFrames') is False:
+        os.makedirs(opto_output_path + '/DataFrames')
+    pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')
+
+
 def make_opto_plots(spatial_firing, prm):
     output_path = prm.get_output_path()
-    opto_output_path = output_path + '/Opto'
-    PostSorting.make_plots.plot_waveforms(spatial_firing, opto_output_path)
-    PostSorting.make_plots.plot_spike_histogram(spatial_firing, opto_output_path)
-    PostSorting.make_plots.plot_autocorrelograms(spatial_firing, opto_output_path)
-    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, opto_output_path, prm.get_sampling_rate())
+    PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
+    PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
+    PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
+    PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
 
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
@@ -243,7 +252,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
 
     print('I will now process the peristimulus spikes')
     print('This will take a while for high frequency stimulations.')
-    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms, save_df=False)
+    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
     make_opto_plots(spatial_firing, prm)
 
 
@@ -303,6 +312,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     # analyse opto data, if it was found
     if opto_is_found:
+        prm.set_output_path(output_path + '/Opto')  # set new output folder for peristimulus spike analysis
+        save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
         analyse_opto_data(opto_on, spatial_firing, prm)
 
     save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
