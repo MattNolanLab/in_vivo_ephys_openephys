@@ -1,3 +1,13 @@
+"""
+
+This script analyses sessions where opto-stimulation happens during open field exploration.
+Position and spatial firing data is analysed from the start of the first pulse to the end of the last pulse + a 1s buffer.
+The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
+assumed to be consistent for the whole trial.
+Plots of peristimulus spikes and analyses are saved to a '/Opto' subfolder that is created in the output folder.
+
+"""
+
 import os
 import pickle
 
@@ -82,8 +92,6 @@ def process_running_parameter_tag(running_parameter_tags):
 def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
     opto_data, is_found = PostSorting.open_field_light_data.load_opto_data(recording_to_process, opto_channel)
-    opto_data_chopped = opto_data[1300000:1500000]
-    plt.plot(opto_data_chopped)
 
     first_opto_pulse_index = None
     last_opto_pulse_index = None
@@ -210,20 +218,42 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
 
 
-def save_copy_of_opto_pulses(of_output_path, opto_output_path):
+def save_copy_of_opto_pulses(of_output_path, prm):
     # saves copy of .pkl containing opto_pulses to OptoAnalysis folder
     # this was written used as an alternative to making changes to the opto-analysis script
+    opto_output_path = prm.get_output_path()
     pulses = pd.read_pickle(of_output_path + '/DataFrames/opto_pulses.pkl')
     if os.path.exists(opto_output_path + '/DataFrames') is False:
         os.makedirs(opto_output_path + '/DataFrames')
     pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')
 
 
-def make_opto_plots(spatial_firing, output_path, prm):
+def make_opto_plots(spatial_firing, prm):
+    output_path = prm.get_output_path()
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
+
+
+def analyse_opto_data(opto_on, spatial_firing, prm):
+    print("---------------------------------------------------------")
+    print("I will now process opto data from this openfield session.")
+    print("---------------------------------------------------------")
+
+    try:
+        frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
+        print('Stimulation frequency is', frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
+        print('I will use a window of', window_ms, 'ms for plotting.')
+    except:
+        print('Stimulation frequency cannot be determined.')
+        print('Default window size of 200 ms will be used for plotting...')
+        print('Default window size will not be appropriate for stimulation frequencies > 5 Hz.')
+
+    print('I will now process the peristimulus spikes')
+    print('This will take a while for high frequency stimulations.')
+    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
+    make_opto_plots(spatial_firing, prm)
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
@@ -284,32 +314,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     # analyse opto data, if it was found
     if opto_is_found:
-        print("---------------------------------------------------------")
-        print("I will now process opto data from this openfield session.")
-        print("---------------------------------------------------------")
         prm.set_output_path(output_path + '/Opto')  # set new output folder for peristimulus spike analysis
-        output_path_opto = prm.get_output_path()
-        save_copy_of_opto_pulses(output_path, output_path_opto)  # save copy of opto_pulses.pkl in new folder
-        try:
-            frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
-            print('Stimulation frequency is', frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
-            print('I will use a window of', window_ms, 'ms for plotting.')
-        except:
-            print('Stimulation frequency cannot be determined.')
-            print('Default window size of 200 ms will be used for plotting...')
-            print('Default window size will not be appropriate for stimulation frequencies > 5 Hz.')
-
-        print('I will now process the peristimulus spikes')
-        print('This will take a while for high frequency stimulations.')
-        spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
-        make_opto_plots(spatial_firing, output_path_opto, prm)
-
-def main():
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    prm.set_opto_channel('100_ADC3.continuous')
-    recording = '/Users/briannavandrey/Desktop/hf_test'
-
-
-if __name__ == '__main__':
-    main()
+        save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
+        analyse_opto_data(opto_on, spatial_firing, prm)

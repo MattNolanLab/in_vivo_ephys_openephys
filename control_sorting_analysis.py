@@ -88,7 +88,7 @@ def get_session_type(recording_directory):
         elif session_type == 'opto':
             print('This is an opto-tagging session')
         elif session_type == 'openfield_opto':
-            print('This is an openfield session with opto-stimulation.')
+            print('This is an openfield session with opto-stimulation during exploration')
         else:
             print('Session type is not specified. '
                   'You need to write vr/openfield/sleep/opto in the first line of the parameters.txt file. '
