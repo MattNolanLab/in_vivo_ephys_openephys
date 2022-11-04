@@ -308,8 +308,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
-    # analyse opto data, if it was found
-    if opto_is_found:
-        prm.set_output_path(output_path + '/Opto')  # set new output folder for opto analysis
-        save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
-        analyse_opto_data(opto_on, spatial_firing, prm)
+        # analyse opto data, if it was found
+            if opto_is_found:
+                prm.set_output_path(output_path + '/Opto')  # set new output folder for opto analysis
+                save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
+                analyse_opto_data(opto_on, spatial_firing, prm)
