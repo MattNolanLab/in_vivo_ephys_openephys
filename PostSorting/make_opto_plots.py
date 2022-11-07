@@ -96,7 +96,8 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
     plt.ylabel('Trial', fontsize=24)
-    plt.yticks(np.arange(0, cluster_rows.shape[0] + 1, 50))  # show every 50th tick only
+    plt.yticks(np.arange(0, cluster_rows.shape[0]+1, cluster_rows.shape[0]/4))
+   # plt.yticks(np.arange(0, cluster_rows.shape[0] + 1, 50))  # show every 50th tick only
     plt.tight_layout()
     plt.savefig(save_path + '/peristimulus_raster_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
