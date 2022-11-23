@@ -262,8 +262,8 @@ def process_first_and_last_spikes(spatial_firing, window_ms, prm):
     num_pulses = len(on_pulses)
     window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
 
-    first_pulses = opto_pulses[0:199, :]  # subset first 200 opto pulses
-    last_pulses = opto_pulses[(num_pulses-200):num_pulses, :]  # subset last 200 opto_pulses
+    first_pulses = on_pulses[0:200]  # subset first 200 opto pulses
+    last_pulses = on_pulses[(num_pulses-200):num_pulses]  # subset last 200 opto_pulses
 
     first_pulses_output_path = output_path + "/first_200_pulses"
     last_pulses_output_path = output_path + "/last_200_pulses"
@@ -357,3 +357,16 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                 prm.set_output_path(output_path + '/Opto')  # set new output folder for opto analysis
                 save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
                 analyse_opto_data(opto_on, spatial_firing, prm)
+
+def main():
+    import PostSorting.parameters
+    prm = PostSorting.parameters.Parameters()
+    prm.set_output_path('/Users/briannavandrey/Desktop/test')
+    prm.set_sampling_rate(30000)
+    window_ms = 50
+    output_path = prm.get_output_path()
+    spatial_firing = pd.read_pickle(output_path + "/DataFrames/spatial_firing_opto.pkl")
+    process_first_and_last_spikes(spatial_firing, window_ms, prm)
+
+if __name__ == '__main__':
+    main()
