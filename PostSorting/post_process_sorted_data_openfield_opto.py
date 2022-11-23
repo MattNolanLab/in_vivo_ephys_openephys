@@ -267,8 +267,8 @@ def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200
 
     first_pulses = on_pulses[0:num_pulses]  # subset first x opto pulses
     last_pulses = on_pulses[(total_num_pulses-num_pulses):total_num_pulses]  # subset last x opto_pulses
-    first_pulses_output_path = output_path + "/first_200_pulses"
-    last_pulses_output_path = output_path + "/last_200_pulses"
+    first_pulses_output_path = output_path + "/first_pulses"
+    last_pulses_output_path = output_path + "/last_pulses"
 
     print("I am now processing data for the first", num_pulses, "pulses.")
     analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_pulses_output_path)
