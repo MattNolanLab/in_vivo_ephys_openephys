@@ -214,7 +214,7 @@ def find_stimulation_frequency(opto_on, sampling_rate):
 
 
 def save_copy_of_opto_pulses(of_output_path, prm):
-    # saves copy of .pkl containing opto_pulses to OptoAnalysis folder
+    # saves copy of .pkl containing opto_pulses to Opto folder
     # this was written used as an alternative to making changes to the opto-analysis script
     opto_output_path = prm.get_output_path()
     pulses = pd.read_pickle(of_output_path + '/DataFrames/opto_pulses.pkl')
@@ -229,6 +229,47 @@ def make_opto_plots(spatial_firing, prm):
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
+
+
+def process_spikes_around_light_for_subset(spatial_firing, prm, on_pulses, window_size_sampling_rate, first_spike_latency_ms=10):
+    output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = PostSorting.open_field_light_data.load_parameters(prm)
+    print('I will process opto data for a subset of pulses.')
+    peristimulus_spikes = PostSorting.open_field_light_data.make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)
+    first_spike_latency_sampling_points = sampling_rate / 1000 * first_spike_latency_ms
+    spatial_firing = PostSorting.open_field_light_data.add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency_sampling_points)
+    spatial_firing = PostSorting.open_field_light_data.analyse_latencies(spatial_firing, sampling_rate)
+    spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True)
+    spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
+    spatial_firing = PostSorting.SALT.run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_spikes)
+    spatial_firing = PostSorting.analyse_opto_inhibition.run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
+    return spatial_firing
+
+
+def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_size_sampling_rate, output_path):
+    prm.set_output_path(output_path)
+    if os.path.exists(output_path + '/DataFrames') is False:
+        os.makedirs(output_path + '/DataFrames')
+    spatial_firing = process_spikes_around_light_for_subset(spatial_firing, prm, pulses, window_size_sampling_rate)
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
+    make_opto_plots(spatial_firing, prm)
+
+
+def process_first_and_last_spikes(spatial_firing, window_ms, prm):
+    output_path = prm.get_output_path()
+    sampling_rate = prm.get_sampling_rate()
+    opto_pulses = pd.read_pickle(output_path + '/DataFrames/opto_pulses.pkl')
+    on_pulses = opto_pulses.opto_start_times
+    num_pulses = len(on_pulses)
+    window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
+
+    first_pulses = opto_pulses[0:199, :]  # subset first 200 opto pulses
+    last_pulses = opto_pulses[(num_pulses-200):num_pulses, :]  # subset last 200 opto_pulses
+
+    first_pulses_output_path = output_path + "/first_200_pulses"
+    last_pulses_output_path = output_path + "/last_200_pulses"
+
+    analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_pulses_output_path)
+    analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, last_pulses_output_path)
 
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
@@ -250,6 +291,9 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window_ms)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)
+
+    if frequency > 0.5:
+        process_first_and_last_spikes(spatial_firing, window_ms, prm)
 
 
 def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
