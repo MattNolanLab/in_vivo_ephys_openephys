@@ -25,6 +25,10 @@ First, you will need set up phy on Eleanor
 3. Run phy - [params.py](http://params.py) is the name of the file name by manual_curation.py
 
  phy template-gui [params.py](http://params.py/)
+ 
+ if the above doesn't work, try this:
+ 
+ QT_QPA_PLATFORM=xcb phy template-gui params.p
 
 there will be some packages missing most likely. Install these too. You should eventually get an error message about not having a display or something like that at this stage. This is because you also need to set up the x-11 forwarding, so that's fine.
 

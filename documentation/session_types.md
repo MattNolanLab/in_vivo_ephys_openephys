@@ -1,5 +1,5 @@
 ## Recording types
-The analysis pipeline currently supports 4 recording session types: open field, vr, opto and sleep. 
+The analysis pipeline currently supports 5 recording session types: open field, vr, opto, openfield_opto, and sleep. 
 
 ### Open field
 A typical open field recording has data from a mouse that explored a box for about 20-30 minutes. The analysis pipeline is flexible enough to support various box shapes and sizes (for example in an associative memory task).
@@ -37,6 +37,8 @@ For example this is a series of 200 pulses at 100% intensity. Each pulse is 3ms 
 
 Open field or sleep session can contain opto data (typically at the end of the recording). In these cases, the opto metadata should be added too.
 
+### Openfield_Opto
+Openfield_opto sessions are sessions where opto-stimulation happens while the animal is exploring an openfield arena. These are different from opto-tagging sessions as they aim to determine the impact of optical activation/inhibition on the firing properties of different types of neurons during active exploration. These sessions typically include stimulation frequencies between 5-20 Hz for 10-20 minutes. Position and spatial firing data are analysed for the period of stimulation, and then opto pulses are handled separately in the same way that they are handled for opto-tagging. 
 
 ## How to set the session type
 The recording type can be specified in the paramters.txt file by putting 'openfield', 'vr', 'sleep' or 'opto' in the first line.

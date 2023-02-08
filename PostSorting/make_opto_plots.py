@@ -96,7 +96,8 @@ def plot_peristimulus_raster_for_cluster(peristimulus_spikes, cluster, session, 
     plt.ylim(0, cluster_rows.shape[0])
     plt.xlim(0, cluster_rows.shape[1])
     plt.ylabel('Trial', fontsize=24)
-    plt.yticks(np.arange(0, cluster_rows.shape[0] + 1, 50))  # show every 50th tick only
+    plt.yticks(np.arange(0, cluster_rows.shape[0]+1, cluster_rows.shape[0]/4))
+   # plt.yticks(np.arange(0, cluster_rows.shape[0] + 1, 50))  # show every 50th tick only
     plt.tight_layout()
     plt.savefig(save_path + '/peristimulus_raster_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
     plt.close()
@@ -161,6 +162,9 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
     salt_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].SALT_p.iloc[0][0], 4)
     salt_i = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].SALT_I.iloc[0][0], 4)
+    mwu_u = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].iloc[0]['inhibition_MW_U'], 4)
+    mwu_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].iloc[0]['inhibition_MW_p'], 4)
+
     ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5,
                color='lightblue')
     # convert to indices so we can make histogram
@@ -168,14 +172,15 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     hist, bins = np.histogram(spike_indices, bins=number_of_histogram_bins)
     y_label = 'Spike count'
     if y_axis_in_hz:
-        hist, y_label = convert_y_axis_to_hz(cluster_rows, sampling_rate, number_of_histogram_bins, hist)
+        hist = convert_y_axis_to_hz(cluster_rows, sampling_rate, number_of_histogram_bins, hist)
         y_label = 'Firing rate (Hz)'
     width = 0.9 * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
     plt.bar(center, hist, align='center', width=width, color='grey', alpha=0.5)
     plt.xlim(0, len(number_of_spikes_per_sampling_point))
     plt.ylabel(y_label, fontsize=24)
-    plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + "\n" + ' SALT p = ' + str(salt_p) + ' SALT I = ' + str(salt_i))
+    plt.title('Mean latency: ' + str(latencies_mean) + ' ms, sd = ' + str(latencies_sd) + "\n" + ' SALT p = ' + str(salt_p)
+              + ' SALT I = ' + str(salt_i) + "\n" + ' MWU-U = ' + str(mwu_u) + ' MWU-p = ' + str(mwu_p))
     plt.tight_layout()
     if not middle_only:
         plt.savefig(save_path + '/peristimulus_histogram_' + session.iloc[0] + '_' + str(cluster) + '.png', dpi=300)
@@ -432,18 +437,12 @@ def make_optogenetics_plots(spatial_firing: pd.DataFrame, output_path: str, samp
 
 
 def main():
-    path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-04-23_15-13-50_opto3/'
-    # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-10_14-38-02/'
-    ## path = 'C:/Users/s1466507/Documents/Work/opto/M4_2021-04-28_16-29-50_opto/'
-    # path = 'C:/Users/s1466507/Documents/Work/opto/M3_2021-05-07_14-41-36_opto2/'
-    peristim_path = path + 'peristimulus_spikes.pkl'
-    peristimulus_spikes = pd.read_pickle(peristim_path)
-    spatial_firing_path = path + 'spatial_firing.pkl'
-    spatial_firing = pd.read_pickle(spatial_firing_path)
+
+    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/test/peristimulus_spikes.pkl')
+    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/test/spatial_firing_with_inhibition.pkl')
+    save_path = '/Users/briannavandrey/Desktop/test/'
     sampling_rate = 30000
-    plot_peristimulus_raster(peristimulus_spikes, path, sampling_rate, light_pulse_duration=90,
-                             latency_window_ms=10)
-    plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, path, sampling_rate,
+    plot_peristimulus_histogram(spatial_firing, peristimulus_spikes, save_path, sampling_rate,
                                 light_pulse_duration=90, y_axis_in_hz=True)
 
 
