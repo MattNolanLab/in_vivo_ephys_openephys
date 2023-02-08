@@ -256,17 +256,17 @@ def main():
           'change that.')
 
     folders = []
-    folders.append("/mnt/datastore/Harry/Cohort9_Junji/of")
-    folders.append("/mnt/datastore/Harry/Cohort7_october2020/of")
+    #folders.append("/mnt/datastore/Harry/Cohort9_Junji/of")
+    #folders.append("/mnt/datastore/Harry/Cohort7_october2020/of")
     #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort5/OpenField")
     #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort4/OpenFeild")
     #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort3/OpenFeild")
     #folders.append("/mnt/datastore/Sarah/Data/Ramp_project/OpenEphys/_cohort2/OpenField")
-    folders.append("/mnt/datastore/Harry/Cohort6_july2020/of")
+    #folders.append("/mnt/datastore/Harry/Cohort6_july2020/of")
     folders.append("/mnt/datastore/Harry/Cohort8_may2021/of")
 
     for folder in folders:
-        #add_shuffled_cutoffs(folder)
+        add_shuffled_cutoffs(folder)
         add_spatial_classifier_based_on_cutoffs(folder)
         add_spatial_classifier_based_on_classifiers(folder)
     print("look now")
