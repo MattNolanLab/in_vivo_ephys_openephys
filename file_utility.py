@@ -2,6 +2,23 @@ import glob
 import os
 
 
+def getDeadChannel(deadChannelFile):
+    deadChannels = []
+    if os.path.exists(deadChannelFile):
+        with open(deadChannelFile,'r') as f:
+            deadChannels = [int(s) for s in f.readlines()]
+    return deadChannels
+
+def count_files_that_match_in_folder(folder, data_file_prefix, data_file_suffix):
+    file_names = os.listdir(folder)
+    matches=0
+    for i in range(len(file_names)):
+        if ((data_file_prefix in  file_names[i]) and (file_names[i].endswith(data_file_suffix))):
+            corrected_data_file_suffix = file_names[i].split(data_file_prefix)[0]+data_file_prefix # corrects the data prefix, important if recordings vary e.g. 100_CH1, 101_CH1
+            matches += 1
+    return matches, corrected_data_file_suffix
+
+
 def find_the_file(file_path, pattern, type):
     name = None
     file_found = True
