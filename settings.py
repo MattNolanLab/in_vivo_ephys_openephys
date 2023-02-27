@@ -10,6 +10,8 @@ server_path_first_half = '/mnt/datastore/'
 downtime_lists_path = '/home/ubuntu/to_sort/sort_downtime/'
 param_file = '/parameters.txt'
 dead_channel_file_name = "/dead_channels.txt"
+tetrode_geom_path = '/home/ubuntu/to_sort/sorting_files/geom_all_tetrodes_original.csv'
+temp_storage_path = '/home/ubuntu/to_sort/recordings/tmp'
 
 ##########
 # Recording setting
@@ -25,10 +27,10 @@ tetrodeNum = 4 #how many channel in one tetrode
 
 #########
 # sorter configuration
-sorterName = 'MountainSort'
+sorterName = 'mountainsort4'
 is_tetrode_by_tetrode = False #set to True if you want the spike sorting to be done tetrode by tetrode
 all_tetrode_together = True #set to True if you want the spike sorting done on all tetrodes combined
-
+list_of_named_sorters = ['mountainsort', 'mountainsort4','klusta','tridesclous','hdsort','ironclust','kilosort','kilosort2', 'spykingcircus','herdingspikes','waveclus']
 
 ############
 # Analysis
@@ -70,7 +72,7 @@ gauss_sd_for_speed_score = 250
 open_field_bin_size_cm = 2.5
 
 # useful for a shuffled analysis run on eddie
-use_vectorised_rate_map_function = False
-impose_num_cores = True
+use_vectorised_rate_map_function = True
+impose_num_cores = False
 fixed_num_cores = 1
 
