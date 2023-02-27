@@ -122,15 +122,15 @@ def writeFrame(f, timestamp, recording_num, x):
         print('Data point not correct. Skipped')
     return byteWritten
     
-def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=np.float):
+def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=float):
     f = open(fname,'wb')
     writeHeader(f,header)
 
     noFrame = x.size//1024
     
-    if dtype == np.float:
+    if dtype == float:
         #convert back the value to int according to the bitVolts
-        x = np.round(x/np.float(header['bitVolts']))
+        x = np.round(x/float(header['bitVolts']))
     
     for i in range(noFrame):
         if recording_num is not None:
