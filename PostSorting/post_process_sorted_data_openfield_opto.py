@@ -218,7 +218,7 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0])
     start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
     start_times = np.append(opto_on[0][0], start_times_from_second)
-    pulse_width_ms, stimulation_frequency = find_stimulation_frequency(start_times, end_times, sampling_rate)
+    pulse_width_ms, stimulation_frequency = find_pulse_width(start_times, end_times, sampling_rate)
     window_size_ms = find_window_size(stimulation_frequency)
 
     if stimulation_frequency:
