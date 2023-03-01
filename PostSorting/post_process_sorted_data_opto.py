@@ -25,7 +25,7 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
-import PostSorting.post_process_sorted_data_openfield_opto
+from PostSorting.post_process_sorted_data_openfield_opto import find_stimulation_frequency
 # import PostSorting.waveforms_pca
 
 import open_ephys_IO
@@ -174,7 +174,7 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
 
         if opto_analysis:
-            window_ms = PostSorting.post_process_sorted_data_opto.find_stimulation_frequency(opto_on, prm.get_sampling_rate())
+            window_ms = find_stimulation_frequency(opto_on, prm.get_sampling_rate())
             spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm, window_size_ms=window_ms)
 
         make_plots(spike_data, prm.get_output_path(), prm)
