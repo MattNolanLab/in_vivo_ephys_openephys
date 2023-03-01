@@ -25,6 +25,7 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
+import PostSorting.post_process_sorted_data_openfield_opto
 # import PostSorting.waveforms_pca
 
 import open_ephys_IO
@@ -165,7 +166,7 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
     return spike_data, snippet_data, bad_clusters
 
 
-def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_analysis):
+def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_on, opto_start_index, opto_analysis):
     total_length, is_found = set_recording_length(recording_to_process, prm)
     spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length)
     # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
@@ -173,8 +174,8 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
 
         if opto_analysis:
-
-            spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
+            window_ms = PostSorting.post_process_sorted_data_opto.find_stimulation_frequency(opto_on, prm.get_sampling_rate())
+            spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm, window_size_ms=window_ms)
 
         make_plots(spike_data, prm.get_output_path(), prm)
         save_data_frames(spike_data, synced_spatial_data=None, snippet_data=snippet_data, bad_clusters=bad_clusters,
@@ -209,7 +210,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     except:
         print('I cannot analyze the position data for this opto recording.')
-        run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_is_found)
+        run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_on, opto_start_index, opto_is_found)
 
     if position_was_found:
         try:
@@ -217,7 +218,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         except AssertionError as error:
             print(error)
             print('Could not sync position and ephys data for this opto recording. I will run the rest of the analyses.')
-            run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_is_found)
+            run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_on, opto_start_index, opto_is_found)
 
 
 

@@ -9,7 +9,6 @@ Plots of peristimulus spikes and analyses are saved to a '/Opto' subfolder that 
 """
 import os
 import pickle
-
 import numpy as np
 import pandas as pd
 import settings
@@ -220,9 +219,16 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
     start_times = np.append(opto_on[0][0], start_times_from_second)
     pulse_width_ms, stimulation_frequency = find_stimulation_frequency(start_times, end_times, sampling_rate)
-    window_size_for_plots = find_window_size(stimulation_frequency)
+    window_size_ms = find_window_size(stimulation_frequency)
 
-    return stimulation_frequency, pulse_width_ms, window_size_for_plots
+    if stimulation_frequency:
+        print('Stimulation frequency is', stimulation_frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
+        print('I will use a window of', window_size_ms, 'ms for plotting.')
+
+    else:
+        print('Stimulation frequency cannot be determined. Default window size of 200 ms will be used for plotting.')
+
+    return window_size_ms
 
 
 def save_copy_of_opto_pulses(of_output_path, prm):
@@ -248,14 +254,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     print("I will now process opto data from this openfield session.")
     print("---------------------------------------------------------")
 
-    try:
-        frequency, pulse_width_ms, window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
-        print('Stimulation frequency is', frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
-        print('I will use a window of', window_ms, 'ms for plotting.')
-    except:
-        print('Stimulation frequency cannot be determined.')
-        print('Default window size of 200 ms will be used for plotting.')
-        window_ms = 200
+    window_ms = find_stimulation_frequency(opto_on, prm.sampling_rate)
 
     print('I will now process the peristimulus spikes')
     print('This will take a while for high frequency stimulations.')
