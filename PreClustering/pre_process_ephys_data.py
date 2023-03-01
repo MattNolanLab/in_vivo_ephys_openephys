@@ -149,23 +149,43 @@ def split_firing_times_sorting_output(recording_to_sort: str, sorter_name: str, 
         mdaio.writemda32(firing_times_recording, firing_times_path)
 
 
-def split_back(recording_to_sort: str, stitch_points: list, sorter_name='MountainSort'):
+def split_back(recording_to_sort: str, stitch_points: list, sorter_name='MountainSort', SorterInstance=None):
     """
     :param sorter_name: name of spike sorting program
     :param recording_to_sort: Path to recording #1 that is sorted together with other recordings
     :param stitch_points: time points where recordings were concatenated before sorting
     :return: the path (same as input parameter) and the total number of time steps in the combined data
     """
-    print('I will split the data that was sorted together. It might take a while.')
-    n_timestamps = split_continuous_data(recording_to_sort, stitch_points)
-    # split filtered data (sorting input)
-    split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, stitch_points)
-    # copy curation file
-    copy_curation_information(recording_to_sort, sorter_name)
-    # split firings.mda
-    split_firing_times_sorting_output(recording_to_sort, sorter_name, stitch_points)
-    return recording_to_sort, n_timestamps
+    SorterInstances = []
+    if SorterInstance is None:
+        print('I will split the data that was sorted together using the mda format. It might take a while.')
+        n_timestamps = split_continuous_data(recording_to_sort, stitch_points)
+        # split filtered data (sorting input)
+        split_filtered_electrophysiology_data_file(recording_to_sort, sorter_name, stitch_points)
+        # copy curation file
+        copy_curation_information(recording_to_sort, sorter_name)
+        # split firings.mda
+        split_firing_times_sorting_output(recording_to_sort, sorter_name, stitch_points)
+        SorterInstances = [None for i in range(len(stitch_points))]
 
+    else:
+        print('I will split the data that was sorted together using the spike extractor format from spike interface. It might take a while.')
+
+        previous_stitch_point = 0
+        for i in range(len(stitch_points)):
+            start_frame = previous_stitch_point
+            end_frame = int(stitch_points[i])
+            Sorter = SorterInstance.frame_slice(start_frame=start_frame, end_frame=end_frame)
+            #Sorter = correct_firing_times(Sorter, previous_stitch_point)
+            previous_stitch_point = int(stitch_points[i])
+            SorterInstances.append(Sorter)
+        n_timestamps = stitch_points[i]
+
+    return n_timestamps, SorterInstances
+
+def correct_firing_times(Sorter, previous_stitch_point):
+    Sorter._sorting_segments[0]._parent_sorting_segment.spike_indexes = Sorter._sorting_segments[0]._parent_sorting_segment.spike_indexes-previous_stitch_point
+    return Sorter
 
 def stitch_recordings(recording_to_sort: str, paired_recordings: list):
     """
@@ -206,41 +226,42 @@ def stitch_recordings(recording_to_sort: str, paired_recordings: list):
 
 
 # Prepares input for running spike sorting for the recording.
-def process_a_dir(dir_name):
-    print('')
-    print('I am pre-processing data in {} before spike sorting.'.format(dir_name))
-    prm.set_date(dir_name.rsplit('/', 2)[-2])
+def process_a_dir(dir_name, sorter_name):
+    if sorter_name == "MountainSort":
+        print('')
+        print('I am pre-processing data in {} before spike sorting.'.format(dir_name))
+        prm.set_date(dir_name.rsplit('/', 2)[-2])
 
-    prm.set_filepath(dir_name)
-    file_utility.set_continuous_data_path(prm)
+        prm.set_filepath(dir_name)
+        file_utility.set_continuous_data_path(prm)
 
-    PreClustering.dead_channels.get_dead_channel_ids(prm)  # read dead_channels.txt
-    file_utility.create_folder_structure(prm)
+        PreClustering.dead_channels.get_dead_channel_ids(prm)  # read dead_channels.txt
+        file_utility.create_folder_structure(prm)
 
-    if prm.get_is_tetrode_by_tetrode() is True:
-        print('------------------------------------------')
-        print('I am making one mda file for each tetrode.')
-        print('------------------------------------------')
-        PreClustering.make_sorting_database.create_sorting_folder_structure_separate_tetrodes(prm)
-        convert_open_ephys_to_mda.convert_continuous_to_mda(prm)
-        print('All 4 tetrodes were converted to separate mda files.')
-        print('*****************************************************')
+        if prm.get_is_tetrode_by_tetrode() is True:
+            print('------------------------------------------')
+            print('I am making one mda file for each tetrode.')
+            print('------------------------------------------')
+            PreClustering.make_sorting_database.create_sorting_folder_structure_separate_tetrodes(prm)
+            convert_open_ephys_to_mda.convert_continuous_to_mda(prm)
+            print('All 4 tetrodes were converted to separate mda files.')
+            print('*****************************************************')
 
-    if prm.get_is_all_tetrodes_together() is True:
-        print('-------------------------------------------------------------------------')
-        print('I am converting all channels into one mda file. This will take some time.')
-        print('-------------------------------------------------------------------------')
-        PreClustering.make_sorting_database.create_sorting_folder_structure(prm)
-        raw_mda_path = file_utility.get_raw_mda_path_all_channels(prm)
-        convert_open_ephys_to_mda.convert_all_tetrodes_to_mda(prm, raw_mda_path)
-        print('The big mda file is created, it is in Electrophysiology' + prm.get_spike_sorter())
-        print('***************************************************************************************')
+        if prm.get_is_all_tetrodes_together() is True:
+            print('-------------------------------------------------------------------------')
+            print('I am converting all channels into one mda file. This will take some time.')
+            print('-------------------------------------------------------------------------')
+            PreClustering.make_sorting_database.create_sorting_folder_structure(prm)
+            raw_mda_path = file_utility.get_raw_mda_path_all_channels(prm)
+            convert_open_ephys_to_mda.convert_all_tetrodes_to_mda(prm, raw_mda_path)
+            print('The big mda file is created, it is in Electrophysiology' + prm.get_spike_sorter())
+            print('***************************************************************************************')
 
 
 def pre_process_data(dir_name, sorter_name='MountainSort'):
     init_params()
     prm.set_spike_sorter(sorter_name)
-    process_a_dir(dir_name + '/')
+    process_a_dir(dir_name + '/', sorter_name)
 
 
 # call main when you only want to run this through a folder with recordings without the rest of the pipeline
@@ -255,7 +276,7 @@ def main():
     recording_folder = r"C:/Users/s1466507/Documents/Work/stitch_test/M0_2017-11-14_16-54-12_of"
     paired_folder =    r"C:\Users\s1466507\Documents\Work\stitch_test\M2_2017-11-14_16-54-15_of"
 
-    split_back(recording_folder, [2500, 10000], sorter_name='MountainSort')
+    split_back(recording_folder, [2500, 10000], sorter_name='MountainSort', SorterInstance=None)
 
     # stitch_recordings(recording_folder, paired_folder)
 
