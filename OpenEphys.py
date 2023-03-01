@@ -140,14 +140,15 @@ def writeContinuousFile(fname,header,timestamp,x,recording_num=None,dtype=float)
     
     f.close()
     
-def loadContinuousFast(filepath, dtype = float):
+def loadContinuousFast(filepath, dtype = float, verbose=True):
     #A much faster implementation for loading continous file
     #load all data at once rather than by chunks
 
     assert dtype in (float, np.int16), \
         'Invalid data type specified for loadContinous, valid types are float and np.int16'
 
-    print("Loading continuous data...")
+    if verbose:
+        print("Loading continuous data...")
 
     ch = { }
 
