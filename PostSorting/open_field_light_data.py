@@ -5,7 +5,6 @@ import pandas as pd
 from scipy import stats
 import PostSorting.parameters
 import PostSorting.load_snippet_data_opto
-
 import PostSorting.open_field_make_plots
 import time
 import PostSorting.SALT
@@ -13,8 +12,7 @@ import PostSorting.analyse_opto_inhibition
 
 
 def load_opto_data(recording_to_process, opto_channel):
-    is_found = False
-    opto_data = None
+    is_found, opto_data = False, None
     print('loading opto channel...')
     file_path = recording_to_process + '/' + opto_channel
     if os.path.exists(file_path):
@@ -22,28 +20,28 @@ def load_opto_data(recording_to_process, opto_channel):
         is_found = True
     else:
         print('Opto data was not found.')
+
     return opto_data, is_found
 
 
 def get_ons_and_offs(opto_data):
-    # opto_on = np.where(opto_data > np.min(opto_data) + 10 * np.std(opto_data))
-    # opto_off = np.where(opto_data <= np.min(opto_data) + 10 * np.std(opto_data))
     mode = stats.mode(opto_data[::30000])[0][0]
-    opto_on = np.where(opto_data > 0.2 + mode)
-    opto_off = np.where(opto_data <= 0.2 + mode)
+    opto_on, opto_off = np.where(opto_data > 0.2 + mode), np.where(opto_data <= 0.2 + mode)
+
     return opto_on, opto_off
 
 
 def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
-    opto_data, is_found = load_opto_data(recording_to_process, opto_channel)
     first_opto_pulse_index = None
+    opto_data, is_found = load_opto_data(recording_to_process, opto_channel)
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
         if not np.asarray(opto_on).size:
             is_found = False
-        else:
+        else:  # find starts/ends of opto pulses
             first_opto_pulse_index = min(opto_on[0])
+
     return opto_on, opto_off, is_found, first_opto_pulse_index
 
 
@@ -52,9 +50,10 @@ def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
     opto_end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1))
     opto_start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
     opto_start_times = np.append(opto_on[0][0], opto_start_times_from_second)
-    opto_data_frame['opto_start_times'] = opto_start_times
     opto_end_times = np.append(opto_end_times, opto_on[0][-1])
+    opto_data_frame['opto_start_times'] = opto_start_times
     opto_data_frame['opto_end_times'] = opto_end_times
+
     return opto_data_frame
 
 

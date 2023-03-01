@@ -167,6 +167,7 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
 
 
 def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_on, opto_start_index, opto_analysis):
+    print("HELLLLLLLOOOOO")
     total_length, is_found = set_recording_length(recording_to_process, prm)
     spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length)
     # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
