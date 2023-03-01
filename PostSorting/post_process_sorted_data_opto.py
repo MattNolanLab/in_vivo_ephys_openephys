@@ -1,8 +1,6 @@
 import os
 import pickle
-
 import numpy as np
-import pandas as pd
 import settings
 
 import PostSorting.compare_first_and_second_half
@@ -172,10 +170,10 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
     spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length)
     # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     if len(spike_data) > 0:
-        spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
-                                                                            settings.sampling_rate)
+        spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
 
         if opto_analysis:
+
             spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
 
         make_plots(spike_data, prm.get_output_path(), prm)
@@ -191,7 +189,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
-
     PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
@@ -205,13 +202,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
     opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, opto_channel, output_path)
-    # process spatial data
+
+    # process spatial data, if available
     position_was_found = False
     try:
         spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     except:
         print('I cannot analyze the position data for this opto recording.')
-    if not position_was_found:
         run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_is_found)
 
     if position_was_found:
@@ -219,9 +216,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             synced_spatial_data, total_length_seconds = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, opto_start=opto_start_index)
         except AssertionError as error:
             print(error)
-            print('Could not sync position and ephys data. This sometimes happens in opto sessions. '
-                   'I will run the rest of the analyses')
-
+            print('Could not sync position and ephys data for this opto recording. I will run the rest of the analyses.')
             run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_is_found)
 
 
