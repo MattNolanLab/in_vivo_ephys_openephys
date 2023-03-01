@@ -190,24 +190,34 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     pickle.dump(prm, file_handler)
 
 
+# find width of opto pulses based on first two pulses - assumes consistent size & frequency
+def find_pulse_width(starts, ends, fs):
+    stimulation_frequency = None
+    width1, width2 = int(((ends[0] - starts[0]) / fs) * 1000), int(((ends[1] - starts[1]) / fs) * 1000)  # width of first & second pulses
+    between1, between2 = int(((starts[1] - ends[0]) / fs) * 1000), int(((starts[2] - ends[1]) / fs) * 1000)   # time bet. pulse 1&2, 2&3
+
+    if (width1 == width2) and (between1 == between2):  # check vals are same for first two pulses
+        stimulation_frequency = 1000 / (width1 + between1)
+
+    return width1, stimulation_frequency
+
+
 def find_window_size(stimulation_frequency):
     # calculate appropriate size window for plotting - default is 200 ms
-    if stimulation_frequency <= 5:
-        window_size = 200  # default is appropriate for 5 Hz and below
-    else:
+    if stimulation_frequency > 5:
         window_size = 1000 / stimulation_frequency
+    else:  # if stimulation frequency < 5 Hz or not calculated
+        window_size = 200
 
     return int(window_size)
 
 
+# calculate stimulation frequency from time between pulses, return pulse width (ms) and frequency (Hz)
 def find_stimulation_frequency(opto_on, sampling_rate):
-    # calculate stimulation frequency from time between pulses, return pulse width (ms) and frequency (Hz)
-    opto_end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0])
-    opto_start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
-    opto_start_times = np.append(opto_on[0][0], opto_start_times_from_second)
-    pulse_width_ms = int(((opto_end_times[0] - opto_start_times[0]) / sampling_rate) * 1000)
-    between_pulses_ms = int(((opto_start_times[1] - opto_end_times[0]) / sampling_rate) * 1000)
-    stimulation_frequency = 1000 / (pulse_width_ms + between_pulses_ms)
+    end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0])
+    start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
+    start_times = np.append(opto_on[0][0], start_times_from_second)
+    pulse_width_ms, stimulation_frequency = find_stimulation_frequency(start_times, end_times, sampling_rate)
     window_size_for_plots = find_window_size(stimulation_frequency)
 
     return stimulation_frequency, pulse_width_ms, window_size_for_plots
