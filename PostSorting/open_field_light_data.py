@@ -39,8 +39,10 @@ def process_opto_data(recording_to_process, opto_channel):
 
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
-        # catch if empty or less than 10 (random pulses from knocking the Arduino)
-        if not np.asarray(opto_on).size or np.asarray(opto_on).size > 10:
+        # catch if empty or less than 20 (random pulses from knocking the Arduino)
+        if not np.asarray(opto_on).size:
+            is_found = False
+        elif np.asarray(opto_on).size < 1800:  # based on 3 ms pulses
             is_found = False
         else:  # find starts/ends of opto pulses
             first_opto_pulse_index = min(opto_on[0])
@@ -250,7 +252,7 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
 def main():
     import PostSorting.parameters
     prm = PostSorting.parameters.Parameters()
-    prm.set_output_path('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')
+    prm.set_output_path('/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto/MountainSort/')
     path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
     peristimulus_spikes = pd.read_pickle(path)
     path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/spatial_firing.pkl'
