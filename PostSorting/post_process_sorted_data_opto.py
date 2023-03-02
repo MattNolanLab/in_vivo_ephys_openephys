@@ -251,7 +251,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
 
 
 # process spatial firing for window of opto pulses, and then analyse opto data
-def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, output_path):
+def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):
     """
 
     This function analyses sessions where opto-stimulation happens during open field exploration.
@@ -263,7 +263,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
     """
     try:  # try to process position data
         synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
-        spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name(), prm.dead_channels())
+        spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name(), dead_channels)
 
         if opto_found:  # remove position data and spikes before and after stimulation period
             synced_spatial_data, recording_length = remove_exploration_without_opto(start_idx, end_idx, synced_spatial_data, prm.sampling_rate)
@@ -277,7 +277,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
             save_data_frames(spike_data, synced_spatial_data, bad_clusters=bad_clusters, lfp_data=lfp_data)
 
         else:  # process position data and output as normal for open-field trials
-            snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, prm.dead_channels, random_snippets=True)
+            snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, dead_channels, random_snippets=True)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
@@ -338,18 +338,21 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     prm.set_output_path(recording + prm.get_sorter_name())
     output_path = recording + '/' + settings.sorterName
     PreClustering.dead_channels.get_dead_channel_ids(prm)
+    ephys_channels = prm.get_ephys_channels()
+    dead_channels = prm.get_dead_channels()
+    opto_channel = prm.get_opto_channel()
 
     # process lfp and animal position
-    lfp_data = PostSorting.lfp.process_lfp(recording, prm.ephys_channels(), output_path, prm.dead_channels())
+    lfp_data = PostSorting.lfp.process_lfp(recording, ephys_channels, output_path, dead_channels)
     spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording, prm, do_resample=False)
 
     # check for opto, get on and off times and start/end indices for opto
-    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel(), output_path)
+    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, opto_channel, output_path)
 
     # if session type if openfield_opto, analyse position and opto data together
     if session_type is 'openfield_opto':
         if position_is_found:
-            process_opto_with_position(recording, spatial_data, lfp_data, opto_is_found, opto_on, start, end, prm, output_path)
+            process_opto_with_position(recording, spatial_data, lfp_data, opto_is_found, opto_on, start, end, prm, dead_channels, output_path)
         else:  # if problem with position file
             process_optotagging(recording, prm, opto_is_found, opto_on, start)
 
