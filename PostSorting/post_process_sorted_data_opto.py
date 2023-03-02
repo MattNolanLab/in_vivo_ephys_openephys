@@ -233,7 +233,7 @@ def find_stimulation_frequency(opto_on, sampling_rate):
 
 
 def make_opto_plots(spatial_firing, prm):
-    output_path = prm.get_output_path()
+    output_path = prm.get_output_path() + '/Opto'
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
@@ -297,12 +297,12 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
 
             # analyse opto data, if it was found
             if opto_found:
-                prm.set_output_path(output_path + '/Opto')  # set new output folder for opto analysis
                 analyse_opto_data(opto_on, spatial_firing, prm)
 
     except:  # run opto analysis only if there is an error with the position data
         print('I cannot analyze the position data for this opto recording.')
         print('I will run the opto analysis only.')
+        prm.set_output_path(output_path + '/Opto')  # set new output folder for opto analysis
         process_optotagging(recording, prm, opto_found, opto_on, start_idx)
 
 
@@ -325,6 +325,7 @@ def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
             if opto_found:
                 analyse_opto_data(opto_on, spike_data, prm)
                 save_data_frames(spike_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
+
         else:
             print('No curated clusters in this recording.')
     else:
