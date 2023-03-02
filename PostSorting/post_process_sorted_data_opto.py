@@ -204,12 +204,13 @@ def find_pulse_width(starts, ends, fs):
     return width1, stimulation_frequency
 
 
+# calculate appropriate size window for plotting - default is 200 ms
 def find_window_size(stimulation_frequency):
-    # calculate appropriate size window for plotting - default is 200 ms
-    if stimulation_frequency > 5:
+    window_size = 200
+    if stimulation_frequency is None:
+        pass
+    elif stimulation_frequency > 5:
         window_size = 1000 / stimulation_frequency
-    else:  # if stimulation frequency < 5 Hz or not calculated
-        window_size = 200
 
     return int(window_size)
 
@@ -254,13 +255,10 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
 # process spatial firing for window of opto pulses, and then analyse opto data
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):
     """
-
     This function analyses sessions where opto-stimulation happens during open field exploration.
     Position and spatial firing data is analysed from the start of the first pulse to the end of the last pulse + a 1s buffer.
     The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
     assumed to be consistent for the whole trial.
-
-
     """
     try:  # try to process position data
         synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
@@ -308,12 +306,10 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
 
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
     """
-
     This function analyses sessions where opto-stimulation happens independently of behaviour/position
     Animal position is not analysed, and peristimulus spikes from each curated cluster are analysed.
     The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
     assumed to be consistent for the whole trial.
-
     """
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)

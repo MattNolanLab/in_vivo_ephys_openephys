@@ -195,7 +195,3 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
-
-
-
-
