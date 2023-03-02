@@ -88,7 +88,7 @@ def process_light_stimulation(recording_to_process, prm):
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
         opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
-    return opto_on, opto_off, is_found, opto_start_index
+    return opto_on, opto_off, is_found, opto_start_index, opto_end_index
 
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm):
