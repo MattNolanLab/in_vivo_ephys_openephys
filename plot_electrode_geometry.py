@@ -37,6 +37,9 @@ def test_double_probe_interface(save_path):
     plt.savefig("/mnt/datastore/Harry/test_recording/probe_locations_"+str(128)+"_channels.png", dpi=200)
     plt.close()
 
+    probe_df = probegroup.to_dataframe()
+    return
+
 def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')

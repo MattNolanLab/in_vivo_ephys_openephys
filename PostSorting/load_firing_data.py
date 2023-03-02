@@ -9,6 +9,7 @@ import settings
 import open_ephys_IO
 import spikeinterfaceHelper
 import time
+from file_utility import *
 import spikeinterface.qualitymetrics as qm
 import spikeinterface as si
 
@@ -89,8 +90,7 @@ def convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_nei
     firing_data['primary_channel'] = primary_ch
     return firing_data
 
-
-def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=None, number_of_channels_neighborhood=4, SorterInstance=None):
+def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=None, number_of_channels_neighborhood=4, segment_id=0):
     """
     :param recording_to_process: path to the folder with the recording data
     :param sorter_name: name of spike sorter, this will determine the name of the output folder
@@ -101,8 +101,8 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     :return: Data frame with firing times of clusters
     """
     # use SpikeInterface variant if a SorterInstance is available
-    if SorterInstance is not None:
-        return process_firing_times_from_SorterInstance(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=opto_tagging_start_index, SorterInstance=SorterInstance)
+    if found_SorterInstance():
+        return process_firing_times_from_SorterInstance(recording_to_process, opto_tagging_start_index=opto_tagging_start_index, segment_id=segment_id)
 
     recording_length_sampling_points = len(open_ephys_IO.get_data_continuous(recording_to_process+"/"+get_available_ephys_channels(recording_to_process)[0])) # needed for shuffling
     units_list, firing_info, spatial_firing = get_firing_info(recording_to_process, sorter_name)
@@ -129,20 +129,23 @@ def process_firing_times(recording_to_process, sorter_name, dead_channels, opto_
     firing_data = convert_primary_ch_to_individual_tetrode(firing_data, number_of_channels_neighborhood)
     return firing_data
 
-def process_firing_times_from_SorterInstance(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=None, number_of_channels_neighborhood=4, SorterInstance=None):
+def process_firing_times_from_SorterInstance(recording_to_process, opto_tagging_start_index=None, segment_id=0):
     """
     :param recording_to_process: path to the folder with the recording data
-    :param sorter_name: name of spike sorter, this will determine the name of the output folder
-    :param dead_channels: list of dead (broken) channel ids
     :param opto_tagging_start_index: time point when opto-tagging started
-    :param number_of_channels_neighborhood: number of channels sorted together in the same neighbourhood. This is 4 for
-    tetrode recordings.
     :return: Data frame with firing times of clusters
     """
+    firing_data = pd.DataFrame()
+    probe_ids, shank_ids = get_probe_info_from_tmp()
+    for probe_id, shank_id in zip(probe_ids, shank_ids):
+        Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment'+str(segment_id))
 
-    firing_data = spikeinterfaceHelper.sorter2dataframe(SorterInstance, session_id=recording_to_process.split('/')[-1])
-    if opto_tagging_start_index is not None:
-        firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
+        shank_firing_data = spikeinterfaceHelper.sorter2dataframe(Sorter, session_id=recording_to_process.split('/')[-1], probe_id=probe_id, shank_id=shank_id)
+
+        if opto_tagging_start_index is not None:
+            firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
+
+        firing_data = pd.concat([firing_data, shank_firing_data], ignore_index=True)
     return firing_data
 
 def get_available_ephys_channels(recording_to_process):

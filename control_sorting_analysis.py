@@ -9,6 +9,7 @@ import subprocess
 import sys
 import traceback
 import time
+import settings
 import Logger
 from PreClustering import pre_process_ephys_data
 from PostSorting import post_process_sorted_data
@@ -16,9 +17,11 @@ from PostSorting import post_process_sorted_data_vr
 from PostSorting import post_process_sorted_data_sleep
 from PostSorting import post_process_sorted_data_opto
 from PostSorting import post_process_sorted_data_openfield_opto
-
+from spikeinterfaceHelper import *
+import spikeinterface as si
 # set this to true if you want to skip the spike sorting step and use ths data from the server
 skip_sorting = False
+sorterName = settings.sorterName
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
@@ -118,6 +121,14 @@ def get_tags_parameter_file(recording_directory):
         tags = parameters[2]
     return tags
 
+def check_for_tag_name(running_parameter_tags, tag_name):
+    tag_in_file = None
+    if running_parameter_tags is not False:
+        tags = [x.strip() for x in running_parameter_tags.split('*')]
+        for tag in tags:
+            if tag.startswith(tag_name):
+                tag_in_file = str(tag.split("=")[1]).split(',')
+    return tag_in_file
 
 def check_for_paired(running_parameter_tags):
     paired_recordings = None
@@ -161,43 +172,43 @@ def delete_ephys_for_recording(recording):
         shutil.rmtree(recording + "/Electrophysiology")
 
 
-def copy_output_to_server(recording_to_sort, location_on_server):
+def copy_output_to_server(recording_to_sort, location_on_server, sorter_name):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Figures')
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/Firing_fields')
-    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/MountainSort')
+    remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/'+sorter_name)
 
 
-def call_post_sorting_for_session_type(recording_to_sort, session_type, tags):
+def call_post_sorting_for_session_type(recording_to_sort, session_type, tags, segment_id=0):
     if session_type == "openfield":
-        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags)
+        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags, segment_id=segment_id)
     elif session_type == "vr":
-        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags)
+        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags, segment_id=segment_id)
     elif session_type == "sleep":
-        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags)
+        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags, segment_id=segment_id)
     elif session_type == "opto":
-        post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags)
+        post_process_sorted_data_opto.post_process_recording(recording_to_sort, 'opto', running_parameter_tags=tags, segment_id=segment_id)
     elif session_type == "openfield_opto":
-        post_process_sorted_data_openfield_opto.post_process_recording(recording_to_sort, 'openfield_opto', running_parameter_tags=tags)
+        post_process_sorted_data_openfield_opto.post_process_recording(recording_to_sort, 'openfield_opto', running_parameter_tags=tags, segment_id=segment_id)
 
 
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                         paired_recordings_to_sort, paired_session_types,
-                                        stitch_points, tags):
-    recording_to_sort, recs_length = pre_process_ephys_data.split_back(recording_to_sort, stitch_points)
+                                        stitch_points, tags, sorter_name):
+    pre_process_ephys_data.split_back(recording_to_sort, stitch_points, sorter_name=sorter_name)
 
-    call_post_sorting_for_session_type(recording_to_sort, session_type, tags)
+    call_post_sorting_for_session_type(recording_to_sort, session_type, tags, segment_id=1)
     delete_ephys_for_recording(recording_to_sort)
     for index, paired_recording in enumerate(paired_recordings_to_sort):
-        print('I will run the post-sorting scrpits for: ' + paired_recording)
-        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], tags)
-        copy_paired_outputs_to_server(paired_recording)
+        print('I will run the post-sorting scripts for: ' + paired_recording)
+        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], tags, segment_id=2+index)
+        copy_paired_outputs_to_server(paired_recording, sorter_name)
         delete_ephys_for_recording(paired_recording)
 
 
-def copy_paired_outputs_to_server(paired_recordings_to_sort):
+def copy_paired_outputs_to_server(paired_recordings_to_sort, sorter_name):
     if os.path.exists(paired_recordings_to_sort) is True:
         server_loc = get_location_on_server(paired_recordings_to_sort)
-        copy_output_to_server(paired_recordings_to_sort, server_loc)
+        copy_output_to_server(paired_recordings_to_sort, server_loc, sorter_name)
         shutil.rmtree(paired_recordings_to_sort)
 
 
@@ -207,16 +218,33 @@ def check_if_curated_data_is_available(recording_to_sort):
         it_was_curated = True
     return it_was_curated
 
+def check_sorter_is_valid(sorterName):
+    if sorterName in settings.list_of_named_sorters:
+        print("Sorter found in named sorters")
+    else:
+        print("Check the name of the specified sorter")
 
-def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recording=None):
+def run_spike_sorting(recording_to_sort, sorterName):
+    if sorterName == "MountainSort": # legacy spike sorting, operates without spike interface
+        os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
+        print('I will call MountainSort now.')
+        subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
+        os.remove('/home/nolanlab/to_sort/run_sorting.sh')
+        print('MS is done')
+    else:
+        run_spike_sorting_with_spike_interface(recording_to_sort, sorterName)
+
+def call_spike_sorting_analysis_scripts(recording_to_sort):
     print('I will analyze ' + recording_to_sort)
     print(datetime.datetime.now())
     try:
         session_type = get_session_type(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
+        tags = get_tags_parameter_file(recording_to_sort)
+        paired_recording = check_for_paired(tags)
 
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
-
+        paired_recording = None
         if paired_recording is not None:
             print('Multiple recordings will be sorted together: ' + recording_to_sort + ' ' + str(paired_recording))
             if not isinstance(paired_recording, list):
@@ -232,22 +260,25 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
                 paired_locations_on_server.append(paired_location_on_server)
                 paired_session_type = get_session_type(paired_recording_to_sort)
                 paired_session_types.append(paired_session_type)
-            recording_to_sort, stitch_points = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recordings_to_sort)
-        
+            stitch_points = pre_process_ephys_data.stitch_recordings(recording_to_sort, paired_recordings_to_sort)
+
+        sorterName_in_tag = check_for_tag_name(tags, "sorter_name")
+        if sorterName_in_tag is not None:
+            sorterName = sorterName_in_tag
+        else:
+            sorterName = settings.sorterName
+        check_sorter_is_valid(sorterName)
+
+        skip_sorting=True
         if not skip_sorting:
-            pre_process_ephys_data.pre_process_data(recording_to_sort)
+            pre_process_ephys_data.pre_process_data(recording_to_sort, sorterName)
 
             print('I finished pre-processing the first recording.')
             manually_curated = check_if_curated_data_is_available(recording_to_sort)
             if manually_curated:
                 pre_process_ephys_data.save_filtered_raw_mda(recording_to_sort)
             else:
-                os.chmod('/home/nolanlab/to_sort/run_sorting.sh', 484)
-                print('I will call MountainSort now.')
-                subprocess.call('/home/nolanlab/to_sort/run_sorting.sh', shell=True)
-                os.remove('/home/nolanlab/to_sort/run_sorting.sh')
-
-                print('MS is done')
+                run_spike_sorting(recording_to_sort, sorterName)
 
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
@@ -255,7 +286,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         if paired_recording is not None:
             run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                               paired_recordings_to_sort, paired_session_types,
-                                              stitch_points, tags)
+                                              stitch_points, tags, sorter_name=sorterName)
             for path_to_paired_recording in paired_recordings_to_sort:
                 if os.path.exists(path_to_paired_recording) is True:
                     shutil.rmtree(path_to_paired_recording)
@@ -265,7 +296,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
             call_post_sorting_for_session_type(recording_to_sort, session_type, tags=tags)
 
         if os.path.exists(recording_to_sort) is True:
-            copy_output_to_server(recording_to_sort, location_on_server)
+            copy_output_to_server(recording_to_sort, location_on_server, sorterName)
 
         shutil.rmtree(recording_to_sort)
 
@@ -282,7 +313,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
         add_to_list_of_failed_sortings(recording_to_sort)
         location_on_server = get_location_on_server(recording_to_sort)
         if os.path.exists(recording_to_sort) is True:
-            copy_output_to_server(recording_to_sort, location_on_server)
+            copy_output_to_server(recording_to_sort, location_on_server, sorterName)
 
         if not os.environ.get('DEBUG'):  # Keep the recording files during debug run
             shutil.rmtree(recording_to_sort)
@@ -299,7 +330,11 @@ def call_spike_sorting_analysis_scripts(recording_to_sort, tags, paired_recordin
             print('Single run mode was active during the error. '
                   'I will quit immediately with a nonzero exit status instead of continuing to the next recording.')
             exit(1)  # an exit status of 1 means unsuccessful termination/program failure
+    return
 
+def remove_tmp_files():
+    for path in glob.glob(settings.temp_storage_path+"/*"):
+        shutil.rmtree(path)
 
 def delete_processed_line(list_to_read_path):
     with open(list_to_read_path, 'r') as file_in:
@@ -384,15 +419,12 @@ def monitor_to_sort():
     start_time = time.time()
     time_to_wait = 60.0
     while True:
+        #remove_tmp_files()
         print('I am checking whether there is something to sort.')
 
         recording_to_sort = check_folder(sorting_folder)
         if recording_to_sort is not False:
-            tags = get_tags_parameter_file(recording_to_sort)
-            paired_recording = check_for_paired(tags)
-            call_spike_sorting_analysis_scripts(recording_to_sort,
-                                                tags,
-                                                paired_recording=paired_recording)
+            call_spike_sorting_analysis_scripts(recording_to_sort)
 
         else:
             if os.environ.get('SINGLE_RUN'):
@@ -403,11 +435,7 @@ def monitor_to_sort():
 
             recording_to_sort = get_next_recording_on_server_to_sort()
             if recording_to_sort is not False:
-                tags = get_tags_parameter_file(recording_to_sort)
-                paired_recording = check_for_paired(tags)
-                call_spike_sorting_analysis_scripts(recording_to_sort,
-                                                    tags,
-                                                    paired_recording=paired_recording)
+                call_spike_sorting_analysis_scripts(recording_to_sort)
 
             else:
                 time.sleep(time_to_wait - ((time.time() - start_time) % time_to_wait))
@@ -418,7 +446,6 @@ def main():
     print('-------------------------------------------------------------')
     print('This is a script that controls running the spike sorting analysis.')
     print('-------------------------------------------------------------')
-
     monitor_to_sort()
 
 

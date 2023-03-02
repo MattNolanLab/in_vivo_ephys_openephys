@@ -141,7 +141,7 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
     pickle.dump(prm, file_handler)
 
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name=settings.sorterName, segment_id=0):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
@@ -151,6 +151,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
+    number_of_channels, _ = file_utility.count_files_that_match_in_folder(recording_to_process, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
@@ -163,18 +164,15 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
         synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data, opto_start=opto_start_index)
-        spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_start_index)
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
+        spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_start_index, segment_id=segment_id)
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec, number_of_channels)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
-        snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, snippet_data=None, bad_clusters=bad_clusters,lfp_data=lfp_data)
 
         else:
-            snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
-            # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
             spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
             hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
             position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial)
@@ -187,9 +185,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             if opto_is_found:
                 spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
 
-            #spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing, prm)
             spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
-
+            spatial_firing = PostSorting.load_snippet_data.get_snippets(spatial_firing, recording_to_process, sorter_name, dead_channels, random_snippets=True)
             make_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
 

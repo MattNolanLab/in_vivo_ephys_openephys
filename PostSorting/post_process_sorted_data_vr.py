@@ -16,10 +16,10 @@ import PostSorting.vr_cued
 import PostSorting.theta_modulation
 import PostSorting.lfp
 import settings
+import file_utility
 import PreClustering.dead_channels
-
 prm = PostSorting.parameters.Parameters()
-
+import open_ephys_IO
 
 def initialize_parameters(recording_to_process):
     prm.set_sampling_rate(30000)
@@ -43,9 +43,13 @@ def process_position_data(recording_to_process, output_path, track_length, stop_
     return raw_position_data, processed_position_data, position_data
 
 
-def process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds, opto_tagging_start_index=None):
-    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length_seconds)
+def process_firing_properties(recording_to_process, sorter_name, ephys_channels, dead_channels, opto_tagging_start_index=None, segment_id=0):
+    recording_length_in_sampling_points = len(open_ephys_IO.get_data_continuous(recording_to_process+"/"+ephys_channels[0]))
+    total_length_seconds = recording_length_in_sampling_points/settings.sampling_rate
+    n_channels, _ = file_utility.count_files_that_match_in_folder(recording_to_process, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
+
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index, segment_id=segment_id)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length_seconds, n_channels)
     return spike_data
 
 
@@ -105,8 +109,7 @@ def process_running_parameter_tag(running_parameter_tags):
             unexpected_tag = True
     return stop_threshold, track_length, cue_conditioned_goal
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False,
-                           sorter_name=settings.sorterName):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name=settings.sorterName, segment_id=0):
 
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
@@ -115,32 +118,23 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     # Keep all parameter object reference at this level, do not pass them beyond this level
     # keep the configuration of the prm object at a single location only for easily tracking
     stop_threshold, track_length, cue_conditioned_goal = process_running_parameter_tag(running_parameter_tags)
-    prm.set_stop_threshold(stop_threshold)
-    prm.set_track_length(track_length)
-    prm.set_vr_grid_analysis_bin_size(5)
-    prm.set_cue_conditioned_goal(cue_conditioned_goal)
     ephys_channels = prm.get_ephys_channels()
     PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
-
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
 
-    # Process LPF
-    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-
-    # Process position
-    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
-    total_length_seconds = raw_position_data.time_seconds.values[-1]
-
     # Process firing
-    spike_data = process_firing_properties(recording_to_process, sorter_name, dead_channels, total_length_seconds)
+    spike_data = process_firing_properties(recording_to_process, sorter_name, ephys_channels, dead_channels, segment_id=segment_id)
 
     # Curation
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
 
-    # Get snippet of spike waveforms
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=False)
+    # Process LFP
+    lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
+
+    # Process position
+    raw_position_data, processed_position_data, position_data = process_position_data(recording_to_process, output_path, track_length, stop_threshold)
 
     # Perform experiment related analysis
     if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
@@ -160,7 +154,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
 
-        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True)
+        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels,random_snippets=True)
         spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, track_length)
         #spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, output_path, settings.sampling_rate)

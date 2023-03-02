@@ -34,7 +34,7 @@ import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 import PreClustering.dead_channels
-
+import file_utility
 prm = PostSorting.parameters.Parameters()
 
 
@@ -252,7 +252,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     make_opto_plots(spatial_firing, prm)
 
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name=settings.sorterName, segment_id=0):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
@@ -262,6 +262,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
     output_path = recording_to_process+'/'+settings.sorterName
+    number_of_channels, _ = file_utility.count_files_that_match_in_folder(recording_to_process, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
@@ -277,13 +278,13 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     if position_was_found:
         # analyse position and spike data if position data is found
         synced_spatial_data, length_of_recording_sec, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm, spatial_data)
-        spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels)
+        spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, segment_id=segment_id)
         # remove position and spike data before and after stimulation period
         if opto_is_found:
             synced_spatial_data, length_of_recording_sec = remove_exploration_without_opto(opto_start_index, opto_end_index, synced_spatial_data, prm.sampling_rate)
             spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
         # add temporal firing properties and curate clusters
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec)
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, length_of_recording_sec, number_of_channels)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run

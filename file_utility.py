@@ -1,6 +1,6 @@
 import glob
 import os
-
+import settings
 
 def getDeadChannel(deadChannelFile):
     deadChannels = []
@@ -62,6 +62,24 @@ def set_continuous_data_path(prm):
     if os.path.isfile(recording_path) is True:
         init_data_file_names(prm, continuous_file_name_2, continuous_file_name_end_2)
 
+def get_probe_info_from_tmp():
+    list_of_folders = [f.path for f in os.scandir(settings.temp_storage_path) if f.is_dir()]
+    probe_ids = []
+    shank_ids = []
+    for folder_path in list_of_folders:
+        folder_name = folder_path.split("/")[-1]
+        probe_id = folder_name.split("probe")[-1].split("_shank")[0]
+        shank_id = folder_name.split("shank")[-1].split("_segment")[0]
+        probe_ids.append(probe_id)
+        shank_ids.append(shank_id)
+    return probe_ids, shank_ids
+
+def found_SorterInstance():
+    # look for the first sorter instance probe 1 shank 1
+    if os.path.isdir(settings.temp_storage_path+'/sorter_probe1_shank1_segment0'):
+        return True
+    else:
+        return False
 
 def set_dead_channel_path(prm):
     file_path = prm.get_filepath()

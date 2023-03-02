@@ -2,7 +2,7 @@ import numpy as np
 import settings
 
 
-def add_temporal_firing_properties_to_df(spatial_firing, total_length_seconds):
+def add_temporal_firing_properties_to_df(spatial_firing, total_length_seconds, n_channels):
     # calculate number of spikes and mean firing rate for each cluster and add to spatial firing df
     total_number_of_spikes_per_cluster = []
     mean_firing_rates = []
@@ -15,6 +15,7 @@ def add_temporal_firing_properties_to_df(spatial_firing, total_length_seconds):
     spatial_firing['number_of_spikes'] = total_number_of_spikes_per_cluster
     spatial_firing['mean_firing_rate'] = mean_firing_rates
     spatial_firing['recording_length_seconds'] = total_length_seconds
+    spatial_firing['number_of_channels'] = n_channels
     return spatial_firing
 
 

@@ -28,7 +28,7 @@ import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 # import PostSorting.waveforms_pca
-
+import file_utility
 import open_ephys_IO
 
 
@@ -149,13 +149,13 @@ def set_recording_length(recording_to_process, prm):
     return total_length, is_found
 
 
-def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length):
+def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length, segment_id=0):
     """
     Run analyses on spike sorted data to analyze snippets and temporal firing properties.
     """
-    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels,
-                                                                   opto_tagging_start_index=opto_start_index)
-    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length)
+    number_of_channels, _ = file_utility.count_files_that_match_in_folder(recording_to_process, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=opto_start_index, segment_id=segment_id)
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length, number_of_channels)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name,
                                                                 prm.get_local_recording_folder_path(),
                                                                 prm.get_ms_tmp_path())
@@ -167,9 +167,9 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
     return spike_data, snippet_data, bad_clusters
 
 
-def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_analysis):
+def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_analysis, segment_id=0):
     total_length, is_found = set_recording_length(recording_to_process, prm)
-    spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length)
+    spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length, segment_id=segment_id)
     # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
     if len(spike_data) > 0:
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
@@ -185,7 +185,7 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
         print('No curated clusters in this recording.')
 
 
-def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
+def post_process_recording(recording_to_process, session_type, running_parameter_tags=False, sorter_name=settings.sorterName, segment_id=0):
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
     unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
@@ -212,7 +212,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     except:
         print('I cannot analyze the position data for this opto recording.')
     if not position_was_found:
-        run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_is_found)
+        run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_is_found, segment_id=segment_id)
 
     if position_was_found:
         try:

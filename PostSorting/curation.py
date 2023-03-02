@@ -7,6 +7,7 @@ import spikeinterface.qualitymetrics as qm
 import settings
 import numpy as np
 from spikeinterface.postprocessing import compute_principal_components
+from file_utility import *
 
 ignore_curation = False
 
@@ -49,24 +50,32 @@ def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_
         spike_data_frame['peak_amp'] = peak_amplitudes
     return spike_data_frame
 
-def save_waveforms_locally(we, save_folder_path, cluster_ids):
+def save_waveforms_locally(we, save_folder_path, on_shank_cluster_ids, cluster_ids):
     if os.path.exists(save_folder_path) is False:
         os.makedirs(save_folder_path)
-    for id in cluster_ids:
-        waveforms = we.get_waveforms(unit_id=id)
-        np.save(save_folder_path+"waveforms_"+str(id)+".npy", np.array(waveforms))
+    for on_shank_id, cluster_id in zip(on_shank_cluster_ids, cluster_ids):
+        waveforms = we.get_waveforms(unit_id=on_shank_id)
+        np.save(save_folder_path+"waveforms_"+str(cluster_id)+".npy", np.array(waveforms))
 
-def add_primary_channels(spike_data_frame, we):
-    channel_ids = si.get_template_extremum_channel(we)
+def add_primary_channels(spike_data_frame, we, on_shank_cluster_ids):
+    primary_channel_ids = si.get_template_extremum_channel(we)
     primary_channels = []
-    for cluster_index, cluster in spike_data_frame.iterrows():
-        cluster_id = cluster["cluster_id"]
-        primary_channel = channel_ids[cluster_id]
+    for i, cluster in spike_data_frame.iterrows():
+        cluster_id = on_shank_cluster_ids[i]
+        primary_channel = primary_channel_ids[cluster_id]
         primary_channels.append(primary_channel+1)
     spike_data_frame["primary_channel"] = primary_channels
     return spike_data_frame
 
-def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path, SorterInstance=None):
+def get_on_shank_cluster_ids(cluster_ids):
+    on_shank_cluster_ids = []
+    for i in range(len(cluster_ids)):
+        on_shank_cluster_id = str(int(cluster_ids[i]))
+        on_shank_cluster_id = on_shank_cluster_id[2:]
+        on_shank_cluster_ids.append(int(on_shank_cluster_id))
+    return on_shank_cluster_ids
+
+def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
     # first check for manual curation
     manually_curated = control_sorting_analysis.check_if_curated_data_is_available(local_recording_folder_path)
     if manually_curated:
@@ -75,20 +84,31 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
         noisy_cluster = pd.DataFrame()
         noisy_cluster['this is empty'] = 'Noisy clusters were not reloaded. Sort again if you need them.'
         return spike_data_frame, noisy_cluster
-    elif SorterInstance is not None: # add curation metrics from spike interface
+    elif found_SorterInstance(): # add curation metrics from spike interface
 
-        cluster_ids = spike_data_frame["cluster_id"].values.tolist()
+        tmp_spike_data_frame = pd.DataFrame()
         # load the sorting and recording extractor from the tmp folder as curation is done across all valid recordings
-        RecordingInstance = si.load_extractor(settings.temp_storage_path+'/processed')
-        SorterInstance = si.load_extractor(settings.temp_storage_path+'/sorter')
-        we = si.extract_waveforms(RecordingInstance, SorterInstance, folder=settings.temp_storage_path+"/waveforms", ms_before=1, ms_after=1, load_if_exists=False, overwrite=True)
-        save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', cluster_ids)
-        pca = compute_principal_components(we, n_components=5, mode='by_channel_local')
-        quality_metrics = qm.compute_quality_metrics(we, n_jobs = 4, metric_names=['snr','isi_violation','firing_rate', 'presence_ratio', 'amplitude_cutoff',
-                                                                                   'isolation_distance', 'l_ratio', 'd_prime', 'nearest_neighbor', 'nn_isolation', 'nn_noise_overlap'])
-        quality_metrics["cluster_id"] = cluster_ids
-        spike_data_frame = spike_data_frame.merge(quality_metrics, on='cluster_id')
-        spike_data_frame = add_primary_channels(spike_data_frame, we)
+        probe_ids, shank_ids = get_probe_info_from_tmp()
+        for probe_id, shank_id in zip(probe_ids, shank_ids):
+            spike_data_frame_shank = spike_data_frame[(spike_data_frame["probe_id"] == probe_id) & (spike_data_frame["shank_id"] == shank_id)]
+            cluster_ids = spike_data_frame_shank["cluster_id"].values.tolist()
+
+            on_shank_cluster_ids = get_on_shank_cluster_ids(cluster_ids)
+
+            Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
+            Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
+            we = si.extract_waveforms(Sorter, Recording, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0', ms_before=1, ms_after=1, load_if_exists=False, overwrite=True)
+
+            save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', on_shank_cluster_ids, cluster_ids)
+            pca = compute_principal_components(we, n_components=5, mode='by_channel_local')
+            quality_metrics = qm.compute_quality_metrics(we, n_jobs = 4, metric_names=['snr','isi_violation','firing_rate', 'presence_ratio', 'amplitude_cutoff',
+                                                                                       'isolation_distance', 'l_ratio', 'd_prime', 'nearest_neighbor', 'nn_isolation', 'nn_noise_overlap'])
+            quality_metrics["cluster_id"] = cluster_ids
+            spike_data_frame_shank = spike_data_frame_shank.merge(quality_metrics, on='cluster_id')
+            spike_data_frame_shank = add_primary_channels(spike_data_frame_shank, we, on_shank_cluster_ids)
+            tmp_spike_data_frame = pd.concat([tmp_spike_data_frame, spike_data_frame_shank], ignore_index=True)
+        spike_data_frame = tmp_spike_data_frame.copy()
+
         isolation_threshold = 0.9
         noise_overlap_threshold = 0.05
         snr_threshold = 1
@@ -101,6 +121,7 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
 
         good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_snr & high_mean_firing_rate].copy()
         noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
+
 
     else: # otherwise load the curation metrics from mountainsort3
         spike_data_frame = load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path)
