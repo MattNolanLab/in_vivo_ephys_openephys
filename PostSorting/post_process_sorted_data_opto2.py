@@ -3,7 +3,6 @@ import os
 import open_ephys_IO
 import pickle
 import settings
-
 import PreClustering.dead_channels
 import PostSorting.compare_first_and_second_half
 import PostSorting.curation
@@ -253,6 +252,15 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
 
 # process spatial firing for window of opto pulses, and then analyse opto data
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, output_path):
+    """
+
+    This function analyses sessions where opto-stimulation happens during open field exploration.
+    Position and spatial firing data is analysed from the start of the first pulse to the end of the last pulse + a 1s buffer.
+    The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
+    assumed to be consistent for the whole trial.
+
+
+    """
     try:  # try to process position data
         synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
         spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name(), prm.dead_channels())
@@ -298,6 +306,14 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
 
 
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
+    """
+
+    This function analyses sessions where opto-stimulation happens independently of behaviour/position
+    Animal position is not analysed, and peristimulus spikes from each curated cluster are analysed.
+    The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
+    assumed to be consistent for the whole trial.
+
+    """
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)
         spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length)
@@ -337,6 +353,6 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
         else:  # if problem with position file
             process_optotagging(recording, prm, opto_is_found, opto_on, start)
 
-    # if session type is opto or there is no position data, process only opto data
-    elif session_type is 'opto':
+    # process only opto data
+    else:
         process_optotagging(recording, prm, opto_is_found, opto_on, start)

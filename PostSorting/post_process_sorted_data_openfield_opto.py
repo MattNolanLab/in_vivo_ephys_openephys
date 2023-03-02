@@ -326,7 +326,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                 save_copy_of_opto_pulses(output_path, prm)  # save copy of opto_pulses.pkl in new folder
                 analyse_opto_data(opto_on, spatial_firing, prm)
 
-        except:  # run opto analysis only if there is an error with the position data
+        except:
             print('I cannot analyze the position data for this opto recording.')
             print('I will run the opto analysis only.')
             PostSorting.post_process_sorted_data_opto.run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_on, opto_start_index, opto_is_found)
