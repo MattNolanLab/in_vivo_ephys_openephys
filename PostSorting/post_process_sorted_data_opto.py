@@ -125,12 +125,13 @@ def remove_spikes_without_opto(spike_data, spatial_firing, sampling_rate):
     return spike_data
 
 
-def save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, bad_clusters=None, lfp_data=None):
+def save_data_frames(spatial_firing, synced_spatial_data=None, snippet_data=None, bad_clusters=None, lfp_data=None):
     print('I will save the data frames now.')
     if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
         os.makedirs(prm.get_output_path() + '/DataFrames')
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing.pkl')
-    synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
+    if synced_spatial_data is not None:
+        synced_spatial_data.to_pickle(prm.get_output_path() + '/DataFrames/position.pkl')
     if snippet_data is not None:
         snippet_data.to_pickle(prm.get_output_path() + '/DataFrames/snippet_data.pkl')
     if bad_clusters is not None:
@@ -323,7 +324,7 @@ def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
 
             if opto_found:
                 analyse_opto_data(opto_on, spike_data, prm)
-                save_data_frames(spike_data, synced_spatial_data=None, snippet_data=snippet_data, bad_clusters=bad_clusters, lfp_data=None)
+                save_data_frames(spike_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
         else:
             print('No curated clusters in this recording.')
     else:
@@ -350,7 +351,7 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, opto_channel, output_path)
 
     # if session type if openfield_opto, analyse position and opto data together
-    if session_type is 'openfield_opto':
+    if session_type == 'openfield_opto':
         if position_is_found:
             process_opto_with_position(recording, spatial_data, lfp_data, opto_is_found, opto_on, start, end, prm, dead_channels, output_path)
         else:  # if problem with position file
@@ -359,3 +360,17 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     # process only opto data
     else:
         process_optotagging(recording, prm, opto_is_found, opto_on, start)
+
+
+def main():
+    import PostSorting.parameters
+    import pandas as pd
+    prm = PostSorting.parameters.Parameters()
+    recording = '/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto'
+    prm.set_output_path('/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto/MountainSort/')
+    prm.set_opto_channel('100_ADC3.continuous')
+    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
+
+
+if __name__ == '__main__':
+    main()
