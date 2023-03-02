@@ -34,6 +34,7 @@ def get_ons_and_offs(opto_data):
 def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
     first_opto_pulse_index = None
+    last_opto_pulse_index = None
     opto_data, is_found = load_opto_data(recording_to_process, opto_channel)
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
@@ -41,8 +42,9 @@ def process_opto_data(recording_to_process, opto_channel):
             is_found = False
         else:  # find starts/ends of opto pulses
             first_opto_pulse_index = min(opto_on[0])
+            last_opto_pulse_index = max(opto_on[0])
 
-    return opto_on, opto_off, is_found, first_opto_pulse_index
+    return opto_on, opto_off, is_found, first_opto_pulse_index, last_opto_pulse_index
 
 
 def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
