@@ -1,5 +1,4 @@
 import numpy as np
-import math
 import os
 import open_ephys_IO
 import pickle
@@ -27,6 +26,8 @@ import PostSorting.speed
 import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
+
+from scipy.stats import mode
 
 prm = PostSorting.parameters.Parameters()
 
@@ -193,19 +194,16 @@ def analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length
     return spike_data, snippet_data, bad_clusters
 
 
-# find width of opto pulses based on first two pulses - assumes consistent size & frequency
+# find width of opto pulses based on first
 def find_pulse_width(starts, ends, fs):
     stimulation_frequency, width = None, None
     if len(starts) > 50:
         widths, betweens = [], []
-        # calculates width and time between pulses for first 50 pulses (exc. first pulse)
-        for i in range(1, 51):
+        for i in range(1, 51): # calculates width and time between pulses for first 50 pulses (exc. first pulse)
             widths.append(int(((ends[i] - starts[i]) / fs) * 1000))  # pulse widths
-            betweens.append(int(((ends[i+1] - starts[i]) / fs) * 1000))  # time between pulses
-
-        num_pulses = len(widths)
-        width, between = math.ceil(sum(widths)/num_pulses), math.ceil(sum(betweens)/num_pulses)
-        stimulation_frequency = round(1000 / (width + between), 1)
+            betweens.append(int(((starts[i+1] - ends[i]) / fs) * 1000))  # time between pulses
+        width, between = mode(widths)[0][0], mode(betweens)[0][0]  # mode of each array
+        stimulation_frequency = round(1000/(width+between), 1)  # round to first decimal
 
     return width, stimulation_frequency
 
@@ -369,8 +367,8 @@ def main():
     import PostSorting.parameters
     import pandas as pd
     prm = PostSorting.parameters.Parameters()
-    recording = '/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto'
-    prm.set_output_path('/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto/MountainSort/')
+    recording = '/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2'
+    prm.set_output_path('/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2/MountainSort/')
     prm.set_opto_channel('100_ADC3.continuous')
     prm.set_sampling_rate(30000)
     opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
