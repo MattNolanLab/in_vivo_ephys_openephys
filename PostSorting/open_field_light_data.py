@@ -39,10 +39,10 @@ def process_opto_data(recording_to_process, opto_channel):
 
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
-        # catch if empty or less than 20 (random pulses from knocking the Arduino)
+        # catch if empty or less than 50 (random pulses from knocking the Arduino)
         if not np.asarray(opto_on).size:
             is_found = False
-        elif np.asarray(opto_on).size < 1800:  # based on 3 ms pulses
+        elif np.asarray(opto_on).size < 4500:  # based on 3 ms pulses
             is_found = False
         else:  # find starts/ends of opto pulses
             first_opto_pulse_index = min(opto_on[0])
