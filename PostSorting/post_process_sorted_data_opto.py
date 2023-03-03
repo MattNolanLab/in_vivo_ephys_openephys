@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import os
 import open_ephys_IO
 import pickle
@@ -194,14 +195,19 @@ def analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length
 
 # find width of opto pulses based on first two pulses - assumes consistent size & frequency
 def find_pulse_width(starts, ends, fs):
-    stimulation_frequency = None
-    width1, width2 = int(((ends[0] - starts[0]) / fs) * 1000), int(((ends[1] - starts[1]) / fs) * 1000)  # width of first & second pulses
-    between1, between2 = int(((starts[1] - ends[0]) / fs) * 1000), int(((starts[2] - ends[1]) / fs) * 1000)   # time bet. pulse 1&2, 2&3
+    stimulation_frequency, width = None, None
+    if len(starts) > 50:
+        widths, betweens = [], []
+        # calculates width and time between pulses for first 50 pulses (exc. first pulse)
+        for i in range(1, 51):
+            widths.append(int(((ends[i] - starts[i]) / fs) * 1000))  # pulse widths
+            betweens.append(int(((ends[i+1] - starts[i]) / fs) * 1000))  # time between pulses
 
-    if (width1 == width2) and (between1 == between2):  # check vals are same for first two pulses
-        stimulation_frequency = 1000 / (width1 + between1)
+        num_pulses = len(widths)
+        width, between = math.ceil(sum(widths)/num_pulses), math.ceil(sum(betweens)/num_pulses)
+        stimulation_frequency = round(1000 / (width + between), 1)
 
-    return width1, stimulation_frequency
+    return width, stimulation_frequency
 
 
 # calculate appropriate size window for plotting - default is 200 ms
@@ -366,7 +372,9 @@ def main():
     recording = '/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto'
     prm.set_output_path('/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto/MountainSort/')
     prm.set_opto_channel('100_ADC3.continuous')
+    prm.set_sampling_rate(30000)
     opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
+    window = find_stimulation_frequency(opto_on, prm.sampling_rate)
 
 
 if __name__ == '__main__':
