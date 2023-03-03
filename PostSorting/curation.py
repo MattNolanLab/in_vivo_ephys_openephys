@@ -55,7 +55,7 @@ def save_waveforms_locally(we, save_folder_path, on_shank_cluster_ids, cluster_i
         os.makedirs(save_folder_path)
     for on_shank_id, cluster_id in zip(on_shank_cluster_ids, cluster_ids):
         waveforms = we.get_waveforms(unit_id=on_shank_id)
-        np.save(save_folder_path+"waveforms_"+str(cluster_id)+".npy", np.array(waveforms))
+        np.save(save_folder_path+"waveforms_"+str(int(cluster_id))+".npy", np.array(waveforms))
 
 def add_primary_channels(spike_data_frame, we, on_shank_cluster_ids):
     primary_channel_ids = si.get_template_extremum_channel(we)
@@ -97,7 +97,7 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
 
             Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
             Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
-            we = si.extract_waveforms(Sorter, Recording, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0', ms_before=1, ms_after=1, load_if_exists=False, overwrite=True)
+            we = si.extract_waveforms(Recording, Sorter, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0', ms_before=1, ms_after=1, load_if_exists=False, overwrite=True)
 
             save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', on_shank_cluster_ids, cluster_ids)
             pca = compute_principal_components(we, n_components=5, mode='by_channel_local')
