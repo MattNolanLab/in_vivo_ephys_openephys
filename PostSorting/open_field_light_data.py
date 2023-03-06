@@ -61,7 +61,7 @@ def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
     return opto_data_frame
 
 
-# find width of opto pulses based on first
+# find width of opto pulses based on first 50 pulses
 def find_pulse_width(starts, ends, fs):
     stimulation_frequency, width = None, None
     if len(starts) > 50:
@@ -75,19 +75,19 @@ def find_pulse_width(starts, ends, fs):
     return width, stimulation_frequency
 
 
-# calculate appropriate size window for plotting - default is 200 ms
+# calculate size of window for plotting/analysis - default is 200 ms
 def find_window_size(stimulation_frequency):
     window_size = 200
     if stimulation_frequency is None:
         pass
-    elif stimulation_frequency > 5:
-        window_size = 1000 / stimulation_frequency
+    elif stimulation_frequency > 5:  # 200 ms window is appropriate for < 5 Hz stimulations
+        window_size = 1000 / stimulation_frequency  # calculate window size
+        if window_size % 2 != 0:  # check for parity of window
+            print("Window size calculated for opto analysis was not divisible by 2...")
+            stimulation_frequency = None  # return to None and use default window
+            window_size = 200
 
-    if window_size % 2 != 0:  # check for parity of window
-        print("Window size must be divisible by 2")
-        assert window_size % 2 == 0
-
-    return int(window_size)
+    return stimulation_frequency, int(window_size)
 
 
 # calculate stimulation frequency from time between pulses, return pulse width (ms) and frequency (Hz)
@@ -96,7 +96,7 @@ def find_stimulation_frequency(opto_on, sampling_rate):
     start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
     start_times = np.append(opto_on[0][0], start_times_from_second)
     pulse_width_ms, stimulation_frequency = find_pulse_width(start_times, end_times, sampling_rate)
-    window_size_ms = find_window_size(stimulation_frequency)
+    stimulation_frequency, window_size_ms = find_window_size(stimulation_frequency)
 
     if stimulation_frequency:
         print('Stimulation frequency is', stimulation_frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
