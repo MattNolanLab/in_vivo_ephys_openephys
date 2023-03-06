@@ -179,13 +179,6 @@ def find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rat
     return spikes_in_window_binary
 
 
-#def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary, window_size_sampling_rate): # todo: is this used anywhere???
-#    columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
-#    df_row = np.append([session_id, cluster_id], spikes_in_window_binary.astype(int))
-#    df_to_append = pd.DataFrame([(df_row)], columns=columns)
-#    return df_to_append
-
-
 # create dataframe that contains peristimulus spikes in specified window (default 200 ms)
 def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path):
     print('I am making the peristimulus data frame...')
@@ -284,6 +277,7 @@ def analyse_latencies(spatial_firing, sampling_rate):
     return spatial_firing
 
 
+# main function for analysing spike latency around light pulses
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10):
     print('I will process spikes around light...')
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
@@ -291,8 +285,8 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
     get_opto_parameters(path_to_recording, output_path, window_size_ms, first_spike_latency_ms, opto_file_name='opto_parameters.csv')
     on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)  # get peristimulus spikes
-    first_spike_latency_sampling_points = sampling_rate / 1000 * first_spike_latency_ms
-    spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency_sampling_points)
+    first_spike_latency = sampling_rate / 1000 * first_spike_latency_ms  # in sampling points
+    spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency)
     spatial_firing = analyse_latencies(spatial_firing, sampling_rate)
     spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True)
     spatial_firing = PostSorting.load_snippet_data_opto.get_opto_snippets(spatial_firing, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels, random_snippets=True, column_name='first_spike_snippets_opto', firing_times_column='spike_times_after_opto')
