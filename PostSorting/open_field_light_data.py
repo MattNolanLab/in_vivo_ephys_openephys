@@ -69,7 +69,7 @@ def find_pulse_width(starts, ends, fs):
         for i in range(1, 51):  # calculates width and time between pulses for first 50 pulses (exc. first pulse)
             widths.append(int(((ends[i] - starts[i]) / fs) * 1000))  # pulse widths
             betweens.append(int(((starts[i + 1] - ends[i]) / fs) * 1000))  # time between pulses
-        width, between = mode(widths)[0][0], mode(betweens)[0][0]  # mode of each array
+        width, between = stats.mode(widths)[0][0], stats.mode(betweens)[0][0]  # mode of each array
         stimulation_frequency = round(1000 / (width + between), 1)  # round to first decimal
 
     return width, stimulation_frequency

@@ -27,12 +27,12 @@ import PostSorting.temporal_firing
 import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 
-from scipy.stats import mode
-
 prm = PostSorting.parameters.Parameters()
 
 
 def create_folders_for_output(recording_to_process):
+    if os.path.exists(recording_to_process + '/Figures') is False:
+        os.makedirs(recording_to_process + '/Figures')
     if os.path.exists(recording_to_process + '/DataFrames') is False:
         os.makedirs(recording_to_process + '/DataFrames')
 
@@ -181,7 +181,7 @@ def set_recording_length(recording_to_process, prm):
     return total_length, is_found
 
 
-# Run analyses on spike sorted data to analyze snippets and temporal firing properties
+# run analyses on spike sorted data to analyze snippets and temporal firing properties
 def analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length):
     spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, prm.get_dead_channels(), opto_tagging_start_index=start_idx)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length)
@@ -321,7 +321,6 @@ def main():
     prm.set_output_path('/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2/MountainSort/')
     prm.set_opto_channel('100_ADC3.continuous')
     prm.set_sampling_rate(30000)
-  #  post_process_recording(recording, 'opto', running_parameter_tags=False, sorter_name='MountainSort')
  #   opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
  #   window = find_stimulation_frequency(opto_on, prm.sampling_rate)
 
