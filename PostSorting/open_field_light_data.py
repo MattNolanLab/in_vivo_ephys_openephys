@@ -31,22 +31,20 @@ def get_ons_and_offs(opto_data):
     return opto_on, opto_off
 
 
+# check for opto pulses, find ons/offs and return start/end indices
 def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
-    first_opto_pulse_index = None
-    last_opto_pulse_index = None
+    first_opto_pulse_index, last_opto_pulse_index = None, None
     opto_data, is_found = load_opto_data(recording_to_process, opto_channel)
 
     if is_found:
         opto_on, opto_off = get_ons_and_offs(opto_data)
-        # catch if empty or less than 50 (random pulses from knocking the Arduino)
-        if not np.asarray(opto_on).size:
+        if not np.asarray(opto_on).size:  # if empty
             is_found = False
-        elif np.asarray(opto_on).size < 4500:  # based on 3 ms pulses
+        elif np.asarray(opto_on).size < 4500:  # if less than 50 (ie pulses from knocking the Arduino)
             is_found = False
         else:  # find starts/ends of opto pulses
-            first_opto_pulse_index = min(opto_on[0])
-            last_opto_pulse_index = max(opto_on[0])
+            first_opto_pulse_index, last_opto_pulse_index = min(opto_on[0]), max(opto_on[0])
 
     return opto_on, opto_off, is_found, first_opto_pulse_index, last_opto_pulse_index
 
@@ -63,16 +61,58 @@ def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
     return opto_data_frame
 
 
-def check_parity_of_window_size(window_size_ms):
-    if window_size_ms % 2 != 0:
+# find width of opto pulses based on first
+def find_pulse_width(starts, ends, fs):
+    stimulation_frequency, width = None, None
+    if len(starts) > 50:
+        widths, betweens = [], []
+        for i in range(1, 51):  # calculates width and time between pulses for first 50 pulses (exc. first pulse)
+            widths.append(int(((ends[i] - starts[i]) / fs) * 1000))  # pulse widths
+            betweens.append(int(((starts[i + 1] - ends[i]) / fs) * 1000))  # time between pulses
+        width, between = mode(widths)[0][0], mode(betweens)[0][0]  # mode of each array
+        stimulation_frequency = round(1000 / (width + between), 1)  # round to first decimal
+
+    return width, stimulation_frequency
+
+
+# calculate appropriate size window for plotting - default is 200 ms
+def find_window_size(stimulation_frequency):
+    window_size = 200
+    if stimulation_frequency is None:
+        pass
+    elif stimulation_frequency > 5:
+        window_size = 1000 / stimulation_frequency
+
+    if window_size % 2 != 0:  # check for parity of window
         print("Window size must be divisible by 2")
-        assert window_size_ms % 2 == 0
+        assert window_size % 2 == 0
+
+    return int(window_size)
+
+
+# calculate stimulation frequency from time between pulses, return pulse width (ms) and frequency (Hz)
+def find_stimulation_frequency(opto_on, sampling_rate):
+    end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0])
+    start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
+    start_times = np.append(opto_on[0][0], start_times_from_second)
+    pulse_width_ms, stimulation_frequency = find_pulse_width(start_times, end_times, sampling_rate)
+    window_size_ms = find_window_size(stimulation_frequency)
+
+    if stimulation_frequency:
+        print('Stimulation frequency is', stimulation_frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
+        print('I will use a window of', window_size_ms, 'ms for plotting.')
+
+    else:
+        print('Stimulation frequency cannot be determined. Default window size of 200 ms will be used for plotting.')
+
+    return window_size_ms
 
 
 def get_on_pulse_times(output_path):
     path_to_pulses = output_path + '/DataFrames/opto_pulses.pkl'
     pulses = pd.read_pickle(path_to_pulses)
     on_pulses = pulses.opto_start_times
+
     return on_pulses
 
 
@@ -81,17 +121,18 @@ def get_firing_times(cell):
         firing_times = np.append(cell.firing_times, cell.firing_times_opto)
     else:
         firing_times = cell.firing_times
+
     return firing_times
 
 
 def find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate):
     spikes_in_window_binary = np.zeros(window_size_sampling_rate)
-    window_start = int(pulse - window_size_sampling_rate / 2)
-    window_end = int(pulse + window_size_sampling_rate / 2)
+    window_start, window_end = int(pulse - window_size_sampling_rate / 2), int(pulse + window_size_sampling_rate / 2)
     spikes_in_window_indices = np.where((firing_times > window_start) & (firing_times < window_end))
     spike_times = np.take(firing_times, spikes_in_window_indices)[0]
     position_of_spikes = spike_times.astype(int) - window_start
     spikes_in_window_binary[position_of_spikes] = 1
+
     return spikes_in_window_binary
 
 
@@ -102,16 +143,16 @@ def make_df_to_append_for_pulse(session_id, cluster_id, spikes_in_window_binary,
     return df_to_append
 
 
-def get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate):
-    print('Get data for peristimulus array.')
-    check_parity_of_window_size(window_size_ms)
+def get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate):
+    print('I am getting data for peristimulus array.')
     on_pulses = get_on_pulse_times(output_path)  # these are the start times of the pulses
     window_size_sampling_rate = int(sampling_rate/1000 * window_size_ms)
     return on_pulses, window_size_sampling_rate
 
 
+# create dataframe that contains peristimulus spikes in specified window
 def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path):
-    print('Make peristimulus data frame.')
+    print('I am making the peristimulus data frame...')
     start_time = time.time()
     peristimulus_spikes_path = output_path + '/DataFrames/peristimulus_spikes.pkl'
     columns = np.append(['session_id', 'cluster_id'], range(window_size_sampling_rate))
@@ -121,16 +162,19 @@ def make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, o
     number_of_rows = len(on_pulses) * len(spatial_firing.cluster_id.unique())
     peristimulus_spikes_binary = np.empty([number_of_rows, window_size_sampling_rate])
     row_number_in_binary_array = 0
+
     for cell_index, cell in spatial_firing.iterrows():
         for pulse in on_pulses:
             firing_times = get_firing_times(cell)
             spikes_in_window_binary = find_spike_positions_in_window(pulse, firing_times, window_size_sampling_rate)
             peristimulus_spikes_binary[row_number_in_binary_array] = spikes_in_window_binary
             row_number_in_binary_array += 1
+
     peristimulus_spikes.iloc[:, 2:] = peristimulus_spikes_binary
     peristimulus_spikes.to_pickle(peristimulus_spikes_path)
     elapsed_time = time.time() - start_time
     print('making the peristimulus df took:' + str(elapsed_time))
+
     return peristimulus_spikes
 
 
@@ -150,6 +194,7 @@ def get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_laten
     else:
         first_spike_after_pulse = np.nan
         latency = np.nan
+
     return first_spike_after_pulse, latency
 
 
@@ -166,51 +211,41 @@ def assert_firing_times_is_sorted(firing_times):
 def add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=300):
     # Identifies first spike firing times and latencies and makes columns ('spike_times_after_opto' and 'latencies')
     print('I will find the first spikes after the light for each opto stimulation pulse.')
-    first_spikes_times = []
-    latencies = []
+    first_spikes_times, latencies = [], []
+
     for cluster_index, cluster in spatial_firing.iterrows():
         firing_times = cluster.firing_times_opto
         assert_firing_times_is_sorted(firing_times)
-        first_spikes_times_cell = []
-        latencies_cell = []
+        first_spikes_times_cell, latencies_cell = [], []
+
         for pulse in on_pulses:
             first_spike_after_pulse, latency = get_first_spike_and_latency_for_pulse(firing_times, pulse, first_spike_latency)
             first_spikes_times_cell.append(first_spike_after_pulse)
             latencies_cell.append(latency)
+
         first_spikes_times.append(first_spikes_times_cell)
         latencies.append(latencies_cell)
+
     spatial_firing['spike_times_after_opto'] = first_spikes_times
     spatial_firing['opto_latencies'] = latencies
+
     return spatial_firing
 
 
 def analyse_latencies(spatial_firing, sampling_rate):
     print('Analyse latencies.')
-    latencies_mean_ms = []
-    latencies_sd_ms = []
+    latencies_mean_ms, latencies_sd_ms = [], []
 
     for cluster_index, cluster in spatial_firing.iterrows():
         mean = np.nanmean(cluster.opto_latencies) / sampling_rate * 1000
         sd = np.nanstd(cluster.opto_latencies) / sampling_rate * 1000
         latencies_mean_ms.append(mean)
         latencies_sd_ms.append(sd)
+
     spatial_firing['opto_latencies_mean_ms'] = latencies_mean_ms
     spatial_firing['opto_latencies_sd_ms'] = latencies_sd_ms
+
     return spatial_firing
-
-
-def get_opto_parameters(path_to_recording, opto_file_name='opto_parameters.csv'):
-    found = False
-    opto_parameters = np.nan
-    for file_name in os.listdir(path_to_recording):
-        if file_name == opto_file_name:
-            print('I found the opto parameters file.')
-            found = True
-            opto_parameters_path = path_to_recording + file_name
-            opto_parameters = pd.read_csv(opto_parameters_path)
-    if not found:
-        print('There is no opto parameters file, I will assume they are all the same intensity and plot them together.')
-    return opto_parameters, found
 
 
 def load_parameters(prm):
@@ -224,20 +259,41 @@ def load_parameters(prm):
     return output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels
 
 
-def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms, save_path='/DataFrames/opto_parameters.pkl'):
+def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms):
+    save_path = '/DataFrames/opto_parameters.pkl'
+
     if opto_params_is_found:
         opto_parameters['window_size_ms'] = window_size_ms
         opto_parameters['first_spike_latency_ms'] = first_spike_latency_ms
         opto_parameters.to_pickle(output_path + save_path)
 
 
+def get_opto_parameters(path_to_recording, output_path, window_size, first_spike_latency, opto_file_name='opto_parameters.csv'):
+    found = False
+    opto_parameters = np.nan
+
+    for file_name in os.listdir(path_to_recording):
+        if file_name == opto_file_name:
+            print('I found the opto parameters file.')
+            found = True
+            opto_parameters_path = path_to_recording + file_name
+            opto_parameters = pd.read_csv(opto_parameters_path)
+
+    if not found:
+        print('There is no opto parameters file, I will assume they are all the same intensity.')
+
+    save_opto_metadata(found, opto_parameters, output_path, window_size, first_spike_latency)
+
+    return opto_parameters, found
+
+
 def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10):
+    print('I will process spikes around light...')
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
-    print('I will process opto data.')
     path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
-    opto_parameters, opto_params_is_found = get_opto_parameters(path_to_recording, opto_file_name='opto_parameters.csv')
-    save_opto_metadata(opto_params_is_found, opto_parameters, output_path, window_size_ms, first_spike_latency_ms)
-    on_pulses, window_size_sampling_rate = get_peristumulus_opto_data(window_size_ms, output_path, sampling_rate)
+    get_opto_parameters(path_to_recording, output_path, window_size_ms, first_spike_latency_ms, opto_file_name='opto_parameters.csv')
+
+    on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)
     first_spike_latency_sampling_points = sampling_rate / 1000 * first_spike_latency_ms
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency_sampling_points)
@@ -247,24 +303,3 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
     spatial_firing = PostSorting.SALT.run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_spikes)
     spatial_firing = PostSorting.analyse_opto_inhibition.run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
     return spatial_firing
-
-
-def main():
-    import PostSorting.parameters
-    prm = PostSorting.parameters.Parameters()
-    prm.set_output_path('/Users/briannavandrey/Desktop/1546_2023-03-01_12-30-17_opto/MountainSort/')
-    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/peristimulus_spikes.pkl'
-    peristimulus_spikes = pd.read_pickle(path)
-    path = 'C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/DataFrames/spatial_firing.pkl'
-    spatial_firing = pd.read_pickle(path)
-    spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, [11, 203, 3400],
-                                                             first_spike_latency=300000)
-    sampling_rate = 30000
-    prm.set_sampling_rate(30000)
-    output_path = ('C:/Users/s1466507/Documents/Work/opto/M2_2021-02-17_18-07-42_of/MountainSort/')
-    process_spikes_around_light(spatial_firing, prm, window_size_ms=100, first_spike_latency_ms=10)
-
-
-if __name__ == '__main__':
-    main()
-

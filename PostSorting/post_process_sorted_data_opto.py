@@ -35,8 +35,6 @@ prm = PostSorting.parameters.Parameters()
 def create_folders_for_output(recording_to_process):
     if os.path.exists(recording_to_process + '/DataFrames') is False:
         os.makedirs(recording_to_process + '/DataFrames')
-    if os.path.exists(recording_to_process + '/Opto') is False:
-        os.makedirs(recording_to_process + '/Opto')
 
 
 def initialize_parameters(recording_to_process):
@@ -185,60 +183,17 @@ def set_recording_length(recording_to_process, prm):
 
 # Run analyses on spike sorted data to analyze snippets and temporal firing properties
 def analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length):
-    spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, prm.dead_channels, opto_tagging_start_index=start_idx)
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, prm.get_dead_channels(), opto_tagging_start_index=start_idx)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length)
     spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, prm.dead_channels, random_snippets=False)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, prm.dead_channels, random_snippets=True)
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, prm.get_dead_channels(), random_snippets=False)
+    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, prm.get_dead_channels(), random_snippets=True)
 
     return spike_data, snippet_data, bad_clusters
 
 
-# find width of opto pulses based on first
-def find_pulse_width(starts, ends, fs):
-    stimulation_frequency, width = None, None
-    if len(starts) > 50:
-        widths, betweens = [], []
-        for i in range(1, 51): # calculates width and time between pulses for first 50 pulses (exc. first pulse)
-            widths.append(int(((ends[i] - starts[i]) / fs) * 1000))  # pulse widths
-            betweens.append(int(((starts[i+1] - ends[i]) / fs) * 1000))  # time between pulses
-        width, between = mode(widths)[0][0], mode(betweens)[0][0]  # mode of each array
-        stimulation_frequency = round(1000/(width+between), 1)  # round to first decimal
-
-    return width, stimulation_frequency
-
-
-# calculate appropriate size window for plotting - default is 200 ms
-def find_window_size(stimulation_frequency):
-    window_size = 200
-    if stimulation_frequency is None:
-        pass
-    elif stimulation_frequency > 5:
-        window_size = 1000 / stimulation_frequency
-
-    return int(window_size)
-
-
-# calculate stimulation frequency from time between pulses, return pulse width (ms) and frequency (Hz)
-def find_stimulation_frequency(opto_on, sampling_rate):
-    end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0])
-    start_times_from_second = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1)[0] + 1)
-    start_times = np.append(opto_on[0][0], start_times_from_second)
-    pulse_width_ms, stimulation_frequency = find_pulse_width(start_times, end_times, sampling_rate)
-    window_size_ms = find_window_size(stimulation_frequency)
-
-    if stimulation_frequency:
-        print('Stimulation frequency is', stimulation_frequency, 'Hz, where each pulse is', pulse_width_ms, 'ms wide')
-        print('I will use a window of', window_size_ms, 'ms for plotting.')
-
-    else:
-        print('Stimulation frequency cannot be determined. Default window size of 200 ms will be used for plotting.')
-
-    return window_size_ms
-
-
 def make_opto_plots(spatial_firing, prm):
-    output_path = prm.get_output_path() + '/Opto'
+    output_path = prm.get_output_path()
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
@@ -247,7 +202,7 @@ def make_opto_plots(spatial_firing, prm):
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
     # determine pulse width/freq and output plot window size
-    window = find_stimulation_frequency(opto_on, prm.sampling_rate)
+    window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)
 
     print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations...')
 
@@ -304,16 +259,12 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
     except:  # run opto analysis only if there is an error with the position data
         print('I cannot analyze the position data for this opto recording.')
         print('I will run the opto analysis only.')
-        prm.set_output_path(output_path + '/Opto')  # set new output folder for opto analysis
         process_optotagging(recording, prm, opto_found, opto_on, start_idx)
 
 
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
     """
-    This function analyses sessions where opto-stimulation happens independently of behaviour/position
-    Animal position is not analysed, and peristimulus spikes from each curated cluster are analysed.
-    The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
-    assumed to be consistent for the whole trial.
+    Analyses opto pulses only, without position
     """
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)
@@ -365,14 +316,14 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
 
 def main():
     import PostSorting.parameters
-    import pandas as pd
     prm = PostSorting.parameters.Parameters()
     recording = '/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2'
     prm.set_output_path('/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2/MountainSort/')
     prm.set_opto_channel('100_ADC3.continuous')
     prm.set_sampling_rate(30000)
-    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
-    window = find_stimulation_frequency(opto_on, prm.sampling_rate)
+  #  post_process_recording(recording, 'opto', running_parameter_tags=False, sorter_name='MountainSort')
+ #   opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
+ #   window = find_stimulation_frequency(opto_on, prm.sampling_rate)
 
 
 if __name__ == '__main__':
