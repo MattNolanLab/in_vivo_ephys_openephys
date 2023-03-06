@@ -201,6 +201,14 @@ def make_opto_plots(spatial_firing, prm):
 
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
+    """
+    :param opto_on: times of where opto pulse is on
+    :param spatial_firing: spike data
+
+    Width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
+    assumed to be consistent for the whole trial. 200 ms analysis window is used as a default.
+    """
+
     # determine pulse width/freq and output plot window size
     window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)
 
@@ -214,10 +222,8 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
 # process spatial firing for window of opto pulses, and then analyse opto data
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):
     """
-    This function analyses sessions where opto-stimulation happens during open field exploration.
+    Analyses sessions where opto-stimulation happens during open field exploration.
     Position and spatial firing data is analysed from the start of the first pulse to the end of the last pulse + a 1s buffer.
-    The width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
-    assumed to be consistent for the whole trial.
     """
     try:  # try to process position data
         synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
@@ -262,10 +268,8 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
         process_optotagging(recording, prm, opto_found, opto_on, start_idx)
 
 
+# analyse opto pulses only
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
-    """
-    Analyses opto pulses only, without position
-    """
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)
         spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length)
@@ -309,21 +313,6 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
         else:  # if problem with position file
             process_optotagging(recording, prm, opto_is_found, opto_on, start)
 
-    # process only opto data
+    # process only opto data, no further analysis of position (even if available)
     else:
         process_optotagging(recording, prm, opto_is_found, opto_on, start)
-
-
-def main():
-    import PostSorting.parameters
-    prm = PostSorting.parameters.Parameters()
-    recording = '/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2'
-    prm.set_output_path('/Users/briannavandrey/Desktop/1543_2023-02-08_11-27-58_opto2/MountainSort/')
-    prm.set_opto_channel('100_ADC3.continuous')
-    prm.set_sampling_rate(30000)
- #   opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, prm.opto_channel, prm.output_path)
- #   window = find_stimulation_frequency(opto_on, prm.sampling_rate)
-
-
-if __name__ == '__main__':
-    main()
