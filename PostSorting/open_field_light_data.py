@@ -285,8 +285,8 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
         print('I will process spikes around light...')
         path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
         get_opto_parameters(path_to_recording, output_path, window_size_ms, first_spike_latency_ms, opto_file_name='opto_parameters.csv')
-        on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
 
+    on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)  # get peristimulus spikes
     first_spike_latency = sampling_rate / 1000 * first_spike_latency_ms  # in sampling points
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency)
