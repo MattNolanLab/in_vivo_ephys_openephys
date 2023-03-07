@@ -238,7 +238,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy w opto stats
     make_opto_plots(spatial_firing, prm)
-    process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
+ #   process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
 
 
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):
@@ -279,8 +279,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
-            # analyse opto data, if it was found
-            if opto_found:
+            if opto_found:  # analyse opto data, if it was found
                 analyse_opto_data(opto_on, spatial_firing, prm)
 
     except:  # run opto analysis only if there is an error with the position data
@@ -327,3 +326,18 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
 
     else:  # process opto without position
         process_optotagging(recording, prm, opto_is_found, opto_on, start)
+
+
+# main function for testing
+def main():
+    import PostSorting.parameters
+    prm = PostSorting.parameters.Parameters()
+    path = '/Users/briannavandrey/Desktop'
+    window = 100
+    prm.set_output_path(path)
+    prm.set_sampling_rate(30000)
+    spatial_firing = pd.read_pickle(path + '/DataFrames/spatial_firing_opto.pkl')
+    process_first_and_last_spikes(spatial_firing, window, prm, num_pulses=200, threshold=1000)
+
+if __name__ == '__main__':
+    main()
