@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import open_ephys_IO
+import pandas as pd
 import pickle
 import settings
 import PreClustering.dead_channels
@@ -198,6 +199,33 @@ def make_opto_plots(spatial_firing, prm):
     PostSorting.make_plots.plot_spike_histogram(spatial_firing, output_path)
     PostSorting.make_plots.plot_autocorrelograms(spatial_firing, output_path)
     PostSorting.make_opto_plots.make_optogenetics_plots(spatial_firing, output_path, prm.get_sampling_rate())
+
+
+# analyse subset of pulses and save to subfolder: 'first_pulses' or 'last_pulses'
+def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_size_sampling_rate, output_path):
+    prm.set_output_path(output_path)
+    if os.path.exists(output_path + '/DataFrames') is False:
+        os.makedirs(output_path + '/DataFrames')
+    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, pulses, window_size_sampling_rate, subset=True)
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
+    make_opto_plots(spatial_firing, prm)
+
+
+# repeats opto analysis for the first and last x pulses (default=200)
+def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200):
+    output_path, sampling_rate = prm.get_output_path(), prm.get_sampling_rate()
+    opto_pulses = pd.read_pickle(output_path + '/DataFrames/opto_pulses.pkl')
+    on_pulses = opto_pulses.opto_start_times
+    if len(on_pulses) > 1000:
+        print("I will now analyse the first and last", num_pulses, " opto pulses separately.")
+        total_num_pulses = len(on_pulses)
+        window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
+        first_pulses, last_pulses = on_pulses[0:num_pulses], on_pulses[(total_num_pulses-num_pulses):total_num_pulses]
+        first_output_path, last_output_path = output_path + "/first_pulses", output_path + "/last_pulses"
+        print("I am now processing data for the first", num_pulses, "pulses.")
+        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_output_path)
+        print("I am now processing data for the last", num_pulses, "pulses.")
+        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, last_output_path)
 
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
