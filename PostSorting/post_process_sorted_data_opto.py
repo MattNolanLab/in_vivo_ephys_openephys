@@ -212,7 +212,6 @@ def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_size_sampling_r
     make_opto_plots(spatial_firing, prm)
 
 
-# repeats opto analysis for the first and last x pulses (default is 200 pulses)
 def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200, threshold=1000):
     output_path, sampling_rate = prm.get_output_path(), prm.get_sampling_rate()
     opto_pulses = pd.read_pickle(output_path + '/DataFrames/opto_pulses.pkl')
@@ -224,36 +223,24 @@ def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200
         window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
         first_pulses, last_pulses = on_pulses[0:num_pulses], on_pulses[(total_num_pulses-num_pulses):total_num_pulses]
         first_output_path, last_output_path = output_path + "/first_pulses", output_path + "/last_pulses"
-        print("I am now processing data for the first", num_pulses, "pulses.")
-        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, output_path, first_output_path)
-        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, output_path, last_output_path)
+        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_output_path)
+        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, last_output_path)
 
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
     """
     :param opto_on: times of where opto pulse is on
     :param spatial_firing: spike data
-
-    Width of the opto pulses and the frequency of stimulation is calculated based on the first few pulses and is
-    assumed to be consistent for the whole trial. 200 ms analysis window is used as a default.
     """
-
-    # determine pulse width/freq and output plot window size
+    # calculate analysis window based on stimulation frequency, 200 ms default
     window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)
-
     print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations...')
-
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window)
-    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy w opto stats
     make_opto_plots(spatial_firing, prm)
-
-    # separately analyse the first/last 200 pulses if there are > 1000 opto pulses
-    process_first_and_last_spikes(spatial_firing, window, prm)
+    process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
 
 
-
-
-# process spatial firing for window of opto pulses, and then analyse opto data
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):
     """
     Analyses sessions where opto-stimulation happens during open field exploration.
@@ -297,26 +284,20 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
                 analyse_opto_data(opto_on, spatial_firing, prm)
 
     except:  # run opto analysis only if there is an error with the position data
-        print('I cannot analyze the position data for this opto recording.')
-        print('I will run the opto analysis only.')
+        print('I cannot analyze the position data for this opto recording, I will run the opto analysis only.')
         process_optotagging(recording, prm, opto_found, opto_on, start_idx)
 
 
-# analyse opto pulses only
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)
         spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length)
 
-        if len(spike_data) > 0:
+        if len(spike_data) > 0:  # only runs if there are curated clusters
             spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
+            analyse_opto_data(opto_on, spike_data, prm)
+            save_data_frames(spike_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
 
-            if opto_found:
-                analyse_opto_data(opto_on, spike_data, prm)
-                save_data_frames(spike_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
-
-        else:
-            print('No curated clusters in this recording.')
     else:
         print('There were no opto pulses for this recording. Opto analysis will not run.')
 
@@ -329,9 +310,7 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     prm.set_output_path(recording + prm.get_sorter_name())
     output_path = recording + '/' + settings.sorterName
     PreClustering.dead_channels.get_dead_channel_ids(prm)
-    ephys_channels = prm.get_ephys_channels()
-    dead_channels = prm.get_dead_channels()
-    opto_channel = prm.get_opto_channel()
+    ephys_channels, dead_channels, opto_channel = prm.get_ephys_channels(), prm.get_dead_channels(), prm.get_opto_channel()
 
     # process lfp and animal position
     lfp_data = PostSorting.lfp.process_lfp(recording, ephys_channels, output_path, dead_channels)
@@ -340,13 +319,11 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     # check for opto, get on and off times and start/end indices for opto
     opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording, opto_channel, output_path)
 
-    # if session type if openfield_opto, analyse position and opto data together
     if session_type == 'openfield_opto':
         if position_is_found:
             process_opto_with_position(recording, spatial_data, lfp_data, opto_is_found, opto_on, start, end, prm, dead_channels, output_path)
-        else:  # if problem with position file
+        else:  # if problem with position file, process opto without position
             process_optotagging(recording, prm, opto_is_found, opto_on, start)
 
-    # process only opto data, no further analysis of position (even if available)
-    else:
+    else:  # process opto without position
         process_optotagging(recording, prm, opto_is_found, opto_on, start)
