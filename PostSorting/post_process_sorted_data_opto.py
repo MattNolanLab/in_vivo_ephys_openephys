@@ -202,30 +202,31 @@ def make_opto_plots(spatial_firing, prm):
 
 
 # analyse subset of pulses and save to subfolder: 'first_pulses' or 'last_pulses'
-def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_size_sampling_rate, output_path):
-    prm.set_output_path(output_path)
-    if os.path.exists(output_path + '/DataFrames') is False:
-        os.makedirs(output_path + '/DataFrames')
+def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_size_sampling_rate, opto_output_path):
+    prm.set_output_path(opto_output_path)
+    if os.path.exists(opto_output_path + '/DataFrames') is False:
+        os.makedirs(opto_output_path + '/DataFrames')
+    pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')  # save copy of opto pulses to subfolder
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, pulses, window_size_sampling_rate, subset=True)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)
 
 
-# repeats opto analysis for the first and last x pulses (default=200)
+# repeats opto analysis for the first and last x pulses (default is 200 pulses)
 def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200, threshold=1000):
     output_path, sampling_rate = prm.get_output_path(), prm.get_sampling_rate()
     opto_pulses = pd.read_pickle(output_path + '/DataFrames/opto_pulses.pkl')
     on_pulses = opto_pulses.opto_start_times
-    if len(on_pulses) > threshold:  # default is 1000 pulses
+
+    if len(on_pulses) > threshold:  # run if > 1000 opto pulses
         print("I will now analyse the first and last", num_pulses, " opto pulses separately.")
         total_num_pulses = len(on_pulses)
         window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
         first_pulses, last_pulses = on_pulses[0:num_pulses], on_pulses[(total_num_pulses-num_pulses):total_num_pulses]
         first_output_path, last_output_path = output_path + "/first_pulses", output_path + "/last_pulses"
         print("I am now processing data for the first", num_pulses, "pulses.")
-        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_output_path)
-        print("I am now processing data for the last", num_pulses, "pulses.")
-        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, last_output_path)
+        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, output_path, first_output_path)
+        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, output_path, last_output_path)
 
 
 def analyse_opto_data(opto_on, spatial_firing, prm):
@@ -246,8 +247,10 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)
 
-    # check number of pulses and run analysis on first/last 200 pulses if > 1000 pulses in session
+    # separately analyse the first/last 200 pulses if there are > 1000 opto pulses
     process_first_and_last_spikes(spatial_firing, window, prm)
+
+
 
 
 # process spatial firing for window of opto pulses, and then analyse opto data
@@ -258,7 +261,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
     """
     try:  # try to process position data
         synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
-        spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name(), dead_channels)
+        spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, dead_channels)
 
         if opto_found:  # remove position data and spikes before and after stimulation period
             synced_spatial_data, recording_length = remove_exploration_without_opto(start_idx, end_idx, synced_spatial_data, prm.sampling_rate)
@@ -266,7 +269,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
 
         # add temporal firing properties and curate clusters
         spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, recording_length)
-        spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name(), prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
+        spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
             save_data_frames(spike_data, synced_spatial_data, bad_clusters=bad_clusters, lfp_data=lfp_data)
