@@ -202,12 +202,12 @@ def make_opto_plots(spatial_firing, prm):
 
 
 # analyse subset of pulses and save to subfolder: 'first_pulses' or 'last_pulses'
-def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_size_sampling_rate, opto_output_path):
+def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_fs, opto_output_path):
     prm.set_output_path(opto_output_path)
     if os.path.exists(opto_output_path + '/DataFrames') is False:
         os.makedirs(opto_output_path + '/DataFrames')
     pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')  # save copy of opto pulses to subfolder
-    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, pulses, window_size_sampling_rate, subset=True)
+    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, subset=True, pulses=pulses, window_fs=window_fs)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)
 
@@ -238,7 +238,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy w opto stats
     make_opto_plots(spatial_firing, prm)
- #   process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
+    process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
 
 
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):

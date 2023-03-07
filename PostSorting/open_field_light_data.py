@@ -278,7 +278,7 @@ def analyse_latencies(spatial_firing, sampling_rate):
 
 
 # main function for analysing spike latency around light pulses
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10, subset=False):
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10, subset=False, pulses=None, window_fs=None):
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
 
     if not subset:
@@ -288,7 +288,8 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
         on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
 
     else:
-        on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
+        on_pulses = pulses
+        window_size_sampling_rate = window_fs
 
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)  # get peristimulus spikes
     first_spike_latency = sampling_rate / 1000 * first_spike_latency_ms  # in sampling points
