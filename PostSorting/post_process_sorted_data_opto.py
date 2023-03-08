@@ -237,7 +237,7 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)  # make plots
-    process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
+    process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses
 
 
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path):
@@ -305,6 +305,7 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     position (session_type = opto, ie optotagging after behaviour). If position data cannot be processed, analysis will
     still run for opto stimulation.
     """
+
     create_folders_for_output(recording)
     initialize_parameters(recording)
     process_running_parameter_tag(running_parameter_tags)
@@ -312,6 +313,7 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
     prm.set_output_path(recording + prm.get_sorter_name())
     output_path = recording + '/' + settings.sorterName
     PreClustering.dead_channels.get_dead_channel_ids(prm)
+
     ephys_channels, dead_channels, opto_channel = prm.get_ephys_channels(), prm.get_dead_channels(), prm.get_opto_channel()
 
     # process lfp and animal position

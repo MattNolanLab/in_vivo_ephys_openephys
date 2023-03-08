@@ -49,6 +49,7 @@ def process_opto_data(recording_to_process, opto_channel):
     return opto_on, opto_off, is_found, first_pulse_index, last_pulse_index
 
 
+
 def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
     opto_data_frame = pd.DataFrame()
     opto_end_times = np.take(opto_on, np.where(np.diff(opto_on)[0] > 1))
@@ -126,8 +127,8 @@ def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, windo
         opto_parameters['window_size_ms'] = window_size_ms
         opto_parameters['first_spike_latency_ms'] = first_spike_latency_ms
         opto_parameters.to_pickle(output_path + save_path)
-
-
+    
+   
 def get_opto_parameters(path_to_recording, output_path, window_size, first_spike_latency):
     found = False
     opto_parameters = np.nan
@@ -298,3 +299,4 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
     spatial_firing = PostSorting.analyse_opto_inhibition.run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
 
     return spatial_firing
+
