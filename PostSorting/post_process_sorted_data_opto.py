@@ -169,8 +169,7 @@ def save_data_for_plots(position_heat_map, hd_histogram, prm):
 
 # find recording length when there is no position data
 def set_recording_length(recording_to_process, prm):
-    is_found = False
-    total_length = None
+    is_found, total_length = False, None
     print('I am loading a channel to find out the length of the recording, because there is no position data available.')
     file_path = recording_to_process + '/' + prm.get_sync_channel()
     if os.path.exists(file_path):
@@ -231,13 +230,13 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     """
     :param opto_on: times of where opto pulse is on
     :param spatial_firing: spike data
+    This analysis occurs independently from analysis of spatial firing data
     """
-    # calculate analysis window based on stimulation frequency, 200 ms default
-    window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)
+    window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)  # calculate analysis window
     print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations...')
     spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window)
-    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy w opto stats
-    make_opto_plots(spatial_firing, prm)
+    spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
+    make_opto_plots(spatial_firing, prm)  # make plots
     process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses)
 
 
@@ -273,16 +272,15 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
             spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
             spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
             spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
-
             make_openfield_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
             PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
 
-            if opto_found:  # analyse opto data, if it was found
+            if opto_found:  # then analyse opto data, if found
                 analyse_opto_data(opto_on, spatial_firing, prm)
 
-    except:  # run opto analysis only if there is an error with the position data
+    except:  # analyse opto data only if there is an error with the position data
         print('I cannot analyze the position data for this opto recording, I will run the opto analysis only.')
         process_optotagging(recording, prm, opto_found, opto_on, start_idx)
 
@@ -302,6 +300,11 @@ def process_optotagging(recording, prm, opto_found, opto_on, start_idx):
 
 
 def post_process_recording(recording, session_type, running_parameter_tags=False, sorter_name='MountainSort'):
+    """
+    Analyses data from opto-stimulation sessions during behaviour (session_type = openfield_opto) or without animal
+    position (session_type = opto, ie optotagging after behaviour). If position data cannot be processed, analysis will
+    still run for opto stimulation.
+    """
     create_folders_for_output(recording)
     initialize_parameters(recording)
     process_running_parameter_tag(running_parameter_tags)
@@ -326,18 +329,3 @@ def post_process_recording(recording, session_type, running_parameter_tags=False
 
     else:  # process opto without position
         process_optotagging(recording, prm, opto_is_found, opto_on, start)
-
-
-# main function for testing
-def main():
-    import PostSorting.parameters
-    prm = PostSorting.parameters.Parameters()
-    path = '/Users/briannavandrey/Desktop'
-    window = 100
-    prm.set_output_path(path)
-    prm.set_sampling_rate(30000)
-    spatial_firing = pd.read_pickle(path + '/DataFrames/spatial_firing_opto.pkl')
-    process_first_and_last_spikes(spatial_firing, window, prm, num_pulses=200, threshold=1000)
-
-if __name__ == '__main__':
-    main()
