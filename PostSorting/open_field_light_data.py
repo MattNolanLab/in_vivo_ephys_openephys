@@ -34,7 +34,7 @@ def get_ons_and_offs(opto_data):
 # check for opto pulses, find ons/offs and return start/end indices
 def process_opto_data(recording_to_process, opto_channel):
     opto_on = opto_off = None
-    first_opto_pulse_index, last_opto_pulse_index = None, None
+    first_pulse_index, last_pulse_index = None, None
     opto_data, is_found = load_opto_data(recording_to_process, opto_channel)
 
     if is_found:
@@ -44,9 +44,10 @@ def process_opto_data(recording_to_process, opto_channel):
         elif np.asarray(opto_on).size < 4500:  # if less than 50 (ie pulses from knocking the Arduino)
             is_found = False
         else:  # find starts/ends of opto pulses
-            first_opto_pulse_index, last_opto_pulse_index = min(opto_on[0]), max(opto_on[0])
+            first_pulse_index, last_pulse_index = min(opto_on[0]), max(opto_on[0])
 
-    return opto_on, opto_off, is_found, first_opto_pulse_index, last_opto_pulse_index
+    return opto_on, opto_off, is_found, first_pulse_index, last_pulse_index
+
 
 
 def make_opto_data_frame(opto_on: tuple) -> pd.DataFrame:
@@ -84,8 +85,7 @@ def find_window_size(stimulation_frequency):
         window_size = 1000 / stimulation_frequency  # calculate window size
         if window_size % 2 != 0:  # check for parity of window
             print("Window size calculated for opto analysis was not divisible by 2...")
-            stimulation_frequency = None  # return to None and use default window
-            window_size = 200
+            stimulation_frequency, window_size = None, 200  # return to None and use default window
 
     return stimulation_frequency, int(window_size)
 
@@ -127,15 +127,14 @@ def save_opto_metadata(opto_params_is_found, opto_parameters, output_path, windo
         opto_parameters['window_size_ms'] = window_size_ms
         opto_parameters['first_spike_latency_ms'] = first_spike_latency_ms
         opto_parameters.to_pickle(output_path + save_path)
-
-
-def get_opto_parameters(path_to_recording, output_path, window_size, first_spike_latency,
-                        opto_file_name='opto_parameters.csv'):
+    
+   
+def get_opto_parameters(path_to_recording, output_path, window_size, first_spike_latency):
     found = False
     opto_parameters = np.nan
 
     for file_name in os.listdir(path_to_recording):
-        if file_name == opto_file_name:
+        if file_name == 'opto_parameters.csv':
             print('I found the opto parameters file.')
             found = True
             opto_parameters_path = path_to_recording + file_name
@@ -278,12 +277,18 @@ def analyse_latencies(spatial_firing, sampling_rate):
 
 
 # main function for analysing spike latency around light pulses
-def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10):
-    print('I will process spikes around light...')
+def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_spike_latency_ms=10, subset=False, pulses=None, window_fs=None):
     output_path, sampling_rate, local_recording_folder, sorter_name, stitchpoint, paired_order, dead_channels = load_parameters(prm)
-    path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
-    get_opto_parameters(path_to_recording, output_path, window_size_ms, first_spike_latency_ms, opto_file_name='opto_parameters.csv')
-    on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
+
+    if not subset:
+        print('I will process spikes around light...')
+        path_to_recording = '/'.join(output_path.split('/')[:-1]) + '/'
+        get_opto_parameters(path_to_recording, output_path, window_size_ms, first_spike_latency_ms)
+        on_pulses, window_size_sampling_rate = get_peristimulus_opto_data(window_size_ms, output_path, sampling_rate)  # read in opto data
+
+    else:
+        on_pulses, window_size_sampling_rate = pulses, window_fs
+
     peristimulus_spikes = make_peristimulus_df(spatial_firing, on_pulses, window_size_sampling_rate, output_path)  # get peristimulus spikes
     first_spike_latency = sampling_rate / 1000 * first_spike_latency_ms  # in sampling points
     spatial_firing = add_first_spike_times_after_stimulation(spatial_firing, on_pulses, first_spike_latency=first_spike_latency)
@@ -294,3 +299,4 @@ def process_spikes_around_light(spatial_firing, prm, window_size_ms=200, first_s
     spatial_firing = PostSorting.analyse_opto_inhibition.run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
 
     return spatial_firing
+
