@@ -217,7 +217,7 @@ def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200
     on_pulses = opto_pulses.opto_start_times
 
     if len(on_pulses) > threshold:  # run if > 1000 opto pulses
-        print("I will now analyse the first and last", num_pulses, " opto pulses separately.")
+        print("I will now analyse the first and last", num_pulses, "opto pulses separately.")
         total_num_pulses = len(on_pulses)
         window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
         first_pulses, last_pulses = on_pulses[0:num_pulses], on_pulses[(total_num_pulses-num_pulses):total_num_pulses]
