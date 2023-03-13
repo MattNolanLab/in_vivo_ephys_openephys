@@ -185,7 +185,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
 
             if opto_is_found:
-                spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
+                window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)
+                spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm, window_size_ms=window)
 
             #spatial_firing = PostSorting.compare_first_and_second_half.analyse_first_and_second_halves(synced_spatial_data, spatial_firing, prm)
             spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
