@@ -211,12 +211,12 @@ def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_fs, opto_output
     make_opto_plots(spatial_firing, prm)
 
 
-def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200, threshold=1000):
+def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200, threshold=2000):
     output_path, sampling_rate = prm.get_output_path(), prm.get_sampling_rate()
     opto_pulses = pd.read_pickle(output_path + '/DataFrames/opto_pulses.pkl')
     on_pulses = opto_pulses.opto_start_times
 
-    if len(on_pulses) > threshold:  # run if > 1000 opto pulses
+    if len(on_pulses) > threshold:  # run if > 2000 opto pulses
         print("I will now analyse the first and last", num_pulses, "opto pulses separately.")
         total_num_pulses = len(on_pulses)
         window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
