@@ -9,9 +9,6 @@ import numpy as np
 from spikeinterface.postprocessing import compute_principal_components
 from file_utility import *
 
-ignore_curation = False
-
-
 def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
     isolations = []
     noise_overlaps = []
@@ -63,7 +60,7 @@ def add_primary_channels(spike_data_frame, we, on_shank_cluster_ids):
     for i, cluster in spike_data_frame.iterrows():
         cluster_id = on_shank_cluster_ids[i]
         primary_channel = primary_channel_ids[cluster_id]
-        primary_channels.append(primary_channel+1)
+        primary_channels.append(primary_channel)
     spike_data_frame["primary_channel"] = primary_channels
     return spike_data_frame
 
@@ -137,11 +134,6 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
 
         good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
         noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
-
-    if ignore_curation:
-        good_cluster['Curated']=True
-        noisy_cluster['Curated']=False
-        return pd.concat([good_cluster, noisy_cluster]), pd.DataFrame()
 
     return good_cluster, noisy_cluster
 
