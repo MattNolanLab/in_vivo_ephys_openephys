@@ -167,8 +167,8 @@ def split_back(recording_to_sort: str, stitch_points: list, sorter_name='Mountai
 
             probe_ids, shank_ids = get_probe_info_from_tmp()
             for probe_id, shank_id in zip(probe_ids, shank_ids):
-                Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id))+'_segment0'
-                Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id))+'_segment0'
+                Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
+                Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
 
                 SlicedSorter = Sorter.frame_slice(start_frame=start_frame, end_frame=end_frame)
                 SlicedRecording = Recording.frame_slice(start_frame=start_frame, end_frame=end_frame)
