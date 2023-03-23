@@ -10,10 +10,11 @@ import PostSorting.parameters
 from PostSorting.load_firing_data import available_ephys_channels
 import re
 import settings
+import matplotlib
 from scipy import stats
 
 def load_ephys_channel(recording_folder, ephys_channel):
-    print('Extracting ephys data')
+    print('Extracting ephys data from channel ', str(ephys_channel))
     file_path = recording_folder + '/' + ephys_channel
     if os.path.exists(file_path):
         channel_data = open_ephys_IO.get_data_continuous(file_path)
@@ -44,7 +45,7 @@ def process_lfp(recording_folder, ephys_channels_list, output_path, dead_channel
 
         frequencies.append(f)
         power_spectra.append(power_spectrum_channel)
-        channels.append(ephys_channel)
+        channels.append(int(ephys_channel_number))
         dead_channels_bool.append(dead_channel_bool)
 
     lfp_df["channel"] = channels
@@ -67,24 +68,32 @@ def plot_lfp(lfp_df, output_path):
 
     plt.ylabel('Power', fontsize=12, labelpad = 10)
     plt.xlabel('Frequency', fontsize=12, labelpad = 10)
-    plt.xlim(0,20)
 
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_vr_plot(ax)
-
-    for channel in lfp_df["channel"]:
-        channel_str = channel.split("CH")[-1].split(".")[0]
+    cmap = matplotlib.cm.get_cmap('gnuplot2')
+    max_y = 0
+    for channel in np.unique(lfp_df["channel"]):
         channel_lfp = lfp_df[(lfp_df.channel == channel)].iloc[0]
 
         channel_freq = channel_lfp.frequencies
         channel_psd = channel_lfp.power_spectra
 
-        ax.plot(channel_freq[:35], (channel_psd*channel_freq)[:35], label="C"+channel_str)
+        if int(channel)%8==0:
+            ax.plot(channel_freq[:35], (channel_psd*channel_freq)[:35], label="C"+str(channel), color=cmap(channel/len(lfp_df["channel"])))
+        else:
+            ax.plot(channel_freq[:35], (channel_psd * channel_freq)[:35], color=cmap(channel/len(lfp_df["channel"])))
+
+        max_y_channel = np.max(channel_psd[:35]*channel_freq[:35])
+        if max_y_channel > max_y:
+            max_y = max_y_channel
 
     plt.legend(fontsize=8)
+    plt.xlim(0, 20)
+    plt.ylim(0, max_y)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
-    plt.savefig(output_path + '/Figures/lfp/channel_lfp_while_moving' + '.png', dpi=300)
+    plt.savefig(output_path + '/Figures/lfp/channel_lfp.png', dpi=300)
     plt.close()
 
 def process_batch_lfp(recordings):
