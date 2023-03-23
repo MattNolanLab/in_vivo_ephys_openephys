@@ -19,9 +19,6 @@ from PostSorting import post_process_sorted_data_opto
 from PostSorting import post_process_sorted_data_openfield_opto
 from spikeinterfaceHelper import *
 import spikeinterface as si
-# set this to true if you want to skip the spike sorting step and use ths data from the server
-skip_sorting = False
-sorterName = settings.sorterName
 
 mountainsort_tmp_folder = '/tmp/mountainlab/'
 sorting_folder = '/home/nolanlab/to_sort/recordings/'
@@ -36,7 +33,6 @@ else:
 #server_path_first_half = '/home/nolanlab/ardbeg/'
 matlab_params_file_path = '/home/nolanlab/PycharmProjects/in_vivo_ephys_openephys/PostClustering/'
 downtime_lists_path = '/home/nolanlab/to_sort/sort_downtime/'
-
 
 def check_folder(sorting_path):
     recording_to_sort = False
@@ -244,8 +240,8 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         paired_recording = check_for_paired(tags)
 
         sys.stdout = Logger.Logger(server_path_first_half + location_on_server + '/sorting_log.txt')
-        paired_recording = None
-        if paired_recording is not None:
+
+        if (paired_recording is not None) and (settings.allow_paired_recordings):
             print('Multiple recordings will be sorted together: ' + recording_to_sort + ' ' + str(paired_recording))
             if not isinstance(paired_recording, list):
                 paired_recording = [paired_recording]
@@ -269,8 +265,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
             sorterName = settings.sorterName
         check_sorter_is_valid(sorterName)
 
-        skip_sorting=True
-        if not skip_sorting:
+        if not settings.skip_sorting:
             pre_process_ephys_data.pre_process_data(recording_to_sort, sorterName)
 
             print('I finished pre-processing the first recording.')
@@ -283,7 +278,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         # call python post-sorting scripts
         print('Post-sorting analysis (Python version) will run now.')
 
-        if paired_recording is not None:
+        if (paired_recording is not None) and (settings.allow_paired_recordings):
             run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                               paired_recordings_to_sort, paired_session_types,
                                               stitch_points, tags, sorter_name=sorterName)
@@ -292,7 +287,6 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
                     shutil.rmtree(path_to_paired_recording)
 
         else:
-           # (recording_to_sort, session_type, stitch_point, tags, recs_length, paired_order=None)
             call_post_sorting_for_session_type(recording_to_sort, session_type, tags=tags)
 
         if os.path.exists(recording_to_sort) is True:
@@ -300,7 +294,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
 
         shutil.rmtree(recording_to_sort)
 
-        if not skip_sorting:
+        if not settings.skip_sorting:
             if os.path.exists(mountainsort_tmp_folder):
                 shutil.rmtree(mountainsort_tmp_folder)
     
@@ -318,7 +312,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
         if not os.environ.get('DEBUG'):  # Keep the recording files during debug run
             shutil.rmtree(recording_to_sort)
 
-            if paired_recording is not None:
+            if (paired_recording is not None) and (settings.allow_paired_recordings):
                 for path_to_paired_recording in paired_recordings_to_sort:
                     if os.path.exists(path_to_paired_recording) is True:
                         shutil.rmtree(path_to_paired_recording)
@@ -419,7 +413,7 @@ def monitor_to_sort():
     start_time = time.time()
     time_to_wait = 60.0
     while True:
-        #remove_tmp_files()
+        remove_tmp_files()
         print('I am checking whether there is something to sort.')
 
         recording_to_sort = check_folder(sorting_folder)
