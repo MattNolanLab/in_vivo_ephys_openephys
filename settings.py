@@ -31,6 +31,7 @@ sorterName = 'mountainsort4'
 is_tetrode_by_tetrode = False #set to True if you want the spike sorting to be done tetrode by tetrode
 all_tetrode_together = True #set to True if you want the spike sorting done on all tetrodes combined
 list_of_named_sorters = ['mountainsort', 'mountainsort4','klusta','tridesclous','hdsort','ironclust','kilosort','kilosort2', 'spykingcircus','herdingspikes','waveclus']
+skip_sorting = False
 
 ############
 # Analysis
@@ -60,7 +61,7 @@ vr_grid_analysis_bin_size=8
 ##########
 # Experiment
 session_type = 'vr'
-
+allow_paired_recordings = False
 
 ##########
 # open field
