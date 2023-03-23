@@ -275,7 +275,7 @@ def calculate_theta_index(spike_data, output_path, sampling_rate):
         cluster_data = spike_data.iloc[cluster]
 
         if len(cluster_data.firing_times)<=1:
-            # in the case no or 1 spike is found in open field or vr
+            # in the case no or 1 spike is found
             theta_indices.append(np.nan)
             theta_powers.append(np.nan)
             boccara_thetas.append(np.nan)
