@@ -82,13 +82,13 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
 
 
 def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
+    opto_on, opto_off, is_found, opto_start_index, opto_end_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
     if is_found:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
             os.makedirs(prm.get_output_path() + '/DataFrames')
         opto_data_frame.to_pickle(prm.get_output_path() + '/DataFrames/opto_pulses.pkl')
-    return opto_on, opto_off, is_found, opto_start_index
+    return opto_on, opto_off, is_found, opto_start_index, opto_end_index
 
 
 def make_plots(position_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm):
@@ -159,7 +159,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    opto_on, opto_off, opto_is_found, opto_start_index = process_light_stimulation(recording_to_process, prm)
+    opto_on, opto_off, opto_is_found, opto_start_index, opto_end_index = process_light_stimulation(recording_to_process, prm)
     # process spatial data
     spatial_data, position_was_found = process_position_data(recording_to_process, session_type, prm)
     if position_was_found:
@@ -183,7 +183,8 @@ def post_process_recording(recording_to_process, session_type, running_parameter
             spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
 
             if opto_is_found:
-                spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm)
+                window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)
+                spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data_spatial, prm, window_size_ms=window)
 
             spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
             spatial_firing = PostSorting.load_snippet_data.get_snippets(spatial_firing, recording_to_process, sorter_name, dead_channels, random_snippets=True)
@@ -192,7 +193,3 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
             save_data_frames(spatial_firing, synced_spatial_data, snippet_data=None, lfp_data=lfp_data)
             save_data_for_plots(position_heat_map, hd_histogram, prm)
-
-
-
-

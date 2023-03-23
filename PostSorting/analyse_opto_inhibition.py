@@ -131,19 +131,3 @@ def run_test_for_opto_inhibition(spatial_firing, peristimulus_data):
     spikes_around_light = get_number_of_spikes_around_light(peristimulus_data, salt_p_values)
     spatial_firing = analyse_inhibition_of_cells(spikes_around_light, spatial_firing)
     return spatial_firing
-
-
-# main function for testing
-def main():
-    import PostSorting.parameters
-    prm = PostSorting.parameters.Parameters()
-    prm.set_sampling_rate(30000)
-    path = '/Users/briannavandrey/Desktop/1474_08_31/'
-    peristimulus_spikes = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/peristimulus_spikes.pkl')
-    spatial_firing = pd.read_pickle('/Users/briannavandrey/Desktop/1474_08_31/spatial_firing.pkl')
-    spatial_firing = run_test_for_opto_inhibition(spatial_firing, peristimulus_spikes)
-    spatial_firing.to_pickle(path + 'spatial_firing_with_inhibition.pkl')
-
-
-if __name__ == '__main__':
-    main()
