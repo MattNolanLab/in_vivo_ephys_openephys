@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import traceback
-import sys
 
 '''
 This script enables quick writing of the parameter file for all recordings
@@ -163,7 +162,7 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-   """Example usage of this script
+    """Example usage of this script
     # silicon probe mice
     base_path = "/mnt/datastore/Harry/Cohort9_february2023"
     vr_paths = get_recording_paths([], base_path+"/vr")
