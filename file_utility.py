@@ -68,10 +68,11 @@ def get_probe_info_from_tmp():
     shank_ids = []
     for folder_path in list_of_folders:
         folder_name = folder_path.split("/")[-1]
-        probe_id = folder_name.split("probe")[-1].split("_shank")[0]
-        shank_id = folder_name.split("shank")[-1].split("_segment")[0]
-        probe_ids.append(probe_id)
-        shank_ids.append(shank_id)
+        if ("sorter" in folder_name) and ("segment0" in folder_name):
+            probe_id = folder_name.split("probe")[-1].split("_shank")[0]
+            shank_id = folder_name.split("shank")[-1].split("_segment")[0]
+            probe_ids.append(probe_id)
+            shank_ids.append(shank_id)
     return probe_ids, shank_ids
 
 def found_SorterInstance():
@@ -180,5 +181,4 @@ def dead_channels_from_txt_file(dead_channel_txt_file_path):
             dead_channels = list([x.strip() for x in dead_channels])
 
     return dead_channels
-
 
