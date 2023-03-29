@@ -28,4 +28,4 @@ RUN add-apt-repository -y ppa:magland/mountainlab && \
 ### Add new dependencies after here ###
 
 RUN conda activate env && \
-    conda install -y astropy
+    conda install -y astropy spikeinterface=0.97.0
