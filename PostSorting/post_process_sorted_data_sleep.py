@@ -84,7 +84,7 @@ def process_position_data(recording_to_process, session_type, prm, do_resample=F
 
 
 def process_light_stimulation(recording_to_process, prm):
-    opto_on, opto_off, is_found, opto_start_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
+    opto_on, opto_off, is_found, opto_start_index, opto_end_index = PostSorting.open_field_light_data.process_opto_data(recording_to_process, prm.get_opto_channel())
     if is_found:
         opto_data_frame = PostSorting.open_field_light_data.make_opto_data_frame(opto_on)
         if os.path.exists(prm.get_output_path() + '/DataFrames') is False:
@@ -160,13 +160,9 @@ def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name,
     spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_start_index, segment_id=segment_id)
 
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length, number_of_channels)
-    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name,
-                                                                prm.get_local_recording_folder_path(),
-                                                                prm.get_ms_tmp_path())
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,
-                                                            dead_channels, random_snippets=False)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,
-                                                              dead_channels, random_snippets=True)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name,prm.get_local_recording_folder_path(),prm.get_ms_tmp_path())
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,dead_channels, random_snippets=False, segment_id=segment_id)
+    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels, random_snippets=True, segment_id=segment_id)
 
     return spike_data, snippet_data, bad_clusters
 
@@ -177,7 +173,7 @@ def run_analyses_without_position_data(recording_to_process, prm, sorter_name, d
     spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
 
     if opto_analysis:
-        spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
+        spike_data = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm, segment_id=segment_id)
 
     position = None
     make_plots(spike_data, position, prm.get_output_path(), prm)
@@ -222,7 +218,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
                                                                             settings.sampling_rate)
 
             if opto_is_found:
-                spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm)
+                spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spike_data, prm, segment_id=segment_id)
             synced_spatial_data, total_length_sampling_points, is_found = PostSorting.open_field_sync_data.process_sync_data(recording_to_process, prm,
                                                                                                                              spatial_data, opto_start=opto_start_index)
             spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)

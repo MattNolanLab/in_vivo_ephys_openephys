@@ -12,6 +12,7 @@ import time
 from file_utility import *
 import spikeinterface.qualitymetrics as qm
 import spikeinterface as si
+from spikeinterfaceHelper import get_on_shank_cluster_ids, get_probe_shank_cluster_ids, save_waveforms_locally
 
 def get_firing_info(file_path, sorter_name):
     firing_times_path = file_path + '/Electrophysiology/' + sorter_name + '/firings.mda'  # sorter name shouldn't contain path slash
@@ -68,6 +69,7 @@ def move_opto_firings_to_separate_column(firings, opto_tagging_start_index):
         opto = np.take(cluster_firings_all, np.where(cluster_firings_all >= opto_tagging_start_index)[0])
         before_opto.append(spikes_before_opto)
         during_opto.append(opto)
+
     firings['firing_times'] = before_opto
     firings['firing_times_opto'] = during_opto
     return firings
@@ -139,11 +141,19 @@ def process_firing_times_from_SorterInstance(recording_to_process, opto_tagging_
     probe_ids, shank_ids = get_probe_info_from_tmp()
     for probe_id, shank_id in zip(probe_ids, shank_ids):
         Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment'+str(segment_id))
+        Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment'+str(segment_id))
+
+        # extract and save waveforms from each session
+        we = si.extract_waveforms(Recording, Sorter, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment'+str(segment_id),
+                                  ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False,overwrite=True, max_spikes_per_unit=None)
+        on_shank_cluster_ids = Sorter.get_unit_ids()
+        cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_id, shank_id=shank_id)
+        save_waveforms_locally(we, settings.temp_storage_path + '/waveform_arrays/', on_shank_cluster_ids, cluster_ids,segment=segment_id)
 
         shank_firing_data = spikeinterfaceHelper.sorter2dataframe(Sorter, session_id=recording_to_process.split('/')[-1], probe_id=probe_id, shank_id=shank_id)
 
         if opto_tagging_start_index is not None:
-            firing_data = move_opto_firings_to_separate_column(firing_data, opto_tagging_start_index)
+            shank_firing_data = move_opto_firings_to_separate_column(shank_firing_data, opto_tagging_start_index)
 
         firing_data = pd.concat([firing_data, shank_firing_data], ignore_index=True)
     return firing_data

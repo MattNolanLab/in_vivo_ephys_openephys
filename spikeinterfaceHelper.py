@@ -1,5 +1,6 @@
 ##some helper functions to be used with spike interface
 import pandas as pd
+import spikeinterface as si
 import spikeinterface.extractors as se
 import spikeinterface.sorters as sorters
 import spikeinterface.preprocessing as spre
@@ -273,7 +274,7 @@ def run_spike_sorting_with_spike_interface(recording_to_sort, sorterName):
     params['filter'] = False #have already done this in preprocessing step
     params['whiten'] = False
     params['adjacency_radius'] = 200
-    params['num_workers'] = 2
+    params['num_workers'] = 3
 
     # by shark
     n_channels, _ = count_files_that_match_in_folder(recording_to_sort, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
@@ -298,6 +299,36 @@ def run_spike_sorting_with_spike_interface(recording_to_sort, sorterName):
             shank_sorting = sorters.run_sorter(sorter_name=sorterName, recording=base_shank_recording, output_folder='sorting_tmp', verbose=True, **params)
             shank_sorting = shank_sorting.save(folder= settings.temp_storage_path+'/sorter_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0',
                                                n_jobs=1, chunk_size=2000, progress_bar=True, overwrite=True)
+
+            we = si.extract_waveforms(base_shank_recording, shank_sorting, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0', ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False, overwrite=True)
+
+            on_shank_cluster_ids = shank_sorting.get_unit_ids()
+            cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_index, shank_id=shank_id)
+            save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', on_shank_cluster_ids, cluster_ids, segment=0)
+    return
+
+def get_on_shank_cluster_ids(cluster_ids):
+    on_shank_cluster_ids = []
+    for i in range(len(cluster_ids)):
+        on_shank_cluster_id = str(int(cluster_ids[i]))
+        on_shank_cluster_id = on_shank_cluster_id[2:]
+        on_shank_cluster_ids.append(int(on_shank_cluster_id))
+    return on_shank_cluster_ids
+
+def get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id, shank_id):
+    cluster_ids = []
+    for i in range(len(on_shank_cluster_ids)):
+        on_shank_cluster_id = int(on_shank_cluster_ids[i])
+        cluster_id = str(probe_id)+str(shank_id)+str(on_shank_cluster_id)
+        cluster_ids.append(cluster_id)
+    return cluster_ids
+
+def save_waveforms_locally(we, save_folder_path, on_shank_cluster_ids, cluster_ids, segment):
+    if os.path.exists(save_folder_path) is False:
+        os.makedirs(save_folder_path)
+    for on_shank_id, cluster_id in zip(on_shank_cluster_ids, cluster_ids):
+        waveforms = we.get_waveforms(unit_id=on_shank_id)
+        np.save(save_folder_path+"waveforms_"+str(int(cluster_id))+"_segment"+str(segment)+".npy", np.array(waveforms))
     return
 
 def get_probe_dataframe(number_of_channels):
@@ -340,7 +371,7 @@ def sorter2dataframe(sorter, session_id, probe_id, shank_id):
     """
 
     df = data_frame_utility.df_empty(['session_id', 'probe_id', 'shank_id', 'cluster_id', 'firing_times'],
-                                     dtypes=[np.str0, np.str0, np.str0, np.str0, np.uint64])
+                                     dtypes=[np.str0, np.str0, np.str0, np.uint64, np.uint64])
 
     # cluster ids identified as probe_id, shank_id, cluster_id 1214 is probe 1, shank 2, cluster 14.
     # This assumes there is less than 10 probes and less than 10 shanks per probe
@@ -349,7 +380,7 @@ def sorter2dataframe(sorter, session_id, probe_id, shank_id):
         cell_df['session_id'] = [session_id]
         cell_df['probe_id'] = [probe_id]
         cell_df['shank_id'] = [shank_id]
-        cell_df['cluster_id'] = [str(int(str(probe_id)+str(shank_id)+str(i)))]
+        cell_df['cluster_id'] = [int(str(probe_id)+str(shank_id)+str(i))]
         cell_df['firing_times'] = [sorter.get_unit_spike_train(i)]
         df = pd.concat([df, cell_df], ignore_index=True)
     return df

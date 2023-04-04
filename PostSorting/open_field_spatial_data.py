@@ -246,16 +246,20 @@ def process_position_data(recording_folder, params, do_resample=True):
     '''
     position_of_mouse = None
     path_to_position_file, is_found = find_bonsai_file(recording_folder)
+
     if is_found:
         position_data = read_position(path_to_position_file)  # raw position data from bonsai output
         if do_resample:
             #drop the string columns
             position_data = position_data.drop(['date', 'time', 'hours', 'minutes', 'seconds'],axis=1)
             position_data = resample_position_data(position_data,30)
+
+    # look for axona position data
     if not is_found:
         if os.path.isfile(recording_folder + '/axona_position.pkl'):
             position_data = pd.read_pickle(recording_folder + '/axona_position.pkl')
             is_found = True
+
     if is_found:
         position_data = calculate_speed(position_data)
         position_data = curate_position(position_data, params)  # remove jumps from data, and when the beads are far apart

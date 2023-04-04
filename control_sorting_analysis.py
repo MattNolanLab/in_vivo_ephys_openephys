@@ -173,26 +173,26 @@ def copy_output_to_server(recording_to_sort, location_on_server, sorter_name):
     remove_folder_from_server_and_copy(recording_to_sort, location_on_server, '/'+sorter_name)
 
 
-def call_post_sorting_for_session_type(recording_to_sort, session_type, tags, segment_id=0):
+def call_post_sorting_for_session_type(recording_to_sort, session_type, tags, sorter_name=settings.sorterName, segment_id=0):
     if session_type == "openfield":
-        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags, segment_id=segment_id)
+        post_process_sorted_data.post_process_recording(recording_to_sort, 'openfield', running_parameter_tags=tags, sorter_name=sorter_name, segment_id=segment_id)
     elif session_type == "vr":
-        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags, segment_id=segment_id)
+        post_process_sorted_data_vr.post_process_recording(recording_to_sort, 'vr', running_parameter_tags=tags, sorter_name=sorter_name, segment_id=segment_id)
     elif session_type == "sleep":
-        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags, segment_id=segment_id)
+        post_process_sorted_data_sleep.post_process_recording(recording_to_sort, 'sleep', running_parameter_tags=tags, sorter_name=sorter_name, segment_id=segment_id)
     elif session_type == "opto" or session_type == "openfield_opto":
-        post_process_sorted_data_opto.post_process_recording(recording_to_sort, session_type, running_parameter_tags=tags, segment_id=segment_id)
+        post_process_sorted_data_opto.post_process_recording(recording_to_sort, session_type, running_parameter_tags=tags, sorter_name=sorter_name, segment_id=segment_id)
 
 def run_post_sorting_for_all_recordings(recording_to_sort, session_type,
                                         paired_recordings_to_sort, paired_session_types,
                                         stitch_points, tags, sorter_name):
     pre_process_ephys_data.split_back(recording_to_sort, stitch_points, sorter_name=sorter_name)
 
-    call_post_sorting_for_session_type(recording_to_sort, session_type, tags, segment_id=1)
+    call_post_sorting_for_session_type(recording_to_sort, session_type, tags, sorter_name=sorter_name, segment_id=1)
     delete_ephys_for_recording(recording_to_sort)
     for index, paired_recording in enumerate(paired_recordings_to_sort):
         print('I will run the post-sorting scripts for: ' + paired_recording)
-        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], tags, segment_id=2+index)
+        call_post_sorting_for_session_type(paired_recording, paired_session_types[index], tags, sorter_name=sorter_name, segment_id=2+index)
         copy_paired_outputs_to_server(paired_recording, sorter_name)
         delete_ephys_for_recording(paired_recording)
 
@@ -283,7 +283,7 @@ def call_spike_sorting_analysis_scripts(recording_to_sort):
                     shutil.rmtree(path_to_paired_recording)
 
         else:
-            call_post_sorting_for_session_type(recording_to_sort, session_type, tags=tags)
+            call_post_sorting_for_session_type(recording_to_sort, session_type, tags=tags, sorter_name=sorterName)
 
         if os.path.exists(recording_to_sort) is True:
             copy_output_to_server(recording_to_sort, location_on_server, sorterName)

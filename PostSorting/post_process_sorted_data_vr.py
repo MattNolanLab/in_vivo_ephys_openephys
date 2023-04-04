@@ -154,7 +154,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         print('-------------------------------------------------------------')
         print('-------------------------------------------------------------')
 
-        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels,random_snippets=True)
+        spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name, dead_channels,random_snippets=True, segment_id=segment_id)
         spike_data_movement, spike_data_stationary, spike_data = PostSorting.vr_spatial_firing.process_spatial_firing(spike_data, raw_position_data, track_length)
         #spike_data = PostSorting.vr_FiringMaps_InTime.control_convolution_in_time(spike_data, raw_position_data)
         spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, output_path, settings.sampling_rate)

@@ -6,6 +6,7 @@ import spikeinterface as si
 import spikeinterface.qualitymetrics as qm
 import settings
 import numpy as np
+from spikeinterfaceHelper import get_on_shank_cluster_ids, get_probe_shank_cluster_ids
 from spikeinterface.postprocessing import compute_principal_components
 from file_utility import *
 
@@ -47,13 +48,6 @@ def load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_
         spike_data_frame['peak_amp'] = peak_amplitudes
     return spike_data_frame
 
-def save_waveforms_locally(we, save_folder_path, on_shank_cluster_ids, cluster_ids):
-    if os.path.exists(save_folder_path) is False:
-        os.makedirs(save_folder_path)
-    for on_shank_id, cluster_id in zip(on_shank_cluster_ids, cluster_ids):
-        waveforms = we.get_waveforms(unit_id=on_shank_id)
-        np.save(save_folder_path+"waveforms_"+str(int(cluster_id))+".npy", np.array(waveforms))
-
 def add_primary_channels(spike_data_frame, we, on_shank_cluster_ids):
     primary_channel_ids = si.get_template_extremum_channel(we)
     primary_channels = []
@@ -63,14 +57,6 @@ def add_primary_channels(spike_data_frame, we, on_shank_cluster_ids):
         primary_channels.append(primary_channel)
     spike_data_frame["primary_channel"] = primary_channels
     return spike_data_frame
-
-def get_on_shank_cluster_ids(cluster_ids):
-    on_shank_cluster_ids = []
-    for i in range(len(cluster_ids)):
-        on_shank_cluster_id = str(int(cluster_ids[i]))
-        on_shank_cluster_id = on_shank_cluster_id[2:]
-        on_shank_cluster_ids.append(int(on_shank_cluster_id))
-    return on_shank_cluster_ids
 
 def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path):
     # first check for manual curation
@@ -95,8 +81,6 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
             Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
             Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
             we = si.extract_waveforms(Recording, Sorter, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0', ms_before=1, ms_after=1, load_if_exists=False, overwrite=True)
-
-            save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', on_shank_cluster_ids, cluster_ids)
             pca = compute_principal_components(we, n_components=5, mode='by_channel_local')
             quality_metrics = qm.compute_quality_metrics(we, n_jobs = 4, metric_names=['snr','isi_violation','firing_rate', 'presence_ratio', 'amplitude_cutoff',
                                                                                        'isolation_distance', 'l_ratio', 'd_prime', 'nearest_neighbor', 'nn_isolation', 'nn_noise_overlap'])

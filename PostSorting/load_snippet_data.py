@@ -53,12 +53,6 @@ def extract_all_snippets(filtered_data, firing_times, tetrode, dead_channels):
     # plt.plot(snippets[3,:,:]) # example ch plot
     return snippets
 
-def get_snippet_method(SorterInstance=None):
-    if SorterInstance is not None:
-        return "from_spike_interface"
-    else:
-        return "from_mda"
-
 def get_n_closest_waveforms(waveforms, number_of_channels, primary_channel, probe_id, shank_id, n=16):
     probe_df = get_probe_dataframe(number_of_channels)
     shank_df = probe_df[(probe_df["probe_index"] == int(probe_id)) & (probe_df["shank_ids"] == int(shank_id))]
@@ -82,7 +76,7 @@ def get_n_closest_waveforms(waveforms, number_of_channels, primary_channel, prob
     closest_n_as_indices = closest_channel_indices[:n]
     return waveforms[closest_n_as_indices, :, :]
 
-def get_snippets(firing_data, file_path, sorter_name, dead_channels, random_snippets=True, method="from_mda"):
+def get_snippets(firing_data, file_path, sorter_name, dead_channels, random_snippets=True, segment_id=0, method="from_mda"):
     if 'random_snippets' in firing_data:
         return firing_data
     print('I will get some random snippets now for each cluster.')
@@ -95,7 +89,12 @@ def get_snippets(firing_data, file_path, sorter_name, dead_channels, random_snip
             probe_id = firing_data[firing_data["cluster_id"] == cluster_id]["probe_id"].iloc[0]
             shank_id = firing_data[firing_data["cluster_id"] == cluster_id]["shank_id"].iloc[0]
 
-            waveforms = np.load(settings.temp_storage_path+"/waveform_arrays/waveforms_"+str(int(cluster_id))+".npy")
+            waveforms = np.load(settings.temp_storage_path+"/waveform_arrays/waveforms_"+str(int(cluster_id))+"_segment"+str(segment_id)+".npy")
+
+            if random_snippets and len(waveforms) >= 50:
+                np.random.shuffle(waveforms)
+                waveforms = waveforms[:50]
+
             waveforms = np.swapaxes(waveforms, 0, 2)
             snippets = get_n_closest_waveforms(waveforms, number_of_channels, primary_channel, probe_id, shank_id)
             snippets_all_clusters.append(snippets)

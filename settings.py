@@ -24,6 +24,7 @@ data_file_prefix = f'_CH' #prefix of data files
 data_file_suffix = ''
 wave_form_size = 40
 tetrodeNum = 4 #how many channel in one tetrode
+waveform_length = 1 # in milliseconds
 
 #########
 # sorter configuration
@@ -61,7 +62,7 @@ vr_grid_analysis_bin_size=8
 ##########
 # Experiment
 session_type = 'vr'
-allow_paired_recordings = False
+allow_paired_recordings = True
 
 ##########
 # open field

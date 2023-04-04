@@ -29,7 +29,8 @@ import PostSorting.theta_modulation
 import PostSorting.load_snippet_data_opto
 import file_utility
 import open_ephys_IO
-
+import sys
+import traceback
 prm = PostSorting.parameters.Parameters()
 
 
@@ -76,7 +77,7 @@ def process_running_parameter_tag(running_parameter_tags):
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
-
+    return unexpected_tag, pixel_ratio
 
 # check for opto pulses and make opto dataframe if found
 def process_light_stimulation(recording_to_process, opto_channel, output_path):
@@ -183,31 +184,20 @@ def set_recording_length(recording_to_process, prm):
     return total_length, is_found
 
 
-def analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length, segment_id=0):
+def analyze_snippets_and_temporal_firing(recording_to_process, prm, dead_channels, opto_start_index, total_length, segment_id=0):
     """
     Run analyses on spike sorted data to analyze snippets and temporal firing properties.
     """
     number_of_channels, _ = file_utility.count_files_that_match_in_folder(recording_to_process, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
-    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, sorter_name, dead_channels, opto_tagging_start_index=opto_start_index, segment_id=segment_id)
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording_to_process, prm.sorter_name, dead_channels, opto_tagging_start_index=opto_start_index, segment_id=segment_id)
     spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, total_length, number_of_channels)
-    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, sorter_name,
-                                                                prm.get_local_recording_folder_path(),
-                                                                prm.get_ms_tmp_path())
-    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,
-                                                            dead_channels, random_snippets=False)
-    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, sorter_name,
-                                                              dead_channels, random_snippets=True)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name,prm.get_local_recording_folder_path(),prm.get_ms_tmp_path())
+    spike_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, prm.sorter_name,dead_channels, random_snippets=False, segment_id=segment_id)
+    snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording_to_process, prm.sorter_name, dead_channels, random_snippets=True, segment_id=segment_id)
 
     return spike_data, snippet_data, bad_clusters
 
 
-def run_analyses_without_position_data(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, opto_analysis, segment_id=0):
-    total_length, is_found = set_recording_length(recording_to_process, prm)
-    spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording_to_process, prm, sorter_name, dead_channels, opto_start_index, total_length, segment_id=segment_id)
-    # PostSorting.waveforms_pca.process_waveform_pca(recording_to_process, remove_outliers=False)
-    if len(spike_data) > 0:
-        spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(),
-                                                                            settings.sampling_rate)
 def make_opto_plots(spatial_firing, prm):
     output_path = prm.get_output_path()
     PostSorting.make_plots.plot_waveforms(spatial_firing, output_path)
@@ -217,17 +207,17 @@ def make_opto_plots(spatial_firing, prm):
 
 
 # analyse subset of pulses and save to subfolder: 'first_pulses' or 'last_pulses'
-def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_fs, opto_output_path):
+def analyse_subset_of_pulses(spatial_firing, prm, pulses, window_fs, opto_output_path, segment_id):
     prm.set_output_path(opto_output_path)
     if os.path.exists(opto_output_path + '/DataFrames') is False:
         os.makedirs(opto_output_path + '/DataFrames')
     pulses.to_pickle(opto_output_path + '/DataFrames/opto_pulses.pkl')  # save copy of opto pulses to subfolder
-    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, subset=True, pulses=pulses, window_fs=window_fs)
+    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, subset=True, pulses=pulses, window_fs=window_fs, segment_id=segment_id)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)
 
 
-def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200, threshold=2000):
+def process_first_and_last_spikes(spatial_firing, window_ms, prm, segment_id=0, num_pulses=200, threshold=2000):
     output_path, sampling_rate = prm.get_output_path(), prm.get_sampling_rate()
     opto_pulses = pd.read_pickle(output_path + '/DataFrames/opto_pulses.pkl')
     on_pulses = opto_pulses.opto_start_times
@@ -238,11 +228,11 @@ def process_first_and_last_spikes(spatial_firing, window_ms, prm, num_pulses=200
         window_size_sampling_rate = int(sampling_rate / 1000 * window_ms)
         first_pulses, last_pulses = on_pulses[0:num_pulses], on_pulses[(total_num_pulses-num_pulses):total_num_pulses]
         first_output_path, last_output_path = output_path + "/first_pulses", output_path + "/last_pulses"
-        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_output_path)
-        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, last_output_path)
+        analyse_subset_of_pulses(spatial_firing, prm, first_pulses, window_size_sampling_rate, first_output_path, segment_id)
+        analyse_subset_of_pulses(spatial_firing, prm, last_pulses, window_size_sampling_rate, last_output_path, segment_id)
 
 
-def analyse_opto_data(opto_on, spatial_firing, prm):
+def analyse_opto_data(opto_on, spatial_firing, prm, segment_id=0):
     """
     :param opto_on: times of where opto pulse is on
     :param spatial_firing: spike data
@@ -250,10 +240,10 @@ def analyse_opto_data(opto_on, spatial_firing, prm):
     """
     window = PostSorting.open_field_light_data.find_stimulation_frequency(opto_on, prm.sampling_rate)  # calculate analysis window
     print('I will now process the peristimulus spikes. This will take a while for high frequency stimulations...')
-    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window)
+    spatial_firing = PostSorting.open_field_light_data.process_spikes_around_light(spatial_firing, prm, window_size_ms=window, segment_id=segment_id)
     spatial_firing.to_pickle(prm.get_output_path() + '/DataFrames/spatial_firing_opto.pkl')  # save copy with opto stats
     make_opto_plots(spatial_firing, prm)  # make plots
-    process_first_and_last_spikes(spatial_firing, window, prm)  # separately analyse first/last pulses (if >1000 pulses
+    process_first_and_last_spikes(spatial_firing, window, prm, segment_id)  # separately analyse first/last pulses (if >1000 pulses
 
 
 def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, opto_on, start_idx, end_idx, prm, dead_channels, output_path, segment_id=0):
@@ -261,56 +251,52 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
     Analyses sessions where opto-stimulation happens during open field exploration.
     Position and spatial firing data is analysed from the start of the first pulse to the end of the last pulse + a 1s buffer.
     """
-    try:  # try to process position data
-        synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
-        spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, dead_channels, segment_id=segment_id)
+    synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
 
-        if opto_found:  # remove position data and spikes before and after stimulation period
-            synced_spatial_data, recording_length = remove_exploration_without_opto(start_idx, end_idx, synced_spatial_data, prm.sampling_rate)
-            spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
+    spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, dead_channels, opto_tagging_start_index=None, segment_id=segment_id)
 
-        # add temporal firing properties and curate clusters
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, recording_length)
-        spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
+    if opto_found:  # remove position data and spikes before and after stimulation period
+        synced_spatial_data, recording_length = remove_exploration_without_opto(start_idx, end_idx, synced_spatial_data, prm.sampling_rate)
+        spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
 
-        if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
-            save_data_frames(spike_data, synced_spatial_data, bad_clusters=bad_clusters, lfp_data=lfp_data)
+    # add temporal firing properties and curate clusters
+    number_of_channels, _ = file_utility.count_files_that_match_in_folder(recording,data_file_prefix=settings.data_file_prefix,data_file_suffix='.continuous')
+    spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, recording_length, number_of_channels)
+    spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
 
-        else:  # process position data and output as normal for open-field trials
-            snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, dead_channels, random_snippets=True)
-            spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
-            spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
-            hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
-            position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial)
-            spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing, position_heat_map)
-            spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
-            spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
-            spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
-            spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
-            spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
-            make_openfield_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
-            PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
-            save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
-            save_data_for_plots(position_heat_map, hd_histogram, prm)
+    if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
+        save_data_frames(spike_data, synced_spatial_data, bad_clusters=bad_clusters, lfp_data=lfp_data)
 
-            if opto_found:  # then analyse opto data, if found
-                analyse_opto_data(opto_on, spatial_firing, prm)
+    else:  # process position data and output as normal for open-field trials
+        snippet_data = PostSorting.load_snippet_data.get_snippets(spike_data, recording, prm.sorter_name, dead_channels, random_snippets=True, segment_id=segment_id)
+        spike_data_spatial = PostSorting.open_field_spatial_firing.process_spatial_firing(spike_data, synced_spatial_data)
+        spike_data_spatial = PostSorting.speed.calculate_speed_score(synced_spatial_data, spike_data_spatial, settings.gauss_sd_for_speed_score, settings.sampling_rate)
+        hd_histogram, spatial_firing = PostSorting.open_field_head_direction.process_hd_data(spike_data_spatial, synced_spatial_data)
+        position_heat_map, spatial_firing = PostSorting.open_field_firing_maps.make_firing_field_maps(synced_spatial_data, spike_data_spatial)
+        spatial_firing = PostSorting.open_field_firing_maps.calculate_spatial_information(spatial_firing, position_heat_map)
+        spatial_firing = PostSorting.open_field_grid_cells.process_grid_data(spatial_firing)
+        spatial_firing = PostSorting.open_field_firing_fields.analyze_firing_fields(spatial_firing, synced_spatial_data, prm)
+        spatial_firing = PostSorting.open_field_border_cells.process_border_data(spatial_firing)
+        spatial_firing = PostSorting.theta_modulation.calculate_theta_index(spatial_firing, output_path, settings.sampling_rate)
+        spatial_firing, spike_data_first, spike_data_second, synced_spatial_data_first, synced_spatial_data_second = PostSorting.compare_first_and_second_half.analyse_half_session_rate_maps(synced_spatial_data, spatial_firing)
+        make_openfield_plots(synced_spatial_data, spatial_firing, position_heat_map, hd_histogram, output_path, prm)
+        PostSorting.open_field_make_plots.make_combined_field_analysis_figures(prm, spatial_firing)
+        save_data_frames(spatial_firing, synced_spatial_data, snippet_data=snippet_data, lfp_data=lfp_data)
+        save_data_for_plots(position_heat_map, hd_histogram, prm)
 
-    except:  # analyse opto data only if there is an error with the position data
-        print('I cannot analyze the position data for this opto recording, I will run the opto analysis only.')
-        process_optotagging(recording, prm, opto_found, opto_on, start_idx)
+        if opto_found:  # then analyse opto data, if found
+            analyse_opto_data(opto_on, spatial_firing, prm, segment_id=segment_id)
+    return
 
-
-def process_optotagging(recording, prm, opto_found, opto_on, start_idx, segment_id=0):
+def process_optotagging(recording, prm, opto_found, opto_on, start_idx, dead_channels, segment_id=0):
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)
-        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length, segment_id=segment_id)
+        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, dead_channels, start_idx, total_length, segment_id=segment_id)
 
         if len(spike_data) > 0:  # only runs if there are curated clusters
             spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
-            analyse_opto_data(opto_on, spike_data, prm)
+            analyse_opto_data(opto_on, spike_data, prm, segment_id=segment_id)
             save_data_frames(spike_data, snippet_data=snippet_data, bad_clusters=bad_clusters)
-
     else:
         print('There were no opto pulses for this recording. Opto analysis will not run.')
 
@@ -340,19 +326,25 @@ def post_process_recording(recording_to_process, session_type, running_parameter
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
 
-    spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process,
-                                                                                                prm, do_resample=False)
+    spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm, do_resample=False)
 
     # check for opto, get on and off times and start/end indices for opto
-    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording_to_process, opto_channel,
-                                                                             output_path)
+    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording_to_process, opto_channel, output_path)
 
-    if session_type == 'openfield_opto':
-        if position_is_found:
+    if (session_type == 'openfield_opto') and position_is_found:
+        try:
             process_opto_with_position(recording_to_process, spatial_data, lfp_data, opto_is_found, opto_on, start, end,
                                        prm, dead_channels, output_path, segment_id=segment_id)
-        else:  # if problem with position file, process opto without position
-            process_optotagging(recording_to_process, prm, opto_is_found, opto_on, start, segment_id=segment_id)
 
-    else:  # process opto without position
-        process_optotagging(recording_to_process, prm, opto_is_found, opto_on, start, segment_id=segment_id)
+        except Exception as ex:  # analyse opto data only if there is an error with the position data
+            print('There is a problem with this file. '
+                  'I will move on to the next one. This is what Python says happened:')
+            print(ex)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
+
+            print('I cannot analyze the position data for this opto recording, I will run the opto analysis only.')
+            process_optotagging(recording_to_process, prm, opto_is_found, opto_on, start, dead_channels=dead_channels,segment_id=0)
+
+    else:  # if problem with position file, process opto without position
+        process_optotagging(recording_to_process, prm, opto_is_found, opto_on, start, dead_channels=dead_channels, segment_id=0)
