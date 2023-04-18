@@ -77,7 +77,7 @@ def process_running_parameter_tag(running_parameter_tags):
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
      
-    return unexpected tag, pixel_ratio
+    return unexpected_tag, pixel_ratio
 
 
 # check for opto pulses and make opto dataframe if found
@@ -304,9 +304,12 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
 
 
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx, segment_id=0):
+    sorter_name = prm.get_sorter_name()
+    dead_channels = prm.get_dead_channels()
+
     if opto_found:
         total_length, is_found = set_recording_length(recording, prm)
-        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, start_idx, total_length, segment_id=segment_id)
+        spike_data, snippet_data, bad_clusters = analyze_snippets_and_temporal_firing(recording, prm, sorter_name, dead_channels, start_idx, total_length, segment_id=segment_id)
 
         if len(spike_data) > 0:  # only runs if there are curated clusters
             spike_data = PostSorting.theta_modulation.calculate_theta_index(spike_data, prm.get_output_path(), settings.sampling_rate)
@@ -332,7 +335,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     PreClustering.dead_channels.get_dead_channel_ids(prm)
     dead_channels = prm.get_dead_channels()
     ephys_channels = prm.get_ephys_channels()
-    output_path = recording_to_process + '/' + settings.sorterName
     opto_channel = prm.get_opto_channel()
 
     if pixel_ratio is False:
@@ -341,7 +343,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
         prm.set_pixel_ratio(pixel_ratio)
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-
     spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process,
                                                                                                 prm, do_resample=False)
 
