@@ -76,6 +76,8 @@ def process_running_parameter_tag(running_parameter_tags):
 
     if pixel_ratio is False:
         print('Default pixel ratio (440) is used.')
+     
+    return unexpected tag, pixel_ratio
 
 
 # check for opto pulses and make opto dataframe if found
