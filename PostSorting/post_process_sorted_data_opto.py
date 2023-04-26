@@ -300,7 +300,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
 
     except:  # analyse opto data only if there is an error with the position data
         print('I cannot analyze the position data for this opto recording, I will run the opto analysis only.')
-        process_optotagging(recording, prm, opto_found, opto_on, start_idx)
+        process_optotagging(recording, prm, opto_found, opto_on, start_idx, segment_id=segment_id)
 
 
 def process_optotagging(recording, prm, opto_found, opto_on, start_idx, segment_id=0):
@@ -328,7 +328,7 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     """
     create_folders_for_output(recording_to_process)
     initialize_parameters(recording_to_process)
-    unexpected_tag, pixel_ratio = process_running_parameter_tag(running_parameter_tags)
+    process_running_parameter_tag(running_parameter_tags)
     prm.set_sorter_name('/' + sorter_name)
     prm.set_output_path(recording_to_process + prm.get_sorter_name())
     output_path = recording_to_process + '/' + settings.sorterName
@@ -338,12 +338,10 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     opto_channel = prm.get_opto_channel()
 
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
-    spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process,
-                                                                                                prm, do_resample=False)
+    spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process, prm, do_resample=False)
 
     # check for opto, get on and off times and start/end indices for opto
-    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording_to_process, opto_channel,
-                                                                             output_path)
+    opto_on, opto_off, opto_is_found, start, end = process_light_stimulation(recording_to_process, opto_channel, output_path)
 
     if session_type == 'openfield_opto':
         if position_is_found:
