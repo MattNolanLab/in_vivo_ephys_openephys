@@ -337,11 +337,6 @@ def post_process_recording(recording_to_process, session_type, running_parameter
     ephys_channels = prm.get_ephys_channels()
     opto_channel = prm.get_opto_channel()
 
-    if pixel_ratio is False:
-        print('Default pixel ratio (440) is used.')
-    else:
-        prm.set_pixel_ratio(pixel_ratio)
-
     lfp_data = PostSorting.lfp.process_lfp(recording_to_process, ephys_channels, output_path, dead_channels)
     spatial_data, position_is_found = PostSorting.open_field_spatial_data.process_position_data(recording_to_process,
                                                                                                 prm, do_resample=False)
