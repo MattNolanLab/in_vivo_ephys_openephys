@@ -263,6 +263,7 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
     Analyses sessions where opto-stimulation happens during open field exploration.
     Position and spatial firing data is analysed from the start of the first pulse to the end of the last pulse + a 1s buffer.
     """
+
     try:  # try to process position data
         synced_spatial_data, recording_length, is_found = PostSorting.open_field_sync_data.process_sync_data(recording, prm, spatial_data)
         spike_data = PostSorting.load_firing_data.process_firing_times(recording, prm.sorter_name, dead_channels, segment_id=segment_id)
@@ -272,7 +273,8 @@ def process_opto_with_position(recording, spatial_data, lfp_data, opto_found, op
             spike_data = remove_spikes_without_opto(spike_data, synced_spatial_data, prm.sampling_rate)
 
         # add temporal firing properties and curate clusters
-        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, recording_length)
+        n_channels, _ = file_utility.count_files_that_match_in_folder(recording, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
+        spike_data = PostSorting.temporal_firing.add_temporal_firing_properties_to_df(spike_data, recording_length, n_channels)
         spike_data, bad_clusters = PostSorting.curation.curate_data(spike_data, prm.sorter_name, prm.get_local_recording_folder_path(), prm.get_ms_tmp_path())
 
         if len(spike_data) == 0:  # this means that there are no good clusters and the analysis will not run
