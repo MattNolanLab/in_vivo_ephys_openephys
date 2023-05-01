@@ -128,7 +128,7 @@ def plot_peristimulus_raster(peristimulus_spikes: pd.DataFrame, output_path: str
 
 
 def get_latencies_for_cluster(spatial_firing, cluster_id):
-    cluster = spatial_firing[spatial_firing.cluster_id == int(cluster_id)]
+    cluster = spatial_firing[spatial_firing.cluster_id.astype(int) == int(cluster_id)]
     latencies_mean = np.round(cluster.opto_latencies_mean_ms, 2)
     latencies_sd = np.round(cluster.opto_latencies_sd_ms, 2)
     if len(latencies_mean) > 0:
@@ -153,17 +153,17 @@ def make_peristimulus_histogram_for_cluster(spatial_firing, peristimulus_spikes,
     if middle_only:
         middle = int(cluster_rows.shape[1] / 2)
         twenty_ms = int(sampling_rate * 20 / 1000)
-        cluster_rows = cluster_rows[:, middle-twenty_ms:middle + twenty_ms]
+        cluster_rows = cluster_rows[:, middle-twenty_ms:middle+twenty_ms]
     positions = [0, cluster_rows.shape[1]/2, cluster_rows.shape[1]]
     peristimulus_figure, ax = format_peristimulus_plot(positions, sampling_rate)
     number_of_spikes_per_sampling_point = np.array(np.sum(cluster_rows, axis=0))
     stimulation_start = cluster_rows.shape[1] / 2  # stimulus pulse starts in the middle of the array
     stimulation_end = cluster_rows.shape[1] / 2 + light_pulse_duration
     latencies_mean, latencies_sd = get_latencies_for_cluster(spatial_firing, cluster)
-    salt_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].SALT_p.iloc[0][0], 4)
-    salt_i = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].SALT_I.iloc[0][0], 4)
-    mwu_u = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].iloc[0]['inhibition_MW_U'], 4)
-    mwu_p = np.round(spatial_firing[spatial_firing.cluster_id == int(cluster)].iloc[0]['inhibition_MW_p'], 4)
+    salt_p = np.round(spatial_firing[spatial_firing.cluster_id.astype(int) == int(cluster)].SALT_p.iloc[0][0], 4)
+    salt_i = np.round(spatial_firing[spatial_firing.cluster_id.astype(int) == int(cluster)].SALT_I.iloc[0][0], 4)
+    mwu_u = np.round(spatial_firing[spatial_firing.cluster_id.astype(int) == int(cluster)].iloc[0]['inhibition_MW_U'], 4)
+    mwu_p = np.round(spatial_firing[spatial_firing.cluster_id.astype(int) == int(cluster)].iloc[0]['inhibition_MW_p'], 4)
 
     ax.axvspan(stimulation_start, stimulation_end, 0, np.max(number_of_spikes_per_sampling_point), alpha=0.5,
                color='lightblue')
