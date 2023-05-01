@@ -50,7 +50,7 @@ def calculate_duration_of_activation(peristimulus_data, num_bins):
 
 
 def find_end_of_activation(peristimulus_data, cluster_id, sampling_rate):
-    peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == cluster_id]
+    peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == int(cluster_id)]
     # calculate whole window size so that bins will correspond to 1 ms -- usually 200 ms
     window_size = calculate_window_size_in_ms(peristimulus_data, sampling_rate)
     num_bins = int(window_size/2)  # ms per side of stimulus
@@ -101,7 +101,7 @@ def analyse_inhibition_of_cells(spikes_around_light, spatial_firing):
     for index, cell in spikes_around_light.iterrows():
         reduced_activity = cell.spikes_before_light.sum() > cell.spikes_after_light.sum()
         if reduced_activity:  # only run analysis on cells with lower spiking after stimulus
-            u, p = mannwhitneyu(cell.spikes_before_light, cell.spikes_after_light)
+            u, p = mannwhitneyu(cell.spikes_before_light.tolist(), cell.spikes_after_light.tolist())
             u_vals.append(u)
             p_vals.append(p)
         else:
