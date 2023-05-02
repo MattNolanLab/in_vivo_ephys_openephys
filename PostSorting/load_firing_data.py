@@ -143,7 +143,9 @@ def process_firing_times_from_SorterInstance(recording_to_process, opto_tagging_
         shank_firing_data = spikeinterfaceHelper.sorter2dataframe(Sorter, session_id=recording_to_process.split('/')[-1], probe_id=probe_id, shank_id=shank_id)
 
         if opto_tagging_start_index is not None:
-            firing_data = move_opto_firings_to_separate_column(shank_firing_data, opto_tagging_start_index)
+            shank_firing_data = move_opto_firings_to_separate_column(shank_firing_data, opto_tagging_start_index)
+
+        firing_data = pd.concat([firing_data, shank_firing_data], ignore_index=True)
 
     return firing_data
 
