@@ -31,7 +31,7 @@ waveform_length = 1 # in milliseconds
 sorterName = 'mountainsort4'
 is_tetrode_by_tetrode = False #set to True if you want the spike sorting to be done tetrode by tetrode
 all_tetrode_together = True #set to True if you want the spike sorting done on all tetrodes combined
-list_of_named_sorters = ['mountainsort', 'mountainsort4','klusta','tridesclous','hdsort','ironclust','kilosort','kilosort2', 'spykingcircus','herdingspikes','waveclus']
+list_of_named_sorters = ['MountainSort', 'mountainsort4','klusta','tridesclous','hdsort','ironclust','kilosort','kilosort2', 'spykingcircus','herdingspikes','waveclus']
 skip_sorting = False
 
 ############

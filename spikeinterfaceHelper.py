@@ -300,7 +300,8 @@ def run_spike_sorting_with_spike_interface(recording_to_sort, sorterName):
             shank_sorting = shank_sorting.save(folder= settings.temp_storage_path+'/sorter_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0',
                                                n_jobs=1, chunk_size=2000, progress_bar=True, overwrite=True)
 
-            we = si.extract_waveforms(base_shank_recording, shank_sorting, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0', ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False, overwrite=True)
+            we = si.extract_waveforms(base_shank_recording, shank_sorting, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0',
+                                      ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False, overwrite=True, return_scaled=False)
 
             on_shank_cluster_ids = shank_sorting.get_unit_ids()
             cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_index, shank_id=shank_id)

@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 
 test_params = PostSorting.parameters.Parameters()
 import elephant as elephant
-
+from scipy.signal import find_peaks
 """
 https://elifesciences.org/articles/35949#s4
 eLife 2018;7:e35949 DOI: 10.7554/eLife.35949
@@ -99,28 +99,32 @@ fivefold greater than the mean spectral power between 0 and 125 Hz
 This is calculated and called Boccara_theta_class either 1=modulated, 0=not modulated
 """
 
-def calculate_spectral_density(firing_rate, cluster_data, save_path):
+def calculate_spectral_density(firing_rate, cluster_data, save_path, xlim=20):
     f, Pxx_den = signal.welch(firing_rate, fs=1000, nperseg=10000, scaling='spectrum')
     Pxx_den = Pxx_den*f
     #print(cluster)
     #plt.semilogy(f, Pxx_den)
     plt.plot(f, Pxx_den, color='black')
-    plt.xlim(([0,20]))
+    plt.xlim(([0,xlim]))
     plt.ylim([0,max(Pxx_den)])
     #plt.ylim([1e1, 1e7])
     #plt.ylim([0.5e-3, 1])
+
+    peaks, peak_dict = find_peaks(Pxx_den,height=1)
+    peak_heights = peak_dict['peak_heights']
+    peaks = peaks[np.argsort(peak_heights)[::-1]]
+    peaks = peaks[:5] # take max of 10 peaks
+    for i in range(len(peaks)):
+        plt.text(x=f[peaks[i]], y=Pxx_den[peaks[i]], s=str(np.round(f[peaks[i]], decimals=1))+"Hz")
+    plt.ylim([0, max(Pxx_den)+(0.1*max(Pxx_den))])
     plt.xlabel('frequency [Hz]')
     plt.ylabel('PSD [V**2/Hz]')
-    try:
-        plt.savefig(save_path + '/' + cluster_data.session_id + '_' + str(cluster_data.cluster_id) + '_power_spectra_ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
-    except:
-        print("you do not have permission to save a figure here, ", save_path)
+    plt.savefig(save_path + '/' + cluster_data.session_id + '_' + str(cluster_data.cluster_id) + '_power_spectra_ms.png', dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
     return f, Pxx_den
 
 
 def calculate_firing_probability(convolved_spikes):
-    firing_rate=[]
     firing_rate = get_rolling_sum(convolved_spikes, 2)
     return (firing_rate*1000)/2 # convert to Hz
 

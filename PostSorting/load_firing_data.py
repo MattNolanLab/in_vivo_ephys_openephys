@@ -145,7 +145,7 @@ def process_firing_times_from_SorterInstance(recording_to_process, opto_tagging_
 
         # extract and save waveforms from each session
         we = si.extract_waveforms(Recording, Sorter, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment'+str(segment_id),
-                                  ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False,overwrite=True, max_spikes_per_unit=None)
+                                  ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False,overwrite=True, max_spikes_per_unit=None, return_scaled=False)
         on_shank_cluster_ids = Sorter.get_unit_ids()
         cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_id, shank_id=shank_id)
         save_waveforms_locally(we, settings.temp_storage_path + '/waveform_arrays/', on_shank_cluster_ids, cluster_ids,segment=segment_id)

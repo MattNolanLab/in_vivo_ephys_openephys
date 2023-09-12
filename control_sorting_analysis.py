@@ -122,7 +122,7 @@ def check_for_tag_name(running_parameter_tags, tag_name):
         tags = [x.strip() for x in running_parameter_tags.split('*')]
         for tag in tags:
             if tag.startswith(tag_name):
-                tag_in_file = str(tag.split("=")[1]).split(',')
+                tag_in_file = str(tag.split("=")[1]).split(',')[0]
     return tag_in_file
 
 def check_for_paired(running_parameter_tags):

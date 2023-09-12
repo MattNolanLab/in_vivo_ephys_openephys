@@ -151,9 +151,7 @@ def plot_stop_histogram(processed_position_data, output_path, track_length=200):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plot_utility.style_track_plot(ax, track_length)
-
-    x_max = max(beaconed_stop_hist/len(beaconed_trials))+0.1
-    plot_utility.style_vr_plot(ax, x_max)
+    plot_utility.style_vr_plot(ax)
     plt.subplots_adjust(hspace = .35, wspace = .35,  bottom = 0.2, left = 0.12, right = 0.87, top = 0.92)
     plt.savefig(output_path + '/Figures/behaviour/stop_histogram' + '.png', dpi=200)
     plt.close()

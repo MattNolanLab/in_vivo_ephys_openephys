@@ -80,7 +80,8 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
 
             Sorter = si.load_extractor(settings.temp_storage_path+'/sorter_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
             Recording = si.load_extractor(settings.temp_storage_path+'/processed_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0')
-            we = si.extract_waveforms(Recording, Sorter, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0', ms_before=1, ms_after=1, load_if_exists=False, overwrite=True)
+            we = si.extract_waveforms(Recording, Sorter, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_id)+'_shank'+str(shank_id)+'_segment0',
+                                      ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False, overwrite=True, return_scaled=False)
             pca = compute_principal_components(we, n_components=5, mode='by_channel_local')
             quality_metrics = qm.compute_quality_metrics(we, n_jobs = 4, metric_names=['snr','isi_violation','firing_rate', 'presence_ratio', 'amplitude_cutoff',
                                                                                        'isolation_distance', 'l_ratio', 'd_prime', 'nearest_neighbor', 'nn_isolation', 'nn_noise_overlap'])
@@ -88,7 +89,7 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
             spike_data_frame_shank = spike_data_frame_shank.merge(quality_metrics, on='cluster_id')
             spike_data_frame_shank = add_primary_channels(spike_data_frame_shank, we, on_shank_cluster_ids)
             tmp_spike_data_frame = pd.concat([tmp_spike_data_frame, spike_data_frame_shank], ignore_index=True)
-        spike_data_frame = tmp_spike_data_frame.copy()
+        spike_data_frame = tmp_spike_data_frame.copy() 
 
         isolation_threshold = 0.9
         noise_overlap_threshold = 0.05

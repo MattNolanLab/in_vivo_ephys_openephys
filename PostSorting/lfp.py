@@ -101,7 +101,7 @@ def process_batch_lfp(recordings):
     prm = PostSorting.parameters.Parameters()
     prm.set_sampling_rate(30000)
     prm.set_pixel_ratio(440)
-    prm.set_dead_channels
+    dead_channels = prm.get_dead_channels()
     prm.set_movement_channel('100_ADC2.continuous')
     prm.set_sync_channel('100_ADC1.continuous')
 
@@ -112,15 +112,17 @@ def process_batch_lfp(recordings):
 
         # flag dead channels
         prm.set_file_path(recording)
+        prm.set_output_path(directed_path + "/MountainSort")
         dead_channel_txt_file_path = recording+"/dead_channels.txt"
         prm.set_dead_channel_from_txt_file(dead_channel_txt_file_path)
-
-        prm.set_output_path(directed_path+"/MountainSort")
+        prm.set_output_path(directed_path + "/MountainSort")
         empty_df_path = prm.get_output_path()+'/DataFrames/empty_df4.pkl'
+        ephys_channels = prm.get_ephys_channels()
+        output_path = directed_path + "/MountainSort"
 
         if os.path.exists(empty_df_path) is False:
             try:
-                lfp_df = process_lfp(recording_folder=recording, prm=prm)
+                lfp_df = process_lfp(recording, ephys_channels, output_path, dead_channels)
 
                 if os.path.exists(directed_path+"/MountainSort/DataFrames") is False:
                     os.makedirs(directed_path+"/MountainSort/DataFrames")
@@ -348,6 +350,7 @@ def plot_lfp_summary(mouse_lfp_summary_df):
 
 def main():
     print("------------------------")
+    process_batch_lfp(recordings=["/mnt/datastore/Harry/Cohort9_february2023/of/M17_2023-05-16_15-43-04"])
 
 if __name__ == '__main__':
     main()

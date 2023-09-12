@@ -162,7 +162,7 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    """Example usage of this script
+    #Example usage of this script
     # silicon probe mice
     base_path = "/mnt/datastore/Harry/Cohort9_february2023"
     vr_paths = get_recording_paths([], base_path+"/vr")
@@ -176,7 +176,7 @@ def main():
     write_dead_channel_file(of_paths,dead_channel_helper=dead_channel_helper)
     write_recording_list_file(vr_paths, save_path=base_path+"/vr/full_list.txt")
     write_recording_list_file(of_paths, save_path=base_path+"/of/full_list.txt")
-    """
+
 
 if __name__ == '__main__':
     main()

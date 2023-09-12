@@ -56,8 +56,8 @@ def main():
     print('-------------------------------------------------------------')
     print('-------------------------------------------------------------')
 
-    """Example usage of this script
-    base_path = "/mnt/datastore/Harry/test_recording"
+    #Example usage of this script
+    base_path = "/mnt/datastore/Harry/Cohort9_february2023"
     vr_paths = get_recording_paths([], base_path+"/vr")
     of_paths = get_recording_paths([], base_path+"/of")
 
@@ -65,7 +65,7 @@ def main():
     bring_out_of_record_node(of_paths, record_node_dir_name="Record Node 101")
     rename_channel_files(vr_paths, channel_file_name_in="_RhythmData", channel_file_name_out="")
     rename_channel_files(of_paths, channel_file_name_in="_RhythmData", channel_file_name_out="")
-    """
+
 
 if __name__ == '__main__':
     main()
