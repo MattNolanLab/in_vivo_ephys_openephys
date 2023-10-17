@@ -166,11 +166,11 @@ def main():
         plot_behaviour(spike_data) # plot stops, average stops etc
 
         # RUN FIGURE ANALYSIS
-        spike_data = run_main_figure_analysis(spike_data)
-        spike_data = run_supple_figure_analysis(spike_data)
+        #spike_data = run_main_figure_analysis(spike_data)
+        #spike_data = run_supple_figure_analysis(spike_data)
 
         # SAVE DATAFRAMES for R
-        spike_data.to_pickle(output_spike_path) # path to where you want the pkl to be saved
+        #spike_data.to_pickle(output_spike_path) # path to where you want the pkl to be saved
 
         print("I have processed cohort ", cohort, ", it is saved here: ", output_spike_path, ". There were ", str(len(spike_data)), " cells")
         n_cells += len(spike_data)
