@@ -156,6 +156,7 @@ def process_firing_times_from_SorterInstance(recording_to_process, opto_tagging_
             shank_firing_data = move_opto_firings_to_separate_column(shank_firing_data, opto_tagging_start_index)
 
         firing_data = pd.concat([firing_data, shank_firing_data], ignore_index=True)
+
     return firing_data
 
 def get_available_ephys_channels(recording_to_process):

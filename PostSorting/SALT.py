@@ -217,7 +217,7 @@ def run_salt_test_on_peristimulus_data(spatial_firing, peristimulus_data):
     all_i_values = []
     for cluster_index, cluster in spatial_firing.iterrows():
         # get relevant part of peristimulus data here
-        peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == cluster.cluster_id]
+        peristim_cluster = peristimulus_data[peristimulus_data.cluster_id.astype(int) == int(cluster.cluster_id)]
         baseline_trials, test_trials = convert_peristimulus_data_to_baseline_and_test(peristim_cluster)
         latencies, p_values, I_values = salt(baseline_trials=baseline_trials,
                                              test_trials=test_trials,
