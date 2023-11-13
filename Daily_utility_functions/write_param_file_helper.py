@@ -164,7 +164,7 @@ def main():
 
     #Example usage of this script
     # silicon probe mice
-    base_path = "/mnt/datastore/Harry/Cohort9_february2023"
+    base_path = "/mnt/datastore/Harry/Cohort10_october2023"
     vr_paths = get_recording_paths([], base_path+"/vr")
     of_paths = get_recording_paths([], base_path+"/of")
     #print_track_lengths_from_param(vr_paths)
