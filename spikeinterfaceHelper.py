@@ -16,6 +16,7 @@ from probeinterface import Probe
 from probeinterface.plotting import plot_probe
 from probeinterface import get_probe
 from probeinterface import Probe, ProbeGroup
+from probeinterface import combine_probes
 from probeinterface.plotting import plot_probe_group
 import data_frame_utility
 import tempfile
@@ -25,7 +26,6 @@ def load_OpenEphysRecording(folder, channel_ids=None):
     if channel_ids is None:
         channel_ids = np.arange(1, number_of_channels+1)
 
-    channel_ids = np.sort(channel_ids)
     signal = []
     for i, channel_id in enumerate(channel_ids):
         fname = folder+'/'+corrected_data_file_suffix+str(channel_id)+settings.data_file_suffix+'.continuous'
@@ -234,7 +234,6 @@ def add_probe_info(recordingExtractor, recording_to_sort, sorterName):
 
 
 def add_probe_info_by_shank(recordingExtractor, shank_df):
-    shank_df = shank_df.sort_values(by="channel", ascending=True)
     x = shank_df["x"].values
     y = shank_df["y"].values
     geom = np.transpose(np.vstack((x,y)))
@@ -244,6 +243,7 @@ def add_probe_info_by_shank(recordingExtractor, shank_df):
                                                                         'height': shank_df["height"].iloc[0]})
     elif shank_df["contact_shapes"].iloc[0] == "circle":
         probe.set_contacts(positions=geom, shapes='circle', shape_params={'radius': shank_df["radius"].iloc[0]})
+    #probe.set_device_channel_indices(np.array(shank_df["channel"]))
     probe.set_device_channel_indices(np.arange(len(shank_df)))
     recordingExtractor.set_probe(probe, in_place=True)
     return recordingExtractor
@@ -276,35 +276,35 @@ def run_spike_sorting_with_spike_interface(recording_to_sort, sorterName):
     params['adjacency_radius'] = 200
     params['num_workers'] = 3
 
-    # by shark
     n_channels, _ = count_files_that_match_in_folder(recording_to_sort, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
     probe_group_df = get_probe_dataframe(n_channels)
-    bad_channel_ids = getDeadChannel(recording_to_sort +'/dead_channels.txt')
+    #probe_group = generate_probe_group(n_channels)
+    #bad_channel_ids = getDeadChannel(recording_to_sort +'/dead_channels.txt')
 
     for probe_index in np.unique(probe_group_df["probe_index"]):
         print("I am subsetting the recording and analysing probe "+str(probe_index))
         probe_df = probe_group_df[probe_group_df["probe_index"] == probe_index]
-        for shank_id in np.unique(probe_df["shank_ids"]):
-            print("I am looking at shank "+str(shank_id))
-            shank_df = probe_df[probe_df["shank_ids"] == shank_id]
+        for shank_index in np.unique(probe_df["shank_ids"]):
+            print("I am looking at shank "+str(shank_index))
+            shank_df = probe_df[probe_df["shank_ids"] == shank_index]
             channels_in_shank = np.array(shank_df["channel"])
-            base_signal_shank = load_OpenEphysRecording(recording_to_sort, channel_ids=channels_in_shank)
-            base_shank_recording = se.NumpyRecording(base_signal_shank,settings.sampling_rate)
-            base_shank_recording = add_probe_info_by_shank(base_shank_recording, shank_df)
-            base_shank_recording = spre.whiten(base_shank_recording)
-            base_shank_recording = spre.bandpass_filter(base_shank_recording, freq_min=300, freq_max=6000)
-            base_shank_recording.remove_channels(bad_channel_ids)
-            base_shank_recording = base_shank_recording.save(folder= settings.temp_storage_path+'/processed_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0',
+            signal_shank = load_OpenEphysRecording(recording_to_sort, channel_ids=channels_in_shank)
+            shank_recording = se.NumpyRecording(signal_shank, settings.sampling_rate)
+            shank_recording = add_probe_info_by_shank(shank_recording, shank_df)
+            shank_recording = spre.whiten(shank_recording)
+            shank_recording = spre.bandpass_filter(shank_recording, freq_min=300, freq_max=6000)
+
+            shank_recording = shank_recording.save(folder= settings.temp_storage_path+'/processed_probe'+str(probe_index)+'_shank'+str(shank_index)+'_segment0',
                                                              n_jobs=1, chunk_size=2000, progress_bar=True, overwrite=True)
-            shank_sorting = sorters.run_sorter(sorter_name=sorterName, recording=base_shank_recording, output_folder='sorting_tmp', verbose=True, **params)
-            shank_sorting = shank_sorting.save(folder= settings.temp_storage_path+'/sorter_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0',
+            shank_sorting = sorters.run_sorter(sorter_name=sorterName, recording=shank_recording, output_folder='sorting_tmp', verbose=True, **params)
+            shank_sorting = shank_sorting.save(folder= settings.temp_storage_path+'/sorter_probe'+str(probe_index)+'_shank'+str(shank_index)+'_segment0',
                                                n_jobs=1, chunk_size=2000, progress_bar=True, overwrite=True)
 
-            we = si.extract_waveforms(base_shank_recording, shank_sorting, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_index)+'_shank'+str(shank_id)+'_segment0',
-                                      ms_before=settings.waveform_length/2, ms_after=settings.waveform_length/2, load_if_exists=False, overwrite=True, return_scaled=False)
+            we = si.extract_waveforms(shank_recording, shank_sorting, folder=settings.temp_storage_path+'/waveforms_probe'+str(probe_index)+'_shank'+str(shank_index)+'_segment0',
+                                      ms_before=1, ms_after=2, load_if_exists=False, overwrite=True, return_scaled=False)
 
             on_shank_cluster_ids = shank_sorting.get_unit_ids()
-            cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_index, shank_id=shank_id)
+            cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_index, shank_id=shank_index)
             save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', on_shank_cluster_ids, cluster_ids, segment=0)
     return
 
@@ -332,6 +332,28 @@ def save_waveforms_locally(we, save_folder_path, on_shank_cluster_ids, cluster_i
         np.save(save_folder_path+"waveforms_"+str(int(cluster_id))+"_segment"+str(segment)+".npy", np.array(waveforms))
     return
 
+def generate_probe_group(number_of_channels):
+
+    probegroup = ProbeGroup()
+    if number_of_channels == 16: # presume tetrodes
+        geom = pd.read_csv(settings.tetrode_geom_path, header=None).values
+        probe = Probe(ndim=2, si_units='um')
+        probe.set_contacts(positions=geom, shapes='circle', shape_params={'radius': 5})
+        probe.set_device_channel_indices(np.arange(number_of_channels))
+    else:
+        # presume cambridge neurotech P1 probes
+        assert number_of_channels % 64 == 0
+        n_probes = int(number_of_channels / 64)
+        #device_channel_indices = []
+        for i in range(n_probes):
+            probe = get_probe('cambridgeneurotech', 'ASSY-236-P-1')
+            probe.wiring_to_device('cambridgeneurotech_mini-amp-64', channel_offset=int(i * 64))
+            probe.move([i * 2000, 0])  # move the probes far away from eachother
+            probe.set_contact_ids(np.array(probe.to_dataframe()["contact_ids"].values, dtype=np.int64) + int(64 * i))
+            probe.set_device_channel_indices(np.arange(64) + int(64 * i))
+            probegroup.add_probe(probe)
+    return probegroup
+
 def get_probe_dataframe(number_of_channels):
     if number_of_channels == 16: # presume tetrodes
         geom = pd.read_csv(settings.tetrode_geom_path, header=None).values
@@ -347,16 +369,19 @@ def get_probe_dataframe(number_of_channels):
         assert number_of_channels%64==0
         probegroup = ProbeGroup()
         n_probes = int(number_of_channels/64)
+        device_channel_indices = []
         for i in range(n_probes):
             probe = get_probe('cambridgeneurotech', 'ASSY-236-P-1')
-            probe.move([i*2000, 0]) # move the probes far away from eachother
-            contact_ids = np.array(probe.to_dataframe()["contact_ids"].values, dtype=np.int64)+(64*i)
-            #probe.set_device_channel_indices(get_wiring(contact_ids, 'cambridgeneurotech', 'ASSY-236-P-1', probe_i=i))
-            probe.set_contact_ids(contact_ids)
+            probe.wiring_to_device('cambridgeneurotech_mini-amp-64', channel_offset=int(i * 64))
+            probe.move([i * 2000, 0])  # move the probes far away from eachother
+            probe.set_contact_ids(np.array(probe.to_dataframe()["contact_ids"].values, dtype=np.int64) + int(64 * i))
             probegroup.add_probe(probe)
+            device_channel_indices.extend(probe.device_channel_indices.tolist())
+
+        device_channel_indices = np.array(device_channel_indices)+1
         probe_df = probegroup.to_dataframe()
         probe_df = probe_df.astype({"probe_index": int, "shank_ids": int, "contact_ids": int})
-        probe_df["channel"] = get_wiring(probe_df["contact_ids"], probe_df["probe_index"], 'cambridgeneurotech', 'ASSY-236-P-1')+1
+        probe_df["channel"] = device_channel_indices.tolist()
         probe_df["shank_ids"] = (np.asarray(probe_df["shank_ids"])+1).tolist()
         probe_df["probe_index"] = (np.asarray(probe_df["probe_index"])+1).tolist()
     return probe_df
