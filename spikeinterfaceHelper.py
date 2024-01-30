@@ -4,6 +4,9 @@ import spikeinterface as si
 import spikeinterface.extractors as se
 import spikeinterface.sorters as sorters
 import spikeinterface.preprocessing as spre
+from spikeinterface.postprocessing import compute_spike_amplitudes, compute_principal_components
+from spikeinterface.exporters import export_to_phy
+
 import OpenEphys
 import matplotlib.pyplot as plt
 import numpy as np
@@ -51,187 +54,6 @@ def test_probe_interface(save_path):
     plot_probe(recording_4_shanks.get_probe(), ax=ax)
     plt.savefig(save_path+'probe_locations.png', dpi=200)
     plt.close()
-
-def get_wiring_for_cambridgeneurotech_ASSY_236_P_1(contact_id, probe_id):
-    contact_id = contact_id-(64*probe_id)
-
-    if contact_id == 1:
-        return 41 + (64*probe_id)
-    elif contact_id == 2:
-        return 39 + (64*probe_id)
-    elif contact_id == 3:
-        return 38 + (64*probe_id)
-    elif contact_id == 4:
-        return 37 + (64*probe_id)
-    elif contact_id == 5:
-        return 35 + (64*probe_id)
-    elif contact_id == 6:
-        return 34 + (64*probe_id)
-    elif contact_id == 7:
-        return 33 + (64*probe_id)
-    elif contact_id == 8:
-        return 32 + (64*probe_id)
-    elif contact_id == 9:
-        return 29 + (64*probe_id)
-    elif contact_id == 10:
-        return 30 + (64*probe_id)
-    elif contact_id == 11:
-        return 28 + (64*probe_id)
-    elif contact_id == 12:
-        return 26 + (64*probe_id)
-    elif contact_id == 13:
-        return 25 + (64*probe_id)
-    elif contact_id == 14:
-        return 24 + (64*probe_id)
-    elif contact_id == 15:
-        return 22 + (64*probe_id)
-    elif contact_id == 16:
-        return 20 + (64*probe_id)
-    elif contact_id == 17:
-        return 46 + (64*probe_id)
-    elif contact_id == 18:
-        return 45 + (64*probe_id)
-    elif contact_id == 19:
-        return 44 + (64*probe_id)
-    elif contact_id == 20:
-        return 43 + (64*probe_id)
-    elif contact_id == 21:
-        return 42 + (64*probe_id)
-    elif contact_id == 22:
-        return 40 + (64*probe_id)
-    elif contact_id == 23:
-        return 36 + (64*probe_id)
-    elif contact_id == 24:
-        return 31 + (64*probe_id)
-    elif contact_id == 25:
-        return 27 + (64*probe_id)
-    elif contact_id == 26:
-        return 23 + (64*probe_id)
-    elif contact_id == 27:
-        return 21 + (64*probe_id)
-    elif contact_id == 28:
-        return 18 + (64*probe_id)
-    elif contact_id == 29:
-        return 19 + (64*probe_id)
-    elif contact_id == 30:
-        return 17 + (64*probe_id)
-    elif contact_id == 31:
-        return 16 + (64*probe_id)
-    elif contact_id == 32:
-        return 14 + (64*probe_id)
-    elif contact_id == 33:
-        return 55 + (64*probe_id)
-    elif contact_id == 34:
-        return 53 + (64*probe_id)
-    elif contact_id == 35:
-        return 54 + (64*probe_id)
-    elif contact_id == 36:
-        return 52 + (64*probe_id)
-    elif contact_id == 37:
-        return 51 + (64*probe_id)
-    elif contact_id == 38:
-        return 50 + (64*probe_id)
-    elif contact_id == 39:
-        return 49 + (64*probe_id)
-    elif contact_id == 40:
-        return 48 + (64*probe_id)
-    elif contact_id == 41:
-        return 47 + (64*probe_id)
-    elif contact_id == 42:
-        return 15 + (64*probe_id)
-    elif contact_id == 43:
-        return 13 + (64*probe_id)
-    elif contact_id == 44:
-        return 12 + (64*probe_id)
-    elif contact_id == 45:
-        return 11 + (64*probe_id)
-    elif contact_id == 46:
-        return 9 + (64*probe_id)
-    elif contact_id == 47:
-        return 10 + (64*probe_id)
-    elif contact_id == 48:
-        return 8 + (64*probe_id)
-    elif contact_id == 49:
-        return 63 + (64*probe_id)
-    elif contact_id == 50:
-        return 62 + (64*probe_id)
-    elif contact_id == 51:
-        return 61 + (64*probe_id)
-    elif contact_id == 52:
-        return 60 + (64*probe_id)
-    elif contact_id == 53:
-        return 59 + (64*probe_id)
-    elif contact_id == 54:
-        return 58 + (64*probe_id)
-    elif contact_id == 55:
-        return 57 + (64*probe_id)
-    elif contact_id == 56:
-        return 56 + (64*probe_id)
-    elif contact_id == 57:
-        return 7 + (64*probe_id)
-    elif contact_id == 58:
-        return 6 + (64*probe_id)
-    elif contact_id == 59:
-        return 5 + (64*probe_id)
-    elif contact_id == 60:
-        return 4 + (64*probe_id)
-    elif contact_id == 61:
-        return 3 + (64*probe_id)
-    elif contact_id == 62:
-        return 2 + (64*probe_id)
-    elif contact_id == 63:
-        return 1 + (64*probe_id)
-    elif contact_id == 64:
-        return 0 + (64*probe_id)
-    else:
-        print("contact is invalid")
-
-
-
-def get_wiring(contact_ids, probes_ids, probe_manufacturer, probe_type):
-    # add wiring info here when new experiments use different probes
-    wiring_ids = []
-    if probe_manufacturer == "cambridgeneurotech" and probe_type == "ASSY-236-P-1":
-        for contact_id, probe_id in zip(contact_ids, probes_ids):
-            corresponding_wiring_id = get_wiring_for_cambridgeneurotech_ASSY_236_P_1(contact_id, probe_id)
-            wiring_ids.append(corresponding_wiring_id)
-    else:
-        print("The given probe_manufacturer and probe_type do not have the wiring set yet"
-              "Check the arguments and add the wiring here if not yet added")
-    return np.array(wiring_ids)
-
-def add_probe_info(recordingExtractor, recording_to_sort, sorterName):
-    number_of_channels, corrected_data_file_suffix = count_files_that_match_in_folder(recording_to_sort, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
-
-    if number_of_channels == 16: # presume tetrodes
-        geom = pd.read_csv(settings.tetrode_geom_path, header=None).values
-        probe = Probe(ndim=2, si_units='um')
-        probe.set_contacts(positions=geom, shapes='circle', shape_params={'radius': 5})
-        probe.set_device_channel_indices(np.arange(number_of_channels))
-        recordingExtractor.set_probe(probe, in_place=True)
-    else: # presume cambridge neurotech P1 probes
-
-        n_probes = number_of_channels/64
-        probegroup =ProbeGroup()
-        for i in range(int(n_probes)):
-            probe = get_probe('cambridgeneurotech', 'ASSY-236-P-1')
-            probe.move([i*2000, 0]) # move the probes far away from eachother
-            contact_ids = np.array(probe.to_dataframe()["contact_ids"].values, dtype=np.int64)+(64*i)
-            probe.set_contact_ids(contact_ids)
-            probe.set_device_channel_indices(get_wiring(contact_ids, 'cambridgeneurotech', 'ASSY-236-P-1'))
-            probegroup.add_probe(probe)
-        recordingExtractor.set_probegroup(probegroup, group_mode='by_shank', in_place=True)
-    #print(recordingExtractor.get_probegroup())
-
-    # plot somewhere to show goemetry of electrodes
-    fig = plt.figure(figsize=(6,6))
-    ax = fig.add_subplot(1, 1, 1)
-    plot_probe_group(recordingExtractor.get_probegroup())
-    #plt.savefig(recording_to_sort+"/"+sorterName+"/"+str(number_of_channels)+"_channel_map.png", dpi=200)
-    plt.savefig("/mnt/datastore/Harry/test_recording/probe_locations_"+str(number_of_channels)+"_channels.png", dpi=200)
-    plt.close()
-    return recordingExtractor
-
 
 def add_probe_info_by_shank(recordingExtractor, shank_df):
     x = shank_df["x"].values
@@ -305,6 +127,10 @@ def run_spike_sorting_with_spike_interface(recording_to_sort, sorterName):
 
             on_shank_cluster_ids = shank_sorting.get_unit_ids()
             cluster_ids = get_probe_shank_cluster_ids(on_shank_cluster_ids, probe_id=probe_index, shank_id=shank_index)
+
+            _ = compute_spike_amplitudes(waveform_extractor=we)
+            _ = compute_principal_components(waveform_extractor=we, n_components=3, mode='by_channel_global')
+            save_to_phy(we, settings.temp_storage_path+'/phy_folder', probe_index=probe_index, shank_index=shank_index)
             save_waveforms_locally(we, settings.temp_storage_path+'/waveform_arrays/', on_shank_cluster_ids, cluster_ids, segment=0)
     return
 
@@ -331,6 +157,12 @@ def save_waveforms_locally(we, save_folder_path, on_shank_cluster_ids, cluster_i
         waveforms = we.get_waveforms(unit_id=on_shank_id)
         np.save(save_folder_path+"waveforms_"+str(int(cluster_id))+"_segment"+str(segment)+".npy", np.array(waveforms))
     return
+
+def save_to_phy(we, save_folder_path, probe_index, shank_index):
+    if os.path.exists(save_folder_path) is False:
+        os.makedirs(save_folder_path)
+    shank_specific_path = save_folder_path+"/probe"+str(probe_index)+"_shank"+str(shank_index)
+    export_to_phy(waveform_extractor=we, output_folder=shank_specific_path)
 
 def generate_probe_group(number_of_channels):
 
