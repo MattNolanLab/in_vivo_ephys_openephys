@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import PostSorting.load_snippet_data
 from file_utility import *
 import spikeinterface as si
-from spikeinterfaceHelper import get_on_shank_cluster_ids, get_probe_shank_cluster_ids
+from spikeinterfaceHelper import *
 
 def get_overlapping_mask(all_firing_times, firing_times):
     mask = np.zeros(len(all_firing_times))

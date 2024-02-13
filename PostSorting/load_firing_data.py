@@ -1,18 +1,12 @@
 import mdaio
 import numpy as np
-import os
-from pathlib import Path
 import pandas as pd
-import PreClustering.dead_channels
 import data_frame_utility
-import settings
 import open_ephys_IO
 import spikeinterfaceHelper
-import time
 from file_utility import *
-import spikeinterface.qualitymetrics as qm
 import spikeinterface as si
-from spikeinterfaceHelper import get_on_shank_cluster_ids, get_probe_shank_cluster_ids, save_waveforms_locally
+from spikeinterfaceHelper import *
 
 def get_firing_info(file_path, sorter_name):
     firing_times_path = file_path + '/Electrophysiology/' + sorter_name + '/firings.mda'  # sorter name shouldn't contain path slash

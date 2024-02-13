@@ -4,7 +4,7 @@ import plot_utility
 import numpy as np
 import PostSorting.vr_stop_analysis
 import PostSorting.vr_extract_data
-import PostSorting.vr_cued_make_plots
+import PostSorting.vr_make_plots
 import PostSorting.vr_spatial_data
 from numpy import inf
 import gc

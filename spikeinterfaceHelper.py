@@ -1,5 +1,5 @@
 ##some helper functions to be used with spike interface
-import pandas as pd
+
 import spikeinterface as si
 import spikeinterface.extractors as se
 import spikeinterface.sorters as sorters
@@ -10,19 +10,13 @@ from spikeinterface.exporters import export_to_phy
 import OpenEphys
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import butter,filtfilt
 import pandas as pd
 from file_utility import *
 import settings
-from tqdm import tqdm
-from probeinterface import Probe
 from probeinterface.plotting import plot_probe
 from probeinterface import get_probe
 from probeinterface import Probe, ProbeGroup
-from probeinterface import combine_probes
-from probeinterface.plotting import plot_probe_group
 import data_frame_utility
-import tempfile
 
 def load_OpenEphysRecording(folder, channel_ids=None):
     number_of_channels, corrected_data_file_suffix = count_files_that_match_in_folder(folder, data_file_prefix=settings.data_file_prefix, data_file_suffix='.continuous')
@@ -208,6 +202,7 @@ def get_probe_dataframe(number_of_channels):
             probe.move([i * 2000, 0])  # move the probes far away from eachother
             probe.set_contact_ids(np.array(probe.to_dataframe()["contact_ids"].values, dtype=np.int64) + int(64 * i))
             probegroup.add_probe(probe)
+            # TODO IS THIS RIGHT?
             device_channel_indices.extend(probe.device_channel_indices.tolist())
 
         device_channel_indices = np.array(device_channel_indices)+1

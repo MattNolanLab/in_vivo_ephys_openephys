@@ -11,7 +11,7 @@ from probeinterface.plotting import plot_probe
 from probeinterface import get_probe
 from scipy.spatial import distance
 from file_utility import *
-from spikeinterfaceHelper import get_probe_dataframe
+from spikeinterfaceHelper import *
 
 def extract_random_snippets(filtered_data, firing_times, tetrode, number_of_snippets, dead_channels):
     if len(dead_channels) != 0:

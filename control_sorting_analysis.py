@@ -406,10 +406,11 @@ def get_next_recording_on_server_to_sort():
 
 
 def monitor_to_sort():
+    remove_tmp_files()
     start_time = time.time()
     time_to_wait = 60.0
     while True:
-        remove_tmp_files()
+        #remove_tmp_files()
         print('I am checking whether there is something to sort.')
 
         recording_to_sort = check_folder(sorting_folder)

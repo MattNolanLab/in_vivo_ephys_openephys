@@ -6,7 +6,7 @@ import spikeinterface as si
 import spikeinterface.qualitymetrics as qm
 import settings
 import numpy as np
-from spikeinterfaceHelper import get_on_shank_cluster_ids, get_probe_shank_cluster_ids
+from spikeinterfaceHelper import *
 from spikeinterface.postprocessing import compute_principal_components
 from file_utility import *
 
@@ -104,6 +104,15 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
         good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_snr & high_mean_firing_rate].copy()
         noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
 
+        good_cluster["curated"] = 1
+        noisy_cluster["curated"] = 0
+        all_clusters = pd.concat([good_cluster, noisy_cluster], ignore_index=True)
+
+        print("There are ", str(len(spike_data_frame)), " cells")
+        print("", str(len(good_cluster)), " passed curation")
+        print("", str(len(noisy_cluster)), " failed curation")
+        return all_clusters, pd.DataFrame()
+        #return good_cluster, noisy_cluster
 
     else: # otherwise load the curation metrics from mountainsort3
         spike_data_frame = load_curation_metrics(spike_data_frame, sorter_name, local_recording_folder_path, ms_tmp_path)
@@ -120,6 +129,6 @@ def curate_data(spike_data_frame, sorter_name, local_recording_folder_path, ms_t
         good_cluster = spike_data_frame[isolated_cluster & low_noise_cluster & high_peak_snr & high_mean_firing_rate].copy()
         noisy_cluster = spike_data_frame.loc[~spike_data_frame.index.isin(list(good_cluster.index))]
 
-    return good_cluster, noisy_cluster
+        return good_cluster, noisy_cluster
 
 
